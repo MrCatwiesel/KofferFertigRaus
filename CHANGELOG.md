@@ -1,5 +1,10 @@
 # Änderungsprotokoll
 
+## 1.2.1 – 2026-10-11
+
+### Neu
+- `server/proxmox/create-ct.sh`: legt auf dem Proxmox-Host den Container für den Abgleich-Server an und richtet ihn ein
+
 ## 1.2.0 – 2026-10-11
 
 ### Neu

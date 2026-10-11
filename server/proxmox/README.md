@@ -2,7 +2,18 @@
 
 Ein kleiner **Debian-LXC-Container** reicht. Einen Datenbank-Server braucht es **nicht** – der Abgleich-Server bringt SQLite mit, alles liegt in einer Datei im Container.
 
-## 1. Container anlegen
+## Schnellweg (empfohlen, für Variante A)
+
+In der Proxmox-Oberfläche den Knoten auswählen → **Shell**:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox/create-ct.sh -o create-ct.sh
+bash create-ct.sh
+```
+
+Das Skript fragt nach Nummer, fester IP, Netzmaske, Gateway, Speicher und Festplattengröße. Danach legt es den Container an und richtet den Abgleich-Server darin ein. Am Ende zeigt es den **Schlüssel**. Weiter mit „Dann im Reverse-Proxy …“ unter Variante A.
+
+## 1. Container von Hand anlegen
 
 In Proxmox: *Create CT*
 

@@ -1,7 +1,7 @@
 # Abgleich-Server für „Nix wie weg“ – keine Fremdpakete, nur Node.js
 FROM node:22-alpine
 WORKDIR /app
-COPY package.json server.mjs ./
+COPY package.json server.mjs piwigo.mjs ./
 RUN mkdir -p /data && chown node:node /data
 ENV NODE_ENV=production \
     NWW_DATA=/data \

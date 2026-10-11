@@ -53,6 +53,13 @@ NWW_MAX_BLOB_MB=30
 PORT=8787
 # 127.0.0.1 = nur nginx im Container darf zugreifen; leer = auch andere Rechner im Heimnetz
 NWW_HOST=$([[ -n $DOMAIN ]] && echo 127.0.0.1)
+
+# Optional: Piwigo anbinden (ab 16.1) – Adresse im Heimnetz und API-Schlüssel eines Administrators
+NWW_PIWIGO_URL=
+NWW_PIWIGO_KEY_ID=
+NWW_PIWIGO_SECRET=
+# Öffentliche Piwigo-Adresse für Links, z. B. https://fotos.example.de
+NWW_PIWIGO_PUBLIC_URL=
 EOF
   chmod 600 "$ENVFILE"
   NEWKEY=$KEY

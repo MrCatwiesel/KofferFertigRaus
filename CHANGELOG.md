@@ -1,5 +1,19 @@
 # Änderungsprotokoll
 
+## 1.2.0 – 2026-10-11
+
+### Neu
+- **Piwigo-Anbindung** (eigene Fotogalerie, ab Piwigo 16.1):
+  - Neue Fotos aus dem Tagebuch werden im Hintergrund als **Original** in ein Piwigo-Album der Reise hochgeladen. Das Album wird automatisch angelegt (privat) oder kann gewählt werden.
+  - Im Tagebuch **„Aus Piwigo“**: vorhandene Fotos aus Piwigo-Alben auswählen und übernehmen
+  - Offline: In der App bleibt eine verkleinerte Fassung. Uploads warten, bis wieder Netz da ist, mit wachsenden Pausen nach Fehlern.
+  - Reise-Seite → **Fotos in Piwigo**: Album, automatisches Hochladen ein/aus, Warteschlange und Fehler
+- Abgleich-Server 1.1.0: **Piwigo-Brücke** (`/api/piwigo/…`); Einstellungen `NWW_PIWIGO_URL`, `NWW_PIWIGO_KEY_ID`, `NWW_PIWIGO_SECRET`, `NWW_PIWIGO_PUBLIC_URL`
+- Neue Andockpunkte für Module: `photoSource`, `onPhotosAdded`, `onStart`
+
+### Geändert
+- Datenbank-Version 14 (Tabellen `piwigoAlbums`, `piwigoUploads`); Fotos haben `externalRef`/`externalUrl`
+
 ## 1.1.1 – 2026-10-11
 
 ### Neu

@@ -47,6 +47,13 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - **Auslöser:** App-Start, wieder online, zurück in die App, 4 s nach einer Änderung, alle 5 Minuten.
 - **Regel für Module:** Jede Änderung setzt `updatedAt` (bzw. `createdAt` beim Anlegen) – sonst gilt sie nicht als neuer.
 
+## Piwigo (Fotogalerie)
+
+- **Brücke im Abgleich-Server** (`server/piwigo.mjs`): Der Server meldet sich mit einem Piwigo-API-Schlüssel an (`pwg.session.login` mit Schlüssel-ID und Geheimnis) und bietet unter `/api/piwigo/…` Alben, Fotos und Hochladen an. Die App braucht so weder CORS noch Cookies bei Piwigo, und der Schlüssel bleibt auf dem Server.
+- **Modul** `modules/piwigo`: Fotoquelle „Aus Piwigo“ im Tagebuch (`photoSource`), Warteschlange `piwigoUploads` (nur lokal, enthält Originale) und Album je Reise `piwigoAlbums` (abgeglichen).
+- Ein hochgeladenes oder übernommenes Foto bekommt `externalRef = "piwigo:<id>"` und `externalUrl`. Solche Fotos werden nicht erneut hochgeladen.
+- Doppelte Uploads verhindert der Server über die MD5-Prüfsumme (`pwg.images.exist`).
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.
@@ -65,4 +72,6 @@ Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugeh
 | 2026-10-03 | Reise-Seite über `tripSection` erweiterbar | Reise-Modul muss neue Module nicht kennen |
 | 2026-10-04 | Eigener Abgleich-Server ohne Fremdpakete, Fotos in voller Größe | volle Datenhoheit, geringe Pflege; Wunsch des Nutzers |
 | 2026-10-04 | Abgleich per Datei, neuere Änderung gewinnt | kein Server, keine Konten, Datenschutz; einfach per AirDrop |
+| 2026-10-11 | Piwigo über den Abgleich-Server statt direkt aus der App | Safari blockiert Cookies fremder Seiten; Schlüssel bleibt auf dem Server; Piwigo muss nicht öffentlich sein |
+| 2026-10-11 | Tagebuch behält verkleinerte Kopie (2048 px), Original nach Piwigo | offline nutzbar, volle Qualität in der Galerie; Wunsch des Nutzers |
 | 2026-10-03 | Teilnehmer als Namensliste an der Reise (`participants`), Module speichern den Namen im Feld `person` | einfach, offline, ohne eigene Personen-Tabelle; `PersonSelect` aus `trip/public` für alle Formulare |

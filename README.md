@@ -2,12 +2,12 @@
 
 Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als installierbare Web-App (PWA) für Handy, Tablet und PC.
 
-**Stand 1.0.0 – alle Meilensteine umgesetzt:**
+**Stand 1.2.0 – alle Meilensteine umgesetzt:**
 
 - **Planen:** Reiseprojekt mit Teilnehmern, An- und Rückreise, Unterkünfte, Unternehmungen, Budget
 - **Vorbereiten:** Packliste (Vorlagen, pro Person), Reiseapotheke, Dokumente & Notfallnummern
 - **Unterwegs:** Tagesplaner mit Wetter und Öffnungszeiten, Karte, Ausgaben mit Ausgleich
-- **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei
+- **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei, Anbindung an die eigene **Piwigo**-Galerie
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 
 **App online:** https://mrcatwiesel.github.io/nix-wie-weg-/
@@ -73,6 +73,7 @@ src/
     map/           Modul "Karte" (Leaflet, OpenStreetMap)
     website/       Modul "Reise-Webseite" (templates/ = Design-Vorlagen, render.ts = HTML-Datei)
     activity/      Modul "Unternehmungen"
+    piwigo/        Modul "Piwigo" (Fotos hochladen und auswählen, über den Abgleich-Server)
   services/        weather.ts (Open-Meteo), geocoding.ts (Nominatim), openingHours.ts, images.ts
   config.ts        App-Einstellungen (Spendenlink, Repository)
 server/            Abgleich-Server (Node.js ohne Pakete, Docker, Anleitung in server/README.md)

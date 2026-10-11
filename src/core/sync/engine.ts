@@ -53,6 +53,11 @@ export async function loadSyncConfig(): Promise<void> {
   await refreshPending()
 }
 
+/** Server-Adresse und Schlüssel des Abgleichs (für Zusatzdienste des Servers wie Piwigo) – oder null. */
+export function syncCredentials(): Promise<{ server: string; key: string } | null> {
+  return credentials()
+}
+
 /** Gespeicherten Schlüssel holen (für den Kopplungs-Link). */
 export async function currentKey(): Promise<string> {
   return getMeta(META.key, '')

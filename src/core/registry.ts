@@ -1,3 +1,4 @@
+import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 
 /**
@@ -15,6 +16,42 @@ export interface TripSection {
   summary?: (tripId: string) => Promise<string>
   /** Geplante Kosten dieses Bereichs (für den Budget-Vergleich) */
   plannedCost?: (tripId: string) => Promise<number>
+}
+
+/** Ein Foto, das eine Fotoquelle liefert (schon als Bild-Datei, wird wie ein Kamerafoto verarbeitet). */
+export interface PickedPhoto {
+  blob: Blob
+  caption: string
+  /** Aufnahmezeit (ISO), sonst leer */
+  takenAt: string
+  /** Verweis auf die Herkunft, z. B. "piwigo:123" – solche Fotos werden nicht erneut hochgeladen */
+  externalRef: string
+  /** Link zum Foto in der Quelle (zum Öffnen im Browser) */
+  externalUrl: string
+}
+
+/**
+ * Zusätzliche Fotoquelle im Tagebuch (z. B. Piwigo). Die Komponente bekommt die Prop `tripId`
+ * und meldet die Auswahl mit dem Ereignis `picked` (PickedPhoto[]) oder `close`.
+ */
+export interface PhotoSource {
+  label: string
+  /** Bootstrap-Icon-Name ohne "bi-" */
+  icon: string
+  /** Nur anbieten, wenn verfügbar (z. B. Server eingerichtet) */
+  available: () => Promise<boolean>
+  component: () => Promise<Component | { default: Component }>
+}
+
+/** Ein neu aufgenommenes Foto samt Originaldatei (vor dem Verkleinern). */
+export interface AddedPhoto {
+  photoId: string
+  tripId: string
+  entryId: string
+  original: Blob
+  filename: string
+  caption: string
+  takenAt: string
 }
 
 /**
@@ -38,6 +75,12 @@ export interface AppModule {
   tripSection?: TripSection
   /** Aufräumen, wenn eine Reise gelöscht wird (eigene Daten zur Reise entfernen) */
   onTripDelete?: (tripId: string) => Promise<void>
+  /** Zusätzliche Fotoquelle im Tagebuch */
+  photoSource?: PhotoSource
+  /** Neue eigene Fotos wurden gespeichert (mit Original, z. B. zum Hochladen in eine Galerie) */
+  onPhotosAdded?: (photos: AddedPhoto[]) => Promise<void>
+  /** Wird einmal nach dem App-Start aufgerufen (z. B. Hintergrund-Aufgaben starten) */
+  onStart?: () => void
 }
 
 const modules: AppModule[] = []
@@ -70,4 +113,29 @@ export async function notifyTripDeleted(tripId: string): Promise<void> {
   for (const m of getModules()) {
     if (m.onTripDelete) await m.onTripDelete(tripId)
   }
+}
+
+/** Alle zusätzlichen Fotoquellen (für das Tagebuch). */
+export function getPhotoSources(): (PhotoSource & { moduleId: string })[] {
+  return getModules()
+    .filter((m) => m.photoSource)
+    .map((m) => ({ ...m.photoSource!, moduleId: m.id }))
+}
+
+/** Meldet neue eigene Fotos an alle Module (Fehler eines Moduls stören die anderen nicht). */
+export async function notifyPhotosAdded(photos: AddedPhoto[]): Promise<void> {
+  if (!photos.length) return
+  for (const m of getModules()) {
+    if (!m.onPhotosAdded) continue
+    try {
+      await m.onPhotosAdded(photos)
+    } catch (e) {
+      console.error(`[${m.id}] onPhotosAdded`, e)
+    }
+  }
+}
+
+/** Startet die Hintergrund-Aufgaben der Module. */
+export function startModules(): void {
+  for (const m of getModules()) m.onStart?.()
 }

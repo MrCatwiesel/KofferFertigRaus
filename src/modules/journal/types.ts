@@ -35,6 +35,10 @@ export interface Photo {
   createdAt: string
   /** Zuletzt geändert (z. B. Bildunterschrift) – wichtig für den Abgleich */
   updatedAt?: string
+  /** Verweis auf eine Fotogalerie, z. B. "piwigo:123" (dort liegt das Original) */
+  externalRef?: string
+  /** Link zum Foto in der Galerie */
+  externalUrl?: string
 }
 
 export const MOODS: { value: number; emoji: string; label: string }[] = [

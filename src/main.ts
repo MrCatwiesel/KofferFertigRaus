@@ -8,6 +8,7 @@ import App from './App.vue'
 import { registerAllModules } from './modules'
 import { buildRouter } from './core/router'
 import { startAutoSync } from './core/sync/engine'
+import { startModules } from './core/registry'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
@@ -22,3 +23,4 @@ createApp(App).use(buildRouter()).mount('#app')
 
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)
 startAutoSync()
+startModules()

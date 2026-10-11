@@ -9,6 +9,10 @@ services:
       NWW_KEYS: ${NWW_KEYS}
       NWW_ORIGINS: ${NWW_ORIGINS:-*}
       NWW_MAX_BLOB_MB: ${NWW_MAX_BLOB_MB:-30}
+      NWW_PIWIGO_URL: ${NWW_PIWIGO_URL:-}
+      NWW_PIWIGO_KEY_ID: ${NWW_PIWIGO_KEY_ID:-}
+      NWW_PIWIGO_SECRET: ${NWW_PIWIGO_SECRET:-}
+      NWW_PIWIGO_PUBLIC_URL: ${NWW_PIWIGO_PUBLIC_URL:-}
     volumes:
       - sync_data:/data
 

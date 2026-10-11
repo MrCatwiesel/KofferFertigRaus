@@ -11,6 +11,7 @@ import { journalModule } from './journal'
 import { websiteModule } from './website'
 import { expensesModule } from './expenses'
 import { mapModule } from './map'
+import { piwigoModule } from './piwigo'
 
 /**
  * Liste der aktiven Module. Ein neues Modul:
@@ -28,6 +29,7 @@ export function registerAllModules(): void {
   registerModule(dayplannerModule)
   registerModule(mapModule)
   registerModule(journalModule)
+  registerModule(piwigoModule)
   registerModule(expensesModule)
   registerModule(websiteModule)
 }

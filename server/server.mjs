@@ -14,8 +14,10 @@ import { mkdirSync, existsSync, createReadStream, renameSync, writeFileSync, sta
 import { join, resolve } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { pathToFileURL } from 'node:url'
+import { Readable } from 'node:stream'
+import { createPiwigoClient } from './piwigo.mjs'
 
-export const VERSION = '1.0.1'
+export const VERSION = '1.1.0'
 
 const TABLE_RE = /^[a-zA-Z][a-zA-Z0-9]{0,39}$/
 const HASH_RE = /^[a-f0-9]{64}$/
@@ -48,7 +50,8 @@ function openDb(dir) {
 
 /**
  * Erzeugt den Server (für Start und Tests).
- * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number }} opts
+ * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
+ *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null }} opts
  */
 export function createSyncServer(opts) {
   const keys = (opts.keys ?? []).map((k) => k.trim()).filter(Boolean)
@@ -61,6 +64,7 @@ export function createSyncServer(opts) {
   const dataDir = resolve(opts.dataDir)
   mkdirSync(join(dataDir, 'blobs'), { recursive: true })
   const db = openDb(dataDir)
+  const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
 
   const q = {
     get: db.prepare('SELECT stamp FROM records WHERE space = ? AND tbl = ? AND id = ?'),
@@ -182,7 +186,7 @@ export function createSyncServer(opts) {
     if (!space) return send(res, 401, { error: 'Schlüssel fehlt oder ist falsch.' })
 
     if (req.method === 'GET' && path === '/api/info') {
-      return send(res, 200, { ok: true, version: VERSION, records: q.count.get(space).n, seq: q.maxSeq.get(space)?.seq ?? 0 })
+      return send(res, 200, { ok: true, version: VERSION, records: q.count.get(space).n, seq: q.maxSeq.get(space)?.seq ?? 0, piwigo: !!piwigo })
     }
 
     if (req.method === 'POST' && path === '/api/push') {
@@ -228,6 +232,63 @@ export function createSyncServer(opts) {
       }
     }
 
+    if (path === '/api/piwigo' || path.startsWith('/api/piwigo/')) return handlePiwigo(req, res, url, path)
+
+    return send(res, 404, { error: 'Unbekannte Adresse' })
+  }
+
+  /** Piwigo-Brücke: Alben, Fotos, Hochladen (nur wenn NWW_PIWIGO_* gesetzt). */
+  async function handlePiwigo(req, res, url, path) {
+    if (!piwigo) return send(res, 404, { error: 'Piwigo ist auf dem Server nicht eingerichtet.' })
+    const sub = path.slice('/api/piwigo'.length)
+
+    if (req.method === 'GET' && sub === '') return send(res, 200, { ok: true, ...(await piwigo.status()) })
+
+    if (sub === '/albums') {
+      if (req.method === 'GET') return send(res, 200, { albums: await piwigo.albums() })
+      if (req.method === 'POST') {
+        const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8') || '{}')
+        const parent = Number(body.parentId) || undefined
+        return send(res, 201, await piwigo.createAlbum(body.name, parent))
+      }
+    }
+
+    const albumImages = sub.match(/^\/albums\/(\d+)\/images$/)
+    if (albumImages) {
+      const albumId = Number(albumImages[1])
+      if (req.method === 'GET') {
+        const page = Math.max(0, Number(url.searchParams.get('page') ?? 0) || 0)
+        const perPage = Math.min(200, Math.max(1, Number(url.searchParams.get('perPage') ?? 60) || 60))
+        return send(res, 200, await piwigo.images(albumId, page, perPage))
+      }
+      if (req.method === 'POST') {
+        const data = await readBody(req, maxBlob)
+        if (!data.length) return send(res, 400, { error: 'Keine Bilddaten.' })
+        const type = String(req.headers['content-type'] ?? 'image/jpeg').slice(0, 100)
+        if (!/^image\//.test(type)) return send(res, 400, { error: 'Nur Bilder.' })
+        const result = await piwigo.upload(albumId, data, {
+          type,
+          filename: url.searchParams.get('filename') ?? 'foto.jpg',
+          name: url.searchParams.get('name') ?? '',
+          comment: url.searchParams.get('comment') ?? ''
+        })
+        return send(res, 201, result)
+      }
+    }
+
+    const image = sub.match(/^\/images\/(\d+)$/)
+    if (image && req.method === 'GET') {
+      const upstream = await piwigo.image(Number(image[1]), url.searchParams.get('size') ?? 'medium')
+      const headers = { 'Cache-Control': 'private, max-age=86400' }
+      const type = upstream.headers.get('content-type')
+      const length = upstream.headers.get('content-length')
+      if (type) headers['Content-Type'] = type
+      if (length) headers['Content-Length'] = length
+      res.writeHead(200, headers)
+      if (!upstream.body) return res.end()
+      return Readable.fromWeb(upstream.body).pipe(res)
+    }
+
     return send(res, 404, { error: 'Unbekannte Adresse' })
   }
 
@@ -249,7 +310,15 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     keys: (process.env.NWW_KEYS ?? '').split(','),
     dataDir: process.env.NWW_DATA ?? './data',
     origins: (process.env.NWW_ORIGINS ?? '*').split(',').map((s) => s.trim()).filter(Boolean),
-    maxBlobMb: Number(process.env.NWW_MAX_BLOB_MB ?? 30)
+    maxBlobMb: Number(process.env.NWW_MAX_BLOB_MB ?? 30),
+    piwigo: process.env.NWW_PIWIGO_URL
+      ? {
+          url: process.env.NWW_PIWIGO_URL,
+          keyId: process.env.NWW_PIWIGO_KEY_ID ?? '',
+          secret: process.env.NWW_PIWIGO_SECRET ?? '',
+          publicUrl: process.env.NWW_PIWIGO_PUBLIC_URL || undefined
+        }
+      : null
   })
   const port = Number(process.env.PORT ?? 8787)
   const host = process.env.NWW_HOST || undefined // z. B. 127.0.0.1, wenn nginx im selben Container läuft

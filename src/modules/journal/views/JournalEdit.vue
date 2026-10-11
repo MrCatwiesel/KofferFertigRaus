@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, shallowRef, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { requestPersistentStorage } from '@/core/storage'
+import { getPhotoSources, notifyPhotosAdded, type AddedPhoto, type PhotoSource, type PickedPhoto } from '@/core/registry'
 import { processImage } from '@/services/images'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { journalRepository, photoRepository, type NewPhoto } from '../repository'
@@ -30,6 +31,8 @@ interface PhotoItem {
   caption: string
   existing?: Photo
   fresh?: NewPhoto
+  /** Originaldatei eines neuen eigenen Fotos (z. B. zum Hochladen in eine Galerie) */
+  original?: File
 }
 const items = ref<PhotoItem[]>([])
 const removed: string[] = []
@@ -52,6 +55,40 @@ onMounted(async () => {
 
 onUnmounted(() => items.value.forEach((i) => URL.revokeObjectURL(i.url)))
 
+// Weitere Fotoquellen (z. B. Piwigo), von anderen Modulen angemeldet
+const sources = ref<PhotoSource[]>([])
+const activeSource = shallowRef<Component | null>(null)
+onMounted(async () => {
+  const all = getPhotoSources()
+  const ok = await Promise.all(all.map((s) => s.available().catch(() => false)))
+  sources.value = all.filter((_, i) => ok[i])
+})
+function openSource(src: PhotoSource) {
+  activeSource.value = defineAsyncComponent(src.component as () => Promise<Component>)
+}
+
+async function addPicked(picked: PickedPhoto[]) {
+  activeSource.value = null
+  photoError.value = ''
+  requestPersistentStorage()
+  for (const p of picked) {
+    processing.value++
+    try {
+      const img = await processImage(p.blob)
+      const fresh: NewPhoto = {
+        full: img.full, thumb: img.thumb, width: img.width, height: img.height,
+        caption: p.caption, takenAt: p.takenAt || new Date().toISOString(),
+        externalRef: p.externalRef, externalUrl: p.externalUrl
+      }
+      items.value.push({ key: `tmp-${crypto.randomUUID()}`, url: URL.createObjectURL(img.thumb), full: img.full, caption: p.caption, fresh })
+    } catch (e) {
+      photoError.value = (e as Error).message
+    } finally {
+      processing.value--
+    }
+  }
+}
+
 async function addFiles(event: Event) {
   const input = event.target as HTMLInputElement
   const files = [...(input.files ?? [])]
@@ -65,7 +102,7 @@ async function addFiles(event: Event) {
     try {
       const img = await processImage(file)
       const fresh: NewPhoto = { full: img.full, thumb: img.thumb, width: img.width, height: img.height, caption: '', takenAt: takenAtFromFile(file) }
-      items.value.push({ key: `tmp-${crypto.randomUUID()}`, url: URL.createObjectURL(img.thumb), full: img.full, caption: '', fresh })
+      items.value.push({ key: `tmp-${crypto.randomUUID()}`, url: URL.createObjectURL(img.thumb), full: img.full, caption: '', fresh, original: file })
     } catch (e) {
       photoError.value = `${file.name}: ${(e as Error).message}`
     } finally {
@@ -94,18 +131,29 @@ async function save() {
   saving.value = true
   try {
     const fresh: NewPhoto[] = []
+    const originals: (File | undefined)[] = []
     const order: string[] = []
     for (const it of items.value) {
       if (it.fresh) {
         order.push(`new:${fresh.length}`)
         fresh.push({ ...it.fresh, caption: it.caption.trim() })
+        originals.push(it.original)
       } else if (it.existing) {
         order.push(it.existing.id)
         if (it.caption !== it.existing.caption) await photoRepository.setCaption(it.existing.id, it.caption.trim())
       }
     }
     const plain: JournalEntryDraft = { ...draft, title: draft.title.trim(), location: draft.location.trim() }
-    await journalRepository.save(props.tripId, props.id, plain, fresh, order, removed)
+    const { entryId, newPhotoIds } = await journalRepository.save(props.tripId, props.id, plain, fresh, order, removed)
+    // Neue eigene Fotos anderen Modulen melden (z. B. Hochladen nach Piwigo) – im Hintergrund
+    const added: AddedPhoto[] = []
+    newPhotoIds.forEach((photoId, i) => {
+      const original = originals[i]
+      if (original && !fresh[i].externalRef) {
+        added.push({ photoId, tripId: props.tripId, entryId, original, filename: original.name, caption: fresh[i].caption, takenAt: fresh[i].takenAt })
+      }
+    })
+    notifyPhotosAdded(added)
     router.push(listPath.value)
   } finally {
     saving.value = false
@@ -162,6 +210,9 @@ async function remove() {
           <button type="button" class="photo-thumb" :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightboxStart = i">
             <img :src="it.url" alt="" />
             <span v-if="i === 0" class="badge text-bg-primary cover">Titelbild</span>
+            <span v-if="(it.existing ?? it.fresh)?.externalRef" class="badge text-bg-light external" title="Original liegt in der Galerie">
+              <i class="bi bi-cloud-check" aria-hidden="true"></i>
+            </span>
           </button>
           <input v-model="it.caption" class="form-control form-control-sm mt-1" placeholder="Bildunterschrift" :aria-label="`Bildunterschrift ${i + 1}`" />
           <div class="d-flex justify-content-between mt-1">
@@ -191,6 +242,11 @@ async function remove() {
           <input type="file" accept="image/*" multiple class="d-none" @change="addFiles" />
         </label>
       </div>
+      <div v-if="sources.length" class="d-flex flex-wrap gap-2 mb-2">
+        <button v-for="src in sources" :key="src.label" type="button" class="btn btn-sm btn-outline-primary" :disabled="processing > 0" @click="openSource(src)">
+          <i :class="`bi bi-${src.icon} me-1`" aria-hidden="true"></i>{{ src.label }}
+        </button>
+      </div>
       <div v-if="photoError" class="small text-danger">{{ photoError }}</div>
       <div class="form-text">Fotos werden verkleinert gespeichert (max. 2048 px) – spart Platz auf dem Gerät.</div>
     </div>
@@ -217,6 +273,7 @@ async function remove() {
   </form>
 
   <PhotoLightbox v-if="lightboxStart !== null" :photos="lightboxPhotos" :start="lightboxStart" @close="lightboxStart = null" />
+  <component :is="activeSource" v-if="activeSource" :trip-id="tripId" @picked="addPicked" @close="activeSource = null" />
 </template>
 
 <style scoped>
@@ -249,6 +306,11 @@ async function remove() {
   position: absolute;
   left: 0.35rem;
   top: 0.35rem;
+}
+.photo-thumb .external {
+  position: absolute;
+  right: 0.35rem;
+  bottom: 0.35rem;
 }
 .photo-add {
   aspect-ratio: 1;

@@ -13,6 +13,7 @@ import type { JournalEntry, Photo } from '@/modules/journal/types'
 import type { WebsiteSettings } from '@/modules/website/types'
 import type { Expense } from '@/modules/expenses/types'
 import type { MapPlace } from '@/modules/map/types'
+import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -39,6 +40,9 @@ export class NixDb extends Dexie {
   websites!: Table<WebsiteSettings, string>
   expenses!: Table<Expense, string>
   places!: Table<MapPlace, string>
+  piwigoAlbums!: Table<PiwigoAlbumLink, string>
+  /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
+  piwigoUploads!: Table<PiwigoUpload, string>
   /** Lokale Änderungen, die noch zum Server müssen */
   outbox!: Table<OutboxEntry, string>
   /** Interne Einstellungen (z. B. Abgleich) */
@@ -124,7 +128,13 @@ export class NixDb extends Dexie {
       meta: 'key'
     })
 
-    // Nächste Änderung: this.version(14).stores({ … })
+    // v14: Piwigo – Album je Reise (abgeglichen) und Warteschlange zum Hochladen (nur lokal)
+    this.version(14).stores({
+      piwigoAlbums: 'id, tripId',
+      piwigoUploads: 'id, tripId, photoId'
+    })
+
+    // Nächste Änderung: this.version(15).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

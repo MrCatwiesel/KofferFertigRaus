@@ -57,6 +57,14 @@ Module, die zu einer Reise gehören, brauchen kein `navTo`. Stattdessen erschein
   onTripDelete: (tripId) => packingRepository.removeByTrip(tripId)
 ```
 
+Weitere Andockpunkte (Beispiel: `src/modules/piwigo/index.ts`):
+
+| Feld | Zweck |
+| --- | --- |
+| `photoSource` | zusätzliche Fotoquelle im Tagebuch (Knopf neben „Fotos hinzufügen“); Komponente meldet `picked` mit `PickedPhoto[]` |
+| `onPhotosAdded` | neue eigene Fotos wurden gespeichert – mit Originaldatei (z. B. zum Hochladen) |
+| `onStart` | einmal nach dem App-Start (Hintergrund-Aufgaben) |
+
 Vollständige Beispiele: `src/modules/accommodation/index.ts` und `src/modules/activity/index.ts`. Für die Kopfzeile von Unterseiten `TripContextHeader` aus `@/modules/trip/public` verwenden.
 
 ## Daten anderer Module nutzen

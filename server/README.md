@@ -60,6 +60,37 @@ Vorhandene Daten auf allen Geräten werden beim ersten Verbinden zusammengeführ
   (dazu beim Dienst `sync` den Port `8787:8787` freigeben).
 - Router: Ports 80 und 443 an die NAS weiterleiten (bzw. was der Reverse-Proxy braucht).
 
+## Piwigo anbinden (optional)
+
+Wer seine Fotos in einer eigenen [Piwigo](https://piwigo.org)-Galerie hat (ab Version 16.1), kann sie mit der App verbinden:
+
+- **Hochladen:** Neue Fotos aus dem Tagebuch landen als **Original** in einem Piwigo-Album der Reise. Das Album wird automatisch angelegt (privat) oder in der App gewählt.
+- **Auswählen:** Im Tagebuch über **„Aus Piwigo“** vorhandene Fotos übernehmen.
+- In der App bleibt eine verkleinerte Fassung (2048 px), damit das Tagebuch auch offline funktioniert.
+
+Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. Der Piwigo-Schlüssel bleibt deshalb auf dem Server, und Piwigo kann im Heimnetz bleiben.
+
+**Einrichten:**
+
+1. In Piwigo als **Administrator** anmelden → oben *Profil* → **API-Schlüssel** → neuen Schlüssel anlegen (z. B. „Nix wie weg“, Laufzeit 1 Jahr).
+   Die **ID** (`pkid-…`) und das **Geheimnis** notieren. Das Geheimnis wird nur einmal angezeigt.
+   (Die Profilseite gibt es nur mit dem Standard-Design der Galerie, nicht mit jedem Theme.)
+2. In den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/nix-wie-weg/sync.env`:
+   ```
+   NWW_PIWIGO_URL=http://192.168.5.40          # Piwigo im Heimnetz (mit Unterordner, falls vorhanden)
+   NWW_PIWIGO_KEY_ID=pkid-20261011-…
+   NWW_PIWIGO_SECRET=…
+   NWW_PIWIGO_PUBLIC_URL=https://fotos.example.de   # für Links „In Piwigo öffnen“
+   ```
+3. Den Server neu starten: `systemctl restart nix-wie-weg-sync` bzw. `docker compose up -d`.
+4. In der App unter Reise → **Fotos in Piwigo** prüfen. Dort steht „Angemeldet in Piwigo als …“.
+
+**Wichtig:**
+- Die Upload-Grenze von PHP muss für Originalfotos reichen, z. B. `upload_max_filesize = 50M` und `post_max_size = 50M` in der `php.ini` des Piwigo-Servers. Liegt ein Reverse-Proxy davor, auch dort 50 MB erlauben.
+- Läuft der API-Schlüssel ab, schickt Piwigo vorher eine E-Mail. Dann einen neuen anlegen und in den Einstellungen tauschen.
+- Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.
+- Der Piwigo-Zugang gilt für alle Reisegruppen auf diesem Server.
+
 ## Datensicherung des Servers
 
 Die Daten liegen im Docker-Volume `sync_data` (Datenbank + Fotos):
@@ -88,6 +119,9 @@ docker compose up -d --build
 | `NWW_ORIGINS` | Erlaubte App-Adresse(n), z. B. `https://mrcatwiesel.github.io` (Standard `*`) |
 | `NWW_MAX_BLOB_MB` | Maximale Größe eines Fotos in MB (Standard 30) |
 | `NWW_HOST` | Nur an diese Adresse binden, z. B. `127.0.0.1` (Standard: alle) |
+| `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
+| `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
+| `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
 
 ## Schnittstelle (für Entwickler)
 
@@ -98,6 +132,10 @@ docker compose up -d --build
 | POST | `/api/push` | Änderungen hochladen `{ changes: [{ tbl, id, stamp, deleted, data }] }` – neuere gewinnt |
 | GET | `/api/pull?since=N` | Änderungen seit Stand N abholen |
 | HEAD/GET/PUT | `/api/blob/<sha256>` | Fotos (Inhalt wird per Prüfsumme kontrolliert) |
+| GET | `/api/piwigo` | Piwigo-Anmeldung prüfen |
+| GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
+| GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |
+| GET | `/api/piwigo/images/<id>?size=small\|xxlarge\|original` | Bilddatei |
 
 Alle Aufrufe außer `/api/health` brauchen `Authorization: Bearer <Schlüssel>`.
 

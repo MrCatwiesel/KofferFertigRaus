@@ -20,6 +20,8 @@ Container starten, *Console* öffnen, als root anmelden.
 
 ### A) Du hast schon einen Reverse-Proxy (Nginx Proxy Manager, nginx, Traefik, Caddy …)
 
+> Noch keinen? Das Projekt [Heim-Proxy](https://github.com/MrCatwiesel/heim-proxy) richtet einen zentralen Reverse-Proxy (Nginx Proxy Manager) für alle Server zu Hause ein. Der Eintrag für Nix wie weg steht dort in `docs/NIX-WIE-WEG.md`.
+
 Ports 80/443 bleiben, wie sie sind. Im Container:
 
 ```bash

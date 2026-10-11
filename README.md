@@ -101,7 +101,8 @@ docs/
 
 ## Geräte-Abgleich (eigener Server)
 
-Damit Handys, Tablet und PC automatisch dieselben Daten haben: Server nach [server/README.md](server/README.md) einrichten,
+Damit Handys, Tablet und PC automatisch dieselben Daten haben: Server nach [server/README.md](server/README.md) einrichten
+(Proxmox zu Hause: [server/proxmox/README.md](server/proxmox/README.md)),
 dann in der App *Einstellungen → Geräte-Abgleich*.
 
 ## Spenden einrichten

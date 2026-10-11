@@ -19,6 +19,8 @@ Er speichert die Reisedaten und Fotos eurer Reisegruppe und verteilt Änderungen
 > Wichtig: Die App läuft über `https://`. Browser erlauben ihr deshalb nur Verbindungen zu Servern mit **https**.
 > Die beiliegende Konfiguration kümmert sich darum (Caddy holt das Zertifikat automatisch).
 
+> **Proxmox zu Hause (LXC, ohne Docker):** eigene Anleitung mit Installationsskript in [proxmox/README.md](proxmox/README.md).
+
 ## Einrichten (Mietserver mit Docker)
 
 ```bash
@@ -85,6 +87,7 @@ docker compose up -d --build
 | `NWW_KEYS` | Geheime Schlüssel, mind. 16 Zeichen, mehrere durch Komma |
 | `NWW_ORIGINS` | Erlaubte App-Adresse(n), z. B. `https://mrcatwiesel.github.io` (Standard `*`) |
 | `NWW_MAX_BLOB_MB` | Maximale Größe eines Fotos in MB (Standard 30) |
+| `NWW_HOST` | Nur an diese Adresse binden, z. B. `127.0.0.1` (Standard: alle) |
 
 ## Schnittstelle (für Entwickler)
 

@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+# Nix wie weg – Einrichtung in einem Debian-LXC-Container (Proxmox), ohne Docker.
+#
+#   bash install.sh                     nur Abgleich-Server (Port 8787, für vorhandenen Reverse-Proxy)
+#   bash install.sh --web reise.example.de
+#                                       zusätzlich nginx + App + HTTPS (Let's Encrypt) im Container
+#
+# Erneut ausführen = aktualisieren (Einstellungen und Daten bleiben erhalten).
+set -euo pipefail
+
+REPO="https://github.com/MrCatwiesel/nix-wie-weg-.git"
+SRC=/opt/nix-wie-weg
+ENVFILE=/etc/nix-wie-weg/sync.env
+WEBROOT=/var/www/nix-wie-weg
+DOMAIN=""
+[[ "${1:-}" == "--web" ]] && DOMAIN="${2:?Domain fehlt, z. B. --web reise.example.de}"
+
+[[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
+say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
+
+say "Pakete installieren"
+apt-get update -qq
+apt-get install -y -qq ca-certificates curl git openssl >/dev/null
+
+need_node=1
+if command -v node >/dev/null; then
+  v=$(node -p 'process.versions.node.split(".").map(Number).reduce((a,b,i)=>a+b*[1e6,1e3,1][i],0)')
+  (( v >= 22013000 )) && need_node=0
+fi
+if (( need_node )); then
+  say "Node.js 22 installieren (NodeSource)"
+  curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null
+  apt-get install -y -qq nodejs >/dev/null
+fi
+echo "Node.js $(node -v)"
+
+say "Programm holen nach $SRC"
+if [[ -d $SRC/.git ]]; then git -C "$SRC" pull --ff-only -q; else git clone -q "$REPO" "$SRC"; fi
+
+say "Einstellungen ($ENVFILE)"
+mkdir -p "$(dirname "$ENVFILE")"
+if [[ ! -f $ENVFILE ]]; then
+  KEY=$(openssl rand -hex 16)
+  ORIGINS="https://mrcatwiesel.github.io"
+  [[ -n $DOMAIN ]] && ORIGINS="$ORIGINS,https://$DOMAIN"
+  cat > "$ENVFILE" <<EOF
+# Geheime Schlüssel der Reisegruppen (mind. 16 Zeichen, mehrere durch Komma)
+NWW_KEYS=$KEY
+# Erlaubte App-Adressen
+NWW_ORIGINS=$ORIGINS
+# Maximale Fotogröße in MB
+NWW_MAX_BLOB_MB=30
+PORT=8787
+# 127.0.0.1 = nur nginx im Container darf zugreifen; leer = auch andere Rechner im Heimnetz
+NWW_HOST=$([[ -n $DOMAIN ]] && echo 127.0.0.1)
+EOF
+  chmod 600 "$ENVFILE"
+  NEWKEY=$KEY
+fi
+
+say "Dienst einrichten"
+install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable -q nix-wie-weg-sync
+systemctl restart nix-wie-weg-sync
+sleep 2
+curl -fsS http://127.0.0.1:8787/api/health && echo
+
+if [[ -n $DOMAIN ]]; then
+  say "App bauen"
+  cd "$SRC"
+  npm install --no-audit --no-fund --loglevel=error
+  npm run build --silent
+  mkdir -p "$WEBROOT"
+  rm -rf "${WEBROOT:?}"/*
+  cp -r dist/. "$WEBROOT"/
+
+  say "nginx einrichten für $DOMAIN"
+  apt-get install -y -qq nginx certbot python3-certbot-nginx >/dev/null
+  if [[ ! -f /etc/nginx/sites-available/nix-wie-weg ]]; then
+    sed "s/DOMAIN/$DOMAIN/" "$SRC/server/proxmox/nginx-nix-wie-weg.conf" > /etc/nginx/sites-available/nix-wie-weg
+    ln -sf /etc/nginx/sites-available/nix-wie-weg /etc/nginx/sites-enabled/nix-wie-weg
+    rm -f /etc/nginx/sites-enabled/default
+  fi
+  nginx -t -q && systemctl reload nginx
+
+  if [[ ! -d /etc/letsencrypt/live/$DOMAIN ]]; then
+    say "HTTPS-Zertifikat holen (Port 80 muss auf diesen Container weitergeleitet sein)"
+    certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos --register-unsafely-without-email --redirect \
+      || echo "!! Zertifikat fehlgeschlagen – Portweiterleitung 80/443 und DynDNS prüfen, dann: certbot --nginx -d $DOMAIN"
+  fi
+fi
+
+say "Fertig"
+IP=$(hostname -I | awk '{print $1}')
+if [[ -n $DOMAIN ]]; then
+  echo "App:        https://$DOMAIN"
+  echo "Server-URL: https://$DOMAIN   (in der App: Einstellungen → Geräte-Abgleich)"
+else
+  echo "Abgleich-Server läuft auf http://$IP:8787"
+  echo "→ Im Reverse-Proxy https://<deine-domain> auf http://$IP:8787 weiterleiten."
+fi
+[[ -n ${NEWKEY:-} ]] && echo "Schlüssel:  $NEWKEY   (steht auch in $ENVFILE)"
+echo "Status:     systemctl status nix-wie-weg-sync   ·   Protokoll: journalctl -u nix-wie-weg-sync -f"

@@ -15,7 +15,7 @@ import { join, resolve } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { pathToFileURL } from 'node:url'
 
-export const VERSION = '1.0.0'
+export const VERSION = '1.0.1'
 
 const TABLE_RE = /^[a-zA-Z][a-zA-Z0-9]{0,39}$/
 const HASH_RE = /^[a-f0-9]{64}$/
@@ -252,7 +252,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     maxBlobMb: Number(process.env.NWW_MAX_BLOB_MB ?? 30)
   })
   const port = Number(process.env.PORT ?? 8787)
-  server.listen(port, () => console.log(`Nix wie weg – Abgleich-Server ${VERSION} läuft auf Port ${port}`))
+  const host = process.env.NWW_HOST || undefined // z. B. 127.0.0.1, wenn nginx im selben Container läuft
+  server.listen(port, host, () => console.log(`Nix wie weg – Abgleich-Server ${VERSION} läuft auf ${host ?? '*'}:${port}`))
   const stop = () => server.close(() => process.exit(0))
   process.on('SIGTERM', stop)
   process.on('SIGINT', stop)

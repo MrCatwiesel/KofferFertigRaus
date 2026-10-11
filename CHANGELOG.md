@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.1.1 – 2026-10-11
+
+### Neu
+- **Proxmox-Einrichtung** (`server/proxmox/`): Installationsskript für einen Debian-LXC-Container ohne Docker
+  - nur Abgleich-Server (hinter vorhandenem Reverse-Proxy) oder mit `--web <domain>` zusätzlich nginx, App und HTTPS (Let's Encrypt)
+  - systemd-Dienst mit eigenem unprivilegiertem Benutzer, nginx-Konfiguration mit passenden Cache-Regeln für Bootstrap und Service Worker
+- Server: Einstellung `NWW_HOST` (Bind-Adresse)
+
 ## 1.1.0 – 2026-10-04
 
 ### Neu

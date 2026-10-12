@@ -62,8 +62,10 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
       <i v-else class="bi bi-upload me-1" aria-hidden="true"></i>Datei importieren
       <input type="file" :accept="ACCEPT" multiple class="d-none" @change="importFiles" />
     </label>
-    <span class="small text-body-secondary">GPX, FIT (Garmin), TCX, KML/KMZ (Google My Maps), GeoJSON</span>
+    <RouterLink :to="`/trip/${tripId}/routen/planen`" class="btn btn-outline-primary"><i class="bi bi-signpost-split me-1" aria-hidden="true"></i>Strecke planen</RouterLink>
+    <RouterLink :to="`/trip/${tripId}/routen/planen?tab=wanderwege`" class="btn btn-outline-primary"><i class="bi bi-compass me-1" aria-hidden="true"></i>Wanderwege suchen</RouterLink>
   </div>
+  <p class="small text-body-secondary">Importieren: GPX, FIT (Garmin), TCX, KML/KMZ (Google My Maps), GeoJSON</p>
 
   <div v-if="result" class="alert py-2" :class="result.errors.length ? 'alert-warning' : 'alert-success'">
     <div v-if="result.ok">{{ result.ok }}</div>

@@ -10,6 +10,7 @@ export const routesModule: AppModule = {
   order: 16,
   routes: [
     { path: '/trip/:tripId/routen', name: 'routes', component: () => import('./views/RoutesList.vue'), props: true },
+    { path: '/trip/:tripId/routen/planen', name: 'route-planner', component: () => import('./views/RoutePlanner.vue'), props: true },
     { path: '/trip/:tripId/routen/:id', name: 'route', component: () => import('./views/RouteDetail.vue'), props: true }
   ],
   tripSection: {

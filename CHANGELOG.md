@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.12.0 – 2026-10-13 (Server 1.11.0)
+
+### Neu
+- **Strecke von A nach B planen** (Routen & Touren → „Strecke planen“): Punkte auf die Karte tippen (A, B, beliebige Zwischenziele, verschiebbar), aus den Orten der Reise übernehmen oder per Adresse/GPS-Koordinaten. Profile **Wandern, Fahrrad, Rennrad, Auto, kürzester Weg**. Länge, Höhenmeter, Dauer (Wandern: Gehzeit nach DIN 33466) – speichern als Route mit Höhenprofil, GPX-Export für Garmin
+- **Wanderwege suchen** (Routen & Touren → „Wanderwege suchen“): ausgeschilderte Wander-, Rad- und MTB-Routen aus OpenStreetMap im Kartenausschnitt, optional nach Name; Vorschau auf der Karte, übernehmen mit Höhen (Open-Meteo) und geschätzter Gehzeit
+- Server: `/api/routing/…` reicht Suche (Overpass) und Planung (BRouter) weiter – mit Zwischenspeicher, Begrenzung und sicher gebauten Abfragen. Ohne eigenen Server fragt die App direkt
+- Zwei neue Klicktests (mit nachgebauten Kartendiensten)
+
+### Behoben
+- Karte: Beim „Auf der Karte antippen“ hat die App versehentlich die Gestaltung der Karte entfernt (Steuerelemente/Ebenen verrutschten). Behoben – betraf auch das Antippen von Routen beim Verorten
+
 ## 1.11.1 – 2026-10-13
 
 ### Intern

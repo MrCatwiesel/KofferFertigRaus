@@ -368,7 +368,8 @@ const nearest = computed(() => {
     <button type="button" class="btn btn-link btn-sm p-0 ms-2" @click="pickOnMap = false">Abbrechen</button>
   </div>
 
-  <div ref="mapEl" class="map mb-3" :class="{ picking: pickOnMap }"></div>
+  <!-- Dynamische Klasse am Rahmen: Vue würde sonst die Klassen überschreiben, die Leaflet am Kartenelement setzt -->
+  <div class="map-frame mb-3" :class="{ picking: pickOnMap }"><div ref="mapEl" class="map"></div></div>
   <p v-if="baseError" class="small text-danger">{{ baseError }}</p>
   <p v-else-if="!online && !offlineMaps.length" class="small text-body-secondary">
     Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast. Tipp: unten „Offline-Karten“ – dann ist die ganze Gegend gespeichert.
@@ -477,7 +478,7 @@ const nearest = computed(() => {
   border: 1px solid var(--bs-border-color);
   z-index: 0;
 }
-.map.picking {
+.map-frame.picking .map {
   cursor: crosshair;
   outline: 3px solid var(--bs-primary);
 }
@@ -495,7 +496,7 @@ const nearest = computed(() => {
   border-radius: 2px;
   flex: none;
 }
-.map.picking :deep(.nww-route-hit) {
+.map-frame.picking :deep(.nww-route-hit) {
   cursor: copy;
 }
 .flex-none {

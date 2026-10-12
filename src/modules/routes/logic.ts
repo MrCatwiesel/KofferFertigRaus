@@ -156,3 +156,13 @@ export function gpxFileName(name: string): string {
     .slice(0, 60)
   return `${slug || 'route'}.gpx`
 }
+
+/**
+ * Gehzeit nach DIN 33466 (Wanderwege): 4 km/h in der Ebene, 300 Hm/h bergauf, 500 Hm/h bergab;
+ * die größere der beiden Zeiten plus die Hälfte der kleineren. Ergebnis in Sekunden.
+ */
+export function hikingTime(distance: number, ascent: number, descent: number): number {
+  const horizontal = distance / 1000 / 4
+  const vertical = ascent / 300 + descent / 500
+  return Math.round((Math.max(horizontal, vertical) + Math.min(horizontal, vertical) / 2) * 3600)
+}

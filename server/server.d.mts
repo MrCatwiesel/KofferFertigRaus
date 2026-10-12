@@ -9,5 +9,6 @@ export function createSyncServer(opts: {
   piwigo?: { url: string; keyId: string; secret: string; publicUrl?: string; fetchImpl?: typeof fetch } | null
   appDir?: string | null
   deviceIdleDays?: number
+  routing?: { overpassUrl?: string; brouterUrl?: string; fetchImpl?: typeof fetch }
   maps?: { bin?: string; source?: string; fetchImpl?: typeof fetch }
 }): Server

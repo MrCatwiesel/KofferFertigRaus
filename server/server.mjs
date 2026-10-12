@@ -8,6 +8,7 @@
  *  - Lese-Links: Reisen für Freunde zum Ansehen freigeben                            → shares.mjs
  *  - Piwigo-Brücke (optional)                                                        → piwigo.mjs
  *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
+ *  - Wanderwege-Suche (Overpass) und Routenplaner (BRouter) weitergereicht          → routing.mjs
  *  - Offline-Karten: Ausschnitte der Protomaps-Weltkarte (optional, Programm pmtiles) → maps.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
@@ -27,9 +28,10 @@ import { createPiwigoClient } from './piwigo.mjs'
 import { createMaps } from './maps.mjs'
 import { createDevices } from './devices.mjs'
 import { createBackupAdmin } from './backup-targets.mjs'
+import { createRouting } from './routing.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.10.0'
+export const VERSION = '1.11.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -37,7 +39,7 @@ const MAX_JSON = 30 * 1024 * 1024
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
  *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
- *   appDir?: string | null, deviceIdleDays?: number, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
+ *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
   const store = createStore(resolve(opts.dataDir))
@@ -51,6 +53,7 @@ export function createSyncServer(opts) {
   const shares = createShares(store)
   const devices = createDevices(store, groups, { idleDays: opts.deviceIdleDays })
   const backupAdmin = createBackupAdmin(resolve(opts.dataDir))
+  const routing = createRouting({ ...(opts.routing ?? {}), version: VERSION })
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -129,6 +132,8 @@ export function createSyncServer(opts) {
     if (path === '/api/shares' || path.startsWith('/api/shares/')) return shares.handleOwner(req, res, url, path, group)
 
     if (path === '/api/geraete' || path.startsWith('/api/geraete/') || path === '/api/einladungen') return devices.handle(req, res, path, auth)
+
+    if (path.startsWith('/api/routing/')) return routing.handle(req, res, url, path)
 
     if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
 
@@ -282,6 +287,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         }
       : null,
     appDir: process.env.NWW_APP_DIR || null,
+    routing: { overpassUrl: process.env.NWW_OVERPASS_URL || undefined, brouterUrl: process.env.NWW_BROUTER_URL || undefined },
     deviceIdleDays: process.env.NWW_DEVICE_IDLE_DAYS ? Number(process.env.NWW_DEVICE_IDLE_DAYS) : undefined,
     maps: { bin: process.env.NWW_PMTILES || undefined, source: process.env.NWW_MAPS_SOURCE || undefined }
   })

@@ -4,7 +4,9 @@ export type TrackPoint = [lat: number, lon: number, ele: number | null, time: nu
 /** Aufgezeichnete Tour (mit Zeiten) oder geplante Route (ohne). */
 export type RouteKind = 'track' | 'route'
 
-export type RouteFormat = 'gpx' | 'fit' | 'tcx' | 'kml' | 'kmz' | 'geojson'
+/** Dateiformat – oder woher die Route stammt: aus OpenStreetMap übernommen bzw. in der App geplant */
+export type FileFormat = 'gpx' | 'fit' | 'tcx' | 'kml' | 'kmz' | 'geojson'
+export type RouteFormat = FileFormat | 'osm' | 'planung'
 
 /** Was eine Datei hergibt – vor dem Speichern. */
 export interface ParsedRoute {
@@ -63,5 +65,7 @@ export const FORMAT_LABEL: Record<RouteFormat, string> = {
   tcx: 'TCX',
   kml: 'KML',
   kmz: 'KMZ',
-  geojson: 'GeoJSON'
+  geojson: 'GeoJSON',
+  osm: 'OpenStreetMap',
+  planung: 'In der App geplant'
 }

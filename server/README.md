@@ -153,6 +153,7 @@ docker compose up -d --build
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
 | `NWW_DEVICE_IDLE_DAYS` | Geräte, die so viele Tage nicht abgeglichen haben, werden abgemeldet (Standard 180, `0` = nie) |
+| `NWW_OVERPASS_URL` / `NWW_BROUTER_URL` | Eigene Instanzen für Wanderwege-Suche bzw. Routenplaner (Standard: overpass-api.de, brouter.de) |
 | `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
 | `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
 | `NWW_BACKUP_DIR` / `NWW_BACKUP_KEEP` | Nur Proxmox: Zielordner und Anzahl der täglichen Sicherungen (`backup.sh`) |
@@ -182,6 +183,9 @@ docker compose up -d --build
 | PATCH/DELETE | `/api/geraete/<id>` (oder `ich`) | Gerät umbenennen `{ name }` / abmelden |
 | POST | `/api/geraete/andere-abmelden` | alle anderen Geräte der Gruppe abmelden |
 | POST | `/api/einladungen` | Einladungscode für ein weiteres Gerät (einmal gültig, 24 Stunden) |
+| GET | `/api/routing/wanderwege?bbox=W,S,O,N&typ=hiking\|bicycle\|mtb&name=` | ausgeschilderte Routen im Ausschnitt (Overpass, höchstens 0,8°) |
+| GET | `/api/routing/wanderwege/<id>` | Verlauf einer Route (Overpass `out geom`) |
+| GET | `/api/routing/strecke?lonlats=…&profile=hiking-mountain\|trekking\|fastbike\|car-fast\|shortest` | Strecke von A nach B (BRouter, GeoJSON mit Höhen) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |
 | GET/DELETE | `/api/maps/<id>` | Stand (`läuft`, `fertig`, `fehler`) / löschen |
 | GET | `/api/maps/<id>/datei` | fertige PMTiles-Datei (mit `Range`-Unterstützung) |

@@ -1,4 +1,4 @@
-import type { ParsedRoute, RouteFormat } from '../types'
+import type { FileFormat, ParsedRoute } from '../types'
 import { isFit, parseFit } from './fit'
 import { parseGeoJson } from './geojson'
 import { parseGpx } from './gpx'
@@ -55,7 +55,7 @@ export async function unzipKml(bytes: Uint8Array): Promise<string> {
 }
 
 /** Format an Endung und Inhalt erkennen. */
-export function detectFormat(filename: string, bytes: Uint8Array): RouteFormat | null {
+export function detectFormat(filename: string, bytes: Uint8Array): FileFormat | null {
   if (isFit(bytes)) return 'fit'
   if (bytes[0] === 0x50 && bytes[1] === 0x4b) return 'kmz'
   const head = new TextDecoder().decode(bytes.subarray(0, 2000)).replace(/^﻿/, '').trimStart()
@@ -70,7 +70,7 @@ export function detectFormat(filename: string, bytes: Uint8Array): RouteFormat |
 }
 
 /** Liest eine Routendatei; eine Datei kann mehrere Routen enthalten. */
-export async function parseRouteFile(filename: string, bytes: Uint8Array): Promise<{ format: RouteFormat; routes: ParsedRoute[] }> {
+export async function parseRouteFile(filename: string, bytes: Uint8Array): Promise<{ format: FileFormat; routes: ParsedRoute[] }> {
   const format = detectFormat(filename, bytes)
   if (!format) throw new Error(`${filename}: Format nicht erkannt (GPX, FIT, TCX, KML, KMZ oder GeoJSON).`)
   const name = baseName(filename)

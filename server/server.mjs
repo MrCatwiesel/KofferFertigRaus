@@ -29,7 +29,7 @@ import { createDevices } from './devices.mjs'
 import { createBackupAdmin } from './backup-targets.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.9.0'
+export const VERSION = '1.10.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -109,13 +109,18 @@ export function createSyncServer(opts) {
     if (req.method === 'POST' && path === '/api/push') {
       const body = JSON.parse((await readBody(req, MAX_JSON)).toString('utf8') || '{}')
       if (!Array.isArray(body.changes)) throw new HttpError(400, 'changes fehlt')
-      return send(res, 200, store.push(space, body.changes))
+      const result = store.push(space, body.changes)
+      if (auth.device) devices.noteSync(auth.device.id, req)
+      return send(res, 200, result)
     }
 
     if (req.method === 'GET' && path === '/api/pull') {
       const since = Math.max(0, Number(url.searchParams.get('since') ?? 0) || 0)
       const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get('limit') ?? 500) || 500))
-      return send(res, 200, store.pull(space, since, limit))
+      const page = store.pull(space, since, limit)
+      // Letzte Seite geholt → Gerät ist auf Stand `seq` (bzw. auf dem aktuellen Stand, wenn nichts Neues kam)
+      if (auth.device) devices.noteSync(auth.device.id, req, page.more ? null : page.changes.length ? page.seq : store.info(space).seq)
+      return send(res, 200, page)
     }
 
     const blob = path.match(/^\/api\/blob\/([a-f0-9]{64})$/)

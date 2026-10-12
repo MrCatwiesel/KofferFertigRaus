@@ -291,8 +291,12 @@ export function syncNow(): Promise<void> {
         await setMeta(META.initialized, true)
       }
       syncState.progress = 'Lade Änderungen hoch …'
+      await refreshPending()
+      api.pending = syncState.pending
       await pushOutbox(api)
       syncState.progress = 'Hole Änderungen …'
+      await refreshPending()
+      api.pending = syncState.pending
       await pullChanges(api)
       const now = new Date().toISOString()
       await setMeta(META.lastSync, now)

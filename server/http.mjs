@@ -52,7 +52,7 @@ export function corsFor(origins) {
     const allow = list.includes('*') ? '*' : origin && list.includes(origin) ? origin : ''
     if (allow) res.setHeader('Access-Control-Allow-Origin', allow)
     res.setHeader('Vary', 'Origin')
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Share-Password')
+    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Share-Password, X-NWW-Pending')
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, HEAD, OPTIONS')
     res.setHeader('Access-Control-Max-Age', '86400')
   }

@@ -37,8 +37,11 @@ export class SyncApi {
     private readonly key: string
   ) {}
 
+  /** Zahl der hier noch nicht hochgeladenen Änderungen – geht mit, damit andere Geräte den Stand sehen */
+  pending: number | null = null
+
   private headers(extra: Record<string, string> = {}): Record<string, string> {
-    return { Authorization: `Bearer ${this.key}`, ...extra }
+    return { Authorization: `Bearer ${this.key}`, ...(this.pending !== null ? { 'X-NWW-Pending': String(this.pending) } : {}), ...extra }
   }
 
   private async request(path: string, init: RequestInit = {}): Promise<Response> {

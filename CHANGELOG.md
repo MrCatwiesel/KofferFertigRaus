@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.11.0 – 2026-10-13 (Server 1.10.0)
+
+### Neu: Abgleich-Stand je Gerät
+- *Geräte-Abgleich → Angemeldete Geräte* zeigt für jedes Gerät, ob es **auf dem neuesten Stand** ist, wie viele **Änderungen ihm noch fehlen** und wie viele es **noch nicht hochgeladen** hat – z. B. vor der Abreise prüfen, ob Birgits Handy alles hat
+- Zusammenfassung oben: „Alle Geräte sind auf dem neuesten Stand“ bzw. welche nicht
+- Liste aktualisiert sich nach jedem Abgleich und alle 30 Sekunden
+- Symbol oben rechts zeigt ein abgemeldetes Gerät deutlich an
+
 ## 1.10.0 – 2026-10-13 (Server 1.9.0)
 
 ### Neu: mehrere Sicherungsziele

@@ -148,3 +148,37 @@ test('Lange nicht benutzte Geräte werden abgemeldet', async () => {
     rmSync(d2, { recursive: true, force: true })
   }
 })
+
+test('Abgleich-Stand je Gerät: fehlende und noch nicht hochgeladene Änderungen', async () => {
+  const OWN = 'stand-test-schluessel-12345'
+  const d3 = mkdtempSync(join(tmpdir(), 'nww-stand-'))
+  const s = createSyncServer({ keys: [OWN], dataDir: d3 })
+  await new Promise((r) => s.listen(0, r))
+  const b3 = `http://127.0.0.1:${s.address().port}`
+  const c3 = async (method, path, key, body, headers = {}) => {
+    const r = await fetch(`${b3}${path}`, { method, headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', ...headers }, body: body ? JSON.stringify(body) : undefined })
+    return r.json()
+  }
+  try {
+    const ipad = (await c3('POST', '/api/anmelden', OWN, { name: 'iPad' })).token
+    const handy = (await c3('POST', '/api/anmelden', OWN, { name: 'Handy' })).token
+    const change = (id) => ({ tbl: 'trips', id, stamp: '2026-01-01T00:00:00Z', data: { id } })
+    await c3('POST', '/api/push', ipad, { changes: [change('a'), change('b'), change('c')] }, { 'X-NWW-Pending': '0' })
+    await c3('GET', '/api/pull?since=0', ipad, null, { 'X-NWW-Pending': '0' })
+    await c3('GET', '/api/pull?since=0&limit=2', handy, null, { 'X-NWW-Pending': '4' }) // nur erste Seite → Stand noch offen
+    let list = (await c3('GET', '/api/geraete', ipad)).devices
+    const by = (n) => list.find((d) => d.name === n)
+    assert.equal(by('iPad').behind, 0)
+    assert.equal(by('Handy').behind, null, 'noch nie vollständig geholt')
+    assert.equal(by('Handy').pending, 4)
+    await c3('GET', '/api/pull?since=2', handy, null, { 'X-NWW-Pending': '0' })
+    await c3('POST', '/api/push', ipad, { changes: [change('d')] })
+    list = (await c3('GET', '/api/geraete', ipad)).devices
+    assert.equal(by('Handy').behind, 1, 'eine neue Änderung vom iPad fehlt dem Handy')
+    assert.equal(by('Handy').pending, 0)
+    assert.ok(by('Handy').synced)
+  } finally {
+    await new Promise((r) => s.close(r))
+    rmSync(d3, { recursive: true, force: true })
+  }
+})

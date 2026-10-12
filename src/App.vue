@@ -18,7 +18,7 @@ const online = useOnline()
       <RouterLink v-if="syncState.configured" to="/abgleich" class="sync-badge ms-auto me-md-3 text-decoration-none"
                   :title="syncState.lastError || (syncState.pending ? `${syncState.pending} Änderungen warten` : 'Abgeglichen')"
                   aria-label="Geräte-Abgleich">
-        <i class="bi" :class="syncState.running ? 'bi-arrow-repeat text-primary spin' : syncState.lastError ? 'bi-cloud-slash text-warning' : syncState.pending ? 'bi-cloud-arrow-up text-body-secondary' : 'bi-cloud-check text-success'" aria-hidden="true"></i>
+        <i class="bi" :class="syncState.revoked ? 'bi-person-x text-danger' : syncState.running ? 'bi-arrow-repeat text-primary spin' : syncState.lastError ? 'bi-cloud-slash text-warning' : syncState.pending ? 'bi-cloud-arrow-up text-body-secondary' : 'bi-cloud-check text-success'" aria-hidden="true"></i>
         <span v-if="syncState.pending && !syncState.running" class="badge rounded-pill text-bg-secondary">{{ syncState.pending }}</span>
       </RouterLink>
       <ul class="navbar-nav d-none d-md-flex" :class="{ 'ms-auto': !syncState.configured }">

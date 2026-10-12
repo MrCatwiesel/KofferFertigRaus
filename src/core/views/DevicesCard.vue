@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from 'vue'
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import qrcode from 'qrcode-generator'
 import { ServerClient } from '../sync/client'
 import { logoutThisDevice, syncState } from '../sync/engine'
@@ -12,6 +12,12 @@ interface Device {
   lastSeen: string | null
   agent: string
   current: boolean
+  /** Zuletzt abgeglichen */
+  synced: string | null
+  /** So viele Änderungen fehlen dem Gerät noch (null = unbekannt, ältere App-Version) */
+  behind: number | null
+  /** So viele Änderungen hat das Gerät noch nicht hochgeladen */
+  pending: number | null
 }
 
 const emit = defineEmits<{ loggedOut: [] }>()
@@ -41,6 +47,22 @@ async function load() {
   }
 }
 onMounted(load)
+// Liste aktuell halten: nach jedem eigenen Abgleich und alle 30 s, solange die Seite offen ist
+watch(() => syncState.lastSync, () => void load())
+const timer = setInterval(() => document.visibilityState === 'visible' && void load(), 30_000)
+onUnmounted(() => clearInterval(timer))
+
+type SyncInfo = { level: 'ok' | 'warn' | 'unknown'; text: string }
+/** Abgleich-Stand eines Geräts in Worten */
+function syncInfo(d: Device): SyncInfo {
+  if (d.behind === null && d.pending === null) return { level: 'unknown', text: 'Stand unbekannt – gleicht beim nächsten Öffnen ab' }
+  const parts: string[] = []
+  if (d.behind) parts.push(`${d.behind} ${d.behind === 1 ? 'Änderung fehlt' : 'Änderungen fehlen'} noch`)
+  if (d.pending) parts.push(`${d.pending} noch nicht hochgeladen`)
+  if (d.behind === null) parts.unshift('noch nie vollständig abgeglichen')
+  return parts.length ? { level: 'warn', text: parts.join(' · ') } : { level: 'ok', text: 'auf dem neuesten Stand' }
+}
+const notReady = computed(() => devices.value.filter((d) => syncInfo(d).level === 'warn'))
 
 const others = computed(() => devices.value.filter((d) => !d.current))
 /** Melden sich noch Geräte direkt mit dem Gruppenschlüssel an (ältere App-Version)? */
@@ -140,6 +162,11 @@ const until = (iso: string) =>
         <span v-if="syncState.device" class="small text-body-secondary fw-normal ms-auto">Dieses Gerät: {{ syncState.device.name }}</span>
       </h2>
 
+      <div v-if="!loading && devices.length > 1" class="small mb-2" :class="notReady.length ? 'text-warning-emphasis' : 'text-success'">
+        <i class="bi" :class="notReady.length ? 'bi-exclamation-triangle' : 'bi-check2-all'" aria-hidden="true"></i>
+        <template v-if="notReady.length">{{ notReady.map((d) => d.name).join(', ') }} {{ notReady.length === 1 ? 'ist' : 'sind' }} noch nicht auf dem neuesten Stand.</template>
+        <template v-else>Alle Geräte sind auf dem neuesten Stand.</template>
+      </div>
       <div v-if="error" class="alert alert-danger small py-2">{{ error }}</div>
       <div v-if="info" class="alert alert-success small py-2" role="status">{{ info }}</div>
       <div v-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade …</div>
@@ -152,7 +179,11 @@ const until = (iso: string) =>
               {{ d.name }} <span v-if="d.current" class="badge text-bg-primary ms-1">dieses Gerät</span>
             </div>
             <div class="small text-body-secondary text-truncate">
-              {{ d.agent || 'unbekannt' }} · zuletzt {{ ago(d.lastSeen ?? d.created) }}
+              {{ d.agent || 'unbekannt' }} · zuletzt {{ ago(d.synced ?? d.lastSeen ?? d.created) }}
+            </div>
+            <div class="small" :class="{ 'text-success': syncInfo(d).level === 'ok', 'text-warning-emphasis': syncInfo(d).level === 'warn', 'text-body-secondary': syncInfo(d).level === 'unknown' }">
+              <i class="bi" :class="syncInfo(d).level === 'ok' ? 'bi-check2' : syncInfo(d).level === 'warn' ? 'bi-hourglass-split' : 'bi-question-circle'" aria-hidden="true"></i>
+              {{ syncInfo(d).text }}
             </div>
           </div>
           <div class="dropdown flex-none">

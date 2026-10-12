@@ -66,7 +66,14 @@ export function createDevices(store, groups, opts = {}) {
       used TEXT, created_by TEXT
     );
   `)
+  // Neuere Spalten in bestehenden Datenbanken ergänzen: Abgleich-Stand je Gerät
+  const cols = new Set(db.prepare('PRAGMA table_info(devices)').all().map((c) => c.name))
+  if (!cols.has('pull_seq')) db.exec('ALTER TABLE devices ADD COLUMN pull_seq INTEGER')
+  if (!cols.has('pending')) db.exec('ALTER TABLE devices ADD COLUMN pending INTEGER')
+  if (!cols.has('synced')) db.exec('ALTER TABLE devices ADD COLUMN synced TEXT')
+
   const q = {
+    syncState: db.prepare('UPDATE devices SET pull_seq = COALESCE(?, pull_seq), pending = COALESCE(?, pending), synced = ? WHERE id = ?'),
     byToken: db.prepare('SELECT * FROM devices WHERE token_hash = ?'),
     byId: db.prepare('SELECT * FROM devices WHERE id = ? AND space = ?'),
     list: db.prepare('SELECT * FROM devices WHERE space = ? AND revoked IS NULL ORDER BY created'),
@@ -119,13 +126,17 @@ export function createDevices(store, groups, opts = {}) {
     if (fails.size > 5000) for (const [k, v] of fails) if (t - v.first > FAIL_WINDOW_MS && v.until < t) fails.delete(k)
   }
 
-  const toDevice = (row, currentId) => ({
+  const toDevice = (row, currentId, headSeq = null) => ({
     id: row.id,
     name: row.name,
     created: row.created,
     lastSeen: row.last_seen,
     agent: row.agent ?? '',
-    current: row.id === currentId
+    current: row.id === currentId,
+    // Abgleich-Stand: wie viele Änderungen dem Gerät noch fehlen, wie viele es noch nicht hochgeladen hat
+    synced: row.synced ?? null,
+    behind: headSeq !== null && row.pull_seq !== null && row.pull_seq !== undefined ? Math.max(0, headSeq - row.pull_seq) : null,
+    pending: row.pending ?? null
   })
 
   function newDevice(space, name, req) {
@@ -211,8 +222,10 @@ export function createDevices(store, groups, opts = {}) {
 
       const sub = path.slice('/api/geraete'.length)
       if (sub === '' && req.method === 'GET') {
+        const headSeq = store.info(space).seq
         return send(res, 200, {
-          devices: q.list.all(space).map((r) => toDevice(r, device?.id)),
+          headSeq,
+          devices: q.list.all(space).map((r) => toDevice(r, device?.id, headSeq)),
           // Abgleich direkt mit dem Gruppenschlüssel (ältere App-Versionen)
           keyLastSeen: q.keyUseGet.get(`keyuse:${space}`)?.value ?? null,
           current: device?.id ?? null,
@@ -240,6 +253,15 @@ export function createDevices(store, groups, opts = {}) {
         return send(res, 200, { ok: true })
       }
       throw new HttpError(405, 'Nicht erlaubt')
+    },
+
+    /**
+     * Abgleich-Stand eines Geräts merken: nach dem Abholen (bis Stand `seq`, alles geholt) und mit der Zahl
+     * seiner noch nicht hochgeladenen Änderungen (Kopfzeile X-NWW-Pending).
+     */
+    noteSync(deviceId, req, seq = null) {
+      const p = Number.parseInt(String(req.headers['x-nww-pending'] ?? ''), 10)
+      q.syncState.run(seq, Number.isFinite(p) && p >= 0 ? p : null, now(), deviceId)
     },
 
     /** Abgleich mit dem Gruppenschlüssel statt Gerätezugang merken (für den Hinweis in der Geräteliste). */

@@ -1,7 +1,7 @@
 import { diffDays } from '../../core/dates'
 import { formatDate } from '../../core/format'
 import { MOODS } from '../journal/types'
-import type { SiteData, SiteDay, SitePhoto, WebsiteSettingsDraft } from './types'
+import type { SiteData, SiteDay, SitePhoto, SiteRoute, WebsiteSettingsDraft } from './types'
 
 export function defaultSettings(trip: { title: string; destination: string; startDate: string; endDate: string }): WebsiteSettingsDraft {
   return {
@@ -75,6 +75,9 @@ export interface EntryInput {
   createdAt: string
 }
 
+/** Route für die Webseite – mit Tag (leer = ohne Tag). */
+export type RouteInput = SiteRoute & { date: string }
+
 /**
  * Baut die Daten für die Vorlage: filtert (nur Highlights), gruppiert nach Tag, wählt das Titelbild.
  * `entries` enthalten schon die fertigen Bildquellen.
@@ -83,20 +86,24 @@ export function buildSiteData(
   trip: { destination: string; startDate: string; endDate: string; participants?: string[] },
   settings: Pick<WebsiteSettingsDraft, 'title' | 'subtitle' | 'intro' | 'author' | 'onlyHighlights'>,
   entries: EntryInput[],
-  generatedAt = new Date().toISOString()
+  generatedAt = new Date().toISOString(),
+  routes: RouteInput[] = []
 ): SiteData {
   const chosen = entries
     .filter((e) => !settings.onlyHighlights || e.highlight)
     .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
 
   const byDate = new Map<string, SiteDay>()
-  for (const e of chosen) {
-    const inTrip = e.date >= trip.startDate && e.date <= trip.endDate
-    const day = byDate.get(e.date) ?? { date: e.date, dayNumber: inTrip ? diffDays(trip.startDate, e.date) + 1 : null, entries: [] }
-    day.entries.push({ title: e.title, text: e.text, mood: e.mood, location: e.location, photos: e.photos })
-    byDate.set(e.date, day)
+  const dayOf = (date: string) => {
+    const inTrip = date >= trip.startDate && date <= trip.endDate
+    const day = byDate.get(date) ?? { date, dayNumber: inTrip ? diffDays(trip.startDate, date) + 1 : null, entries: [], routes: [] }
+    byDate.set(date, day)
+    return day
   }
-  const days = [...byDate.values()]
+  for (const e of chosen) dayOf(e.date).entries.push({ title: e.title, text: e.text, mood: e.mood, location: e.location, photos: e.photos })
+  const undated: SiteRoute[] = []
+  for (const { date, ...r } of routes) (date ? dayOf(date).routes : undated).push(r)
+  const days = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date))
   const allPhotos = days.flatMap((d) => d.entries.flatMap((e) => e.photos))
   // Titelbild: erstes Querformat, sonst erstes Foto überhaupt
   const cover = allPhotos.find((p) => p.width >= p.height) ?? allPhotos[0] ?? null
@@ -112,6 +119,7 @@ export function buildSiteData(
     participants: trip.participants ?? [],
     cover,
     days,
+    routes: undated,
     stats: { days: diffDays(trip.startDate, trip.endDate) + 1, entries: chosen.length, photos: allPhotos.length },
     generatedAt
   }

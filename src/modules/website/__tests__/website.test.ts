@@ -89,3 +89,33 @@ describe('renderSite', () => {
     expect(hidden).not.toContain('📍 Riva')
   })
 })
+
+describe('Routen auf der Webseite', () => {
+  const route = (date: string, name = 'Monte Baldo') => ({
+    name, color: '#16a34a', kind: 'track' as const, date,
+    stats: { distance: 12345, ascent: 850, descent: 840, duration: 14400 },
+    points: [[45.7, 10.8, 1000], [45.71, 10.81, 1500], [45.72, 10.8, 1800]] as [number, number, number | null][]
+  })
+
+  it('ordnet Routen ihrem Tag zu, auch Tagen ohne Eintrag; ohne Tag oben', () => {
+    const s = buildSiteData(trip, { ...defaultSettings(trip), onlyHighlights: false }, [entry({ date: '2026-07-02' })], '2026-08-01T00:00:00Z', [
+      route('2026-07-04'),
+      route('', 'Anreise')
+    ])
+    expect(s.days.map((d) => d.date)).toEqual(['2026-07-02', '2026-07-04'])
+    expect(s.days[1].routes[0].name).toBe('Monte Baldo')
+    expect(s.days[1].dayNumber).toBe(4)
+    expect(s.routes[0].name).toBe('Anreise')
+  })
+
+  it('zeichnet Strecke und Höhenprofil in allen Vorlagen', () => {
+    const s = buildSiteData(trip, defaultSettings(trip), [], '2026-08-01T00:00:00Z', [route('2026-07-04')])
+    for (const template of ['klassisch', 'magazin', 'galerie'] as const) {
+      const html = renderSite(s, { ...defaultSettings(trip), template }, '')
+      expect(html).toContain('Monte Baldo')
+      expect(html).toContain('nww-track')
+      expect(html).toContain('nww-profile')
+      expect(html).toContain('12,3 km')
+    }
+  })
+})

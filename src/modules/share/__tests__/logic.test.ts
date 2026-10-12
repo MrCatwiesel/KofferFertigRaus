@@ -24,6 +24,6 @@ describe('Lese-Links', () => {
   })
 
   it('startet mit Highlights und Fotos, ohne Passwort und Ablauf', () => {
-    expect(emptyShareDraft()).toEqual({ mode: 'highlights', photos: true, title: '', note: '', password: '', expiresDays: null, look: null })
+    expect(emptyShareDraft()).toEqual({ mode: 'highlights', photos: true, routes: true, title: '', note: '', password: '', expiresDays: null, look: null })
   })
 })

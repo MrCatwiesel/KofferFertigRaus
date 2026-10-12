@@ -11,7 +11,7 @@ export const EXPIRY_OPTIONS: { days: number | null; label: string }[] = [
 ]
 
 export function emptyShareDraft(): ShareDraft {
-  return { mode: 'highlights', photos: true, title: '', note: '', password: '', expiresDays: null, look: null }
+  return { mode: 'highlights', photos: true, routes: true, title: '', note: '', password: '', expiresDays: null, look: null }
 }
 
 /** Adresse des Links: /s/<code> auf dem eigenen Server. */

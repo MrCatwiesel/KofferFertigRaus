@@ -1,7 +1,7 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteEntry } from '../types'
 import type { SiteTemplate, TemplateContext } from './types'
-import { footer, statsLine } from './parts'
+import { footer, routesBlock, statsLine } from './parts'
 
 /** Klassisch: Titelbild, Einleitung, dann jeder Tag als Karte mit Fotoraster. */
 function entry(e: SiteEntry, ctx: TemplateContext): string {
@@ -49,12 +49,14 @@ export const klassisch: SiteTemplate = {
   <main class="container py-5" style="max-width: 820px">
     ${s.intro ? `<div class="lead mb-4">${paragraphs(s.intro)}</div>` : ''}
     ${statsLine(s)}
+    ${routesBlock(s.routes)}
     ${s.days
       .map(
         (d) => `
     <section class="mb-5">
       <div class="day-label mb-2">${d.dayNumber ? `Tag ${d.dayNumber} · ` : ''}${esc(longDate(d.date))}</div>
       ${d.entries.map((e) => entry(e, ctx)).join('')}
+      ${routesBlock(d.routes)}
     </section>`
       )
       .join('')}

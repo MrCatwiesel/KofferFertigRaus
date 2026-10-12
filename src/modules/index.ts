@@ -11,6 +11,7 @@ import { journalModule } from './journal'
 import { websiteModule } from './website'
 import { expensesModule } from './expenses'
 import { mapModule } from './map'
+import { routesModule } from './routes'
 import { piwigoModule } from './piwigo'
 import { shareModule } from './share'
 
@@ -29,6 +30,7 @@ export function registerAllModules(): void {
   registerModule(documentsModule)
   registerModule(dayplannerModule)
   registerModule(mapModule)
+  registerModule(routesModule)
   registerModule(journalModule)
   registerModule(piwigoModule)
   registerModule(expensesModule)

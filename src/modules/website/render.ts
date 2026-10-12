@@ -26,6 +26,12 @@ img { max-width: 100%; }
 .lb.open { display: flex; }
 .lb img { max-width: 100%; max-height: calc(100% - 3rem); object-fit: contain; cursor: pointer; }
 .lb-cap { position: absolute; bottom: 1rem; left: 0; right: 0; text-align: center; color: #fff; font-size: .9rem; padding: 0 1rem; }
+.route { margin: 1rem 0 2rem; }
+.route-head { margin-bottom: .5rem; }
+.route-dot { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; margin-right: .4rem; vertical-align: -.05rem; }
+.route-track { background: var(--bs-tertiary-bg); border-radius: .5rem; }
+.route svg { display: block; width: 100%; height: auto; }
+.route-profile { margin-top: .5rem; color: var(--bs-body-color); }
 @media print { .lb { display: none !important; } }
 `
 

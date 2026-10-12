@@ -25,3 +25,10 @@ export function todayIso(today: Date = new Date()): string {
 export function addDays(isoDate: string, n: number): string {
   return new Date(toUtcDay(isoDate) + n * DAY_MS).toISOString().slice(0, 10)
 }
+
+/** Alle Tage von start bis end (einschließlich), höchstens ein Jahr. */
+export function eachDay(start: string, end: string): string[] {
+  const n = diffDays(start, end)
+  if (!Number.isFinite(n) || n < 0 || n > 366) return []
+  return Array.from({ length: n + 1 }, (_, i) => addDays(start, i))
+}

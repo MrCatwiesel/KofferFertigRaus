@@ -64,6 +64,8 @@ Weitere Andockpunkte (Beispiel: `src/modules/piwigo/index.ts`):
 | `photoSource` | zusätzliche Fotoquelle im Tagebuch (Knopf neben „Fotos hinzufügen“); Komponente meldet `picked` mit `PickedPhoto[]` |
 | `onPhotosAdded` | neue eigene Fotos wurden gespeichert – mit Originaldatei (z. B. zum Hochladen) |
 | `onStart` | einmal nach dem App-Start (Hintergrund-Aufgaben) |
+| `mapOverlays` | Linien auf der Reisekarte (z. B. Routen) |
+| `dayLinks` | Verweise unter einem Tag im Tagebuch |
 
 Vollständige Beispiele: `src/modules/accommodation/index.ts` und `src/modules/activity/index.ts`. Für die Kopfzeile von Unterseiten `TripContextHeader` aus `@/modules/trip/public` verwenden.
 

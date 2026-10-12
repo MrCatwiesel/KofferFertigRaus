@@ -54,6 +54,31 @@ export interface AddedPhoto {
   takenAt: string
 }
 
+/** Eine Linie auf der Reisekarte (z. B. eine Route), die ein anderes Modul beisteuert. */
+export interface MapOverlay {
+  id: string
+  name: string
+  color: string
+  /** [Breite, Länge] */
+  points: [number, number][]
+  /** Tag (YYYY-MM-DD) oder leer – für den Tagesfilter der Karte */
+  date: string
+  /** Detailseite in der App */
+  to: string
+  /** Kurzinfo, z. B. "12,3 km · ↗ 850 m" */
+  info: string
+}
+
+/** Verweis, der im Tagebuch unter einem Tag erscheint (z. B. die Wanderung des Tages). */
+export interface DayLink {
+  date: string
+  label: string
+  /** Bootstrap-Icon-Name ohne "bi-" */
+  icon: string
+  to: string
+  color?: string
+}
+
 /**
  * Vertrag, den jedes Modul erfüllt. Module kennen einander nicht –
  * sie melden sich nur hier beim Kern an.
@@ -81,6 +106,10 @@ export interface AppModule {
   onPhotosAdded?: (photos: AddedPhoto[]) => Promise<void>
   /** Wird einmal nach dem App-Start aufgerufen (z. B. Hintergrund-Aufgaben starten) */
   onStart?: () => void
+  /** Linien für die Reisekarte */
+  mapOverlays?: (tripId: string) => Promise<MapOverlay[]>
+  /** Verweise unter den Tagen im Tagebuch */
+  dayLinks?: (tripId: string) => Promise<DayLink[]>
 }
 
 const modules: AppModule[] = []
@@ -138,4 +167,16 @@ export async function notifyPhotosAdded(photos: AddedPhoto[]): Promise<void> {
 /** Startet die Hintergrund-Aufgaben der Module. */
 export function startModules(): void {
   for (const m of getModules()) m.onStart?.()
+}
+
+/** Linien aller Module für die Reisekarte (innerhalb einer Live-Abfrage aufrufen, dann aktualisiert sich die Karte). */
+export async function getMapOverlays(tripId: string): Promise<MapOverlay[]> {
+  const lists = await Promise.all(getModules().map((m) => m.mapOverlays?.(tripId) ?? Promise.resolve([])))
+  return lists.flat()
+}
+
+/** Verweise aller Module unter den Tagen im Tagebuch. */
+export async function getDayLinks(tripId: string): Promise<DayLink[]> {
+  const lists = await Promise.all(getModules().map((m) => m.dayLinks?.(tripId) ?? Promise.resolve([])))
+  return lists.flat()
 }

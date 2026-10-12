@@ -8,8 +8,9 @@ import DonationHint from '@/ui/DonationHint.vue'
 import { blobToDataUrl, resizeBlob } from '@/services/images'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { journalRepository, orderPhotos, photoRepository, useObjectUrls, type JournalEntry, type Photo } from '@/modules/journal/public'
+import { routeRepository, type Route } from '@/modules/routes/public'
 import { websiteRepository } from '../repository'
-import { buildSiteData, defaultSettings, fileNameFor, type EntryInput } from '../logic'
+import { buildSiteData, defaultSettings, fileNameFor, type EntryInput, type RouteInput } from '../logic'
 import { renderSite } from '../render'
 import { embeddedFontCss, fontFaceCss } from '../fonts'
 import { ACCENT_PRESETS, FONT_GROUPS, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
@@ -23,6 +24,13 @@ const bootstrapCss = bootstrapCssRaw.replace(/\/\*# sourceMappingURL=.*?\*\//g, 
 const trip = ref<Trip>()
 const entries = useLiveQuery(() => journalRepository.listByTrip(props.tripId), [] as JournalEntry[])
 const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[])
+const routes = useLiveQuery(() => routeRepository.listByTrip(props.tripId), [] as Route[])
+// Nur Routen, die für Webseite/Lese-Links freigegeben sind
+const routeInputs = computed<RouteInput[]>(() =>
+  routes.value
+    .filter((r) => r.showInShare)
+    .map((r) => ({ name: r.name, color: r.color, kind: r.kind, stats: r.stats, points: r.preview, date: r.date }))
+)
 const previewUrls = useObjectUrls(photos, (p) => p.id, (p) => p.full)
 
 const settings = reactive<WebsiteSettingsDraft>(defaultSettings({ title: '', destination: '', startDate: '2000-01-01', endDate: '2000-01-01' }))
@@ -68,7 +76,9 @@ const site = computed(() => {
   return buildSiteData(
     trip.value,
     settings,
-    entryInputs((p) => ({ src: previewUrls.value.get(p.id) ?? '', caption: p.caption, width: p.width, height: p.height }))
+    entryInputs((p) => ({ src: previewUrls.value.get(p.id) ?? '', caption: p.caption, width: p.width, height: p.height })),
+    undefined,
+    routeInputs.value
   )
 })
 
@@ -113,7 +123,9 @@ async function buildFile() {
     const data = buildSiteData(
       trip.value,
       settings,
-      entryInputs((p) => sources.get(p.id) ?? { src: '', caption: p.caption, width: p.width, height: p.height })
+      entryInputs((p) => sources.get(p.id) ?? { src: '', caption: p.caption, width: p.width, height: p.height }),
+      undefined,
+      routeInputs.value
     )
     const html = renderSite(data, { ...settings }, bootstrapCss, await embeddedFontCss(settings.font))
     const file = new File([html], fileNameFor(settings.title || trip.value.title), { type: 'text/html' })

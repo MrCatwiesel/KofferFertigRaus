@@ -51,10 +51,20 @@ export interface SiteEntry {
   photos: SitePhoto[]
 }
 
+/** Eine Route, wie die Vorlage sie bekommt (Punkte schon stark vereinfacht). */
+export interface SiteRoute {
+  name: string
+  color: string
+  kind: 'track' | 'route'
+  stats: { distance: number; ascent: number; descent: number; duration: number | null }
+  points: [number, number, number | null][]
+}
+
 export interface SiteDay {
   date: string
   dayNumber: number | null
   entries: SiteEntry[]
+  routes: SiteRoute[]
 }
 
 /** Alles, was eine Vorlage zum Zeichnen braucht – ohne Datenbank, ohne Browser. */
@@ -69,6 +79,8 @@ export interface SiteData {
   participants: string[]
   cover: SitePhoto | null
   days: SiteDay[]
+  /** Routen ohne Tag */
+  routes: SiteRoute[]
   stats: { days: number; entries: number; photos: number }
   generatedAt: string
 }

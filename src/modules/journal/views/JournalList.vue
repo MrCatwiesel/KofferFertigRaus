@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useLiveQuery } from '@/core/composables'
+import { getDayLinks, type DayLink } from '@/core/registry'
 import { todayIso } from '@/core/dates'
 import { formatDayShort } from '@/core/format'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
@@ -16,6 +17,13 @@ const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as T
 const entries = useLiveQuery(() => journalRepository.listByTrip(props.tripId), [] as JournalEntry[])
 const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[])
 const thumbs = useObjectUrls(photos, (p) => p.id, (p) => p.thumb)
+// Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
+const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])
+const linksByDay = computed(() => {
+  const m = new Map<string, DayLink[]>()
+  for (const l of dayLinks.value) m.set(l.date, [...(m.get(l.date) ?? []), l])
+  return m
+})
 
 const onlyHighlights = ref(false)
 const showEmptyDays = ref(true)
@@ -83,6 +91,11 @@ async function removeEntry(e: JournalEntry) {
         <h2 class="h6 mb-0">{{ formatDayShort(d.date) }}</h2>
         <span v-if="d.dayNumber" class="small text-body-secondary">Tag {{ d.dayNumber }}</span>
         <span v-if="d.date === todayIso()" class="badge text-bg-primary">heute</span>
+      </div>
+      <div v-if="linksByDay.get(d.date)?.length" class="d-flex flex-wrap gap-1 mb-1">
+        <RouterLink v-for="l in linksByDay.get(d.date)" :key="l.to" :to="l.to" class="badge rounded-pill text-bg-light border text-decoration-none fw-normal day-link">
+          <i :class="`bi bi-${l.icon} me-1`" :style="{ color: l.color }" aria-hidden="true"></i>{{ l.label }}
+        </RouterLink>
       </div>
 
       <RouterLink v-if="d.entries.length === 0" :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date } }"

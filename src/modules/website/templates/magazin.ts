@@ -1,6 +1,6 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
-import { footer, statsLine } from './parts'
+import { footer, routesBlock, statsLine } from './parts'
 
 /** Magazin: große Bilder, Text abwechselnd links/rechts, Serif-Überschriften. */
 export const magazin: SiteTemplate = {
@@ -21,8 +21,8 @@ export const magazin: SiteTemplate = {
   `,
   body: (ctx) => {
     const s = ctx.site
-    const stories = s.days.flatMap((d) =>
-      d.entries.map((e) => {
+    const stories = s.days.flatMap((d) => [
+      ...d.entries.map((e) => {
         const [first, ...rest] = e.photos
         const meta = [
           ctx.settings.showLocation && e.location ? esc(e.location) : '',
@@ -40,8 +40,11 @@ export const magazin: SiteTemplate = {
           </div>
         </div>
       </article>`
-      })
-    )
+      }),
+      d.routes.length
+        ? `<section class="story"><div class="date">${d.dayNumber ? `Tag ${d.dayNumber} · ` : ''}${esc(longDate(d.date))}</div>${routesBlock(d.routes)}</section>`
+        : ''
+    ])
     return `
   <header class="mag-hero container">
     <div class="kicker">${esc(s.destination)}</div>
@@ -52,6 +55,7 @@ export const magazin: SiteTemplate = {
   <main class="container py-4" style="max-width: 1100px">
     ${s.intro ? `<div class="lead my-4 mx-auto" style="max-width: 720px">${paragraphs(s.intro)}</div>` : ''}
     ${statsLine(s)}
+    ${routesBlock(s.routes)}
     ${stories.join('')}
   </main>
   ${footer(s)}`

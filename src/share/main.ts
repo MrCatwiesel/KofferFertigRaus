@@ -3,7 +3,7 @@
  * und zeichnet sie mit den Vorlagen der Reise-Webseite. Keine App, kein Schlüssel, nur lesen.
  */
 import bootstrapCssRaw from 'bootstrap/dist/css/bootstrap.min.css?raw'
-import { buildSiteData, defaultSettings, esc, fontFaceCss, renderSite, type FontChoice, type TemplateId } from '@/modules/website/public'
+import { buildSiteData, defaultSettings, esc, fontFaceCss, renderSite, type FontChoice, type RouteInput, type TemplateId } from '@/modules/website/public'
 
 interface PublicPhoto {
   id: string
@@ -19,6 +19,7 @@ interface PublicData {
   trip: { destination: string; startDate: string; endDate: string }
   look: { template: TemplateId; accent: string; font: FontChoice; dark: boolean; showMood: boolean; showLocation: boolean }
   entries: { date: string; title: string; text: string; mood: number; location: string; highlight: boolean; createdAt: string; photos: PublicPhoto[] }[]
+  routes?: RouteInput[]
   ticket: string
 }
 
@@ -62,7 +63,9 @@ function show(data: PublicData) {
   const site = buildSiteData(
     data.trip,
     settings,
-    data.entries.map((e) => ({ ...e, photos: e.photos.map((p) => ({ src: photoUrl(p), caption: p.caption, width: p.width, height: p.height })) }))
+    data.entries.map((e) => ({ ...e, photos: e.photos.map((p) => ({ src: photoUrl(p), caption: p.caption, width: p.width, height: p.height })) })),
+    undefined,
+    data.routes ?? []
   )
   const html = renderSite(site, settings, bootstrapCss, fontFaceCss(settings.font))
     // Lese-Links nicht in Suchmaschinen

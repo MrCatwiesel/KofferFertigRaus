@@ -3,6 +3,8 @@ import { computed, markRaw, nextTick, onMounted, onUnmounted, ref, watch } from 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useLiveQuery, useOnline } from '@/core/composables'
+import { getMapOverlays, type MapOverlay } from '@/core/registry'
+import { useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { distanceKm, formatDistance, searchAddress, type GeoResult } from '@/services/geocoding'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
@@ -19,6 +21,9 @@ const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as T
 const accs = useLiveQuery(() => accommodationRepository.listByTrip(props.tripId), [] as Accommodation[])
 const acts = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] as Activity[])
 const places = useLiveQuery(() => placeRepository.listByTrip(props.tripId), [] as MapPlace[])
+// Linien anderer Module (z. B. Routen)
+const overlays = useLiveQuery(() => getMapOverlays(props.tripId), [] as MapOverlay[])
+const router = useRouter()
 
 const dayFilter = ref('')
 
@@ -51,7 +56,8 @@ const split = computed(() => splitByLocation(items.value, places.value))
 const visible = computed(() =>
   split.value.located.filter((l) => !dayFilter.value || l.kind === 'accommodation' || l.date === dayFilter.value)
 )
-const plannedDays = computed(() => [...new Set(acts.value.map((a) => a.plannedDate).filter(Boolean))].sort())
+const visibleOverlays = computed(() => overlays.value.filter((o) => !dayFilter.value || o.date === dayFilter.value))
+const plannedDays = computed(() => [...new Set([...acts.value.map((a) => a.plannedDate), ...overlays.value.map((o) => o.date)].filter(Boolean))].sort())
 
 // ---- Karte ----
 const mapEl = ref<HTMLElement>()
@@ -83,6 +89,19 @@ function popupHtml(l: Located): string {
 function draw() {
   if (!map || !layer) return
   layer.clearLayers()
+  for (const o of visibleOverlays.value) {
+    if (o.points.length < 2) continue
+    L.polyline(o.points, { color: '#fff', weight: 7, opacity: 0.8, interactive: false }).addTo(layer)
+    const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+    const line = L.polyline(o.points, { color: o.color, weight: 4 }).addTo(layer)
+    const link = document.createElement('div')
+    link.innerHTML = `<strong>${esc(o.name)}</strong><br><small>${esc(o.info)}</small><br><a href="#">Details</a>`
+    link.querySelector('a')!.addEventListener('click', (ev) => {
+      ev.preventDefault()
+      router.push(o.to)
+    })
+    line.bindPopup(link)
+  }
   for (const l of visible.value) {
     L.marker([l.place.lat, l.place.lon], { icon: icon(l.kind, l.done), title: l.title })
       .bindPopup(popupHtml(l))
@@ -93,7 +112,7 @@ function draw() {
 
 function fitAll() {
   if (!map) return
-  const pts = visible.value.map((l) => l.place)
+  const pts = [...visible.value.map((l) => l.place), ...visibleOverlays.value.flatMap((o) => o.points.map(([lat, lon]) => ({ lat, lon })))]
   const b = boundsOf(pts)
   if (b) {
     map.fitBounds(b, { padding: [40, 40], maxZoom: 15 })
@@ -119,7 +138,7 @@ onUnmounted(() => {
   map = null
 })
 
-watch([visible, me], draw, { deep: true })
+watch([visible, me, visibleOverlays], draw, { deep: true })
 watch(dayFilter, () => {
   fitted = false
   draw()

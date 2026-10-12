@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 1.5.0 – 2026-10-12
+
+### Neu
+- **Routen & Touren** (Reise → „Routen & Touren“):
+  - Import von **GPX, FIT (Garmin Fenix/GPSMap), TCX, KML/KMZ (Google My Maps) und GeoJSON** – eigene Leser ohne Fremddienste; eine Datei kann mehrere Routen enthalten
+  - Karte mit Start/Ziel, **Höhenprofil**, Länge, Auf-/Abstieg (geglättet), Höhe min–max, Dauer
+  - Zuordnung zu einem Reisetag (automatisch aus der Aufzeichnung), Farbe, Notizen
+  - **Als GPX exportieren** (für Garmin Express/Basecamp/Connect) und Originaldatei wieder herunterladen
+  - Große Aufzeichnungen werden für die Anzeige vereinfacht (Douglas-Peucker), das Original bleibt erhalten
+- Routen erscheinen auf der **Reisekarte** (auch im Tagesfilter) und im **Tagebuch** unter ihrem Tag
+- **Reise-Webseite und Lese-Links** zeigen freigegebene Routen als Strecke mit Höhenprofil (ohne Kartenkacheln, funktioniert offline); je Lese-Link „Routen zeigen“ ein/aus
+- Neue Andockpunkte für Module: `mapOverlays`, `dayLinks`
+
+### Geändert
+- Datenbank-Version 15 (Tabelle `routes`, wird abgeglichen)
+- Strecken zeichnen/beschreiben zentral in `services/tracks.ts`
+
 ## 1.4.0 – 2026-10-12
 
 ### Neu

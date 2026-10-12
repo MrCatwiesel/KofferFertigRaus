@@ -184,9 +184,15 @@ async function changeExpiry(link: ShareLink, e: Event) {
             <label class="btn btn-outline-primary" for="m-all"><i class="bi bi-journal-richtext me-1" aria-hidden="true"></i>Ganzes Tagebuch</label>
           </div>
         </div>
-        <div class="form-check form-switch mb-3">
-          <input id="s-photos" v-model="draft.photos" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="s-photos">Fotos zeigen</label>
+        <div class="d-flex flex-wrap gap-3 mb-3">
+          <div class="form-check form-switch mb-0">
+            <input id="s-photos" v-model="draft.photos" class="form-check-input" type="checkbox" role="switch" />
+            <label class="form-check-label" for="s-photos">Fotos zeigen</label>
+          </div>
+          <div class="form-check form-switch mb-0">
+            <input id="s-routes" v-model="draft.routes" class="form-check-input" type="checkbox" role="switch" />
+            <label class="form-check-label" for="s-routes">Routen zeigen <span class="small text-body-secondary">(die dafür freigegebenen)</span></label>
+          </div>
         </div>
         <div class="row g-2 mb-3">
           <div class="col-12 col-md-6">
@@ -270,6 +276,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><button type="button" class="dropdown-item" @click="update(l, { photos: !l.photos })">{{ l.photos ? 'Fotos ausblenden' : 'Fotos zeigen' }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { routes: l.routes === false })">{{ l.routes === false ? 'Routen zeigen' : 'Routen ausblenden' }}</button></li>
               <li><button type="button" class="dropdown-item" @click="changePassword(l)">{{ l.password ? 'Passwort ändern/entfernen' : 'Passwort setzen' }}</button></li>
               <li>
                 <label class="dropdown-item-text small d-block">Gültig ab jetzt

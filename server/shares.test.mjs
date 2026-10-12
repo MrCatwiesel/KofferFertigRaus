@@ -32,13 +32,15 @@ before(async () => {
   }
   const ref = (b) => ({ __blobRef: sha(b), type: 'image/jpeg' })
   const changes = [
-    { tbl: 'trips', id: 't1', data: { id: 't1', title: 'Gardasee', destination: 'Riva', startDate: '2026-07-01', endDate: '2026-07-07', budget: 3000, participants: ['Marco', 'Birgit'], notes: 'privat' } },
+    { tbl: 'trips', id: 't1', data: { id: 't1', title: 'Gardasee', destination: 'Riva', startDate: '2026-07-01', endDate: '2026-07-07', budget: 47113, participants: ['Marco', 'Birgit'], notes: 'privat' } },
     { tbl: 'journalEntries', id: 'e1', data: { id: 'e1', tripId: 't1', date: '2026-07-02', title: 'Seeblick', text: 'Toll', mood: 5, location: 'Riva', highlight: true, photoIds: ['p1'], createdAt: stamp } },
     { tbl: 'journalEntries', id: 'e2', data: { id: 'e2', tripId: 't1', date: '2026-07-03', title: 'Regentag', text: 'Museum', mood: 3, location: '', highlight: false, photoIds: ['p2'], createdAt: stamp } },
     { tbl: 'photos', id: 'p1', data: { id: 'p1', tripId: 't1', entryId: 'e1', full: ref('voll-1'), thumb: ref('klein-1'), width: 2048, height: 1536, caption: 'See' } },
     { tbl: 'photos', id: 'p2', data: { id: 'p2', tripId: 't1', entryId: 'e2', full: ref('voll-2'), thumb: ref('klein-2'), width: 1536, height: 2048, caption: 'Museum' } },
     { tbl: 'expenses', id: 'x1', data: { id: 'x1', tripId: 't1', amount: 99, title: 'Pizza' } },
     { tbl: 'medications', id: 'm1', data: { id: 'm1', tripId: 't1', name: 'Geheim' } },
+    { tbl: 'routes', id: 'r1', data: { id: 'r1', tripId: 't1', name: 'Monte Baldo', color: '#16a34a', kind: 'track', date: '2026-07-04', notes: 'Parkplatz Geheimtipp', showInShare: true, filename: 'tour.fit', original: ref('voll-1'), stats: { distance: 12345, ascent: 850, descent: 840, duration: 14400 }, preview: Array.from({ length: 1000 }, (_, i) => [45.7 + i * 0.0001, 10.8, 1000 + i]), points: [] } },
+    { tbl: 'routes', id: 'r2', data: { id: 'r2', tripId: 't1', name: 'Privat', color: '#000000', kind: 'route', date: '', showInShare: false, stats: {}, preview: [[1, 1, null], [2, 2, null]] } },
     { tbl: 'websites', id: 't1', data: { tripId: 't1', template: 'magazin', accent: '#be123c', font: 'lora', dark: true, title: 'Sommer am See', subtitle: 'Juli 2026', intro: 'Hallo!', author: 'Marco', showMood: true, showLocation: true } }
   ].map((c) => ({ ...c, stamp }))
   await call('POST', '/api/push', KEY, { changes })
@@ -60,7 +62,12 @@ test('Lese-Link nur Highlights: nur freigegebene Inhalte, nichts Privates', asyn
   assert.equal(pub.body.look.font, 'lora')
   assert.deepEqual(pub.body.entries.map((e) => e.title), ['Seeblick'])
   const raw = JSON.stringify(pub.body)
-  for (const secret of ['3000', 'Birgit', 'privat', 'Pizza', 'Geheim', 'Regentag']) assert.ok(!raw.includes(secret), `${secret} darf nicht drin sein`)
+  for (const secret of ['47113', 'Birgit', 'privat', 'Pizza', 'Geheim', 'Regentag', 'Parkplatz', 'tour.fit', 'Privat']) assert.ok(!raw.includes(secret), `${secret} darf nicht drin sein`)
+  assert.equal(pub.body.routes.length, 1)
+  assert.equal(pub.body.routes[0].name, 'Monte Baldo')
+  assert.equal(pub.body.routes[0].date, '2026-07-04')
+  assert.ok(pub.body.routes[0].points.length <= 600)
+  assert.ok(!('original' in pub.body.routes[0]) && !('notes' in pub.body.routes[0]))
   // Foto aus freigegebenem Eintrag ja, aus anderem nein
   const ok = await fetch(`${base}/api/public/${s.body.token}/photo/p1`)
   assert.equal(ok.status, 200)
@@ -76,6 +83,8 @@ test('Lese-Link ganzes Tagebuch, ohne Fotos', async () => {
   assert.equal(pub.body.title, 'Für Oma')
   assert.equal(pub.body.entries[0].photos.length, 0)
   assert.equal((await fetch(`${base}/api/public/${s.body.token}/photo/p1`)).status, 404)
+  const noRoutes = await call('POST', '/api/shares', KEY, { tripId: 't1', routes: false })
+  assert.equal((await call('GET', `/api/public/${noRoutes.body.token}`)).body.routes.length, 0)
 })
 
 test('Passwort: ohne/falsch abgelehnt, richtig mit Foto-Ticket', async () => {

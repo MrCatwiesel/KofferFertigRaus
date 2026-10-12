@@ -14,6 +14,7 @@ import type { WebsiteSettings } from '@/modules/website/types'
 import type { Expense } from '@/modules/expenses/types'
 import type { MapPlace } from '@/modules/map/types'
 import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
+import type { Route } from '@/modules/routes/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -41,6 +42,7 @@ export class NixDb extends Dexie {
   expenses!: Table<Expense, string>
   places!: Table<MapPlace, string>
   piwigoAlbums!: Table<PiwigoAlbumLink, string>
+  routes!: Table<Route, string>
   /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
   piwigoUploads!: Table<PiwigoUpload, string>
   /** Lokale Änderungen, die noch zum Server müssen */
@@ -134,7 +136,12 @@ export class NixDb extends Dexie {
       piwigoUploads: 'id, tripId, photoId'
     })
 
-    // Nächste Änderung: this.version(15).stores({ … })
+    // v15: Routen (GPX, FIT, KML …)
+    this.version(15).stores({
+      routes: 'id, tripId, date'
+    })
+
+    // Nächste Änderung: this.version(16).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

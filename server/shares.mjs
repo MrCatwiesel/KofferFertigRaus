@@ -28,6 +28,29 @@ function checkPassword(pw, stored) {
   return timingSafeEqual(got, Buffer.from(hash, 'hex'))
 }
 
+const finite = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0)
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const MAX_ROUTE_POINTS = 600
+
+/** Route für Lese-Links: nur Name, Farbe, Tag, Kennzahlen und vereinfachte Punkte (keine Notizen, keine Originaldatei). */
+function publicRoute(r) {
+  const pts = Array.isArray(r.preview) ? r.preview : []
+  const step = Math.max(1, Math.ceil(pts.length / MAX_ROUTE_POINTS))
+  const points = pts
+    .filter((_, i) => i % step === 0 || i === pts.length - 1)
+    .map((p) => [finite(p?.[0]), finite(p?.[1]), Number.isFinite(p?.[2]) ? Number(p[2]) : null])
+    .filter((p) => Math.abs(p[0]) <= 90 && Math.abs(p[1]) <= 180)
+  const st = r.stats ?? {}
+  return {
+    name: String(r.name ?? '').slice(0, 120),
+    color: /^#[0-9a-f]{6}$/i.test(r.color ?? '') ? r.color : '#e11d48',
+    kind: r.kind === 'route' ? 'route' : 'track',
+    date: DATE_RE.test(r.date ?? '') ? r.date : '',
+    stats: { distance: finite(st.distance), ascent: finite(st.ascent), descent: finite(st.descent), duration: Number.isFinite(st.duration) ? st.duration : null },
+    points
+  }
+}
+
 /** Nur bekannte, harmlose Gestaltungswerte übernehmen. */
 function cleanLook(look) {
   if (!look || typeof look !== 'object') return null
@@ -47,6 +70,7 @@ function cleanOptions(body, old = {}) {
   return {
     mode,
     photos: typeof body.photos === 'boolean' ? body.photos : old.photos ?? true,
+    routes: typeof body.routes === 'boolean' ? body.routes : old.routes ?? true,
     title: typeof body.title === 'string' ? body.title.trim().slice(0, 120) : old.title ?? '',
     note: typeof body.note === 'string' ? body.note.trim().slice(0, 80) : old.note ?? '',
     look: body.look === null ? null : cleanLook(body.look) ?? old.look ?? null
@@ -141,6 +165,7 @@ export function createShares(store) {
           .filter(Boolean)
           .map((p) => ({ id: p.id, width: Number(p.width) || 0, height: Number(p.height) || 0, caption: String(p.caption ?? '') }))
       }))
+    const routes = opts.routes === false ? [] : store.byTrip(row.space, 'routes', row.trip_id).filter((r) => r.showInShare).map(publicRoute).filter((r) => r.points.length >= 2)
     const look = opts.look ?? cleanLook(site) ?? cleanLook({})
     return {
       title: opts.title || site?.title || trip.title || 'Reise',
@@ -150,7 +175,8 @@ export function createShares(store) {
       trip: { destination: String(trip.destination ?? ''), startDate: String(trip.startDate ?? ''), endDate: String(trip.endDate ?? '') },
       mode: opts.mode,
       look,
-      entries
+      entries,
+      routes
     }
   }
 

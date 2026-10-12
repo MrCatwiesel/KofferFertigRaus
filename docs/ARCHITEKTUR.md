@@ -61,6 +61,12 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - **Lese-Links:** Zufallscode (128 Bit) je Link, Daten liegen in `shares`. Öffentlich (`/api/public/<code>`) gibt der Server **nur** Reise-Eckdaten, Tagebucheinträge (alle oder Highlights) und deren Fotos heraus – Positivliste, nie ganze Datensätze. Passwort: scrypt; Fotos dann nur mit kurzlebigem HMAC-Ticket.
 - **Betrachter-Seite** `share.html` (zweiter Einstieg im Vite-Build) nutzt die Vorlagen und Schriften der Reise-Webseite (`modules/website/public.ts`).
 
+## Routen
+
+- `modules/routes/parse/`: Leser für GPX, TCX, KML (eigene kleine XML-Hilfen ohne DOM, laufen auch in Tests), KMZ (ZIP + `DecompressionStream`), GeoJSON und FIT (Binärformat von Garmin, nur Nachrichten `file_id`, `record`, `course`).
+- Gespeichert werden vereinfachte Punkte (`points` ≤ 2000, `preview` ≤ 400) plus Kennzahlen aus **allen** Punkten; die Originaldatei als Anhang (wird wie Fotos abgeglichen).
+- Lese-Links bekommen nur `preview` (≤ 600 Punkte), Name, Farbe, Tag und Kennzahlen – keine Notizen, keine Originaldatei.
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.
@@ -79,6 +85,8 @@ Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugeh
 | 2026-10-03 | Reise-Seite über `tripSection` erweiterbar | Reise-Modul muss neue Module nicht kennen |
 | 2026-10-04 | Eigener Abgleich-Server ohne Fremdpakete, Fotos in voller Größe | volle Datenhoheit, geringe Pflege; Wunsch des Nutzers |
 | 2026-10-04 | Abgleich per Datei, neuere Änderung gewinnt | kein Server, keine Konten, Datenschutz; einfach per AirDrop |
+| 2026-10-12 | Routen-Leser selbst geschrieben (GPX/FIT/KML …) statt Bibliotheken | keine Abhängigkeit, offline, FIT direkt von Garmin-Geräten |
+| 2026-10-12 | Strecken auf Webseite/Lese-Link als SVG ohne Kartenkacheln | eigenständige HTML-Datei bleibt offline nutzbar, keine Kachel-Nutzungsregeln |
 | 2026-10-12 | Lese-Links + getrennte Reisegruppen statt Benutzerkonten | deckt „Freunde sehen, nicht ändern“ und „Freunde nutzen die App selbst“ ab – ohne Passwörter/Rechteverwaltung pflegen zu müssen |
 | 2026-10-12 | Mitgelieferte Schriften (@fontsource, OFL) | sehen auf allen Geräten gleich aus, offline nutzbar, im Export eingebettet |
 | 2026-10-11 | Piwigo über den Abgleich-Server statt direkt aus der App | Safari blockiert Cookies fremder Seiten; Schlüssel bleibt auf dem Server; Piwigo muss nicht öffentlich sein |

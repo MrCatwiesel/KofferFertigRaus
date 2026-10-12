@@ -19,6 +19,8 @@ export interface ShareLink {
   tripId: string
   mode: ShareMode
   photos: boolean
+  /** Freigegebene Routen zeigen */
+  routes: boolean
   title: string
   /** Nur für dich: für wen der Link ist, z. B. „Familie“ */
   note: string
@@ -34,6 +36,7 @@ export interface ShareLink {
 export interface ShareDraft {
   mode: ShareMode
   photos: boolean
+  routes: boolean
   title: string
   note: string
   password: string

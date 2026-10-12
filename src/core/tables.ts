@@ -19,5 +19,6 @@ export const DATA_TABLES = [
   'expenses',
   'places',
   'piwigoAlbums',
+  'routes',
   'photos'
 ] as const

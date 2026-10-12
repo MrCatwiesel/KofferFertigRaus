@@ -13,6 +13,10 @@ on:
         description: 'Pakete auf neue (kompatible) Versionen heben'
         type: boolean
         default: false
+      werkzeug:
+        description: 'Nur für die Entwicklung: node_modules als Release "werkzeug" bereitstellen'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -25,8 +29,8 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - name: package-lock.json erzeugen
-        if: hashFiles('package-lock.json') == ''
+      # Erzeugt die Datei bzw. ergänzt neu eingetragene Pakete – vorhandene Versionen bleiben unverändert
+      - name: package-lock.json mit package.json abgleichen
         run: npm install --package-lock-only --no-audit --no-fund
       - name: Pakete aktualisieren
         if: inputs.aktualisieren
@@ -37,6 +41,14 @@ jobs:
           npm test
           npm run typecheck
           npm run build
+      - name: Werkzeug bereitstellen
+        if: inputs.werkzeug
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tar czf node_modules.tgz node_modules package-lock.json
+          gh release view werkzeug >/dev/null 2>&1 || gh release create werkzeug --prerelease --title "Entwicklung (temporär)" --notes "Nur für die Entwicklung, wird wieder gelöscht." --latest=false
+          gh release upload werkzeug node_modules.tgz --clobber
       - name: Übernehmen
         run: |
           git add package-lock.json

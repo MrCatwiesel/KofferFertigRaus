@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.7.0 – 2026-10-12 (Server 1.6.0)
+
+### Stabilität
+- **Paketversionen festgeschrieben** (`package-lock.json`, Build mit `npm ci`): Ein Update kann nichts mehr kaputtmachen, nur weil irgendwo eine neue Paketversion erschienen ist. Bewusst aktualisieren: GitHub → Actions → „Pakete“ → „aktualisieren“ (wird nur übernommen, wenn Tests, Typprüfung und Build grün sind)
+- **Tägliche Datensicherung** auf dem Server (`backup.sh`, 3:30 Uhr): Datenbank, Fotos, Einstellungen; 14 Stände; Fotos als harte Verknüpfungen. Zurückspielen mit `restore.sh`
+- **Update mit Rückweg** (`update.sh`): sichert vor jedem Server-Update, geht automatisch zurück, wenn der Server danach nicht startet; `update.sh zurueck` für App und Server
+- Geräte erkennen eine zurückgespielte Sicherung (neue Kennung bzw. kleinerer Zähler) und gleichen dann einmal vollständig ab – nichts geht verloren
+
+### Schneller
+- Ungenutzte Bootstrap- und Icon-Regeln werden beim Bauen entfernt (`build/purge-css.mjs`, ohne Fremdpaket): App-CSS ca. 300 → 80 KB. Pixelvergleich aller Seiten (Desktop und Handy) ohne Unterschied
+- Die alte Icon-Schrift (woff, 180 KB) liegt nicht mehr im Offline-Speicher; alle Geräte nutzen woff2
+
 ## 1.6.0 – 2026-10-12
 
 ### Neu

@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 import type { Plugin } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import { readFileSync } from 'node:fs'
+import { purgeCssPostcss } from './build/purge-css.mjs'
 
 /**
  * Die Betrachter-Seite für Lese-Links soll Freunden keine App installieren:
@@ -24,7 +25,23 @@ const shareWithoutPwa: Plugin = {
 
 const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // Beim Bauen ungenutzte Bootstrap-/Icon-Regeln entfernen (spart rund 220 KB beim App-Start).
+  // Im Entwicklungsmodus nicht – dort sollen neue Klassen sofort funktionieren.
+  css: {
+    postcss: {
+      plugins:
+        command === 'build'
+          ? [
+              purgeCssPostcss({
+                content: ['src', 'index.html', 'share.html', 'node_modules/bootstrap/dist/js/bootstrap.bundle.js'],
+                // Klassen, deren Namen erst zur Laufzeit zusammengesetzt werden (`alert-${typ}`)
+                safelist: [/^alert-/]
+              })
+            ]
+          : []
+    }
+  },
   // Relative Pfade: App läuft in jedem Ordner (Tiny-Server, GitHub Pages, USB-Stick …)
   base: './',
   // Versionsnummer aus package.json in der App verfügbar machen
@@ -48,7 +65,8 @@ export default defineConfig({
         icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,woff,woff2}'],
+        // nur woff2 – alle unterstützten Browser nutzen es, die alte woff-Datei wäre nur Ballast im Offline-Speicher
+        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
         // Lese-Links (/s/<code>) und die Schnittstelle nie durch die App-Startseite ersetzen
         navigateFallbackDenylist: [/\/s\/[A-Za-z0-9_-]+$/, /\/api\//],
         runtimeCaching: [
@@ -83,4 +101,4 @@ export default defineConfig({
     environment: 'node',
     include: ['src/**/*.test.ts']
   }
-})
+}))

@@ -6,6 +6,8 @@ export interface ServerInfo {
   version: string
   records: number
   seq: number
+  /** Kennung des Datenbestands (neu nach Wiederherstellung einer Sicherung) */
+  epoch?: string
   /** Piwigo eingerichtet und für diese Gruppe freigegeben */
   piwigo: boolean
   /** Name der Reisegruppe */

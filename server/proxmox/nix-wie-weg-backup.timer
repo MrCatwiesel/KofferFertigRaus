@@ -1,0 +1,11 @@
+# Täglich gegen 3:30 Uhr sichern (vor dem Update um 4 Uhr)
+[Unit]
+Description=Nix wie weg – tägliche Datensicherung
+
+[Timer]
+OnCalendar=*-*-* 03:30
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

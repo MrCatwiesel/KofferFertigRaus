@@ -105,13 +105,43 @@ muss `{"ok":true,…}` zeigen.
 
 | Aufgabe | Befehl im Container |
 | --- | --- |
-| Aktualisieren | automatisch täglich; von Hand `/opt/nix-wie-weg/server/proxmox/update.sh` |
-| Status | `systemctl status nix-wie-weg-sync` |
-| Protokoll | `journalctl -u nix-wie-weg-sync -f` |
+| Aktualisieren | automatisch täglich gegen 4 Uhr; von Hand `/opt/nix-wie-weg/server/proxmox/update.sh` |
+| Zur vorigen Version | `/opt/nix-wie-weg/server/proxmox/update.sh zurueck` |
+| Sichern | automatisch täglich gegen 3:30 Uhr; von Hand `/opt/nix-wie-weg/server/proxmox/backup.sh` |
+| Sicherung zurückspielen | `/opt/nix-wie-weg/server/proxmox/restore.sh` (zeigt die Liste), dann `restore.sh <name>` |
+| Status | `systemctl status nix-wie-weg-sync` · Zeitpläne: `systemctl list-timers 'nix-wie-weg*'` |
+| Protokoll | `journalctl -u nix-wie-weg-sync -f` · Sicherung: `journalctl -u nix-wie-weg-backup` |
 | Einstellungen | `nano /etc/nix-wie-weg/sync.env`, danach `systemctl restart nix-wie-weg-sync` |
 | Daten | `/var/lib/nix-wie-weg` (Datenbank + Fotos) |
 
-**Sicherung:** Den Container in Proxmox in die geplante Sicherung aufnehmen (*Datacenter → Backup*, Modus „Snapshot“). Zusätzlich hat jedes Gerät alle Daten lokal.
+### Updates mit Sicherheitsnetz
+- Vor jedem Update des Server-Programms wird automatisch gesichert.
+- Startet der Server nach einem Update nicht sauber, geht `update.sh` von selbst auf die vorige Version zurück (und meldet das im Protokoll `journalctl -u nix-wie-weg-update`).
+- Die vorige App-Version bleibt in `/opt/nix-wie-weg-app.vorher`; `update.sh zurueck` tauscht App und Server zurück.
+
+### Datensicherung
+`backup.sh` sichert Datenbank (sauber im laufenden Betrieb), alle Fotos und die Einstellungen (mit Schlüsseln!)
+nach `/var/backups/nix-wie-weg/<datum_uhrzeit>/`. Fotos werden als harte Verknüpfungen abgelegt – 14 Sicherungen
+brauchen kaum mehr Platz als eine. Die neuesten 14 bleiben, ältere werden gelöscht.
+
+Einstellbar in `/etc/nix-wie-weg/sync.env`:
+```
+NWW_BACKUP_DIR=/mnt/sicherung/nix-wie-weg   # Zielordner
+NWW_BACKUP_KEEP=14                         # Anzahl Sicherungen
+```
+
+**Empfehlung: Sicherung auf eine andere Platte.** Eine Sicherung im selben Container hilft gegen Bedienfehler,
+nicht gegen einen Plattenschaden. In Proxmox einen Ordner einer anderen Platte/NAS in den Container einhängen
+(auf dem Proxmox-Host, Container-ID anpassen):
+```
+pct set <CTID> -mp0 /mnt/pve/<speicher>/nix-wie-weg-sicherung,mp=/mnt/sicherung
+```
+und dann `NWW_BACKUP_DIR=/mnt/sicherung/nix-wie-weg` setzen. Zusätzlich den Container in die geplante
+Proxmox-Sicherung aufnehmen (*Datacenter → Backup*, Modus „Snapshot“) – doppelt hält besser.
+
+**Zurückspielen:** `restore.sh <name>` legt den aktuellen Stand vorher beiseite, spielt die Sicherung ein und
+startet den Server neu. Die Geräte merken das beim nächsten Abgleich und gleichen einmal vollständig ab –
+was auf einem Gerät neuer ist als die Sicherung, geht dabei nicht verloren.
 
 ## Wenn es nicht klappt
 

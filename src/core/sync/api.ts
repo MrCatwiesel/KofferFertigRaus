@@ -22,7 +22,7 @@ export class SyncApi {
     return res
   }
 
-  async info(): Promise<{ version: string; records: number; seq: number }> {
+  async info(): Promise<{ version: string; records: number; seq: number; epoch?: string }> {
     const res = await this.request('/api/info')
     if (!res.ok) throw new Error(`Server antwortet mit Fehler ${res.status}.`)
     return res.json()

@@ -74,10 +74,11 @@ say "App herunterladen"
 bash "$SRC/server/proxmox/update.sh" || true
 
 say "Dienst einrichten"
-install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" "$SRC/server/proxmox/nix-wie-weg-update.service" "$SRC/server/proxmox/nix-wie-weg-update.timer" /etc/systemd/system/
+install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" "$SRC/server/proxmox/nix-wie-weg-update.service" "$SRC/server/proxmox/nix-wie-weg-update.timer" \
+  "$SRC/server/proxmox/nix-wie-weg-backup.service" "$SRC/server/proxmox/nix-wie-weg-backup.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable -q nix-wie-weg-sync
-systemctl enable -q --now nix-wie-weg-update.timer
+systemctl enable -q --now nix-wie-weg-update.timer nix-wie-weg-backup.timer
 systemctl restart nix-wie-weg-sync
 sleep 2
 curl -fsS http://127.0.0.1:8787/api/health && echo
@@ -85,7 +86,7 @@ curl -fsS http://127.0.0.1:8787/api/health && echo
 if [[ -n $DOMAIN ]]; then
   say "App bauen"
   cd "$SRC"
-  npm install --no-audit --no-fund --loglevel=error
+  npm ci --no-audit --no-fund --loglevel=error
   npm run build --silent
   mkdir -p "$WEBROOT"
   rm -rf "${WEBROOT:?}"/*

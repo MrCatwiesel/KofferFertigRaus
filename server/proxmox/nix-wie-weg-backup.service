@@ -1,0 +1,9 @@
+# Tägliche Datensicherung des Abgleich-Servers (siehe backup.sh)
+[Unit]
+Description=Nix wie weg – Datensicherung
+
+[Service]
+Type=oneshot
+ExecStart=/opt/nix-wie-weg/server/proxmox/backup.sh
+Nice=10
+IOSchedulingClass=idle

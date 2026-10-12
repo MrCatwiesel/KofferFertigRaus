@@ -24,7 +24,7 @@ import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.5.0'
+export const VERSION = '1.6.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -81,6 +81,9 @@ export function createSyncServer(opts) {
         version: VERSION,
         records,
         seq,
+        // Kennung des Datenbestands: ändert sich nach dem Zurückspielen einer Sicherung (restore.sh)
+        // → die Geräte gleichen dann einmal vollständig ab, damit nichts verloren geht
+        epoch: store.secret('sync-epoch').slice(0, 16),
         piwigo: !!piwigo && group.piwigo,
         group: group.name,
         admin: group.owner,

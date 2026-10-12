@@ -23,7 +23,8 @@ const META = {
   key: 'sync.key',
   lastSeq: 'sync.lastSeq',
   lastSync: 'sync.lastSync',
-  initialized: 'sync.initialized'
+  initialized: 'sync.initialized',
+  epoch: 'sync.epoch'
 } as const
 
 const syncTables = new Set<string>(DATA_TABLES)
@@ -184,6 +185,23 @@ async function pullChanges(api: SyncApi): Promise<number> {
   }
 }
 
+/**
+ * Wurde auf dem Server eine Sicherung zurückgespielt (neue Kennung oder Zähler kleiner als hier bekannt),
+ * gleicht das Gerät einmal vollständig ab: alles hochladen (neuere Stände gewinnen), alles neu holen.
+ */
+async function checkServerReset(api: SyncApi): Promise<void> {
+  const info = await api.info()
+  const known = await getMeta(META.epoch, '')
+  const lastSeq = await getMeta<number>(META.lastSeq, 0)
+  const newEpoch = !!info.epoch && !!known && info.epoch !== known
+  const behind = typeof info.seq === 'number' && info.seq < lastSeq
+  if (newEpoch || behind) {
+    await setMeta(META.lastSeq, 0)
+    await setMeta(META.initialized, false)
+  }
+  if (info.epoch) await setMeta(META.epoch, info.epoch)
+}
+
 let running: Promise<void> | null = null
 
 /** Jetzt abgleichen: erst eigene Änderungen hochladen, dann die der anderen holen. */
@@ -200,6 +218,7 @@ export function syncNow(): Promise<void> {
     syncState.lastError = ''
     try {
       const api = new SyncApi(c.server, c.key)
+      await checkServerReset(api)
       if (!(await getMeta(META.initialized, false))) {
         syncState.progress = 'Bereite ersten Abgleich vor …'
         await enqueueAll()

@@ -1,3 +1,4 @@
+import { escapeHtml } from '../../core/html'
 import { diffDays } from '../../core/dates'
 import { formatDate } from '../../core/format'
 import { MOODS } from '../journal/types'
@@ -27,10 +28,8 @@ export function defaultSettings(trip: { title: string; destination: string; star
   }
 }
 
-/** Text sicher in HTML einsetzen. */
-export function esc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
-}
+/** Text sicher in HTML einsetzen (zentral in core/html.ts). */
+export const esc = escapeHtml
 
 /** Fließtext → Absätze (Leerzeile) und Zeilenumbrüche. */
 export function paragraphs(text: string, cls = ''): string {

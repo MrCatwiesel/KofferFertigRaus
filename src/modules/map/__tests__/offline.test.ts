@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { bboxKm, bboxTooLarge, covers, formatMb, roundBbox } from '../offline'
+import { nearestOnRoute } from '../logic'
 
 describe('Offline-Karten: Hilfen', () => {
   const glockner: [number, number, number, number] = [12.6, 46.95, 12.95, 47.2]
@@ -20,5 +21,17 @@ describe('Offline-Karten: Hilfen', () => {
   it('zeigt Größen lesbar', () => {
     expect(formatMb(12.34 * 1024 * 1024)).toBe('12,3 MB')
     expect(formatMb(250 * 1024 * 1024)).toBe('250 MB')
+  })
+})
+
+describe('Verorten auf einer Route', () => {
+  it('nimmt den nächsten Punkt der Route (Längengrade nach Breite gewichtet)', () => {
+    const route: [number, number][] = [
+      [47.0, 12.7],
+      [47.05, 12.75],
+      [47.1, 12.8]
+    ]
+    expect(nearestOnRoute(route, 47.052, 12.749)).toEqual([47.05, 12.75])
+    expect(nearestOnRoute(route, 48, 13)).toEqual([47.1, 12.8])
   })
 })

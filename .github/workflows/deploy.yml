@@ -50,6 +50,32 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
 
+  # Automatische Klicktests: gebaute App + echter Abgleich-Server im Browser (Chromium).
+  # Nur wenn sie grün sind, geht die App an den eigenen Server (Release) und auf GitHub Pages.
+  klicktest:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund
+      - uses: actions/download-artifact@v4
+        with:
+          name: nix-wie-weg-app
+          path: dist
+      - run: npx playwright install --with-deps chromium
+      - run: npm run e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: klicktest-bericht
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
   # Abgleich-Server: eigene Tests (nur Node.js, keine Pakete)
   server:
     runs-on: ubuntu-latest
@@ -63,7 +89,7 @@ jobs:
 
   # Fertige App als ZIP im Release "app" – für das eigene Hosting (server/proxmox/update.sh)
   release:
-    needs: build
+    needs: [build, klicktest]
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
@@ -83,7 +109,7 @@ jobs:
           gh release upload app nix-wie-weg-app.zip --clobber
 
   deploy:
-    needs: build
+    needs: [build, klicktest]
     runs-on: ubuntu-latest
     environment:
       name: github-pages

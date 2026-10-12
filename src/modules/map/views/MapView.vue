@@ -8,11 +8,12 @@ import { useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { distanceKm, formatDistance, searchAddress, type GeoResult } from '@/services/geocoding'
 import { formatDecimal, formatGarmin, parseCoordinates } from '@/services/coordinates'
+import { escapeHtml } from '@/core/html'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { ACCOMMODATION_TYPE_LABELS, accommodationRepository, type Accommodation } from '@/modules/accommodation/public'
 import { SETTING, activityRepository, type Activity } from '@/modules/activity/public'
 import { placeRepository } from '../repository'
-import { boundsOf, buildQuery, navLinks, splitByLocation, type Located, type MapItem } from '../logic'
+import { boundsOf, buildQuery, navLinks, nearestOnRoute, splitByLocation, type Located, type MapItem } from '../logic'
 import { KIND_STYLE, type MapPlace } from '../types'
 import { offlineMapRepository, type Bbox, type OfflineMap } from '../offline'
 import OfflineMapsCard from './OfflineMapsCard.vue'
@@ -84,10 +85,9 @@ function icon(kind: MapItem['kind'], done: boolean) {
 }
 
 function popupHtml(l: Located): string {
-  const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
   const links = navLinks(l.place.lat, l.place.lon, l.title)
   const dist = me.value ? ` · ${formatDistance(distanceKm(me.value, l.place))} entfernt` : ''
-  return `<strong>${esc(l.title)}</strong><br><small>${esc(l.subtitle)}${dist}</small><br>
+  return `<strong>${escapeHtml(l.title)}</strong><br><small>${escapeHtml(l.subtitle)}${dist}</small><br>
     <small class="font-monospace">${formatGarmin(l.place.lat, l.place.lon)}</small><br>
     <a href="${links.apple}" target="_blank" rel="noopener">Apple Karten</a> · <a href="${links.google}" target="_blank" rel="noopener">Google Maps</a>`
 }
@@ -116,28 +116,11 @@ function draw() {
   if (!fitted) fitAll()
 }
 
-const escHtml = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
-
-/** Nächster Punkt einer Route zur angetippten Stelle. */
-function nearestOnRoute(points: [number, number][], lat: number, lon: number): [number, number] {
-  const k = Math.cos((lat * Math.PI) / 180)
-  let best = points[0]
-  let bestD = Infinity
-  for (const p of points) {
-    const d = (p[0] - lat) ** 2 + ((p[1] - lon) * k) ** 2
-    if (d < bestD) {
-      bestD = d
-      best = p
-    }
-  }
-  return [best[0], best[1]]
-}
-
 function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
   const box = document.createElement('div')
-  box.innerHTML = `<strong>${escHtml(o.name)}</strong><br><small>${escHtml(o.info)}</small><br>
+  box.innerHTML = `<strong>${escapeHtml(o.name)}</strong><br><small>${escapeHtml(o.info)}</small><br>
     <small class="font-monospace">${formatGarmin(lat, lon)}</small><br>
-    <a href="#" data-act="details">Details</a>${target.value ? ` · <a href="#" data-act="here">„${escHtml(target.value.title)}“ hier setzen</a>` : ''}`
+    <a href="#" data-act="details">Details</a>${target.value ? ` · <a href="#" data-act="here">„${escapeHtml(target.value.title)}“ hier setzen</a>` : ''}`
   box.addEventListener('click', (ev) => {
     const act = (ev.target as HTMLElement).closest('a')?.dataset.act
     if (!act) return

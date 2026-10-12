@@ -68,3 +68,18 @@ export function navLinks(lat: number, lon: number, name: string) {
     google: `https://www.google.com/maps/dir/?${new URLSearchParams({ api: '1', destination: ll })}`
   }
 }
+
+/** Nächster Punkt einer Route zur angetippten Stelle. */
+export function nearestOnRoute(points: [number, number][], lat: number, lon: number): [number, number] {
+  const k = Math.cos((lat * Math.PI) / 180)
+  let best = points[0]
+  let bestD = Infinity
+  for (const p of points) {
+    const d = (p[0] - lat) ** 2 + ((p[1] - lon) * k) ** 2
+    if (d < bestD) {
+      bestD = d
+      best = p
+    }
+  }
+  return [best[0], best[1]]
+}

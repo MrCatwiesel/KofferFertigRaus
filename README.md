@@ -22,6 +22,7 @@ npm install      # einmalig: Abhängigkeiten laden
 npm run dev      # Entwicklungsserver, im Browser http://localhost:5173 öffnen
 npm test         # Tests ausführen
 npm run build    # fertige App in dist/ (statisch hostbar, z. B. GitHub Pages)
+npm run e2e      # Klicktests im Browser (vorher build; einmalig: npx playwright install chromium)
 ```
 
 Auf dem Handy testen: `npm run dev -- --host` und die angezeigte Netzwerk-Adresse im Handy-Browser öffnen (gleiches WLAN). Offline und „Zum Startbildschirm hinzufügen“ funktionieren im Build (`npm run build && npm run preview -- --host`).

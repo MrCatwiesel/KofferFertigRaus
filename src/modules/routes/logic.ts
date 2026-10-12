@@ -1,3 +1,4 @@
+import { escapeHtml } from '@/core/html'
 import type { RouteStats, TrackPoint } from './types'
 import { haversine, rad } from '../../services/tracks'
 
@@ -132,9 +133,7 @@ export function dateOf(points: TrackPoint[]): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-function xmlEsc(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-}
+const xmlEsc = escapeHtml
 
 /** GPX-Datei aus einer Strecke (z. B. für Garmin Express/Basecamp oder andere Apps). */
 export function toGpx(name: string, points: TrackPoint[], kind: 'track' | 'route' = 'track'): string {

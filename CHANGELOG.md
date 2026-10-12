@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## 1.11.1 – 2026-10-13
+
+### Intern
+- **Automatische Klicktests** (Playwright, Ordner `e2e/`): Geräte anmelden/einladen/abmelden, Verorten per Route und GPS-Koordinaten, Webseiten-Auswahl ohne private Daten, Server-Sicherung. Laufen bei jeder Änderung auf GitHub; nur wenn sie grün sind, geht die App an den eigenen Server und auf GitHub Pages
+- Aufgeräumt: HTML-Maskierung zentral (`core/html.ts`), „nächster Routenpunkt“ in `map/logic.ts` mit Test
+
 ## 1.11.0 – 2026-10-13 (Server 1.10.0)
 
 ### Neu: Abgleich-Stand je Gerät

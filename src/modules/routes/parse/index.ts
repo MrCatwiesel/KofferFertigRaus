@@ -7,9 +7,15 @@ import { parseTcx } from './tcx'
 
 export const ACCEPT = '.gpx,.fit,.tcx,.kml,.kmz,.geojson,.json'
 
-/** Dateiname ohne Endung, als Vorschlag für den Routennamen. */
+/**
+ * Vorschlag für den Routennamen aus dem Dateinamen. Garmin benennt Aktivitäten nach Datum und Zeit
+ * ("2026-07-05-08-00-00.fit") – daraus wird "Aktivität vom 05.07.2026".
+ */
 export function baseName(filename: string): string {
-  return filename.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim() || 'Route'
+  const name = filename.replace(/\.[^.]+$/, '').trim()
+  const m = /^(\d{4})-(\d{2})-(\d{2})(?:[-_ T]\d{2}[-_:]?\d{2}(?:[-_:]?\d{2})?)?$/.exec(name)
+  if (m) return `Aktivität vom ${m[3]}.${m[2]}.${m[1]}`
+  return name.replace(/[_]+/g, ' ').trim() || 'Route'
 }
 
 /** Liest das erste KML aus einer KMZ-Datei (ZIP). */

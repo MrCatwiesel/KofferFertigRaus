@@ -45,8 +45,9 @@ export function formatDistance(m: number): string {
 
 export function formatDuration(s: number | null): string {
   if (s === null) return ''
-  const h = Math.floor(s / 3600)
-  const m = Math.round((s % 3600) / 60)
+  const total = Math.round(s / 60) // erst auf Minuten runden, sonst "4 h 60 min"
+  const h = Math.floor(total / 60)
+  const m = total % 60
   return h ? `${h} h ${String(m).padStart(2, '0')} min` : `${m} min`
 }
 
@@ -113,7 +114,7 @@ export function profileSvg(points: readonly PlainPoint[], opts: { width?: number
   const W = opts.width ?? 600
   const H = opts.height ?? 140
   const color = safeHex(opts.color ?? '')
-  const left = 44
+  const left = 64
   const bottom = 20
   const top = 8
   const right = 8

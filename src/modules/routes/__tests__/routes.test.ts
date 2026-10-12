@@ -153,6 +153,7 @@ describe('Routen lesen', () => {
     expect(detectFormat('x.txt', enc(GPX))).toBe('gpx')
     expect(detectFormat('x', makeFit())).toBe('fit')
     expect(baseName('2026_07_04 Tour.gpx')).toBe('2026 07 04 Tour')
+    expect(baseName('2026-07-05-08-00-00.fit')).toBe('Aktivität vom 05.07.2026')
     let msg = ''
     try {
       await parseRouteFile('notiz.txt', enc('hallo'))
@@ -195,6 +196,7 @@ describe('Routen rechnen', () => {
     expect(formatDistance(850)).toBe('850 m')
     expect(formatDistance(12345)).toBe('12,3 km')
     expect(formatDuration(3 * 3600 + 5 * 60)).toBe('3 h 05 min')
+    expect(formatDuration(4 * 3600 + 59 * 60 + 50)).toBe('5 h 00 min')
     expect(statsLine({ distance: 12345, ascent: 850, descent: 0, duration: null })).toBe('12,3 km · ↗ 850 m')
     expect(trackSvg(line, { color: '#2563eb' })).toContain('stroke="#2563eb"')
     expect(trackSvg(line, { color: 'red"><script>' })).not.toContain('<script>')

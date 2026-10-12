@@ -7,6 +7,7 @@ import { getMapOverlays, type MapOverlay } from '@/core/registry'
 import { useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { distanceKm, formatDistance, searchAddress, type GeoResult } from '@/services/geocoding'
+import { formatDecimal, formatGarmin, parseCoordinates } from '@/services/coordinates'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { ACCOMMODATION_TYPE_LABELS, accommodationRepository, type Accommodation } from '@/modules/accommodation/public'
 import { SETTING, activityRepository, type Activity } from '@/modules/activity/public'
@@ -83,6 +84,7 @@ function popupHtml(l: Located): string {
   const links = navLinks(l.place.lat, l.place.lon, l.title)
   const dist = me.value ? ` · ${formatDistance(distanceKm(me.value, l.place))} entfernt` : ''
   return `<strong>${esc(l.title)}</strong><br><small>${esc(l.subtitle)}${dist}</small><br>
+    <small class="font-monospace">${formatGarmin(l.place.lat, l.place.lon)}</small><br>
     <a href="${links.apple}" target="_blank" rel="noopener">Apple Karten</a> · <a href="${links.google}" target="_blank" rel="noopener">Google Maps</a>`
 }
 
@@ -92,15 +94,15 @@ function draw() {
   for (const o of visibleOverlays.value) {
     if (o.points.length < 2) continue
     L.polyline(o.points, { color: '#fff', weight: 7, opacity: 0.8, interactive: false }).addTo(layer)
-    const esc = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
-    const line = L.polyline(o.points, { color: o.color, weight: 4 }).addTo(layer)
-    const link = document.createElement('div')
-    link.innerHTML = `<strong>${esc(o.name)}</strong><br><small>${esc(o.info)}</small><br><a href="#">Details</a>`
-    link.querySelector('a')!.addEventListener('click', (ev) => {
-      ev.preventDefault()
-      router.push(o.to)
+    L.polyline(o.points, { color: o.color, weight: 4, interactive: false }).addTo(layer)
+    // Breite, unsichtbare Linie zum Antippen – mit dem Finger ist die dünne Linie kaum zu treffen
+    const hit = L.polyline(o.points, { color: o.color, weight: 22, opacity: 0, className: 'nww-route-hit' }).addTo(layer)
+    hit.on('click', (e: L.LeafletMouseEvent) => {
+      L.DomEvent.stop(e)
+      const [lat, lon] = nearestOnRoute(o.points, e.latlng.lat, e.latlng.lng)
+      if (target.value && pickOnMap.value) return void choose(lat, lon, `auf Route „${o.name}“`)
+      L.popup().setLatLng([lat, lon]).setContent(routePopup(o, lat, lon)).openOn(map!)
     })
-    line.bindPopup(link)
   }
   for (const l of visible.value) {
     L.marker([l.place.lat, l.place.lon], { icon: icon(l.kind, l.done), title: l.title })
@@ -108,6 +110,39 @@ function draw() {
       .addTo(layer)
   }
   if (!fitted) fitAll()
+}
+
+const escHtml = (t: string) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]!)
+
+/** Nächster Punkt einer Route zur angetippten Stelle. */
+function nearestOnRoute(points: [number, number][], lat: number, lon: number): [number, number] {
+  const k = Math.cos((lat * Math.PI) / 180)
+  let best = points[0]
+  let bestD = Infinity
+  for (const p of points) {
+    const d = (p[0] - lat) ** 2 + ((p[1] - lon) * k) ** 2
+    if (d < bestD) {
+      bestD = d
+      best = p
+    }
+  }
+  return [best[0], best[1]]
+}
+
+function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
+  const box = document.createElement('div')
+  box.innerHTML = `<strong>${escHtml(o.name)}</strong><br><small>${escHtml(o.info)}</small><br>
+    <small class="font-monospace">${formatGarmin(lat, lon)}</small><br>
+    <a href="#" data-act="details">Details</a>${target.value ? ` · <a href="#" data-act="here">„${escHtml(target.value.title)}“ hier setzen</a>` : ''}`
+  box.addEventListener('click', (ev) => {
+    const act = (ev.target as HTMLElement).closest('a')?.dataset.act
+    if (!act) return
+    ev.preventDefault()
+    map?.closePopup()
+    if (act === 'details') router.push(o.to)
+    else choose(lat, lon, `auf Route „${o.name}“`)
+  })
+  return box
 }
 
 function fitAll() {
@@ -158,11 +193,22 @@ function startLocate(it: MapItem) {
   results.value = []
   searchError.value = ''
   pickOnMap.value = false
+  // Steht im Ort schon eine Koordinate (oder ein Karten-Link)? Dann gleich anbieten.
+  const c = parseCoordinates(it.where)
+  if (c) results.value = [coordResult(c.lat, c.lon)]
 }
 
+const coordResult = (lat: number, lon: number): GeoResult => ({ lat, lon, label: `Koordinaten ${formatDecimal(lat, lon)} · ${formatGarmin(lat, lon)}` })
+
 async function runSearch() {
-  searching.value = true
   searchError.value = ''
+  // GPS-Koordinaten oder Karten-Links brauchen kein Internet
+  const c = parseCoordinates(query.value)
+  if (c) {
+    results.value = [coordResult(c.lat, c.lon)]
+    return
+  }
+  searching.value = true
   try {
     results.value = await searchAddress(query.value)
     if (!results.value.length) searchError.value = 'Nichts gefunden – kürzer suchen (z. B. nur Ort) oder auf der Karte antippen.'
@@ -183,6 +229,23 @@ async function choose(lat: number, lon: number, label: string) {
 
 function onMapClick(lat: number, lon: number) {
   if (target.value && pickOnMap.value) choose(lat, lon, 'auf der Karte gesetzt')
+}
+
+function fromRoute(o: MapOverlay, end: boolean) {
+  const [lat, lon] = end ? o.points[o.points.length - 1] : o.points[0]
+  choose(lat, lon, `${end ? 'Ziel' : 'Start'} von „${o.name}“`)
+}
+
+const copied = ref('')
+async function copyCoords(l: Located) {
+  const text = formatDecimal(l.place.lat, l.place.lon, 6)
+  try {
+    await navigator.clipboard.writeText(text)
+    copied.value = `Kopiert: ${text}`
+  } catch {
+    copied.value = text
+  }
+  setTimeout(() => (copied.value = ''), 4000)
 }
 
 async function unlocate(l: Located) {
@@ -250,7 +313,7 @@ const nearest = computed(() => {
   </div>
 
   <div v-if="target && pickOnMap" class="alert alert-info py-2 small mb-2">
-    <i class="bi bi-hand-index me-1" aria-hidden="true"></i>Tippe auf die Karte, wo „{{ target.title }}“ liegt.
+    <i class="bi bi-hand-index me-1" aria-hidden="true"></i>Tippe auf die Karte, wo „{{ target.title }}“ liegt – oder auf eine Route, dann wird der nächste Punkt der Route genommen.
     <button type="button" class="btn btn-link btn-sm p-0 ms-2" @click="pickOnMap = false">Abbrechen</button>
   </div>
 
@@ -272,19 +335,32 @@ const nearest = computed(() => {
     <div class="card-body">
       <h2 class="h6">„{{ target.title }}“ auf die Karte setzen</h2>
       <form class="input-group mb-2" @submit.prevent="runSearch">
-        <input v-model="query" class="form-control" aria-label="Adresse oder Ort" />
+        <input v-model="query" class="form-control" aria-label="Adresse, Ort oder GPS-Koordinaten" placeholder="Adresse, Ort oder GPS-Koordinaten" />
         <button class="btn btn-primary" type="submit" :disabled="searching">
           <span v-if="searching" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
           <i v-else class="bi bi-search" aria-hidden="true"></i><span class="visually-hidden">Suchen</span>
         </button>
       </form>
+      <div class="form-text mt-0 mb-2">
+        Auch GPS-Koordinaten gehen (ohne Internet), z. B. <code>47.0751, 12.7530</code> oder wie am Garmin <code>N 47° 04.507' E 012° 45.180'</code> –
+        oder ein geteilter Link aus Google Maps / Apple Karten.
+      </div>
       <div v-if="searchError" class="small text-body-secondary mb-2">{{ searchError }}</div>
       <div class="list-group mb-2">
         <button v-for="r in results" :key="`${r.lat},${r.lon}`" type="button" class="list-group-item list-group-item-action small" @click="choose(r.lat, r.lon, r.label)">
           <i class="bi bi-geo-alt me-1 text-primary" aria-hidden="true"></i>{{ r.label }}
         </button>
       </div>
-      <div class="d-flex gap-2">
+      <div v-if="overlays.length" class="mb-2">
+        <div class="small text-body-secondary mb-1">Von einer Route übernehmen:</div>
+        <div v-for="o in overlays" :key="o.id" class="d-flex flex-wrap align-items-center gap-1 mb-1">
+          <span class="route-dot" :style="{ background: o.color }"></span>
+          <span class="small flex-grow-1 text-truncate">{{ o.name }}</span>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, false)">Start</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, true)">Ziel</button>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-sm btn-outline-primary" @click="pickOnMap = true"><i class="bi bi-hand-index me-1" aria-hidden="true"></i>Auf der Karte antippen</button>
         <button type="button" class="btn btn-sm btn-outline-secondary" @click="target = null">Abbrechen</button>
       </div>
@@ -310,18 +386,21 @@ const nearest = computed(() => {
   <!-- Auf der Karte -->
   <section v-if="split.located.length" class="mb-3">
     <h2 class="h6 text-body-secondary">Auf der Karte ({{ split.located.length }})</h2>
+    <div v-if="copied" class="alert alert-success py-1 small mb-2" role="status">{{ copied }}</div>
     <div class="list-group">
       <div v-for="l in split.located" :key="l.place.id" class="list-group-item d-flex align-items-center gap-2">
         <i :class="`bi bi-${KIND_STYLE[l.kind].icon}`" :style="{ color: KIND_STYLE[l.kind].color }" aria-hidden="true"></i>
         <button type="button" class="btn btn-link text-body text-decoration-none text-start p-0 flex-grow-1 min-w-0" @click="focus(l)">
           <div class="text-truncate">{{ l.title }}</div>
           <div class="small text-body-secondary text-truncate">{{ l.subtitle }}</div>
+          <div class="small text-body-secondary font-monospace text-truncate">{{ formatGarmin(l.place.lat, l.place.lon) }}</div>
         </button>
         <div class="dropdown flex-none">
           <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-label="Aktionen"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
           <ul class="dropdown-menu dropdown-menu-end">
             <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).apple" target="_blank" rel="noopener">Route in Apple Karten</a></li>
             <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).google" target="_blank" rel="noopener">Route in Google Maps</a></li>
+            <li><button class="dropdown-item" @click="copyCoords(l)">Koordinaten kopieren</button></li>
             <li><button class="dropdown-item" @click="startLocate(l)">Neu verorten</button></li>
             <li><button class="dropdown-item text-danger" @click="unlocate(l)">Von der Karte nehmen</button></li>
           </ul>
@@ -351,6 +430,16 @@ const nearest = computed(() => {
   height: 0.7rem;
   border-radius: 50%;
   vertical-align: middle;
+}
+.route-dot {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.3rem;
+  border-radius: 2px;
+  flex: none;
+}
+.map.picking :deep(.nww-route-hit) {
+  cursor: copy;
 }
 .flex-none {
   flex: none;

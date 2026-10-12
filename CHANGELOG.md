@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.5.1 – 2026-10-12
+
+### Behoben
+- **Verorten auf der Karte:** Routen (z. B. importierte GPX) lassen sich jetzt antippen – im Modus „Auf der Karte antippen“ wird der nächste Punkt der Route übernommen. Die Linie hat dafür eine breite, unsichtbare Tippfläche (für Finger auf dem iPad/Handy).
+
+### Neu
+- **GPS-Koordinaten eingeben** im Suchfeld beim Verorten – ohne Internet: Dezimalgrad (`47.0751, 12.7530`, auch mit Komma), Garmin-Anzeige (`N 47° 04.507' E 012° 45.180'`), Grad/Minuten/Sekunden sowie geteilte Links aus Google Maps und Apple Karten (`services/coordinates.ts`)
+- Steht im Ort einer Unternehmung schon eine Koordinate, wird sie beim Verorten direkt vorgeschlagen
+- Beim Verorten: **Start oder Ziel einer Route übernehmen**
+- Routen-Popup zeigt die Koordinate der angetippten Stelle und bietet „… hier setzen“
+- Verortete Orte zeigen ihre Koordinaten (Garmin-Format); neu im Menü: **„Koordinaten kopieren“**
+
 ## 1.5.0 – 2026-10-12
 
 ### Neu

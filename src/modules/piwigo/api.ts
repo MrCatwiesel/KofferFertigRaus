@@ -1,4 +1,4 @@
-import { syncCredentials } from '@/core/sync/engine'
+import { ServerClient, type ServerError } from '@/core/sync/client'
 import type { PiwigoAlbum, PiwigoImage, PiwigoStatus } from './types'
 
 /** Bildgrößen von Piwigo: small für Vorschauen, xxlarge zum Übernehmen. */
@@ -9,49 +9,29 @@ export type PiwigoSize = 'thumb' | 'small' | 'medium' | 'large' | 'xlarge' | 'xx
  * Die App spricht nie direkt mit Piwigo – der Server kennt den Piwigo-Schlüssel.
  */
 export class PiwigoApi {
-  constructor(
-    private readonly server: string,
-    private readonly key: string
-  ) {}
+  constructor(private readonly client: ServerClient) {}
 
   /** Mit den Zugangsdaten des Geräte-Abgleichs – oder null, wenn der Abgleich nicht eingerichtet ist. */
   static async fromSync(): Promise<PiwigoApi | null> {
-    const c = await syncCredentials()
-    return c ? new PiwigoApi(c.server, c.key) : null
+    const c = await ServerClient.fromSync()
+    return c ? new PiwigoApi(c) : null
   }
 
   private async request(path: string, init: RequestInit = {}): Promise<Response> {
-    let res: Response
     try {
-      res = await fetch(`${this.server}/api/piwigo${path}`, {
-        ...init,
-        headers: { Authorization: `Bearer ${this.key}`, ...(init.headers as Record<string, string>) }
-      })
-    } catch {
-      throw new Error(navigator.onLine ? 'Server nicht erreichbar.' : 'Offline.')
+      return await this.client.request(`/api/piwigo${path}`, init)
+    } catch (e) {
+      const err = e as ServerError
+      if (err.status === 404 && path === '') err.message = 'Piwigo ist auf dem Server nicht eingerichtet.'
+      if (err.status === 403) err.message = 'Piwigo ist für diese Reisegruppe nicht freigegeben.'
+      throw err
     }
-    if (!res.ok) {
-      let msg = `Fehler ${res.status}`
-      try {
-        msg = (await res.clone().json()).error ?? msg
-      } catch {
-        /* keine JSON-Antwort */
-      }
-      if (res.status === 404 && path === '') msg = 'Piwigo ist auf dem Server nicht eingerichtet.'
-      throw Object.assign(new Error(msg), { status: res.status })
-    }
-    return res
   }
 
-  /** Ist Piwigo am Server eingerichtet? null = Server gerade nicht erreichbar. (Fragt Piwigo selbst nicht.) */
+  /** Ist Piwigo am Server eingerichtet und für diese Gruppe freigegeben? null = Server gerade nicht erreichbar. */
   async enabled(): Promise<boolean | null> {
-    try {
-      const res = await fetch(`${this.server}/api/info`, { headers: { Authorization: `Bearer ${this.key}` } })
-      if (!res.ok) return null
-      return (await res.json()).piwigo === true
-    } catch {
-      return null
-    }
+    const info = await this.client.info()
+    return info ? info.piwigo === true : null
   }
 
   async status(): Promise<PiwigoStatus> {

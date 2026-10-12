@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Die Seite liegt unter /s/<code>; alle Dateien liegen eine Ebene höher -->
+    <base href="../" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <title>Reise ansehen</title>
+    <style>
+      body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f6f7f9; color: #212529; }
+      .box { max-width: 26rem; padding: 2rem 1.5rem; text-align: center; }
+      .box h1 { font-size: 1.3rem; margin: 0 0 .75rem; }
+      .box p { color: #6c757d; }
+      .box input { width: 100%; box-sizing: border-box; padding: .6rem .75rem; font-size: 1rem; border: 1px solid #ced4da; border-radius: .5rem; margin: .5rem 0; }
+      .box button { width: 100%; padding: .6rem; font-size: 1rem; border: 0; border-radius: .5rem; background: #0d6efd; color: #fff; }
+      .err { color: #b02a37 !important; }
+      .spin { width: 2rem; height: 2rem; border: .25rem solid #dee2e6; border-top-color: #0d6efd; border-radius: 50%; animation: s 1s linear infinite; margin: 0 auto; }
+      @keyframes s { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div id="view" class="box"><div class="spin" role="status" aria-label="Lädt"></div></div>
+    <script type="module" src="/src/share/main.ts"></script>
+  </body>
+</html>

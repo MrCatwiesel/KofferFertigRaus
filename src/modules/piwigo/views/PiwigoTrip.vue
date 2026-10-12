@@ -115,9 +115,9 @@ async function discardQueue() {
   </div>
 
   <div v-else-if="state === 'no-piwigo'" class="alert alert-info">
-    Auf deinem Abgleich-Server ist Piwigo noch nicht eingerichtet.
-    Dort in den Einstellungen <code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code> und <code>NWW_PIWIGO_SECRET</code> eintragen
-    (Anleitung: <code>server/README.md</code> → „Piwigo anbinden“).
+    Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet
+    (<code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code> – Anleitung in <code>server/README.md</code>),
+    oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).
   </div>
 
   <template v-else>

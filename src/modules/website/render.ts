@@ -32,8 +32,9 @@ img { max-width: 100%; }
 /**
  * Setzt die komplette Webseite als eine HTML-Datei zusammen.
  * `bootstrapCss` wird eingebettet, damit die Seite ohne Internet und ohne weitere Dateien funktioniert.
+ * `fontCss` enthält die @font-face-Regeln einer mitgelieferten Schrift (siehe fonts.ts).
  */
-export function renderSite(site: SiteData, settings: WebsiteSettingsDraft, bootstrapCss: string): string {
+export function renderSite(site: SiteData, settings: WebsiteSettingsDraft, bootstrapCss: string, fontCss = ''): string {
   const tpl = TEMPLATES[settings.template] ?? TEMPLATES.klassisch
   const accent = safeColor(settings.accent)
   const font = FONT_INFO[settings.font]?.css ?? FONT_INFO.modern.css
@@ -51,7 +52,7 @@ export function renderSite(site: SiteData, settings: WebsiteSettingsDraft, boots
 <meta property="og:description" content="${esc(description)}">
 <meta name="generator" content="Nix wie weg">
 <style>${bootstrapCss}</style>
-<style>${css}${tpl.css}</style>
+<style>${fontCss}${css}${tpl.css}</style>
 </head>
 <body>
 ${tpl.body({ site, settings })}

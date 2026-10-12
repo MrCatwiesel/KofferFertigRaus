@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOnline } from '../composables'
 import { ago, generateKey, mixedContentProblem, normalizeServerUrl, pairingLink } from '../sync/logic'
 import { configureSync, currentKey, disconnectSync, syncNow, syncState, testConnection } from '../sync/engine'
+import { ServerClient, type ServerInfo } from '../sync/client'
 
 const route = useRoute()
 const router = useRouter()
@@ -17,6 +18,7 @@ const message = ref<{ type: 'success' | 'danger' | 'info'; text: string } | null
 const fromLink = ref(false)
 const linkCopied = ref(false)
 const hostedHere = ref(false)
+const serverInfo = ref<ServerInfo | null>(null)
 
 onMounted(async () => {
   const qs = route.query
@@ -29,6 +31,7 @@ onMounted(async () => {
   } else if (syncState.configured) {
     server.value = syncState.server
     key.value = await currentKey()
+    serverInfo.value = (await (await ServerClient.fromSync())?.info()) ?? null
   } else if (await sameOriginServer()) {
     // App kommt vom eigenen Abgleich-Server → Adresse schon eintragen
     server.value = location.origin
@@ -159,6 +162,21 @@ async function copyKey() {
       <button type="button" class="btn btn-primary" @click="shareLink"><i class="bi bi-share me-1" aria-hidden="true"></i>Kopplungs-Link teilen</button>
       <span v-if="linkCopied" class="small text-success ms-2">Link kopiert</span>
     </div>
+  </div>
+
+  <!-- Reisegruppen (nur Besitzer des Servers) -->
+  <div v-if="syncState.configured && serverInfo?.admin" class="card mb-3">
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi bi-people fs-3 text-primary" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">Reisegruppen</div>
+        <div class="small text-body-secondary">Freunden eine eigene, getrennte Gruppe geben · Piwigo freigeben</div>
+      </div>
+      <RouterLink to="/gruppen" class="btn btn-outline-primary stretched-link">Verwalten</RouterLink>
+    </div>
+  </div>
+  <div v-else-if="syncState.configured && serverInfo?.group" class="small text-body-secondary mb-3">
+    <i class="bi bi-people me-1" aria-hidden="true"></i>Reisegruppe: {{ serverInfo.group }}
   </div>
 
   <!-- Einrichten -->

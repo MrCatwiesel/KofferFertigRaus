@@ -89,7 +89,12 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 - Die Upload-Grenze von PHP muss für Originalfotos reichen, z. B. `upload_max_filesize = 50M` und `post_max_size = 50M` in der `php.ini` des Piwigo-Servers. Liegt ein Reverse-Proxy davor, auch dort 50 MB erlauben.
 - Läuft der API-Schlüssel ab, schickt Piwigo vorher eine E-Mail. Dann einen neuen anlegen und in den Einstellungen tauschen.
 - Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.
-- Der Piwigo-Zugang gilt für alle Reisegruppen auf diesem Server.
+- Piwigo nutzen darf nur der Besitzer (erster Schlüssel) und Gruppen, die er in der App freigibt.
+
+## Reisegruppen und Lese-Links
+
+- **Besitzer** ist der **erste** Schlüssel in `NWW_KEYS`. Nur er sieht in der App *Einstellungen → Geräte-Abgleich → Reisegruppen* und kann dort Gruppen für Freunde anlegen (eigener Schlüssel, getrennte Daten), sperren, löschen und Piwigo freigeben.
+- **Lese-Links** legt jede Gruppe selbst an: Reise → *Für Freunde freigeben*. Der Link `https://<server>/s/<code>` zeigt die Reise als Seite – nur Highlights oder das ganze Tagebuch, wahlweise mit Passwort und Ablaufdatum. Dafür muss der Server die App ausliefern (`NWW_APP_DIR`, richtet `install.sh` ein).
 
 ## Datensicherung des Servers
 
@@ -134,11 +139,17 @@ docker compose up -d --build
 | POST | `/api/push` | Änderungen hochladen `{ changes: [{ tbl, id, stamp, deleted, data }] }` – neuere gewinnt |
 | GET | `/api/pull?since=N` | Änderungen seit Stand N abholen |
 | HEAD/GET/PUT | `/api/blob/<sha256>` | Fotos (Inhalt wird per Prüfsumme kontrolliert) |
+| GET/POST | `/api/shares` (`?tripId=`) | Lese-Links auflisten / anlegen `{ tripId, mode, photos, title, note, password, expiresDays, look }` |
+| PATCH/DELETE | `/api/shares/<code>` | Lese-Link ändern (auch `revoked`) / löschen |
+| GET | `/api/public/<code>` | **ohne Schlüssel:** freigegebene Inhalte (Passwort im Kopf `X-Share-Password`) |
+| GET | `/api/public/<code>/photo/<id>?size=thumb\|full` | **ohne Schlüssel:** Foto eines freigegebenen Eintrags |
+| GET/POST | `/api/admin/groups` | Reisegruppen auflisten / anlegen (nur Besitzer) |
+| PATCH/DELETE | `/api/admin/groups/<id>` | Gruppe umbenennen, sperren, Piwigo freigeben / löschen (nur Besitzer) |
 | GET | `/api/piwigo` | Piwigo-Anmeldung prüfen |
 | GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
 | GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |
 | GET | `/api/piwigo/images/<id>?size=small\|xxlarge\|original` | Bilddatei |
 
-Alle Aufrufe außer `/api/health` brauchen `Authorization: Bearer <Schlüssel>`.
+Alle Aufrufe außer `/api/health`, `/api/public/…` und der App selbst brauchen `Authorization: Bearer <Schlüssel>`.
 
 Tests: `node --test` (im Ordner `server`).

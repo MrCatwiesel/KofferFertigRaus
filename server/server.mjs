@@ -2,68 +2,31 @@
  * Nix wie weg – Abgleich-Server
  *
  * Ein kleiner Server ohne Fremdpakete (nur Node.js ≥ 22.13), der die Daten mehrerer Geräte abgleicht.
- *  - Daten: SQLite-Datei (eingebaut in Node.js), Fotos als einzelne Dateien
- *  - Zugang: geheimer Schlüssel je Reisegruppe (Umgebungsvariable NWW_KEYS)
+ *  - Daten: SQLite-Datei (eingebaut in Node.js), Fotos als einzelne Dateien        → store.mjs
+ *  - Zugang: geheimer Schlüssel je Reisegruppe, Gruppen-Verwaltung durch den Besitzer → groups.mjs
+ *  - Lese-Links: Reisen für Freunde zum Ansehen freigeben                            → shares.mjs
+ *  - Piwigo-Brücke (optional)                                                        → piwigo.mjs
+ *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
  * Start:  NWW_KEYS=<schlüssel> node server.mjs
  */
 import { createServer as createHttpServer } from 'node:http'
-import { createHash, timingSafeEqual } from 'node:crypto'
-import { mkdirSync, existsSync, createReadStream, renameSync, writeFileSync, statSync } from 'node:fs'
-import { extname, join, normalize, resolve, sep } from 'node:path'
-import { DatabaseSync } from 'node:sqlite'
-import { pathToFileURL } from 'node:url'
+import { createReadStream } from 'node:fs'
+import { resolve } from 'node:path'
 import { Readable } from 'node:stream'
+import { pathToFileURL } from 'node:url'
+import { HttpError, corsFor, readBody, readJson, send } from './http.mjs'
+import { HASH_RE, createStore, sha256 } from './store.mjs'
+import { createGroups } from './groups.mjs'
+import { createShares } from './shares.mjs'
+import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 
-export const VERSION = '1.2.0'
+export { spaceOf } from './store.mjs'
+export const VERSION = '1.3.0'
 
-const TABLE_RE = /^[a-zA-Z][a-zA-Z0-9]{0,39}$/
-const HASH_RE = /^[a-f0-9]{64}$/
 const MAX_JSON = 30 * 1024 * 1024
-
-const MIME = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.webmanifest': 'application/manifest+json',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.ico': 'image/x-icon',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.txt': 'text/plain; charset=utf-8',
-  '.map': 'application/json'
-}
-
-const sha256 = (data) => createHash('sha256').update(data).digest('hex')
-
-/** Raum (Datenbereich) einer Reisegruppe: aus dem Schlüssel abgeleitet, der Schlüssel selbst wird nie gespeichert. */
-export const spaceOf = (key) => sha256(`nix-wie-weg:${key}`).slice(0, 24)
-
-function openDb(dir) {
-  const db = new DatabaseSync(join(dir, 'nix-wie-weg.sqlite'))
-  db.exec(`
-    PRAGMA journal_mode = WAL;
-    CREATE TABLE IF NOT EXISTS records (
-      space TEXT NOT NULL, tbl TEXT NOT NULL, id TEXT NOT NULL,
-      stamp TEXT NOT NULL, deleted INTEGER NOT NULL DEFAULT 0, data TEXT,
-      seq INTEGER NOT NULL,
-      PRIMARY KEY (space, tbl, id)
-    );
-    CREATE INDEX IF NOT EXISTS records_seq ON records (space, seq);
-    CREATE TABLE IF NOT EXISTS counters (space TEXT PRIMARY KEY, seq INTEGER NOT NULL);
-    CREATE TABLE IF NOT EXISTS blobs (
-      space TEXT NOT NULL, hash TEXT NOT NULL, type TEXT NOT NULL, size INTEGER NOT NULL,
-      PRIMARY KEY (space, hash)
-    );
-  `)
-  return db
-}
 
 /**
  * Erzeugt den Server (für Start und Tests).
@@ -72,121 +35,19 @@ function openDb(dir) {
  *   appDir?: string | null }} opts
  */
 export function createSyncServer(opts) {
-  const keys = (opts.keys ?? []).map((k) => k.trim()).filter(Boolean)
-  if (!keys.length) throw new Error('Kein Schlüssel konfiguriert (NWW_KEYS).')
-  const short = keys.find((k) => k.length < 16)
-  if (short) throw new Error('Schlüssel müssen mindestens 16 Zeichen lang sein.')
-  const keyDigests = keys.map((k) => createHash('sha256').update(k).digest())
-  const origins = opts.origins?.length ? opts.origins : ['*']
-  const maxBlob = (opts.maxBlobMb ?? 30) * 1024 * 1024
-  const dataDir = resolve(opts.dataDir)
-  mkdirSync(join(dataDir, 'blobs'), { recursive: true })
-  const db = openDb(dataDir)
+  const store = createStore(resolve(opts.dataDir))
+  let groups
+  try {
+    groups = createGroups(store, opts.keys)
+  } catch (e) {
+    store.close()
+    throw e
+  }
+  const shares = createShares(store)
+  const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
-  const appDir = opts.appDir ? resolve(opts.appDir) : null
-
-  const q = {
-    get: db.prepare('SELECT stamp FROM records WHERE space = ? AND tbl = ? AND id = ?'),
-    upsert: db.prepare(`INSERT INTO records (space, tbl, id, stamp, deleted, data, seq) VALUES (?, ?, ?, ?, ?, ?, ?)
-      ON CONFLICT (space, tbl, id) DO UPDATE SET stamp = excluded.stamp, deleted = excluded.deleted, data = excluded.data, seq = excluded.seq`),
-    nextSeq: db.prepare(`INSERT INTO counters (space, seq) VALUES (?, 1)
-      ON CONFLICT (space) DO UPDATE SET seq = seq + 1 RETURNING seq`),
-    pull: db.prepare('SELECT seq, tbl, id, stamp, deleted, data FROM records WHERE space = ? AND seq > ? ORDER BY seq LIMIT ?'),
-    maxSeq: db.prepare('SELECT seq FROM counters WHERE space = ?'),
-    count: db.prepare('SELECT COUNT(*) AS n FROM records WHERE space = ? AND deleted = 0'),
-    blobGet: db.prepare('SELECT type, size FROM blobs WHERE space = ? AND hash = ?'),
-    blobPut: db.prepare('INSERT OR IGNORE INTO blobs (space, hash, type, size) VALUES (?, ?, ?, ?)')
-  }
-
-  /** Prüft den Schlüssel (zeitkonstant) und liefert den Datenbereich – oder null. */
-  function authenticate(req) {
-    const h = req.headers.authorization ?? ''
-    const m = h.match(/^Bearer\s+(.+)$/i)
-    if (!m) return null
-    const digest = createHash('sha256').update(m[1].trim()).digest()
-    for (let i = 0; i < keyDigests.length; i++) {
-      if (timingSafeEqual(digest, keyDigests[i])) return spaceOf(keys[i])
-    }
-    return null
-  }
-
-  function cors(req, res) {
-    const origin = req.headers.origin
-    const allow = origins.includes('*') ? '*' : origin && origins.includes(origin) ? origin : ''
-    if (allow) res.setHeader('Access-Control-Allow-Origin', allow)
-    res.setHeader('Vary', 'Origin')
-    res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type')
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, HEAD, OPTIONS')
-    res.setHeader('Access-Control-Max-Age', '86400')
-  }
-
-  function send(res, status, body) {
-    const json = JSON.stringify(body)
-    res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
-    res.end(json)
-  }
-
-  function readBody(req, limit) {
-    return new Promise((resolveBody, reject) => {
-      const chunks = []
-      let size = 0
-      req.on('data', (c) => {
-        size += c.length
-        if (size > limit) {
-          reject(Object.assign(new Error('Zu groß'), { status: 413 }))
-          req.destroy()
-          return
-        }
-        chunks.push(c)
-      })
-      req.on('end', () => resolveBody(Buffer.concat(chunks)))
-      req.on('error', reject)
-    })
-  }
-
-  /** Übernimmt Änderungen der Geräte – neuere gewinnt. */
-  function push(space, changes) {
-    let accepted = 0
-    let ignored = 0
-    db.exec('BEGIN')
-    try {
-      for (const c of changes) {
-        if (!c || !TABLE_RE.test(c.tbl) || typeof c.id !== 'string' || !c.id || c.id.length > 200) throw Object.assign(new Error('Ungültige Änderung'), { status: 400 })
-        if (typeof c.stamp !== 'string' || !c.stamp || c.stamp.length > 40) throw Object.assign(new Error('Ungültiger Zeitstempel'), { status: 400 })
-        const existing = q.get.get(space, c.tbl, c.id)
-        if (existing && existing.stamp >= c.stamp) {
-          ignored++
-          continue
-        }
-        const seq = q.nextSeq.get(space).seq
-        q.upsert.run(space, c.tbl, c.id, c.stamp, c.deleted ? 1 : 0, c.deleted ? null : JSON.stringify(c.data ?? null), seq)
-        accepted++
-      }
-      db.exec('COMMIT')
-    } catch (e) {
-      db.exec('ROLLBACK')
-      throw e
-    }
-    return { accepted, ignored, seq: q.maxSeq.get(space)?.seq ?? 0 }
-  }
-
-  function pull(space, since, limit) {
-    const rows = q.pull.all(space, since, limit + 1)
-    const more = rows.length > limit
-    const changes = rows.slice(0, limit).map((r) => ({
-      seq: r.seq,
-      tbl: r.tbl,
-      id: r.id,
-      stamp: r.stamp,
-      deleted: !!r.deleted,
-      data: r.data ? JSON.parse(r.data) : null
-    }))
-    return { changes, more, seq: changes.at(-1)?.seq ?? since }
-  }
-
-  function blobPath(space, hash) {
-    return join(dataDir, 'blobs', space, hash)
-  }
+  const cors = corsFor(opts.origins)
+  const maxBlob = (opts.maxBlobMb ?? 30) * 1024 * 1024
 
   async function handle(req, res) {
     cors(req, res)
@@ -197,109 +58,113 @@ export function createSyncServer(opts) {
     const url = new URL(req.url ?? '/', 'http://localhost')
     const path = url.pathname.replace(/\/+$/, '')
 
-    if (req.method === 'GET' && (path === '/api/health' || (path === '' && !appDir))) {
-      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!appDir })
+    if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
+      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true })
     }
+
+    // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
+    if (path.startsWith('/api/public/')) return shares.handlePublic(req, res, url, path)
 
     // Die App selbst (gebaute Dateien), wenn NWW_APP_DIR gesetzt ist
-    if (appDir && (req.method === 'GET' || req.method === 'HEAD') && !path.startsWith('/api/')) {
-      return serveApp(req, res, url.pathname)
+    if (app && (req.method === 'GET' || req.method === 'HEAD') && !path.startsWith('/api/')) {
+      return app.serve(req, res, url.pathname)
     }
 
-    const space = authenticate(req)
-    if (!space) return send(res, 401, { error: 'Schlüssel fehlt oder ist falsch.' })
+    const group = groups.authenticate(req)
+    if (!group) throw new HttpError(401, 'Schlüssel fehlt oder ist falsch.')
+    const { space } = group
 
     if (req.method === 'GET' && path === '/api/info') {
-      return send(res, 200, { ok: true, version: VERSION, records: q.count.get(space).n, seq: q.maxSeq.get(space)?.seq ?? 0, piwigo: !!piwigo })
+      const { records, seq } = store.info(space)
+      return send(res, 200, {
+        ok: true,
+        version: VERSION,
+        records,
+        seq,
+        piwigo: !!piwigo && group.piwigo,
+        group: group.name,
+        admin: group.owner,
+        shares: true
+      })
     }
 
     if (req.method === 'POST' && path === '/api/push') {
       const body = JSON.parse((await readBody(req, MAX_JSON)).toString('utf8') || '{}')
-      if (!Array.isArray(body.changes)) return send(res, 400, { error: 'changes fehlt' })
-      return send(res, 200, push(space, body.changes))
+      if (!Array.isArray(body.changes)) throw new HttpError(400, 'changes fehlt')
+      return send(res, 200, store.push(space, body.changes))
     }
 
     if (req.method === 'GET' && path === '/api/pull') {
       const since = Math.max(0, Number(url.searchParams.get('since') ?? 0) || 0)
       const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get('limit') ?? 500) || 500))
-      return send(res, 200, pull(space, since, limit))
+      return send(res, 200, store.pull(space, since, limit))
     }
 
     const blob = path.match(/^\/api\/blob\/([a-f0-9]{64})$/)
-    if (blob) {
-      const hash = blob[1]
-      const meta = q.blobGet.get(space, hash)
-      if (req.method === 'HEAD' || req.method === 'GET') {
-        if (!meta || !existsSync(blobPath(space, hash))) {
-          res.writeHead(404)
-          return res.end()
-        }
-        res.writeHead(200, {
-          'Content-Type': meta.type,
-          'Content-Length': String(meta.size),
-          'Cache-Control': 'private, max-age=31536000, immutable'
-        })
-        if (req.method === 'HEAD') return res.end()
-        return createReadStream(blobPath(space, hash)).pipe(res)
-      }
-      if (req.method === 'PUT') {
-        if (meta) return send(res, 200, { ok: true, existed: true })
-        const body = await readBody(req, maxBlob)
-        if (!HASH_RE.test(hash) || sha256(body) !== hash) return send(res, 400, { error: 'Prüfsumme stimmt nicht.' })
-        const type = String(req.headers['content-type'] ?? 'application/octet-stream').slice(0, 100)
-        mkdirSync(join(dataDir, 'blobs', space), { recursive: true })
-        const tmp = `${blobPath(space, hash)}.tmp-${process.pid}-${Date.now()}`
-        writeFileSync(tmp, body)
-        renameSync(tmp, blobPath(space, hash))
-        q.blobPut.run(space, hash, type, statSync(blobPath(space, hash)).size)
-        return send(res, 201, { ok: true })
-      }
+    if (blob) return handleBlob(req, res, space, blob[1])
+
+    if (path === '/api/shares' || path.startsWith('/api/shares/')) return shares.handleOwner(req, res, url, path, group)
+
+    if (path === '/api/admin/groups' || path.startsWith('/api/admin/groups/')) {
+      if (!group.owner) throw new HttpError(403, 'Nur der Besitzer des Servers darf Reisegruppen verwalten.')
+      return handleGroups(req, res, path)
     }
 
-    if (path === '/api/piwigo' || path.startsWith('/api/piwigo/')) return handlePiwigo(req, res, url, path)
+    if (path === '/api/piwigo' || path.startsWith('/api/piwigo/')) {
+      if (!piwigo) throw new HttpError(404, 'Piwigo ist auf dem Server nicht eingerichtet.')
+      if (!group.piwigo) throw new HttpError(403, 'Piwigo ist für diese Reisegruppe nicht freigegeben.')
+      return handlePiwigo(req, res, url, path)
+    }
 
-    return send(res, 404, { error: 'Unbekannte Adresse' })
+    throw new HttpError(404, 'Unbekannte Adresse')
   }
 
-  /** Gebaute App ausliefern – mit passenden Cache-Regeln für PWA und Bootstrap. */
-  function serveApp(req, res, pathname) {
-    let rel
-    try {
-      rel = decodeURIComponent(pathname)
-    } catch {
-      return send(res, 400, { error: 'Ungültige Adresse' })
+  async function handleBlob(req, res, space, hash) {
+    const meta = store.blobMeta(space, hash)
+    if (req.method === 'HEAD' || req.method === 'GET') {
+      if (!meta) {
+        res.writeHead(404)
+        return res.end()
+      }
+      res.writeHead(200, {
+        'Content-Type': meta.type,
+        'Content-Length': String(meta.size),
+        'Cache-Control': 'private, max-age=31536000, immutable'
+      })
+      if (req.method === 'HEAD') return res.end()
+      return createReadStream(meta.path).pipe(res)
     }
-    if (rel.endsWith('/')) rel += 'index.html'
-    const file = normalize(join(appDir, rel))
-    if (file !== appDir && !file.startsWith(appDir + sep)) return send(res, 403, { error: 'Verboten' })
-    let target = file
-    let st = existsSync(target) ? statSync(target) : null
-    if (st?.isDirectory()) {
-      target = join(target, 'index.html')
-      st = existsSync(target) ? statSync(target) : null
+    if (req.method === 'PUT') {
+      if (meta) return send(res, 200, { ok: true, existed: true })
+      const body = await readBody(req, maxBlob)
+      if (!HASH_RE.test(hash) || sha256(body) !== hash) throw new HttpError(400, 'Prüfsumme stimmt nicht.')
+      store.putBlob(space, hash, String(req.headers['content-type'] ?? 'application/octet-stream').slice(0, 100), body)
+      return send(res, 201, { ok: true })
     }
-    if (!st) {
-      // Unbekannte Seite → Startseite (die App nutzt #-Adressen), fehlende Dateien mit Endung → 404
-      if (extname(rel)) return send(res, 404, { error: 'Nicht gefunden' })
-      target = join(appDir, 'index.html')
-      st = existsSync(target) ? statSync(target) : null
-      if (!st) return send(res, 503, { error: 'App ist auf dem Server noch nicht installiert (update.sh ausführen).' })
-    }
-    const name = target.slice(appDir.length).replace(/\\/g, '/')
-    const immutable = name.startsWith('/assets/')
-    res.writeHead(200, {
-      'Content-Type': MIME[extname(target).toLowerCase()] ?? 'application/octet-stream',
-      'Content-Length': String(st.size),
-      'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
-      'X-Content-Type-Options': 'nosniff'
-    })
-    if (req.method === 'HEAD') return res.end()
-    return createReadStream(target).pipe(res)
+    throw new HttpError(405, 'Nicht erlaubt')
   }
 
-  /** Piwigo-Brücke: Alben, Fotos, Hochladen (nur wenn NWW_PIWIGO_* gesetzt). */
+  /** Reisegruppen verwalten (nur Besitzer). */
+  async function handleGroups(req, res, path) {
+    const sub = path.slice('/api/admin/groups'.length)
+    if (sub === '' && req.method === 'GET') return send(res, 200, { groups: groups.list() })
+    if (sub === '' && req.method === 'POST') {
+      const body = await readJson(req)
+      return send(res, 201, groups.create(body.name, body.piwigo === true))
+    }
+    const m = sub.match(/^\/([a-f0-9]{24})$/)
+    if (!m) throw new HttpError(404, 'Unbekannte Adresse')
+    if (req.method === 'PATCH') return send(res, 200, groups.update(m[1], await readJson(req)))
+    if (req.method === 'DELETE') {
+      if (m[1] === groups.ownerSpace) throw new HttpError(400, 'Die eigene Gruppe kann nicht gelöscht werden.')
+      groups.remove(m[1])
+      return send(res, 200, { ok: true })
+    }
+    throw new HttpError(405, 'Nicht erlaubt')
+  }
+
+  /** Piwigo-Brücke: Alben, Fotos, Hochladen. */
   async function handlePiwigo(req, res, url, path) {
-    if (!piwigo) return send(res, 404, { error: 'Piwigo ist auf dem Server nicht eingerichtet.' })
     const sub = path.slice('/api/piwigo'.length)
 
     if (req.method === 'GET' && sub === '') return send(res, 200, { ok: true, ...(await piwigo.status()) })
@@ -307,9 +172,8 @@ export function createSyncServer(opts) {
     if (sub === '/albums') {
       if (req.method === 'GET') return send(res, 200, { albums: await piwigo.albums() })
       if (req.method === 'POST') {
-        const body = JSON.parse((await readBody(req, 64 * 1024)).toString('utf8') || '{}')
-        const parent = Number(body.parentId) || undefined
-        return send(res, 201, await piwigo.createAlbum(body.name, parent))
+        const body = await readJson(req)
+        return send(res, 201, await piwigo.createAlbum(body.name, Number(body.parentId) || undefined))
       }
     }
 
@@ -323,9 +187,9 @@ export function createSyncServer(opts) {
       }
       if (req.method === 'POST') {
         const data = await readBody(req, maxBlob)
-        if (!data.length) return send(res, 400, { error: 'Keine Bilddaten.' })
+        if (!data.length) throw new HttpError(400, 'Keine Bilddaten.')
         const type = String(req.headers['content-type'] ?? 'image/jpeg').slice(0, 100)
-        if (!/^image\//.test(type)) return send(res, 400, { error: 'Nur Bilder.' })
+        if (!/^image\//.test(type)) throw new HttpError(400, 'Nur Bilder.')
         const result = await piwigo.upload(albumId, data, {
           type,
           filename: url.searchParams.get('filename') ?? 'foto.jpg',
@@ -349,18 +213,18 @@ export function createSyncServer(opts) {
       return Readable.fromWeb(upstream.body).pipe(res)
     }
 
-    return send(res, 404, { error: 'Unbekannte Adresse' })
+    throw new HttpError(404, 'Unbekannte Adresse')
   }
 
   const server = createHttpServer((req, res) => {
     handle(req, res).catch((e) => {
       const status = e?.status ?? (e instanceof SyntaxError ? 400 : 500)
       if (status === 500) console.error(e)
-      if (!res.headersSent) send(res, status, { error: status === 500 ? 'Serverfehler' : e.message })
+      if (!res.headersSent) send(res, status, { error: status === 500 ? 'Serverfehler' : e.message, ...(e?.extra ?? {}) })
       else res.end()
     })
   })
-  server.on('close', () => db.close())
+  server.on('close', () => store.close())
   return server
 }
 

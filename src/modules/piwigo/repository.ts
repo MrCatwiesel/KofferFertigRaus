@@ -1,4 +1,5 @@
 import { db, newId, now } from '@/core/db'
+import { getMeta, setMeta } from '@/core/meta'
 import type { PiwigoAlbumLink, PiwigoUpload } from './types'
 
 export const albumLinkRepository = {
@@ -66,17 +67,9 @@ export const uploadRepository = {
 /** Einstellungen nur auf diesem Gerät. */
 export const piwigoPrefs = {
   /** Zuletzt bekannt: Piwigo am Server eingerichtet? (null = noch nie geprüft) */
-  async enabled(): Promise<boolean | null> {
-    return ((await db.meta.get('piwigo.enabled'))?.value as boolean | undefined) ?? null
-  },
-  async setEnabled(v: boolean): Promise<void> {
-    await db.meta.put({ key: 'piwigo.enabled', value: v })
-  },
+  enabled: () => getMeta<boolean | null>('piwigo.enabled', null),
+  setEnabled: (v: boolean) => setMeta('piwigo.enabled', v),
   /** Hauptalbum für neue Reise-Alben */
-  async parentAlbum(): Promise<number | null> {
-    return ((await db.meta.get('piwigo.parentAlbum'))?.value as number | null) ?? null
-  },
-  async setParentAlbum(id: number | null): Promise<void> {
-    await db.meta.put({ key: 'piwigo.parentAlbum', value: id })
-  }
+  parentAlbum: () => getMeta<number | null>('piwigo.parentAlbum', null),
+  setParentAlbum: (id: number | null) => setMeta('piwigo.parentAlbum', id)
 }

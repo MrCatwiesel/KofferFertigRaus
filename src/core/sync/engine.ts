@@ -1,5 +1,6 @@
 import { reactive } from 'vue'
 import { db, onLocalChange, type OutboxEntry } from '../db'
+import { deleteMeta, getMeta, setMeta } from '../meta'
 import { DATA_TABLES } from '../tables'
 import { SyncApi, hashBlob } from './api'
 import { asRemote, markRemote } from './tracking'
@@ -27,12 +28,6 @@ const META = {
 
 const syncTables = new Set<string>(DATA_TABLES)
 
-async function getMeta<T>(key: string, fallback: T): Promise<T> {
-  return ((await db.meta.get(key))?.value as T) ?? fallback
-}
-async function setMeta(key: string, value: unknown): Promise<void> {
-  await db.meta.put({ key, value })
-}
 
 async function credentials(): Promise<{ server: string; key: string } | null> {
   const server = await getMeta(META.server, '')
@@ -80,7 +75,7 @@ export async function configureSync(server: string, key: string): Promise<void> 
 
 /** Abgleich beenden – lokale Daten bleiben erhalten. */
 export async function disconnectSync(): Promise<void> {
-  await db.meta.bulkDelete(Object.values(META))
+  await deleteMeta(...Object.values(META))
   await db.outbox.clear()
   await loadSyncConfig()
   syncState.lastError = ''

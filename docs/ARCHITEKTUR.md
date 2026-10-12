@@ -54,6 +54,13 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - Ein hochgeladenes oder übernommenes Foto bekommt `externalRef = "piwigo:<id>"` und `externalUrl`. Solche Fotos werden nicht erneut hochgeladen.
 - Doppelte Uploads verhindert der Server über die MD5-Prüfsumme (`pwg.images.exist`).
 
+## Reisegruppen und Lese-Links
+
+- **Server in Modulen** (`server/`): `store.mjs` (SQLite, Fotos), `groups.mjs` (Schlüssel → Gruppe), `shares.mjs` (Lese-Links), `static.mjs` (App ausliefern), `piwigo.mjs`, `http.mjs`; `server.mjs` setzt alles zusammen.
+- **Gruppen:** Jeder Schlüssel ergibt einen getrennten Datenbereich (`space`). Der erste Schlüssel in `NWW_KEYS` ist der Besitzer (Gruppen verwalten, Piwigo). Weitere Gruppen legt er in der App an; gespeichert wird nur die SHA-256-Prüfsumme des Schlüssels.
+- **Lese-Links:** Zufallscode (128 Bit) je Link, Daten liegen in `shares`. Öffentlich (`/api/public/<code>`) gibt der Server **nur** Reise-Eckdaten, Tagebucheinträge (alle oder Highlights) und deren Fotos heraus – Positivliste, nie ganze Datensätze. Passwort: scrypt; Fotos dann nur mit kurzlebigem HMAC-Ticket.
+- **Betrachter-Seite** `share.html` (zweiter Einstieg im Vite-Build) nutzt die Vorlagen und Schriften der Reise-Webseite (`modules/website/public.ts`).
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.
@@ -72,6 +79,8 @@ Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugeh
 | 2026-10-03 | Reise-Seite über `tripSection` erweiterbar | Reise-Modul muss neue Module nicht kennen |
 | 2026-10-04 | Eigener Abgleich-Server ohne Fremdpakete, Fotos in voller Größe | volle Datenhoheit, geringe Pflege; Wunsch des Nutzers |
 | 2026-10-04 | Abgleich per Datei, neuere Änderung gewinnt | kein Server, keine Konten, Datenschutz; einfach per AirDrop |
+| 2026-10-12 | Lese-Links + getrennte Reisegruppen statt Benutzerkonten | deckt „Freunde sehen, nicht ändern“ und „Freunde nutzen die App selbst“ ab – ohne Passwörter/Rechteverwaltung pflegen zu müssen |
+| 2026-10-12 | Mitgelieferte Schriften (@fontsource, OFL) | sehen auf allen Geräten gleich aus, offline nutzbar, im Export eingebettet |
 | 2026-10-11 | Piwigo über den Abgleich-Server statt direkt aus der App | Safari blockiert Cookies fremder Seiten; Schlüssel bleibt auf dem Server; Piwigo muss nicht öffentlich sein |
 | 2026-10-11 | Tagebuch behält verkleinerte Kopie (2048 px), Original nach Piwigo | offline nutzbar, volle Qualität in der Galerie; Wunsch des Nutzers |
 | 2026-10-03 | Teilnehmer als Namensliste an der Reise (`participants`), Module speichern den Namen im Feld `person` | einfach, offline, ohne eigene Personen-Tabelle; `PersonSelect` aus `trip/public` für alle Formulare |

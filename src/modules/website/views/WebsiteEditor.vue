@@ -11,7 +11,8 @@ import { journalRepository, orderPhotos, photoRepository, useObjectUrls, type Jo
 import { websiteRepository } from '../repository'
 import { buildSiteData, defaultSettings, fileNameFor, type EntryInput } from '../logic'
 import { renderSite } from '../render'
-import { ACCENT_PRESETS, FONT_INFO, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
+import { embeddedFontCss, fontFaceCss } from '../fonts'
+import { ACCENT_PRESETS, FONT_GROUPS, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -79,7 +80,7 @@ watch(
   ([s]) => {
     clearTimeout(previewTimer)
     previewTimer = setTimeout(() => {
-      previewHtml.value = s ? renderSite(s, { ...settings }, bootstrapCss) : ''
+      previewHtml.value = s ? renderSite(s, { ...settings }, bootstrapCss, fontFaceCss(settings.font)) : ''
     }, 300)
   },
   { immediate: true, deep: true }
@@ -114,7 +115,7 @@ async function buildFile() {
       settings,
       entryInputs((p) => sources.get(p.id) ?? { src: '', caption: p.caption, width: p.width, height: p.height })
     )
-    const html = renderSite(data, { ...settings }, bootstrapCss)
+    const html = renderSite(data, { ...settings }, bootstrapCss, await embeddedFontCss(settings.font))
     const file = new File([html], fileNameFor(settings.title || trip.value.title), { type: 'text/html' })
     exported.value = { file, url: URL.createObjectURL(file) }
   } catch (e) {
@@ -188,7 +189,9 @@ function resetTexts() {
         <div class="col-7">
           <label for="font" class="form-label small mb-1">Schrift</label>
           <select id="font" v-model="settings.font" class="form-select form-select-sm">
-            <option v-for="(f, key) in FONT_INFO" :key="key" :value="key">{{ f.label }}</option>
+            <optgroup v-for="g in FONT_GROUPS" :key="g.group" :label="g.group">
+              <option v-for="f in g.fonts" :key="f.id" :value="f.id">{{ f.label }}</option>
+            </optgroup>
           </select>
         </div>
         <div class="col-5 d-flex align-items-end">

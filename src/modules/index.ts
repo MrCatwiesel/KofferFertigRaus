@@ -12,6 +12,7 @@ import { websiteModule } from './website'
 import { expensesModule } from './expenses'
 import { mapModule } from './map'
 import { piwigoModule } from './piwigo'
+import { shareModule } from './share'
 
 /**
  * Liste der aktiven Module. Ein neues Modul:
@@ -32,4 +33,5 @@ export function registerAllModules(): void {
   registerModule(piwigoModule)
   registerModule(expensesModule)
   registerModule(websiteModule)
+  registerModule(shareModule)
 }

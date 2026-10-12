@@ -32,6 +32,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,woff,woff2}'],
+        // Lese-Links (/s/<code>) und die Schnittstelle nie durch die App-Startseite ersetzen
+        navigateFallbackDenylist: [/\/s\/[A-Za-z0-9_-]+$/, /\/api\//],
         runtimeCaching: [
           {
             // Angesehene Kartenkacheln für unterwegs merken (kein Massen-Download – OSM-Nutzungsregeln)
@@ -47,6 +49,15 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      // Zwei Seiten: die App und die Betrachter-Seite für Lese-Links
+      input: {
+        main: fileURLToPath(new URL('./index.html', import.meta.url)),
+        share: fileURLToPath(new URL('./share.html', import.meta.url))
+      }
+    }
+  },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) }
   },

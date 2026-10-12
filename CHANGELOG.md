@@ -1,5 +1,23 @@
 # Änderungsprotokoll
 
+## 1.4.0 – 2026-10-12
+
+### Neu
+- **Lese-Links für Freunde** (Reise → „Für Freunde freigeben“): eine Reise zum Ansehen freigeben – ohne App, ohne Schlüssel, ohne Änderungsrecht
+  - je Link wählbar: **nur Highlights oder ganzes Tagebuch** (jederzeit umschaltbar), Fotos ja/nein, Überschrift, Notiz „für wen“
+  - optional Passwort und Ablaufdatum; zurückziehen, wieder freigeben, löschen; Anzahl und Zeit der Aufrufe
+  - Aussehen wie die Reise-Webseite oder eigenes (Vorlage, Schrift, Farbe, dunkel)
+  - Nie enthalten: Planung, Budget, Ausgaben, Apotheke, Dokumente, Notfallnummern, Mitreisende – der Server gibt sie gar nicht heraus
+  - Betrachter-Seite unter `/s/<code>` (eigene kleine Seite, nicht in Suchmaschinen)
+- **Reisegruppen** (Einstellungen → Geräte-Abgleich → Reisegruppen, nur Besitzer): Freunden eine eigene, getrennte Gruppe mit eigenem Schlüssel geben, Einladungslink, sperren, umbenennen, löschen
+- **Piwigo nur für freigegebene Gruppen** – standardmäßig nur für den Besitzer (erster Schlüssel in `NWW_KEYS`)
+- **8 neue Schriften** für Reise-Webseite und Lese-Links (Lora, Playfair Display, Merriweather, Roboto Slab, Nunito, Montserrat, Raleway, Caveat) – im Export eingebettet, sehen überall gleich aus
+
+### Geändert
+- Abgleich-Server 1.3.0 in Module aufgeteilt (`store`, `groups`, `shares`, `static`, `http`, `piwigo`); Docker kopiert alle Module
+- App: gemeinsamer Server-Zugriff `core/sync/client.ts`, gemeinsame Geräte-Einstellungen `core/meta.ts` (Doppelungen entfernt)
+- Service Worker leitet Lese-Links und `/api/` nicht mehr auf die App-Startseite um
+
 ## 1.3.0 – 2026-10-12
 
 ### Neu

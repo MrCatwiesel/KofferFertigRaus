@@ -7,6 +7,7 @@ export function buildRouter() {
     { path: '/', redirect: '/trip' },
     { path: '/einstellungen', name: 'settings', component: () => import('./views/SettingsView.vue') },
     { path: '/abgleich', name: 'sync', component: () => import('./views/SyncSettings.vue') },
+    { path: '/gruppen', name: 'groups', component: () => import('./views/GroupsAdmin.vue') },
     { path: '/trip/:tripId/teilen', name: 'share-trip', component: () => import('./views/ShareTrip.vue'), props: true },
     ...getModules().flatMap((m) => m.routes),
     { path: '/:pathMatch(.*)*', redirect: '/' }

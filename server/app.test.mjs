@@ -17,6 +17,7 @@ before(async () => {
   mkdirSync(join(app, 'assets'), { recursive: true })
   writeFileSync(join(app, 'index.html'), '<!doctype html><title>Nix wie weg</title>')
   writeFileSync(join(app, 'sw.js'), 'self.x=1')
+  writeFileSync(join(app, 'share.html'), '<!doctype html><title>Ansehen</title>')
   writeFileSync(join(app, 'manifest.webmanifest'), '{}')
   writeFileSync(join(app, 'assets', 'index-abc123.js'), 'console.log(1)')
   writeFileSync(join(dir, 'geheim.txt'), 'nicht ausliefern')
@@ -72,4 +73,10 @@ test('App: Schnittstelle bleibt geschützt und erreichbar', async () => {
   assert.equal(h.appHosted, true)
   assert.equal((await fetch(`${base}/api/info`)).status, 401)
   assert.equal((await fetch(`${base}/api/info`, { headers: { Authorization: `Bearer ${KEY}` } })).status, 200)
+})
+
+test('App: Lese-Link-Adresse /s/<code> zeigt die Betrachter-Seite', async () => {
+  const r = await fetch(`${base}/s/AbCdEfGhIjKlMnOpQrStUv`)
+  assert.equal(r.status, 200)
+  assert.match(await r.text(), /Ansehen/)
 })

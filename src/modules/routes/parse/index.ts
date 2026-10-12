@@ -44,7 +44,7 @@ export async function unzipKml(bytes: Uint8Array): Promise<string> {
   const data = bytes.subarray(start, start + entry.size)
   if (entry.method === 0) return new TextDecoder().decode(data)
   if (entry.method !== 8) throw new Error('KMZ: unbekannte Kompression.')
-  const stream = new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+  const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
   return new Response(stream).text()
 }
 

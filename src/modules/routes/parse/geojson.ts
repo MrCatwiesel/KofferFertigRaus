@@ -26,9 +26,11 @@ function lines(g: Geometry | null): Pos[][] {
 
 /** GeoJSON: Linien (auch Multi) aus Features. */
 export function parseGeoJson(json: string, fallbackName: string): ParsedRoute[] {
-  const data = JSON.parse(json) as { type: string; features?: Feature[] } & Feature & Geometry
-  const features: Feature[] =
-    data.type === 'FeatureCollection' ? data.features ?? [] : data.type === 'Feature' ? [data] : [{ type: 'Feature', geometry: data, properties: {} }]
+  const data = JSON.parse(json) as { type: string; features?: Feature[]; geometry?: Geometry | null; properties?: Record<string, unknown> | null } & Geometry
+  let features: Feature[]
+  if (data.type === 'FeatureCollection') features = data.features ?? []
+  else if (data.type === 'Feature') features = [{ type: 'Feature', geometry: data.geometry ?? null, properties: data.properties ?? {} }]
+  else features = [{ type: 'Feature', geometry: data, properties: {} }]
   const out: ParsedRoute[] = []
   for (const f of features) {
     const pts = lines(f.geometry).flatMap(toPoints)

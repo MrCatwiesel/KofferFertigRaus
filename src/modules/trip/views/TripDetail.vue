@@ -23,7 +23,7 @@ const facts = computed(() => {
     {
       icon: 'wallet2',
       label: 'Budget',
-      value: t.budget ? `${formatMoney(t.budget, t.currency)} (${formatMoney(perDay!, t.currency)} p. P./Tag)` : 'nicht festgelegt'
+      value: t.budget ? formatMoney(t.budget, t.currency) + (perDay !== null ? ` (${formatMoney(perDay, t.currency)} p. P./Tag)` : '') : 'nicht festgelegt'
     }
   ]
 })

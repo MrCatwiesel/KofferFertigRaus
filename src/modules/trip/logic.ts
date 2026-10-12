@@ -40,9 +40,14 @@ export function tripPhase(startDate: string, endDate: string, today: Date = new 
 }
 
 /** Budget pro Person und Tag, oder null wenn kein Budget gesetzt ist. */
-export function budgetPerPersonDay(draft: Pick<TripDraft, 'budget' | 'travelers' | 'startDate' | 'endDate'>): number | null {
-  if (!draft.budget || draft.travelers < 1) return null
-  return draft.budget / draft.travelers / tripDays(draft.startDate, draft.endDate)
+export function budgetPerPersonDay(
+  draft: Pick<TripDraft, 'budget' | 'travelers' | 'startDate' | 'endDate'> & Partial<Pick<TripDraft, 'participants'>>
+): number | null {
+  // Personen: Anzahl Reisende, sonst Länge der Teilnehmerliste (ältere Datensätze haben nicht immer beides)
+  const persons = Number(draft.travelers) || draft.participants?.length || 0
+  const days = tripDays(draft.startDate, draft.endDate)
+  if (!draft.budget || persons < 1 || !(days > 0)) return null
+  return draft.budget / persons / days
 }
 
 /** Teilnehmer einer Reise – auch für ältere Datensätze ohne das Feld. */

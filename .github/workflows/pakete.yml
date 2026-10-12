@@ -1,0 +1,47 @@
+# Paketversionen festschreiben bzw. bewusst aktualisieren.
+# Der normale Build nutzt "npm ci" und baut damit immer mit genau den Versionen aus package-lock.json –
+# ein nächtliches Update kann so nichts kaputtmachen, nur weil irgendwo eine neue Paketversion erschienen ist.
+#
+# Aktualisieren: GitHub → Actions → "Pakete" → Run workflow → "aktualisieren" ankreuzen.
+# Die neuen Versionen werden nur übernommen, wenn Tests und Build damit grün sind.
+name: Pakete
+
+on:
+  workflow_dispatch:
+    inputs:
+      aktualisieren:
+        description: 'Pakete auf neue (kompatible) Versionen heben'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: package-lock.json erzeugen
+        if: hashFiles('package-lock.json') == ''
+        run: npm install --package-lock-only --no-audit --no-fund
+      - name: Pakete aktualisieren
+        if: inputs.aktualisieren
+        run: npm update --package-lock-only --no-audit --no-fund
+      - name: Prüfen (Tests, Typen, Build)
+        run: |
+          npm ci --no-audit --no-fund
+          npm test
+          npm run typecheck
+          npm run build
+      - name: Übernehmen
+        run: |
+          git add package-lock.json
+          if git diff --cached --quiet; then echo "Keine Änderung."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Paketversionen festgeschrieben (package-lock.json)"
+          git push

@@ -63,8 +63,8 @@ if [[ ${1:-} == zurueck ]]; then
 fi
 
 # ---------- 1. Programm des Servers (Git) ----------
+old=$(git -C "$SRC" rev-parse HEAD)                  # die Version, die gerade läuft
 git -C "$SRC" checkout -q main 2>/dev/null || true # nach "zurueck" wieder auf den Hauptzweig
-old=$(git -C "$SRC" rev-parse HEAD)
 git -C "$SRC" pull --ff-only -q
 new=$(git -C "$SRC" rev-parse HEAD)
 

@@ -3,6 +3,10 @@
 # Läuft täglich automatisch (nix-wie-weg-backup.timer) und kann jederzeit von Hand gestartet werden:
 #   /opt/nix-wie-weg/server/proxmox/backup.sh
 #
+# Zusätzlich überträgt es die Sicherung an die Ziele, die du in der App einträgst
+# (Einstellungen → Geräte-Abgleich → Server-Sicherung): Ordner/Platte, SMB-Freigabe, SSH/rsync, WebDAV.
+# Die App kann eine Sicherung oder einen Test anstoßen (Datei <daten>/sicherung/jetzt → nix-wie-weg-backup.path).
+#
 # Gesichert werden:
 #   - die Datenbank (Reisen, Tagebuch, Gruppen, Lese-Links …) – sauber im laufenden Betrieb (VACUUM INTO)
 #   - alle Fotos/Dateien (als harte Verknüpfungen: jede Datei liegt nur einmal auf der Platte,
@@ -21,8 +25,27 @@ DATA=${NWW_DATA:-/var/lib/nix-wie-weg}
 DEST=${NWW_BACKUP_DIR:-/var/backups/nix-wie-weg}
 KEEP=${NWW_BACKUP_KEEP:-14}
 
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+RUNNER="$HERE/../backup-run.mjs"
+
 [[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
 [[ -f $DATA/nix-wie-weg.sqlite ]] || { echo "Keine Daten in $DATA – nichts zu sichern."; exit 0; }
+
+# Auftrag aus der App? (Sicherung jetzt / Ziel testen)
+SB="$DATA/sicherung"
+install -d -m 700 "$SB"
+chown --reference="$DATA" "$SB"
+touch "$SB/eingerichtet" && chown --reference="$DATA" "$SB/eingerichtet"
+order=""
+if [[ -f $SB/jetzt ]]; then
+  order=$(mktemp)
+  mv "$SB/jetzt" "$order"
+  trap 'rm -f "$order"' EXIT
+  if grep -q '"mode":"test"' "$order"; then
+    node --no-warnings "$RUNNER" --daten "$DATA" --auftrag "$order"
+    exit $?
+  fi
+fi
 [[ $KEEP =~ ^[0-9]+$ && $KEEP -ge 1 ]] || { echo "NWW_BACKUP_KEEP muss eine Zahl ≥ 1 sein."; exit 1; }
 
 install -d -m 700 "$DEST"
@@ -66,3 +89,8 @@ if (( ${#all[@]} > KEEP )); then
   done
 fi
 find "$DEST" -mindepth 1 -maxdepth 1 -type d -name '.*.unfertig' -mtime +1 -exec rm -rf {} +
+
+# 5. An die weiteren Ziele übertragen (in der App eingetragen)
+if [[ -f $RUNNER ]]; then
+  node --no-warnings "$RUNNER" --daten "$DATA" --snapshot "$DEST/$stamp" --groesse "$size" ${order:+--auftrag "$order"}
+fi

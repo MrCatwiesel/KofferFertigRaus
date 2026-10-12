@@ -75,10 +75,10 @@ bash "$SRC/server/proxmox/update.sh" || true
 
 say "Dienst einrichten"
 install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" "$SRC/server/proxmox/nix-wie-weg-update.service" "$SRC/server/proxmox/nix-wie-weg-update.timer" \
-  "$SRC/server/proxmox/nix-wie-weg-backup.service" "$SRC/server/proxmox/nix-wie-weg-backup.timer" /etc/systemd/system/
+  "$SRC/server/proxmox/nix-wie-weg-backup.service" "$SRC/server/proxmox/nix-wie-weg-backup.timer" "$SRC/server/proxmox/nix-wie-weg-backup.path" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable -q nix-wie-weg-sync
-systemctl enable -q --now nix-wie-weg-update.timer nix-wie-weg-backup.timer
+systemctl enable -q --now nix-wie-weg-update.timer nix-wie-weg-backup.timer nix-wie-weg-backup.path
 systemctl restart nix-wie-weg-sync
 sleep 2
 curl -fsS http://127.0.0.1:8787/api/health && echo

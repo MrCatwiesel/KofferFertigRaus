@@ -139,6 +139,21 @@ pct set <CTID> -mp0 /mnt/pve/<speicher>/nix-wie-weg-sicherung,mp=/mnt/sicherung
 und dann `NWW_BACKUP_DIR=/mnt/sicherung/nix-wie-weg` setzen. Zusätzlich den Container in die geplante
 Proxmox-Sicherung aufnehmen (*Datacenter → Backup*, Modus „Snapshot“) – doppelt hält besser.
 
+**Weitere Ziele in der App:** *Einstellungen → Geräte-Abgleich → Server-Sicherung* (nur Besitzer). Nach jeder
+nächtlichen Sicherung wird an alle eingeschalteten Ziele übertragen, jedes mit eigener Anzahl Stände:
+
+| Art | Wofür | Hinweis |
+| --- | --- | --- |
+| Ordner / Platte | USB-Platte oder eine von Proxmox eingebundene SMB-/NFS-Freigabe (`pct set … -mp0`) | Fotos als harte Verknüpfungen |
+| SMB-Freigabe | Windows, Synology, QNAP, FRITZ!Box-NAS – direkt | über `smbclient`, klappt im unprivilegierten Container (dort geht kein `mount -t cifs`) |
+| SSH / rsync | NAS oder Linux-Rechner mit SSH | Schlüssel zeigt die App; nur Änderungen werden übertragen |
+| WebDAV | Nextcloud, Synology WebDAV, Hetzner Storage Box | Fotos gemeinsam, nur neue werden hochgeladen |
+
+„Testen“ und „Jetzt sichern“ stößt die App über die Datei `/var/lib/nix-wie-weg/sicherung/jetzt` an
+(`nix-wie-weg-backup.path`). Passwörter liegen nur auf dem Server (`/var/lib/nix-wie-weg/sicherung/ziele.json`,
+nur für den Dienst und root lesbar). NFS direkt im Container geht nicht (unprivilegiert) – dafür in Proxmox einbinden
+und als „Ordner“ eintragen.
+
 **Zurückspielen:** `restore.sh <name>` legt den aktuellen Stand vorher beiseite, spielt die Sicherung ein und
 startet den Server neu. Die Geräte merken das beim nächsten Abgleich und gleichen einmal vollständig ab –
 was auf einem Gerät neuer ist als die Sicherung, geht dabei nicht verloren.

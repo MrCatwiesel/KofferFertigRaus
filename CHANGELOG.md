@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.10.0 – 2026-10-13 (Server 1.9.0)
+
+### Neu: mehrere Sicherungsziele
+- *Geräte-Abgleich → Server-Sicherung* (nur Besitzer): beliebig viele Ziele (bis 8), je mit eigener Anzahl Stände, einzeln ein-/ausschaltbar
+  - **Ordner / Platte** (auch in Proxmox eingebundene SMB-/NFS-Freigaben), Fotos als harte Verknüpfungen
+  - **SMB-Freigabe direkt** (smbclient – klappt im unprivilegierten Container), nur neue Fotos werden hochgeladen
+  - **SSH / rsync** mit eigenem Schlüssel (in der App angezeigt), nur Änderungen werden übertragen
+  - **WebDAV** (Nextcloud, Synology, Hetzner Storage Box)
+- **Testen** je Ziel und **Jetzt sichern** direkt aus der App; Ergebnis und Fehlermeldung je Ziel sichtbar
+- Passwörter nur auf dem Server, nie zurück an die App, nie auf der Befehlszeile; Programme ohne Shell aufgerufen
+- `update.sh` installiert smbclient, rsync und ssh und erzeugt den SSH-Schlüssel
+
 ## 1.9.0 – 2026-10-13 (Server 1.8.0)
 
 ### Neu: Geräte-Anmeldung

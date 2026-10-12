@@ -199,6 +199,16 @@ async function copyKey() {
   <div v-else-if="syncState.configured && serverInfo?.group" class="small text-body-secondary mb-3">
     <i class="bi bi-people me-1" aria-hidden="true"></i>Reisegruppe: {{ serverInfo.group }}
   </div>
+  <div v-if="syncState.configured && serverInfo?.admin" class="card mb-3">
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">Server-Sicherung</div>
+        <div class="small text-body-secondary">Weitere Sicherungsziele: Platte, SMB-Freigabe, SSH/rsync, WebDAV</div>
+      </div>
+      <RouterLink to="/sicherung" class="btn btn-outline-primary stretched-link">Verwalten</RouterLink>
+    </div>
+  </div>
 
   <!-- Einrichten -->
   <div class="card mb-3">

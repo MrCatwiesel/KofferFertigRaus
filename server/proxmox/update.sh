@@ -32,10 +32,16 @@ healthy() {
 
 # systemd-Einheiten auf den Stand im Repository bringen (jedes Mal, ist harmlos)
 install_units() {
-  install -m 644 "$HERE/nix-wie-weg-sync.service" "$HERE/nix-wie-weg-update.service" "$HERE/nix-wie-weg-update.timer" \
-    "$HERE/nix-wie-weg-backup.service" "$HERE/nix-wie-weg-backup.timer" /etc/systemd/system/
+  local units=() u
+  for u in nix-wie-weg-sync.service nix-wie-weg-update.service nix-wie-weg-update.timer \
+    nix-wie-weg-backup.service nix-wie-weg-backup.timer nix-wie-weg-backup.path; do
+    [[ -f $HERE/$u ]] && units+=("$HERE/$u") # ältere Versionen (nach Rückweg) haben nicht alle
+  done
+  install -m 644 "${units[@]}" /etc/systemd/system/
   systemctl daemon-reload
-  systemctl enable -q --now nix-wie-weg-update.timer nix-wie-weg-backup.timer
+  for u in nix-wie-weg-update.timer nix-wie-weg-backup.timer nix-wie-weg-backup.path; do
+    if [[ -f /etc/systemd/system/$u ]]; then systemctl enable -q --now "$u"; fi
+  done
 }
 
 restart_server() {
@@ -91,6 +97,33 @@ if curl -fsSL "$APP_URL" -o "$tmp/app.zip" && unzip -q "$tmp/app.zip" -d "$tmp/a
   fi
 else
   echo "!! App konnte nicht geladen werden – die bisherige bleibt in Betrieb." >&2
+fi
+
+# ---------- Werkzeuge für Sicherungsziele (SMB, SSH/rsync) und SSH-Schlüssel ----------
+missing=()
+command -v rsync >/dev/null || missing+=(rsync)
+command -v smbclient >/dev/null || missing+=(smbclient)
+command -v ssh >/dev/null || missing+=(openssh-client)
+if ((${#missing[@]})); then
+  if apt-get install -y -qq --no-install-recommends "${missing[@]}" >/dev/null 2>&1 || { apt-get update -qq >/dev/null 2>&1 && apt-get install -y -qq --no-install-recommends "${missing[@]}" >/dev/null 2>&1; }; then
+    echo "Werkzeuge für Sicherungsziele installiert: ${missing[*]}"
+  else
+    echo "!! Konnte ${missing[*]} nicht installieren – SMB/SSH-Ziele gehen erst danach." >&2
+  fi
+fi
+if [[ ! -f /etc/nix-wie-weg/backup_ed25519 ]] && command -v ssh-keygen >/dev/null; then
+  install -d -m 700 /etc/nix-wie-weg
+  ssh-keygen -q -t ed25519 -N '' -C "nix-wie-weg-sicherung@$(hostname)" -f /etc/nix-wie-weg/backup_ed25519
+  echo "SSH-Schlüssel für Sicherungen erzeugt (öffentlicher Teil: in der App unter Server-Sicherung)."
+fi
+if [[ -f /etc/nix-wie-weg/backup_ed25519.pub && -d /var/lib/nix-wie-weg ]]; then
+  install -d -m 700 /var/lib/nix-wie-weg/sicherung
+  cp /etc/nix-wie-weg/backup_ed25519.pub /var/lib/nix-wie-weg/sicherung/ssh.pub
+  chown --reference=/var/lib/nix-wie-weg /var/lib/nix-wie-weg/sicherung /var/lib/nix-wie-weg/sicherung/ssh.pub
+fi
+if [[ -d /var/lib/nix-wie-weg/sicherung ]]; then
+  touch /var/lib/nix-wie-weg/sicherung/eingerichtet # zeigt der App: Sicherung auf Anforderung ist eingerichtet
+  chown --reference=/var/lib/nix-wie-weg /var/lib/nix-wie-weg/sicherung/eingerichtet
 fi
 
 # ---------- Werkzeug für Offline-Karten (pmtiles) ----------

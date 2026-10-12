@@ -1,0 +1,10 @@
+# Sicherung oder Test auf Wunsch aus der App: die App legt die Datei „jetzt“ an, systemd startet backup.sh
+[Unit]
+Description=Nix wie weg – Sicherung auf Anforderung
+
+[Path]
+PathExists=/var/lib/nix-wie-weg/sicherung/jetzt
+Unit=nix-wie-weg-backup.service
+
+[Install]
+WantedBy=multi-user.target

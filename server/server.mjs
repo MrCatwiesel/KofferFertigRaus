@@ -26,9 +26,10 @@ import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 import { createMaps } from './maps.mjs'
 import { createDevices } from './devices.mjs'
+import { createBackupAdmin } from './backup-targets.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.8.0'
+export const VERSION = '1.9.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -49,6 +50,7 @@ export function createSyncServer(opts) {
   }
   const shares = createShares(store)
   const devices = createDevices(store, groups, { idleDays: opts.deviceIdleDays })
+  const backupAdmin = createBackupAdmin(resolve(opts.dataDir))
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -124,6 +126,11 @@ export function createSyncServer(opts) {
     if (path === '/api/geraete' || path.startsWith('/api/geraete/') || path === '/api/einladungen') return devices.handle(req, res, path, auth)
 
     if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
+
+    if (path === '/api/admin/sicherung' || path.startsWith('/api/admin/sicherung/')) {
+      if (!group.owner) throw new HttpError(403, 'Nur der Besitzer des Servers verwaltet die Sicherung.')
+      return backupAdmin.handle(req, res, path)
+    }
 
     if (path === '/api/admin/groups' || path.startsWith('/api/admin/groups/')) {
       if (!group.owner) throw new HttpError(403, 'Nur der Besitzer des Servers darf Reisegruppen verwalten.')

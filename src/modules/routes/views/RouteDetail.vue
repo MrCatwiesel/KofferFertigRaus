@@ -40,7 +40,7 @@ const days = computed(() => (trip.value ? eachDay(trip.value.startDate, trip.val
 const lines = computed(() =>
   route.value ? [{ id: route.value.id, name: draft.name, color: draft.color, points: route.value.points.map((p) => [p[0], p[1]] as [number, number]) }] : []
 )
-const profile = computed(() => (route.value ? profileSvg(route.value.points, { color: draft.color, width: 700, height: 160 }) : ''))
+const profile = computed(() => (route.value ? profileSvg(route.value.points, { color: draft.color, width: 440, height: 150 }) : ''))
 const facts = computed(() => {
   const s = route.value?.stats
   if (!s) return []

@@ -2,9 +2,9 @@ import { reactive } from 'vue'
 import { db, onLocalChange, type OutboxEntry } from '../db'
 import { deleteMeta, getMeta, setMeta } from '../meta'
 import { DATA_TABLES } from '../tables'
-import { SyncApi, hashBlob } from './api'
+import { DeviceRevokedError, SyncApi, hashBlob, loginDevice } from './api'
 import { asRemote, markRemote } from './tracking'
-import { applyAction, isBlobRef, uploadStamp, type RemoteChange } from './logic'
+import { applyAction, defaultDeviceName, isBlobRef, isInviteCode, normalizeInviteCode, uploadStamp, type RemoteChange } from './logic'
 import Dexie from 'dexie'
 
 /** Sichtbarer Zustand des Abgleichs (für Anzeige in der App). */
@@ -15,7 +15,11 @@ export const syncState = reactive({
   lastSync: null as string | null,
   lastError: '',
   pending: 0,
-  progress: ''
+  progress: '',
+  /** Name dieses Geräts beim Server (eigener Gerätezugang) – leer bei Anmeldung mit Gruppenschlüssel */
+  device: null as { id: string; name: string } | null,
+  /** Grund, falls dieses Gerät abgemeldet wurde – dann ruht der Abgleich */
+  revoked: ''
 })
 
 const META = {
@@ -24,8 +28,13 @@ const META = {
   lastSeq: 'sync.lastSeq',
   lastSync: 'sync.lastSync',
   initialized: 'sync.initialized',
-  epoch: 'sync.epoch'
+  epoch: 'sync.epoch',
+  device: 'sync.device',
+  revoked: 'sync.revoked'
 } as const
+
+/** Vorschlag für den Namen dieses Geräts */
+export const suggestedDeviceName = () => defaultDeviceName(navigator.userAgent, navigator.maxTouchPoints ?? 0)
 
 const syncTables = new Set<string>(DATA_TABLES)
 
@@ -46,6 +55,9 @@ export async function loadSyncConfig(): Promise<void> {
   syncState.configured = !!c
   syncState.server = c?.server ?? ''
   syncState.lastSync = await getMeta<string | null>(META.lastSync, null)
+  syncState.device = await getMeta<{ id: string; name: string } | null>(META.device, null)
+  syncState.revoked = await getMeta(META.revoked, '')
+  if (syncState.revoked) syncState.lastError = syncState.revoked
   await refreshPending()
 }
 
@@ -64,14 +76,48 @@ export async function testConnection(server: string, key: string) {
   return new SyncApi(server, key).info()
 }
 
-/** Server einrichten. Danach werden alle vorhandenen Daten einmal hochgeladen und alles vom Server geholt. */
-export async function configureSync(server: string, key: string): Promise<void> {
+/**
+ * Server einrichten – mit Gruppenschlüssel oder Einladungscode. Unterstützt der Server Gerätezugänge,
+ * bekommt dieses Gerät seinen eigenen (der Gruppenschlüssel wird dann nicht gespeichert).
+ * Danach werden alle vorhandenen Daten einmal hochgeladen und alles vom Server geholt.
+ */
+export async function configureSync(server: string, secret: string, deviceName = suggestedDeviceName()): Promise<void> {
+  let key = secret
+  let device: { id: string; name: string } | null = null
+  if (isInviteCode(secret)) {
+    const r = await loginDevice(server, { invite: normalizeInviteCode(secret), name: deviceName })
+    key = r.token
+    device = { id: r.device.id, name: r.device.name }
+  } else {
+    const info = await testConnection(server, secret)
+    if (info.devices) {
+      const r = await loginDevice(server, { key: secret, name: deviceName })
+      key = r.token
+      device = { id: r.device.id, name: r.device.name }
+    }
+  }
   await setMeta(META.server, server)
   await setMeta(META.key, key)
+  await setMeta(META.device, device)
+  await setMeta(META.revoked, '')
   await setMeta(META.lastSeq, 0)
   await setMeta(META.initialized, false)
+  syncState.lastError = ''
   await loadSyncConfig()
   await syncNow()
+}
+
+/** Dieses Gerät beim Server abmelden und den Abgleich beenden (Daten auf dem Gerät bleiben). */
+export async function logoutThisDevice(): Promise<void> {
+  const c = await credentials()
+  if (c?.key.startsWith('nwd_')) {
+    try {
+      await fetch(`${c.server}/api/geraete/ich`, { method: 'DELETE', headers: { Authorization: `Bearer ${c.key}` } })
+    } catch {
+      /* offline – der Zugang läuft dann irgendwann von selbst ab */
+    }
+  }
+  await disconnectSync()
 }
 
 /** Abgleich beenden – lokale Daten bleiben erhalten. */
@@ -80,6 +126,8 @@ export async function disconnectSync(): Promise<void> {
   await db.outbox.clear()
   await loadSyncConfig()
   syncState.lastError = ''
+  syncState.revoked = ''
+  syncState.device = null
 }
 
 /** Beim ersten Abgleich: alle vorhandenen Datensätze vormerken. */
@@ -189,8 +237,25 @@ async function pullChanges(api: SyncApi): Promise<number> {
  * Wurde auf dem Server eine Sicherung zurückgespielt (neue Kennung oder Zähler kleiner als hier bekannt),
  * gleicht das Gerät einmal vollständig ab: alles hochladen (neuere Stände gewinnen), alles neu holen.
  */
-async function checkServerReset(api: SyncApi): Promise<void> {
+async function checkServerReset(api: SyncApi): Promise<SyncApi> {
   const info = await api.info()
+  // Älterer Zugang mit dem Gruppenschlüssel → einmalig auf einen eigenen Gerätezugang umstellen
+  const c = await credentials()
+  if (info.devices && c && !c.key.startsWith('nwd_')) {
+    try {
+      const r = await loginDevice(c.server, { key: c.key, name: suggestedDeviceName() })
+      const device = { id: r.device.id, name: r.device.name }
+      await setMeta(META.key, r.token)
+      await setMeta(META.device, device)
+      syncState.device = device
+      api = new SyncApi(c.server, r.token)
+    } catch {
+      /* nächstes Mal wieder versuchen – der Gruppenschlüssel funktioniert weiter */
+    }
+  } else if (info.device) {
+    syncState.device = info.device
+    await setMeta(META.device, info.device)
+  }
   const known = await getMeta(META.epoch, '')
   const lastSeq = await getMeta<number>(META.lastSeq, 0)
   const newEpoch = !!info.epoch && !!known && info.epoch !== known
@@ -200,6 +265,7 @@ async function checkServerReset(api: SyncApi): Promise<void> {
     await setMeta(META.initialized, false)
   }
   if (info.epoch) await setMeta(META.epoch, info.epoch)
+  return api
 }
 
 let running: Promise<void> | null = null
@@ -210,6 +276,7 @@ export function syncNow(): Promise<void> {
   running = (async () => {
     const c = await credentials()
     if (!c) return
+    if (syncState.revoked) return
     if (!navigator.onLine) {
       syncState.lastError = 'Offline – wird nachgeholt, sobald Internet da ist.'
       return
@@ -217,8 +284,7 @@ export function syncNow(): Promise<void> {
     syncState.running = true
     syncState.lastError = ''
     try {
-      const api = new SyncApi(c.server, c.key)
-      await checkServerReset(api)
+      const api = await checkServerReset(new SyncApi(c.server, c.key))
       if (!(await getMeta(META.initialized, false))) {
         syncState.progress = 'Bereite ersten Abgleich vor …'
         await enqueueAll()
@@ -233,6 +299,13 @@ export function syncNow(): Promise<void> {
       syncState.lastSync = now
     } catch (e) {
       syncState.lastError = (e as Error).message
+      if (e instanceof DeviceRevokedError) {
+        // Abgemeldet: Abgleich ruht, bis neu verbunden wird (kein ständiges Anklopfen beim Server)
+        const text = `${e.message}${e.reason ? ` (${e.reason})` : ''} Mit Einladungscode oder Schlüssel neu verbinden – die Daten auf diesem Gerät bleiben erhalten.`
+        syncState.revoked = text
+        syncState.lastError = text
+        await setMeta(META.revoked, text)
+      }
     } finally {
       syncState.running = false
       syncState.progress = ''

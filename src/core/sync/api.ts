@@ -1,5 +1,35 @@
 import type { RemoteChange } from './logic'
 
+/** Der Server kennt dieses Gerät nicht mehr (abgemeldet) oder die Gruppe ist gesperrt. */
+export class DeviceRevokedError extends Error {
+  constructor(
+    message: string,
+    readonly reason = ''
+  ) {
+    super(message)
+  }
+}
+
+/** Gerät beim Server anmelden → eigener Gerätezugang. Mit Einladungscode (ohne Schlüssel) oder Gruppenschlüssel. */
+export async function loginDevice(
+  server: string,
+  opts: { invite?: string; key?: string; name: string }
+): Promise<{ token: string; device: { id: string; name: string }; group: string }> {
+  let res: Response
+  try {
+    res = await fetch(`${server}/api/anmelden`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(opts.key ? { Authorization: `Bearer ${opts.key}` } : {}) },
+      body: JSON.stringify(opts.invite ? { invite: opts.invite, name: opts.name } : { name: opts.name })
+    })
+  } catch {
+    throw new Error(navigator.onLine ? 'Server nicht erreichbar – Adresse prüfen.' : 'Offline.')
+  }
+  const body = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(body.error ?? `Anmelden fehlgeschlagen (${res.status}).`)
+  return body
+}
+
 /** Netzwerkzugriff auf den Abgleich-Server. */
 export class SyncApi {
   constructor(
@@ -18,11 +48,16 @@ export class SyncApi {
     } catch {
       throw new Error(navigator.onLine ? 'Server nicht erreichbar – Adresse prüfen.' : 'Offline.')
     }
-    if (res.status === 401) throw new Error('Schlüssel wurde vom Server abgelehnt.')
+    if (res.status === 401) {
+      const body = await res.json().catch(() => ({}))
+      if (body.code === 'abgemeldet' || body.code === 'gesperrt') throw new DeviceRevokedError(body.error, body.reason ?? '')
+      throw new Error('Schlüssel wurde vom Server abgelehnt.')
+    }
+    if (res.status === 429) throw new Error('Zu viele Fehlversuche – bitte 15 Minuten warten.')
     return res
   }
 
-  async info(): Promise<{ version: string; records: number; seq: number; epoch?: string }> {
+  async info(): Promise<{ version: string; records: number; seq: number; epoch?: string; devices?: boolean; device?: { id: string; name: string } | null }> {
     const res = await this.request('/api/info')
     if (!res.ok) throw new Error(`Server antwortet mit Fehler ${res.status}.`)
     return res.json()

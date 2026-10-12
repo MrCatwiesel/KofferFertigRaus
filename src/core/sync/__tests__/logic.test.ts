@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest'
-import { ago, applyAction, chunk, generateKey, isBlobRef, mixedContentProblem, normalizeServerUrl, pairingLink, uploadStamp } from '../logic'
+import {
+  ago,
+  applyAction,
+  chunk,
+  defaultDeviceName,
+  generateKey,
+  inviteLink,
+  isBlobRef,
+  isInviteCode,
+  mixedContentProblem,
+  normalizeInviteCode,
+  normalizeServerUrl,
+  pairingLink,
+  uploadStamp
+} from '../logic'
 import { keysOf } from '../tracking'
 
 describe('applyAction – neuere gewinnt', () => {
@@ -53,5 +67,26 @@ describe('Änderungsprotokoll – betroffene Schlüssel', () => {
     expect(keysOf({ type: 'put', trans: {} as IDBTransaction, values: [{ id: 'a' }], keys: ['x'] }, 'id')).toEqual(['x'])
     expect(keysOf({ type: 'delete', trans: {} as IDBTransaction, keys: ['a', 'b'] }, 'id', { 1: new Error() })).toEqual(['a'])
     expect(keysOf({ type: 'put', trans: {} as IDBTransaction, values: [{ tripId: 't1' }] }, 'tripId')).toEqual(['t1'])
+  })
+})
+
+describe('Geräte-Anmeldung: Hilfen', () => {
+  it('erkennt Einladungscodes in jeder Schreibweise', () => {
+    expect(isInviteCode('ABCD-EFGH-JKLM')).toBe(true)
+    expect(isInviteCode('abcd efgh jklm')).toBe(true)
+    expect(normalizeInviteCode('abcd-efgh-jklm')).toBe('ABCDEFGHJKLM')
+    expect(isInviteCode('ABCD-EFGH-JKL0')).toBe(false)
+    expect(isInviteCode('mein-langer-gruppen-schluessel')).toBe(false)
+  })
+  it('Einladungslink enthält Code, keinen Schlüssel', () => {
+    expect(inviteLink('https://reise.example/#/abgleich', 'https://reise.example', 'ABCD-EFGH-JKLM')).toBe(
+      'https://reise.example/#/abgleich?server=https%3A%2F%2Freise.example&code=ABCD-EFGH-JKLM'
+    )
+  })
+  it('schlägt einen Gerätenamen vor', () => {
+    expect(defaultDeviceName('Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)')).toBe('iPad')
+    expect(defaultDeviceName('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari', 5)).toBe('iPad')
+    expect(defaultDeviceName('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari', 0)).toBe('Mac')
+    expect(defaultDeviceName('Mozilla/5.0 (Linux; Android 15; Pixel 8) Mobile Safari')).toBe('Android-Handy')
   })
 })

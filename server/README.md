@@ -96,6 +96,20 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 - **Besitzer** ist der **erste** Schlüssel in `NWW_KEYS`. Nur er sieht in der App *Einstellungen → Geräte-Abgleich → Reisegruppen* und kann dort Gruppen für Freunde anlegen (eigener Schlüssel, getrennte Daten), sperren, löschen und Piwigo freigeben.
 - **Lese-Links** legt jede Gruppe selbst an: Reise → *Für Freunde freigeben*. Der Link `https://<server>/s/<code>` zeigt die Reise als Seite – nur Highlights oder das ganze Tagebuch, wahlweise mit Passwort und Ablaufdatum. Dafür muss der Server die App ausliefern (`NWW_APP_DIR`, richtet `install.sh` ein).
 
+## Geräte und Anmeldung
+
+- Jedes Gerät bekommt beim Verbinden einen **eigenen Zugang**. Gespeichert wird auf dem Server nur eine Prüfsumme.
+  In der App unter *Geräte-Abgleich → Angemeldete Geräte* siehst du alle Geräte deiner Reisegruppe und kannst
+  einzelne abmelden (z. B. ein verlorenes iPad) – die anderen laufen weiter.
+- **Weiteres Gerät hinzufügen:** *Gerät hinzufügen* zeigt einen QR-Code und einen Code wie `ABCD-EFGH-JKLM`.
+  Er gilt einmal und 24 Stunden. Der Schlüssel der Reisegruppe muss dafür nicht mehr weitergegeben werden.
+- Der Gruppenschlüssel funktioniert weiterhin (zum ersten Verbinden, für ältere App-Versionen). Geräte, die noch
+  direkt mit ihm abgleichen, stellen mit der neuen App-Version von selbst auf einen eigenen Zugang um.
+- Für in der App angelegte Reisegruppen kann der Besitzer einen **neuen Schlüssel** erzeugen – angemeldete Geräte bleiben angemeldet.
+- Viele Fehlversuche von einer Adresse (20 in 10 Minuten) → 15 Minuten Pause. Hinter einem Reverse-Proxy im eigenen
+  Netz (Nginx Proxy Manager) zählt die echte Adresse aus `X-Forwarded-For`.
+- Geräte, die lange nicht da waren (`NWW_DEVICE_IDLE_DAYS`, Standard 180 Tage), werden automatisch abgemeldet.
+
 ## Offline-Karten
 
 Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.
@@ -138,6 +152,7 @@ docker compose up -d --build
 | `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
+| `NWW_DEVICE_IDLE_DAYS` | Geräte, die so viele Tage nicht abgeglichen haben, werden abgemeldet (Standard 180, `0` = nie) |
 | `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
 | `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
 | `NWW_BACKUP_DIR` / `NWW_BACKUP_KEEP` | Nur Proxmox: Zielordner und Anzahl der täglichen Sicherungen (`backup.sh`) |
@@ -162,6 +177,11 @@ docker compose up -d --build
 | GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
 | GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |
 | GET | `/api/piwigo/images/<id>?size=small\|xxlarge\|original` | Bilddatei |
+| POST | `/api/anmelden` | Gerät anmelden → eigener Gerätezugang `nwd_…` – mit `{ invite: "ABCD-EFGH-JKLM", name }` (ohne Schlüssel) oder Gruppenschlüssel im Kopf und `{ name }` |
+| GET | `/api/geraete` | angemeldete Geräte der Gruppe |
+| PATCH/DELETE | `/api/geraete/<id>` (oder `ich`) | Gerät umbenennen `{ name }` / abmelden |
+| POST | `/api/geraete/andere-abmelden` | alle anderen Geräte der Gruppe abmelden |
+| POST | `/api/einladungen` | Einladungscode für ein weiteres Gerät (einmal gültig, 24 Stunden) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |
 | GET/DELETE | `/api/maps/<id>` | Stand (`läuft`, `fertig`, `fehler`) / löschen |
 | GET | `/api/maps/<id>/datei` | fertige PMTiles-Datei (mit `Range`-Unterstützung) |

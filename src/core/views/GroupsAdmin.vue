@@ -83,6 +83,17 @@ async function rename(g: Group) {
   if (name?.trim()) await patch(g, { name: name.trim() })
 }
 
+/** Neuer Schlüssel: der alte gilt sofort nicht mehr, angemeldete Geräte der Gruppe bleiben angemeldet. */
+async function rotate(g: Group) {
+  if (!client || !confirm(`Neuen Schlüssel für „${g.name}“ erzeugen? Der alte gilt dann nicht mehr. Geräte mit eigenem Zugang bleiben angemeldet.`)) return
+  try {
+    const r = await client.json<{ key: string; group: Group }>(`/api/admin/groups/${g.space}`, 'PATCH', { newKey: true })
+    invite.value = { name: r.group.name, key: r.key, link: pairingLink(location.href, client.server, r.key) }
+  } catch (e) {
+    message.value = (e as Error).message
+  }
+}
+
 async function remove(g: Group) {
   if (!client) return
   const really = prompt(`„${g.name}“ mit ALLEN Reisen und Fotos auf dem Server löschen? Zum Bestätigen den Namen eintippen:`)
@@ -191,7 +202,10 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
             <input :id="`d-${g.space}`" class="form-check-input" type="checkbox" role="switch" :checked="!g.disabled" @change="patch(g, { disabled: !g.disabled })" />
             <label class="form-check-label small" :for="`d-${g.space}`">Zugang aktiv</label>
           </div>
-          <button v-if="g.source === 'app'" type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="remove(g)">
+          <button v-if="g.source === 'app'" type="button" class="btn btn-sm btn-outline-secondary ms-auto" @click="rotate(g)">
+            <i class="bi bi-key me-1" aria-hidden="true"></i>Neuer Schlüssel
+          </button>
+          <button v-if="g.source === 'app'" type="button" class="btn btn-sm btn-outline-danger" @click="remove(g)">
             <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
           </button>
         </div>

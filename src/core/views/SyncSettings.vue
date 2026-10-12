@@ -2,9 +2,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOnline } from '../composables'
-import { ago, generateKey, mixedContentProblem, normalizeServerUrl, pairingLink } from '../sync/logic'
-import { configureSync, currentKey, disconnectSync, syncNow, syncState, testConnection } from '../sync/engine'
+import { ago, generateKey, isInviteCode, mixedContentProblem, normalizeServerUrl, pairingLink } from '../sync/logic'
+import { configureSync, currentKey, disconnectSync, logoutThisDevice, suggestedDeviceName, syncNow, syncState, testConnection } from '../sync/engine'
 import { ServerClient, type ServerInfo } from '../sync/client'
+import DevicesCard from './DevicesCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -19,16 +20,19 @@ const fromLink = ref(false)
 const linkCopied = ref(false)
 const hostedHere = ref(false)
 const serverInfo = ref<ServerInfo | null>(null)
+const deviceName = ref(suggestedDeviceName())
+/** Mit eigenem Gerätezugang angemeldet (und nicht abgemeldet) → Schlüsselfeld nicht nötig */
+const deviceLogin = computed(() => syncState.configured && !!syncState.device && !syncState.revoked)
 
 onMounted(async () => {
   const qs = route.query
-  if (typeof qs.server === 'string' && typeof qs.key === 'string') {
-    // Über Kopplungs-Link geöffnet
+  if (typeof qs.server === 'string' && (typeof qs.key === 'string' || typeof qs.code === 'string')) {
+    // Über Einladung (code) oder älteren Kopplungs-Link (key) geöffnet
     server.value = qs.server
-    key.value = qs.key
+    key.value = typeof qs.code === 'string' ? qs.code : String(qs.key)
     fromLink.value = true
     router.replace({ query: {} })
-  } else if (syncState.configured) {
+  } else if (syncState.configured && !syncState.revoked) {
     server.value = syncState.server
     key.value = await currentKey()
     serverInfo.value = (await (await ServerClient.fromSync())?.info()) ?? null
@@ -52,7 +56,8 @@ async function sameOriginServer(): Promise<boolean> {
 
 const normalized = computed(() => normalizeServerUrl(server.value))
 const mixed = computed(() => mixedContentProblem(normalized.value, location.protocol))
-const keyOk = computed(() => key.value.trim().length >= 16)
+const isCode = computed(() => isInviteCode(key.value))
+const keyOk = computed(() => isCode.value || key.value.trim().length >= 16)
 
 async function test() {
   busy.value = true
@@ -71,9 +76,11 @@ async function connect() {
   busy.value = true
   message.value = null
   try {
-    await testConnection(normalized.value, key.value.trim())
-    await configureSync(normalized.value, key.value.trim())
+    if (!isCode.value) await testConnection(normalized.value, key.value.trim())
+    await configureSync(normalized.value, key.value.trim(), deviceName.value.trim() || suggestedDeviceName())
     fromLink.value = false
+    key.value = syncState.device ? '' : key.value
+    serverInfo.value = (await (await ServerClient.fromSync())?.info()) ?? null
     message.value = syncState.lastError
       ? { type: 'danger', text: syncState.lastError }
       : { type: 'success', text: 'Eingerichtet und abgeglichen. Ab jetzt geht es automatisch.' }
@@ -86,9 +93,17 @@ async function connect() {
 
 async function disconnect() {
   if (!confirm('Abgleich auf diesem Gerät beenden? Die Daten auf dem Gerät bleiben erhalten.')) return
-  await disconnectSync()
+  if (syncState.device) await logoutThisDevice()
+  else await disconnectSync()
+  serverInfo.value = null
   key.value = ''
   message.value = { type: 'info', text: 'Abgleich beendet.' }
+}
+
+function onLoggedOut() {
+  key.value = ''
+  serverInfo.value = null
+  message.value = { type: 'info', text: 'Dieses Gerät ist abgemeldet. Die Daten auf dem Gerät bleiben erhalten.' }
 }
 
 function newKey() {
@@ -129,6 +144,9 @@ async function copyKey() {
   </div>
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
+  <div v-if="syncState.revoked" class="alert alert-warning">
+    <i class="bi bi-person-x me-1" aria-hidden="true"></i>{{ syncState.revoked }}
+  </div>
 
   <!-- Status -->
   <div v-if="syncState.configured" class="card mb-3">
@@ -151,8 +169,11 @@ async function copyKey() {
     </div>
   </div>
 
-  <!-- Weitere Geräte koppeln -->
-  <div v-if="syncState.configured" class="card mb-3">
+  <!-- Geräte (eigener Zugang je Gerät) -->
+  <DevicesCard v-if="deviceLogin" @logged-out="onLoggedOut" />
+
+  <!-- Weitere Geräte koppeln (ältere Server ohne Gerätezugänge) -->
+  <div v-else-if="syncState.configured && !syncState.revoked && serverInfo && !serverInfo.devices" class="card mb-3">
     <div class="card-body">
       <h2 class="h6">Weiteres Gerät koppeln</h2>
       <p class="small text-body-secondary">
@@ -182,8 +203,17 @@ async function copyKey() {
   <!-- Einrichten -->
   <div class="card mb-3">
     <div class="card-body">
-      <h2 class="h6">{{ syncState.configured ? 'Verbindung' : fromLink ? 'Dieses Gerät koppeln' : 'Einrichten' }}</h2>
-      <p v-if="fromLink" class="small">Du hast einen Kopplungs-Link geöffnet. Tippe auf „Verbinden“, um dieses Gerät mit den anderen abzugleichen.</p>
+      <h2 class="h6">{{ deviceLogin ? 'Verbindung' : fromLink ? 'Dieses Gerät verbinden' : 'Einrichten' }}</h2>
+      <p v-if="fromLink" class="small">Du hast eine Einladung geöffnet. Gib dem Gerät einen Namen und tippe auf „Verbinden“.</p>
+
+      <template v-if="deviceLogin">
+        <p class="small mb-3">
+          Verbunden mit <strong>{{ syncState.server }}</strong> als <strong>{{ syncState.device?.name }}</strong> – mit eigenem Gerätezugang.
+          Ein Schlüssel muss hier nicht mehr eingegeben werden.
+        </p>
+        <button type="button" class="btn btn-outline-danger" @click="disconnect">Dieses Gerät abmelden</button>
+      </template>
+      <template v-else>
 
       <div class="mb-2">
         <label for="server" class="form-label">Server-Adresse</label>
@@ -196,7 +226,7 @@ async function copyKey() {
         </div>
       </div>
       <div class="mb-3">
-        <label for="key" class="form-label">Schlüssel der Reisegruppe</label>
+        <label for="key" class="form-label">Einladungscode oder Schlüssel der Reisegruppe</label>
         <div class="input-group">
           <input id="key" v-model="key" :type="showKey ? 'text' : 'password'" class="form-control font-monospace" autocomplete="off" autocapitalize="off" spellcheck="false" />
           <button type="button" class="btn btn-outline-secondary" :aria-label="showKey ? 'Verbergen' : 'Anzeigen'" @click="showKey = !showKey">
@@ -204,21 +234,28 @@ async function copyKey() {
           </button>
           <button v-if="key" type="button" class="btn btn-outline-secondary" aria-label="Kopieren" @click="copyKey"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
         </div>
-        <div class="form-text">
-          Mindestens 16 Zeichen. Noch keinen?
+        <div v-if="isCode" class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Einladungscode erkannt – gilt einmal.</div>
+        <div v-else class="form-text">
+          Einladungscode (z. B. <code>ABCD-EFGH-JKLM</code>) von einem anderen Gerät – oder den Schlüssel der Reisegruppe. Noch keinen?
           <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">Schlüssel erzeugen</button>
           und beim Server als <code>NWW_KEYS</code> eintragen.
         </div>
+      </div>
+      <div class="mb-3">
+        <label for="devname" class="form-label">Name dieses Geräts</label>
+        <input id="devname" v-model="deviceName" class="form-control" maxlength="60" placeholder="z. B. iPad Marco" />
+        <div class="form-text">So erscheint das Gerät in der Geräteliste – dort kannst du es auch wieder abmelden.</div>
       </div>
       <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-primary" :disabled="busy || !normalized || !keyOk || mixed || !online" @click="connect">
           <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
           {{ syncState.configured ? 'Speichern' : 'Verbinden' }}
         </button>
-        <button type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || !online" @click="test">Verbindung testen</button>
+        <button type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || isCode || !online" @click="test">Verbindung testen</button>
         <button v-if="syncState.configured" type="button" class="btn btn-outline-danger ms-auto" @click="disconnect">Abgleich beenden</button>
       </div>
       <p v-if="!online" class="small text-body-secondary mt-2 mb-0">Zum Einrichten wird Internet benötigt.</p>
+      </template>
     </div>
   </div>
 

@@ -4,6 +4,7 @@
  * Ein kleiner Server ohne Fremdpakete (nur Node.js ≥ 22.13), der die Daten mehrerer Geräte abgleicht.
  *  - Daten: SQLite-Datei (eingebaut in Node.js), Fotos als einzelne Dateien        → store.mjs
  *  - Zugang: geheimer Schlüssel je Reisegruppe, Gruppen-Verwaltung durch den Besitzer → groups.mjs
+ *  - Geräte-Anmeldung: eigener Zugang je Gerät, Einladungen, Abmelden                → devices.mjs
  *  - Lese-Links: Reisen für Freunde zum Ansehen freigeben                            → shares.mjs
  *  - Piwigo-Brücke (optional)                                                        → piwigo.mjs
  *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
@@ -24,9 +25,10 @@ import { createShares } from './shares.mjs'
 import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 import { createMaps } from './maps.mjs'
+import { createDevices } from './devices.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.7.0'
+export const VERSION = '1.8.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -34,7 +36,7 @@ const MAX_JSON = 30 * 1024 * 1024
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
  *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
- *   appDir?: string | null, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
+ *   appDir?: string | null, deviceIdleDays?: number, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
   const store = createStore(resolve(opts.dataDir))
@@ -46,6 +48,7 @@ export function createSyncServer(opts) {
     throw e
   }
   const shares = createShares(store)
+  const devices = createDevices(store, groups, { idleDays: opts.deviceIdleDays })
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -73,9 +76,13 @@ export function createSyncServer(opts) {
       return app.serve(req, res, url.pathname)
     }
 
-    const group = groups.authenticate(req)
-    if (!group) throw new HttpError(401, 'Schlüssel fehlt oder ist falsch.')
+    // Gerät anmelden (mit Einladungscode oder Gruppenschlüssel) → eigener Gerätezugang
+    if (path === '/api/anmelden') return devices.login(req, res)
+
+    const auth = devices.authenticate(req)
+    const { group } = auth
     const { space } = group
+    if (!auth.device && (path === '/api/push' || path === '/api/pull')) devices.noteKeyUse(space)
 
     if (req.method === 'GET' && path === '/api/info') {
       const { records, seq } = store.info(space)
@@ -89,6 +96,8 @@ export function createSyncServer(opts) {
         epoch: store.secret('sync-epoch').slice(0, 16),
         piwigo: !!piwigo && group.piwigo,
         maps: maps.available,
+        devices: true,
+        device: auth.device,
         group: group.name,
         admin: group.owner,
         shares: true
@@ -111,6 +120,8 @@ export function createSyncServer(opts) {
     if (blob) return handleBlob(req, res, space, blob[1])
 
     if (path === '/api/shares' || path.startsWith('/api/shares/')) return shares.handleOwner(req, res, url, path, group)
+
+    if (path === '/api/geraete' || path.startsWith('/api/geraete/') || path === '/api/einladungen') return devices.handle(req, res, path, auth)
 
     if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
 
@@ -163,11 +174,16 @@ export function createSyncServer(opts) {
     }
     const m = sub.match(/^\/([a-f0-9]{24})$/)
     if (!m) throw new HttpError(404, 'Unbekannte Adresse')
-    if (req.method === 'PATCH') return send(res, 200, groups.update(m[1], await readJson(req)))
+    if (req.method === 'PATCH') {
+      const body = await readJson(req)
+      if (body.newKey === true) return send(res, 200, groups.rotateKey(m[1]))
+      return send(res, 200, groups.update(m[1], body))
+    }
     if (req.method === 'DELETE') {
       if (m[1] === groups.ownerSpace) throw new HttpError(400, 'Die eigene Gruppe kann nicht gelöscht werden.')
       groups.remove(m[1])
       maps.removeSpace(m[1])
+      devices.removeSpace(m[1])
       return send(res, 200, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')
@@ -254,6 +270,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
         }
       : null,
     appDir: process.env.NWW_APP_DIR || null,
+    deviceIdleDays: process.env.NWW_DEVICE_IDLE_DAYS ? Number(process.env.NWW_DEVICE_IDLE_DAYS) : undefined,
     maps: { bin: process.env.NWW_PMTILES || undefined, source: process.env.NWW_MAPS_SOURCE || undefined }
   })
   const port = Number(process.env.PORT ?? 8787)

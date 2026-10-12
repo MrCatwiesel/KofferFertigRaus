@@ -1,5 +1,20 @@
 # Änderungsprotokoll
 
+## 1.9.0 – 2026-10-13 (Server 1.8.0)
+
+### Neu: Geräte-Anmeldung
+- **Eigener Zugang je Gerät** statt eines gemeinsamen Schlüssels für alle: Geräte-Abgleich → *Angemeldete Geräte* zeigt jedes Gerät mit Typ und „zuletzt aktiv“
+- **Einzelne Geräte abmelden** (verlorenes iPad), **alle anderen abmelden**, **dieses Gerät abmelden**; Geräte umbenennen
+- **Gerät hinzufügen per QR-Code / Einladungscode** (`ABCD-EFGH-JKLM`, einmal gültig, 24 Stunden) – der Gruppenschlüssel muss nicht mehr weitergegeben werden
+- Abgemeldete Geräte zeigen einen klaren Hinweis und gleichen nicht mehr ab; ihre Daten bleiben auf dem Gerät
+- Bestehende Geräte stellen beim nächsten Abgleich **automatisch** auf einen eigenen Zugang um – nichts neu eingeben
+- Reisegruppen: Besitzer kann für eine Gruppe einen **neuen Schlüssel** erzeugen, ohne dass deren Geräte abgemeldet werden
+
+### Sicherheit
+- Nur Prüfsummen der Gerätezugänge und Einladungscodes auf dem Server
+- Bremse gegen Ausprobieren: 20 Fehlversuche in 10 Minuten → 15 Minuten Pause je Adresse (echte Adresse auch hinter dem Reverse-Proxy)
+- Geräte, die 180 Tage nicht da waren, werden automatisch abgemeldet (`NWW_DEVICE_IDLE_DAYS`)
+
 ## 1.8.0 – 2026-10-12 (Server 1.7.0)
 
 ### Neu

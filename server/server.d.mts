@@ -8,5 +8,6 @@ export function createSyncServer(opts: {
   maxBlobMb?: number
   piwigo?: { url: string; keyId: string; secret: string; publicUrl?: string; fetchImpl?: typeof fetch } | null
   appDir?: string | null
+  deviceIdleDays?: number
   maps?: { bin?: string; source?: string; fetchImpl?: typeof fetch }
 }): Server

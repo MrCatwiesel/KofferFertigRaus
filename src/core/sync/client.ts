@@ -18,6 +18,10 @@ export interface ServerInfo {
   shares?: boolean
   /** Server kann Offline-Karten erstellen (Programm pmtiles vorhanden) */
   maps?: boolean
+  /** Server kennt eigene Gerätezugänge (Anmelden, Einladungen, Abmelden) */
+  devices?: boolean
+  /** Dieses Gerät (bei Anmeldung mit Gerätezugang) */
+  device?: { id: string; name: string } | null
 }
 
 export type ServerError = Error & { status?: number; needPassword?: boolean }

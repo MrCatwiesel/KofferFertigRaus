@@ -73,6 +73,31 @@ export function pairingLink(appUrl: string, server: string, key: string): string
   return `${base}#/abgleich?${new URLSearchParams({ server, key })}`
 }
 
+/** Einladungscode des Servers: 12 Zeichen (ohne 0/O/1/I), gern als ABCD-EFGH-JKLM geschrieben. */
+export function normalizeInviteCode(input: string): string {
+  return input.toUpperCase().replace(/[\s-]/g, '')
+}
+export function isInviteCode(input: string): boolean {
+  return /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{12}$/.test(normalizeInviteCode(input))
+}
+
+/** Link zum Verbinden eines weiteren Geräts – enthält nur die einmalige Einladung, nie den Schlüssel. */
+export function inviteLink(appUrl: string, server: string, code: string): string {
+  const base = appUrl.split('#')[0]
+  return `${base}#/abgleich?${new URLSearchParams({ server, code })}`
+}
+
+/** Vorschlag für den Gerätenamen, z. B. „iPad“ oder „Android-Handy“. */
+export function defaultDeviceName(ua: string, touchPoints = 0): string {
+  if (/iPad/.test(ua) || (/Macintosh/.test(ua) && touchPoints > 1)) return 'iPad'
+  if (/iPhone/.test(ua)) return 'iPhone'
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Android-Handy' : 'Android-Tablet'
+  if (/Macintosh|Mac OS X/.test(ua)) return 'Mac'
+  if (/Windows/.test(ua)) return 'Windows-PC'
+  if (/Linux/.test(ua)) return 'Linux-PC'
+  return 'Gerät'
+}
+
 /** Teilt eine Liste in Stücke (für Uploads in Portionen). */
 export function chunk<T>(list: T[], size: number): T[][] {
   const out: T[][] = []

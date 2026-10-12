@@ -71,6 +71,24 @@ export function createGroups(store, envKeys) {
       return toGroup(row)
     },
 
+    /** Gruppe zu ihrem Datenbereich (für Gerätezugänge). */
+    get(space) {
+      const row = q.bySpace.get(space)
+      if (!row) return null
+      if (row.source === 'env' && !envHashes.has(row.key_hash)) return null
+      return toGroup(row)
+    },
+
+    /** Neuer Schlüssel für eine in der App angelegte Gruppe; angemeldete Geräte bleiben angemeldet. */
+    rotateKey(space) {
+      const row = q.bySpace.get(space)
+      if (!row) throw new HttpError(404, 'Gruppe nicht gefunden.')
+      if (row.source === 'env') throw new HttpError(400, 'Fest eingetragene Schlüssel (NWW_KEYS) werden in den Server-Einstellungen geändert.')
+      const key = randomBytes(16).toString('hex')
+      db.prepare('UPDATE groups SET key_hash = ? WHERE space = ?').run(sha256(key), space)
+      return { key, group: toGroup(q.bySpace.get(space)) }
+    },
+
     list() {
       return q.all
         .all()

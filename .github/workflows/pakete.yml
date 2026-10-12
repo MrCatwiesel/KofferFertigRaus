@@ -49,6 +49,11 @@ jobs:
           tar czf node_modules.tgz node_modules package-lock.json
           gh release view werkzeug >/dev/null 2>&1 || gh release create werkzeug --prerelease --title "Entwicklung (temporär)" --notes "Nur für die Entwicklung, wird wieder gelöscht." --latest=false
           gh release upload werkzeug node_modules.tgz --clobber
+      - name: Werkzeug wieder entfernen
+        if: ${{ !inputs.werkzeug }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release delete werkzeug --cleanup-tag --yes 2>/dev/null || true
       - name: Übernehmen
         run: |
           git add package-lock.json

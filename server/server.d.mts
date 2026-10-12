@@ -7,4 +7,5 @@ export function createSyncServer(opts: {
   origins?: string[]
   maxBlobMb?: number
   piwigo?: { url: string; keyId: string; secret: string; publicUrl?: string; fetchImpl?: typeof fetch } | null
+  appDir?: string | null
 }): Server

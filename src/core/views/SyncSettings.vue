@@ -16,6 +16,7 @@ const busy = ref(false)
 const message = ref<{ type: 'success' | 'danger' | 'info'; text: string } | null>(null)
 const fromLink = ref(false)
 const linkCopied = ref(false)
+const hostedHere = ref(false)
 
 onMounted(async () => {
   const qs = route.query
@@ -28,8 +29,23 @@ onMounted(async () => {
   } else if (syncState.configured) {
     server.value = syncState.server
     key.value = await currentKey()
+  } else if (await sameOriginServer()) {
+    // App kommt vom eigenen Abgleich-Server → Adresse schon eintragen
+    server.value = location.origin
+    hostedHere.value = true
   }
 })
+
+/** Wird die App von einem Nix-wie-weg-Abgleich-Server ausgeliefert? */
+async function sameOriginServer(): Promise<boolean> {
+  if (location.protocol !== 'https:' && location.hostname !== 'localhost') return false
+  try {
+    const r = await fetch(`${location.origin}/api/health`, { cache: 'no-store' })
+    return r.ok && (await r.json()).app === 'nix-wie-weg-sync'
+  } catch {
+    return false
+  }
+}
 
 const normalized = computed(() => normalizeServerUrl(server.value))
 const mixed = computed(() => mixedContentProblem(normalized.value, location.protocol))
@@ -156,6 +172,9 @@ async function copyKey() {
         <input id="server" v-model="server" class="form-control" placeholder="https://reise.example.de" autocomplete="off" autocapitalize="off" spellcheck="false" />
         <div v-if="mixed" class="small text-danger mt-1">
           Die App läuft über https – der Server muss auch über https erreichbar sein (siehe Anleitung).
+        </div>
+        <div v-if="hostedHere" class="small text-success mt-1">
+          <i class="bi bi-house-check me-1" aria-hidden="true"></i>Die App kommt von deinem eigenen Server – Adresse ist schon eingetragen, nur noch den Schlüssel einfügen.
         </div>
       </div>
       <div class="mb-3">

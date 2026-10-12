@@ -119,6 +119,7 @@ docker compose up -d --build
 | `NWW_ORIGINS` | Erlaubte App-Adresse(n), z. B. `https://mrcatwiesel.github.io` (Standard `*`) |
 | `NWW_MAX_BLOB_MB` | Maximale Größe eines Fotos in MB (Standard 30) |
 | `NWW_HOST` | Nur an diese Adresse binden, z. B. `127.0.0.1` (Standard: alle) |
+| `NWW_APP_DIR` | Ordner mit der gebauten App (Inhalt von `nix-wie-weg-app.zip`); der Server liefert sie dann unter seiner Adresse aus |
 | `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
@@ -127,6 +128,7 @@ docker compose up -d --build
 
 | Methode | Pfad | Zweck |
 | --- | --- | --- |
+| GET | `/` und alle Nicht-`/api`-Pfade | die App (nur mit `NWW_APP_DIR`) |
 | GET | `/api/health` | Lebenszeichen (ohne Schlüssel) |
 | GET | `/api/info` | Anzahl Datensätze, aktueller Stand |
 | POST | `/api/push` | Änderungen hochladen `{ changes: [{ tbl, id, stamp, deleted, data }] }` – neuere gewinnt |

@@ -20,7 +20,7 @@ say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 say "Pakete installieren"
 apt-get update -qq
-apt-get install -y -qq ca-certificates curl git openssl >/dev/null
+apt-get install -y -qq ca-certificates curl git openssl unzip >/dev/null
 
 need_node=1
 if command -v node >/dev/null; then
@@ -65,10 +65,19 @@ EOF
   NEWKEY=$KEY
 fi
 
+# Die App selbst vom Server ausliefern (gleiche Adresse wie der Abgleich)
+if ! grep -q '^NWW_APP_DIR=' "$ENVFILE"; then
+  printf '\n# Gebaute App, die der Server unter seiner Adresse ausliefert (leer = nur Abgleich)\nNWW_APP_DIR=/opt/nix-wie-weg-app\n' >> "$ENVFILE"
+fi
+
+say "App herunterladen"
+bash "$SRC/server/proxmox/update.sh" || true
+
 say "Dienst einrichten"
-install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" /etc/systemd/system/
+install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" "$SRC/server/proxmox/nix-wie-weg-update.service" "$SRC/server/proxmox/nix-wie-weg-update.timer" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable -q nix-wie-weg-sync
+systemctl enable -q --now nix-wie-weg-update.timer
 systemctl restart nix-wie-weg-sync
 sleep 2
 curl -fsS http://127.0.0.1:8787/api/health && echo
@@ -104,8 +113,8 @@ if [[ -n $DOMAIN ]]; then
   echo "App:        https://$DOMAIN"
   echo "Server-URL: https://$DOMAIN   (in der App: Einstellungen → Geräte-Abgleich)"
 else
-  echo "Abgleich-Server läuft auf http://$IP:8787"
-  echo "→ Im Reverse-Proxy https://<deine-domain> auf http://$IP:8787 weiterleiten."
+  echo "Abgleich-Server und App laufen auf http://$IP:8787"
+  echo "→ Im Reverse-Proxy https://<deine-domain> auf http://$IP:8787 weiterleiten – dann ist dort App und Abgleich."
 fi
 [[ -n ${NEWKEY:-} ]] && echo "Schlüssel:  $NEWKEY   (steht auch in $ENVFILE)"
 echo "Status:     systemctl status nix-wie-weg-sync   ·   Protokoll: journalctl -u nix-wie-weg-sync -f"

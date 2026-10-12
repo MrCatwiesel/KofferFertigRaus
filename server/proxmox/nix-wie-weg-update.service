@@ -1,0 +1,9 @@
+# Aktualisiert Abgleich-Server und App (siehe update.sh)
+[Unit]
+Description=Nix wie weg – Aktualisierung
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/opt/nix-wie-weg/server/proxmox/update.sh

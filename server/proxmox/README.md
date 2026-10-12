@@ -13,6 +13,23 @@ bash create-ct.sh
 
 Das Skript fragt nach Nummer, fester IP, Netzmaske, Gateway, Speicher und Festplattengröße. Danach legt es den Container an und richtet den Abgleich-Server darin ein. Am Ende zeigt es den **Schlüssel**. Weiter mit „Dann im Reverse-Proxy …“ unter Variante A.
 
+## App vom eigenen Server (statt GitHub)
+
+Der Abgleich-Server liefert auch die **App selbst** aus. Dann ist unter einer Adresse beides da:
+
+- `https://reise.deine-dyndns.de` → die App (zum Installieren auf Handy/iPad/PC)
+- `https://reise.deine-dyndns.de/api/…` → der Abgleich
+
+Das Installationsskript richtet das automatisch ein: Es setzt `NWW_APP_DIR=/opt/nix-wie-weg-app`, lädt die fertig gebaute App von GitHub und sieht **täglich gegen 4 Uhr** nach Updates (`nix-wie-weg-update.timer`). Bauen muss der Container nichts.
+
+Schon installiert? Einmal im Container:
+```bash
+cd /opt/nix-wie-weg && git pull && bash server/proxmox/install.sh
+```
+Von Hand aktualisieren: `/opt/nix-wie-weg/server/proxmox/update.sh`
+
+> Die Daten der App gehören zur Adresse. Auf jedem Gerät die App von der neuen Adresse installieren und mit demselben Schlüssel verbinden – alles kommt vom Server zurück. Die alte Version (GitHub) danach vom Startbildschirm löschen.
+
 ## 1. Container von Hand anlegen
 
 In Proxmox: *Create CT*
@@ -88,7 +105,7 @@ muss `{"ok":true,…}` zeigen.
 
 | Aufgabe | Befehl im Container |
 | --- | --- |
-| Aktualisieren | `bash /opt/nix-wie-weg/server/proxmox/install.sh` (bei B: `--web <domain>` anhängen) |
+| Aktualisieren | automatisch täglich; von Hand `/opt/nix-wie-weg/server/proxmox/update.sh` |
 | Status | `systemctl status nix-wie-weg-sync` |
 | Protokoll | `journalctl -u nix-wie-weg-sync -f` |
 | Einstellungen | `nano /etc/nix-wie-weg/sync.env`, danach `systemctl restart nix-wie-weg-sync` |

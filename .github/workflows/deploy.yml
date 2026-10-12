@@ -27,6 +27,9 @@ jobs:
       - run: npm install
       - run: npm test
       - run: npm run build
+      # Versionskennung für das Update-Skript auf dem eigenen Server
+      - run: |
+          echo "$(node -p "require('./package.json').version") ${GITHUB_SHA::7}" > dist/app-version.txt
       # Fertige App zusätzlich als ZIP zum Herunterladen (z. B. für den Tiny-Server)
       - uses: actions/upload-artifact@v4
         with:
@@ -57,6 +60,27 @@ jobs:
           node-version: 22
       - run: node --test
         working-directory: server
+
+  # Fertige App als ZIP im Release "app" – für das eigene Hosting (server/proxmox/update.sh)
+  release:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nix-wie-weg-app
+          path: dist
+      - run: cd dist && zip -qr ../nix-wie-weg-app.zip .
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release view app >/dev/null 2>&1 || gh release create app --title "App – neuester Stand" \
+            --notes "Automatisch gebaut bei jeder Änderung. Zum Selbst-Hosten: server/proxmox/update.sh lädt diese Datei." --latest=false
+          gh release upload app nix-wie-weg-app.zip --clobber
 
   deploy:
     needs: build

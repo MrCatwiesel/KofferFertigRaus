@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## 1.3.0 – 2026-10-12
+
+### Neu
+- **App selbst hosten:** Der Abgleich-Server liefert die App unter seiner eigenen Adresse aus (`NWW_APP_DIR`) – mit passenden Cache-Regeln für Service Worker und Bootstrap
+- GitHub baut bei jeder Änderung `nix-wie-weg-app.zip` (Release „app“); `server/proxmox/update.sh` lädt sie, täglicher Timer `nix-wie-weg-update.timer`
+- Geräte-Abgleich erkennt, wenn die App vom eigenen Server kommt, und trägt die Adresse schon ein
+
 ## 1.2.1 – 2026-10-11
 
 ### Neu

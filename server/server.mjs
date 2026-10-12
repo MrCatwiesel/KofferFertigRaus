@@ -11,17 +11,34 @@
 import { createServer as createHttpServer } from 'node:http'
 import { createHash, timingSafeEqual } from 'node:crypto'
 import { mkdirSync, existsSync, createReadStream, renameSync, writeFileSync, statSync } from 'node:fs'
-import { join, resolve } from 'node:path'
+import { extname, join, normalize, resolve, sep } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
 import { pathToFileURL } from 'node:url'
 import { Readable } from 'node:stream'
 import { createPiwigoClient } from './piwigo.mjs'
 
-export const VERSION = '1.1.0'
+export const VERSION = '1.2.0'
 
 const TABLE_RE = /^[a-zA-Z][a-zA-Z0-9]{0,39}$/
 const HASH_RE = /^[a-f0-9]{64}$/
 const MAX_JSON = 30 * 1024 * 1024
+
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webmanifest': 'application/manifest+json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.txt': 'text/plain; charset=utf-8',
+  '.map': 'application/json'
+}
 
 const sha256 = (data) => createHash('sha256').update(data).digest('hex')
 
@@ -51,7 +68,8 @@ function openDb(dir) {
 /**
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
- *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null }} opts
+ *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
+ *   appDir?: string | null }} opts
  */
 export function createSyncServer(opts) {
   const keys = (opts.keys ?? []).map((k) => k.trim()).filter(Boolean)
@@ -65,6 +83,7 @@ export function createSyncServer(opts) {
   mkdirSync(join(dataDir, 'blobs'), { recursive: true })
   const db = openDb(dataDir)
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
+  const appDir = opts.appDir ? resolve(opts.appDir) : null
 
   const q = {
     get: db.prepare('SELECT stamp FROM records WHERE space = ? AND tbl = ? AND id = ?'),
@@ -178,8 +197,13 @@ export function createSyncServer(opts) {
     const url = new URL(req.url ?? '/', 'http://localhost')
     const path = url.pathname.replace(/\/+$/, '')
 
-    if (req.method === 'GET' && (path === '' || path === '/api/health')) {
-      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION })
+    if (req.method === 'GET' && (path === '/api/health' || (path === '' && !appDir))) {
+      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!appDir })
+    }
+
+    // Die App selbst (gebaute Dateien), wenn NWW_APP_DIR gesetzt ist
+    if (appDir && (req.method === 'GET' || req.method === 'HEAD') && !path.startsWith('/api/')) {
+      return serveApp(req, res, url.pathname)
     }
 
     const space = authenticate(req)
@@ -235,6 +259,42 @@ export function createSyncServer(opts) {
     if (path === '/api/piwigo' || path.startsWith('/api/piwigo/')) return handlePiwigo(req, res, url, path)
 
     return send(res, 404, { error: 'Unbekannte Adresse' })
+  }
+
+  /** Gebaute App ausliefern – mit passenden Cache-Regeln für PWA und Bootstrap. */
+  function serveApp(req, res, pathname) {
+    let rel
+    try {
+      rel = decodeURIComponent(pathname)
+    } catch {
+      return send(res, 400, { error: 'Ungültige Adresse' })
+    }
+    if (rel.endsWith('/')) rel += 'index.html'
+    const file = normalize(join(appDir, rel))
+    if (file !== appDir && !file.startsWith(appDir + sep)) return send(res, 403, { error: 'Verboten' })
+    let target = file
+    let st = existsSync(target) ? statSync(target) : null
+    if (st?.isDirectory()) {
+      target = join(target, 'index.html')
+      st = existsSync(target) ? statSync(target) : null
+    }
+    if (!st) {
+      // Unbekannte Seite → Startseite (die App nutzt #-Adressen), fehlende Dateien mit Endung → 404
+      if (extname(rel)) return send(res, 404, { error: 'Nicht gefunden' })
+      target = join(appDir, 'index.html')
+      st = existsSync(target) ? statSync(target) : null
+      if (!st) return send(res, 503, { error: 'App ist auf dem Server noch nicht installiert (update.sh ausführen).' })
+    }
+    const name = target.slice(appDir.length).replace(/\\/g, '/')
+    const immutable = name.startsWith('/assets/')
+    res.writeHead(200, {
+      'Content-Type': MIME[extname(target).toLowerCase()] ?? 'application/octet-stream',
+      'Content-Length': String(st.size),
+      'Cache-Control': immutable ? 'public, max-age=31536000, immutable' : 'no-cache',
+      'X-Content-Type-Options': 'nosniff'
+    })
+    if (req.method === 'HEAD') return res.end()
+    return createReadStream(target).pipe(res)
   }
 
   /** Piwigo-Brücke: Alben, Fotos, Hochladen (nur wenn NWW_PIWIGO_* gesetzt). */
@@ -318,7 +378,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
           secret: process.env.NWW_PIWIGO_SECRET ?? '',
           publicUrl: process.env.NWW_PIWIGO_PUBLIC_URL || undefined
         }
-      : null
+      : null,
+    appDir: process.env.NWW_APP_DIR || null
   })
   const port = Number(process.env.PORT ?? 8787)
   const host = process.env.NWW_HOST || undefined // z. B. 127.0.0.1, wenn nginx im selben Container läuft

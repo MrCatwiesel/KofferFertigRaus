@@ -193,7 +193,20 @@ async function changeExpiry(link: ShareLink, e: Event) {
             <input id="s-routes" v-model="draft.routes" class="form-check-input" type="checkbox" role="switch" />
             <label class="form-check-label" for="s-routes">Routen zeigen <span class="small text-body-secondary">(die dafür freigegebenen)</span></label>
           </div>
+          <div class="form-check form-switch mb-0">
+            <input id="s-stays" v-model="draft.stays" class="form-check-input" type="checkbox" role="switch" />
+            <label class="form-check-label" for="s-stays">Unterkünfte zeigen</label>
+          </div>
+          <div v-if="draft.stays" class="form-check form-switch mb-0">
+            <input id="s-staydet" v-model="draft.stayDetails" class="form-check-input" type="checkbox" role="switch" />
+            <label class="form-check-label" for="s-staydet">mit Adresse und Link</label>
+          </div>
+          <div class="form-check form-switch mb-0">
+            <input id="s-acts" v-model="draft.activities" class="form-check-input" type="checkbox" role="switch" />
+            <label class="form-check-label" for="s-acts">Unternehmungen zeigen</label>
+          </div>
         </div>
+        <p class="small text-body-secondary">Preise, Buchungsnummern, Budget und Notizen bleiben immer privat.</p>
         <div class="row g-2 mb-3">
           <div class="col-12 col-md-6">
             <label for="s-note" class="form-label small">Für wen? <span class="text-body-secondary">(nur für dich sichtbar)</span></label>
@@ -277,6 +290,9 @@ async function changeExpiry(link: ShareLink, e: Event) {
             <ul class="dropdown-menu dropdown-menu-end">
               <li><button type="button" class="dropdown-item" @click="update(l, { photos: !l.photos })">{{ l.photos ? 'Fotos ausblenden' : 'Fotos zeigen' }}</button></li>
               <li><button type="button" class="dropdown-item" @click="update(l, { routes: l.routes === false })">{{ l.routes === false ? 'Routen zeigen' : 'Routen ausblenden' }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { stays: !l.stays })">{{ l.stays ? 'Unterkünfte ausblenden' : 'Unterkünfte zeigen' }}</button></li>
+              <li v-if="l.stays"><button type="button" class="dropdown-item" @click="update(l, { stayDetails: !l.stayDetails })">{{ l.stayDetails ? 'Adresse/Link der Unterkünfte ausblenden' : 'Adresse/Link der Unterkünfte zeigen' }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { activities: !l.activities })">{{ l.activities ? 'Unternehmungen ausblenden' : 'Unternehmungen zeigen' }}</button></li>
               <li><button type="button" class="dropdown-item" @click="changePassword(l)">{{ l.password ? 'Passwort ändern/entfernen' : 'Passwort setzen' }}</button></li>
               <li>
                 <label class="dropdown-item-text small d-block">Gültig ab jetzt

@@ -9,8 +9,11 @@ import { blobToDataUrl, resizeBlob } from '@/services/images'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { journalRepository, orderPhotos, photoRepository, useObjectUrls, type JournalEntry, type Photo } from '@/modules/journal/public'
 import { routeRepository, type Route } from '@/modules/routes/public'
+import { accommodationRepository, type Accommodation } from '@/modules/accommodation/public'
+import { activityRepository, type Activity } from '@/modules/activity/public'
+import { chooseActivities, chooseStays, type ActivityInput, type StayInput } from '../sections'
 import { websiteRepository } from '../repository'
-import { buildSiteData, defaultSettings, fileNameFor, type EntryInput, type RouteInput } from '../logic'
+import { buildSiteData, defaultSettings, fileNameFor, type EntryInput, type ExtraInput, type RouteInput } from '../logic'
 import { renderSite } from '../render'
 import { embeddedFontCss, fontFaceCss } from '../fonts'
 import { ACCENT_PRESETS, FONT_GROUPS, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
@@ -31,6 +34,30 @@ const routeInputs = computed<RouteInput[]>(() =>
     .filter((r) => r.showInShare)
     .map((r) => ({ name: r.name, color: r.color, kind: r.kind, stats: r.stats, points: r.preview, date: r.date }))
 )
+const accs = useLiveQuery(() => accommodationRepository.listByTrip(props.tripId), [] as Accommodation[])
+const acts = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] as Activity[])
+// Unterkünfte und Unternehmungen: nur unverfängliche Felder (kein Preis, keine Buchungsnummer, keine Notizen)
+const stayInputs = computed<StayInput[]>(() =>
+  chooseStays(accs.value).map((a) => ({ name: a.name, type: a.type, checkIn: a.checkIn, checkOut: a.checkOut, address: a.address, url: a.url, status: a.status }))
+)
+const activityInputs = computed<ActivityInput[]>(() =>
+  chooseActivities(acts.value).map((a) => ({ title: a.title, category: a.category, date: a.plannedDate, place: a.place, status: a.status }))
+)
+const extra = computed<ExtraInput>(() => ({ stays: stayInputs.value, activities: activityInputs.value }))
+const doneActivities = computed(() => acts.value.some((a) => a.status === 'erledigt'))
+
+/** Auswahlknöpfe für die Bereiche der Seite */
+type SectionKey = 'showPhotos' | 'showRoutes' | 'showStays' | 'showActivities' | 'showParticipants' | 'showMood' | 'showLocation'
+const sectionButtons = computed<{ key: SectionKey; label: string; icon: string; count?: number }[]>(() => [
+  { key: 'showPhotos', label: 'Fotos', icon: 'images', count: photos.value.length },
+  { key: 'showRoutes', label: 'Routen', icon: 'signpost-split', count: routeInputs.value.length },
+  { key: 'showStays', label: 'Unterkünfte', icon: 'building', count: stayInputs.value.length },
+  { key: 'showActivities', label: 'Unternehmungen', icon: 'flag', count: activityInputs.value.length },
+  { key: 'showParticipants', label: 'Mitreisende', icon: 'people', count: trip.value?.participants.length ?? 0 },
+  { key: 'showLocation', label: 'Orte', icon: 'geo-alt' },
+  { key: 'showMood', label: 'Stimmung', icon: 'emoji-smile' }
+])
+
 const previewUrls = useObjectUrls(photos, (p) => p.id, (p) => p.full)
 
 const settings = reactive<WebsiteSettingsDraft>(defaultSettings({ title: '', destination: '', startDate: '2000-01-01', endDate: '2000-01-01' }))
@@ -78,7 +105,8 @@ const site = computed(() => {
     settings,
     entryInputs((p) => ({ src: previewUrls.value.get(p.id) ?? '', caption: p.caption, width: p.width, height: p.height })),
     undefined,
-    routeInputs.value
+    routeInputs.value,
+    extra.value
   )
 })
 
@@ -111,7 +139,7 @@ async function buildFile() {
   try {
     const edge = IMAGE_EDGE[settings.imageSize].edge
     // Nur Fotos der gewählten Einträge umwandeln
-    const chosen = new Set(entries.value.filter((e) => !settings.onlyHighlights || e.highlight).map((e) => e.id))
+    const chosen = new Set(settings.showPhotos ? entries.value.filter((e) => !settings.onlyHighlights || e.highlight).map((e) => e.id) : [])
     const needed = photos.value.filter((p) => chosen.has(p.entryId))
     progress.value = { done: 0, total: needed.length }
     const sources = new Map<string, SitePhoto>()
@@ -125,7 +153,8 @@ async function buildFile() {
       settings,
       entryInputs((p) => sources.get(p.id) ?? { src: '', caption: p.caption, width: p.width, height: p.height }),
       undefined,
-      routeInputs.value
+      routeInputs.value,
+      extra.value
     )
     const html = renderSite(data, { ...settings }, bootstrapCss, await embeddedFontCss(settings.font))
     const file = new File([html], fileNameFor(settings.title || trip.value.title), { type: 'text/html' })
@@ -237,18 +266,30 @@ function resetTexts() {
       </div>
 
       <h2 class="h6">Inhalt</h2>
-      <div class="form-check form-switch">
-        <input id="oh" v-model="settings.onlyHighlights" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="oh">Nur Highlights ({{ highlightCount }} von {{ entries.length }} Einträgen)</label>
+      <div class="btn-group btn-group-sm w-100 mb-2" role="group" aria-label="Tagebuch">
+        <input id="oh-yes" v-model="settings.onlyHighlights" type="radio" class="btn-check" :value="true" />
+        <label class="btn btn-outline-primary" for="oh-yes"><i class="bi bi-star me-1" aria-hidden="true"></i>Nur Highlights ({{ highlightCount }})</label>
+        <input id="oh-no" v-model="settings.onlyHighlights" type="radio" class="btn-check" :value="false" />
+        <label class="btn btn-outline-primary" for="oh-no"><i class="bi bi-journal-text me-1" aria-hidden="true"></i>Ganzes Tagebuch ({{ entries.length }})</label>
       </div>
-      <div class="form-check form-switch">
-        <input id="mood" v-model="settings.showMood" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="mood">Stimmung zeigen</label>
+      <div class="small text-body-secondary mb-1">Was soll auf die Seite?</div>
+      <div class="d-flex flex-wrap gap-2 mb-2">
+        <template v-for="b in sectionButtons" :key="b.key">
+          <input :id="`sec-${b.key}`" v-model="settings[b.key]" type="checkbox" class="btn-check" autocomplete="off" />
+          <label class="btn btn-sm btn-outline-primary rounded-pill" :for="`sec-${b.key}`">
+            <i :class="`bi bi-${b.icon} me-1`" aria-hidden="true"></i>{{ b.label }}<span v-if="b.count !== undefined" class="opacity-75"> ({{ b.count }})</span>
+          </label>
+        </template>
       </div>
-      <div class="form-check form-switch mb-2">
-        <input id="loc" v-model="settings.showLocation" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="loc">Orte zeigen</label>
+      <div v-if="settings.showStays" class="form-check form-switch">
+        <input id="stay-details" v-model="settings.showStayDetails" class="form-check-input" type="checkbox" role="switch" />
+        <label class="form-check-label small" for="stay-details">Adresse und Link der Unterkünfte zeigen</label>
       </div>
+      <p class="small text-body-secondary mb-2">
+        Preise, Buchungsnummern und Notizen kommen nie auf die Seite.
+        <template v-if="settings.showStays && accs.some((a) => a.status === 'gebucht')">Es werden nur gebuchte Unterkünfte gezeigt.</template>
+        <template v-if="settings.showActivities">{{ doneActivities ? 'Unternehmungen: nur erledigte.' : 'Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.' }}</template>
+      </p>
       <label for="size" class="form-label small mb-1">Bildgröße</label>
       <select id="size" v-model="settings.imageSize" class="form-select form-select-sm mb-3">
         <option v-for="(s, key) in IMAGE_EDGE" :key="key" :value="key">{{ s.label }}</option>
@@ -259,7 +300,7 @@ function resetTexts() {
         <div class="card-body">
           <h2 class="h6">Webseite erstellen</h2>
           <p class="small text-body-secondary">Eine einzige HTML-Datei mit allen Fotos – funktioniert ohne Internet und in jedem Browser.</p>
-          <button type="button" class="btn btn-primary w-100" :disabled="exporting || !site?.days.length" @click="buildFile">
+          <button type="button" class="btn btn-primary w-100" :disabled="exporting || !(site?.days.length || site?.stays.length || site?.activities.length)" @click="buildFile">
             <template v-if="exporting">
               <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
               Fotos {{ progress.done }} / {{ progress.total }}

@@ -1,6 +1,6 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
-import { footer, routesBlock, statsLine } from './parts'
+import { activitiesBlock, footer, routesBlock, staysBlock, statsLine } from './parts'
 
 /** Galerie: Fotos im Vordergrund (Mauerwerk-Raster), Texte kurz darunter. */
 export const galerie: SiteTemplate = {
@@ -29,6 +29,7 @@ export const galerie: SiteTemplate = {
     </header>
     ${statsLine(s)}
     ${routesBlock(s.routes)}
+    ${staysBlock(s.stays)}
     ${s.days
       .map(
         (d) => `
@@ -51,6 +52,7 @@ export const galerie: SiteTemplate = {
     </section>`
       )
       .join('')}
+    ${activitiesBlock(s.activities)}
   </main>
   ${footer(s)}`
   }

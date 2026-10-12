@@ -32,6 +32,15 @@ img { max-width: 100%; }
 .route-track { background: var(--bs-tertiary-bg); border-radius: .5rem; }
 .route svg { display: block; width: 100%; height: auto; }
 .route-profile { margin-top: .5rem; color: var(--bs-body-color); }
+.section-title { color: var(--accent); }
+.stay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .75rem; }
+.stay { display: flex; gap: .75rem; padding: .75rem 1rem; border: 1px solid var(--bs-border-color); border-radius: .75rem; background: var(--bs-body-bg); }
+.stay-emoji, .act-emoji { font-size: 1.5rem; line-height: 1.2; }
+.stay-type { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); font-weight: 600; }
+.stay-name { font-weight: 600; }
+.act-list { list-style: none; padding: 0; margin: 0; }
+.act-list li { display: flex; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--bs-border-color); }
+.act-list li:last-child { border-bottom: 0; }
 @media print { .lb { display: none !important; } }
 `
 

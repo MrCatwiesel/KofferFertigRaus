@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.6.0 – 2026-10-12
+
+### Neu
+- **Reise-Webseite: Auswahlknöpfe „Was soll auf die Seite?“** – Fotos, Routen, **Unterkünfte**, **Unternehmungen**, Mitreisende, Orte, Stimmung einzeln an/aus; Highlights oder ganzes Tagebuch als Umschalter
+- **Unterkünfte** auf Webseite und Lese-Links: Art, Name, Zeitraum, Nächte; Adresse und Link nur auf Wunsch. Ist eine Unterkunft als „gebucht“ markiert, werden nur gebuchte gezeigt (nie stornierte)
+- **Unternehmungen** („Was wir unternommen haben“): erledigte – solange keine erledigt sind, die geplanten
+- Lese-Links: neue Schalter „Unterkünfte zeigen“ (+ Adresse/Link) und „Unternehmungen zeigen“, auch nachträglich im Menü des Links
+
+### Sicherheit
+- Preise, Buchungsnummern, Storno-Fristen und Notizen gehen nie auf Webseite oder Lese-Link (Server gibt nur ausdrücklich erlaubte Felder heraus, Test prüft das). Bestehende Lese-Links zeigen Unterkünfte/Unternehmungen erst, wenn du es einschaltest.
+
 ## 1.5.1 – 2026-10-12
 
 ### Behoben

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { buildSiteData, defaultSettings, esc, fileNameFor, paragraphs, rgbOf, safeColor, type EntryInput } from '../logic'
 import { renderSite } from '../render'
 import type { SitePhoto, WebsiteSettingsDraft } from '../types'
+import { chooseActivities, chooseStays, toSiteStays } from '../sections'
 
 const trip = { title: 'Sommer am Gardasee', destination: 'Gardasee', startDate: '2026-07-01', endDate: '2026-07-07', participants: ['Ich', 'Anna'] }
 const photo = (w: number, h: number, caption = ''): SitePhoto => ({ src: 'data:image/jpeg;base64,AAAA', caption, width: w, height: h })
@@ -116,6 +117,62 @@ describe('Routen auf der Webseite', () => {
       expect(html).toContain('nww-track')
       expect(html).toContain('nww-profile')
       expect(html).toContain('12,3 km')
+    }
+  })
+})
+
+describe('Bereiche: Unterkünfte, Unternehmungen, Fotos, Mitreisende', () => {
+  const stays = [
+    { name: 'Hotel Lido', type: 'hotel', checkIn: '2026-07-01', checkOut: '2026-07-04', address: 'Via Roma 1', url: 'https://lido.example', status: 'gebucht' },
+    { name: 'Idee', type: 'camping', checkIn: '', checkOut: '', status: 'idee' },
+    { name: 'Weg', type: 'hostel', checkIn: '2026-07-04', checkOut: '2026-07-05', status: 'storniert' }
+  ]
+  const acts = [
+    { title: 'Bootsfahrt', category: 'natur', date: '2026-07-03', place: 'Hafen', status: 'erledigt' },
+    { title: 'Klettern', category: 'aktiv', date: '', status: 'idee' }
+  ]
+  it('wählt gebuchte Unterkünfte und erledigte Unternehmungen', () => {
+    expect(chooseStays(stays).map((s) => s.name)).toEqual(['Hotel Lido'])
+    expect(chooseStays(stays.slice(1)).map((s) => s.name)).toEqual(['Idee'])
+    expect(chooseActivities(acts).map((a) => a.title)).toEqual(['Bootsfahrt'])
+    expect(chooseActivities([{ title: 'X', status: 'geplant' }, { title: 'Y', status: 'idee' }]).map((a) => a.title)).toEqual(['X'])
+  })
+  it('Adresse und Link nur auf Wunsch, Nächte gezählt', () => {
+    const [plain] = toSiteStays(stays, false)
+    expect(plain).toMatchObject({ name: 'Hotel Lido', type: 'Hotel', nights: 3, address: '', url: '' })
+    expect(toSiteStays(stays, true)[0]).toMatchObject({ address: 'Via Roma 1', url: 'https://lido.example' })
+    expect(toSiteStays([{ ...stays[0], url: 'javascript:alert(1)' }], true)[0].url).toBe('')
+  })
+  it('buildSiteData beachtet die Auswahl', () => {
+    const entries = [entry({ photos: [photo(800, 600)] })]
+    const extra = { stays: chooseStays(stays), activities: chooseActivities(acts) }
+    const on = buildSiteData(trip, { ...defaultSettings(trip), showActivities: true }, entries, undefined, [], extra)
+    expect(on.stays.map((s) => s.name)).toEqual(['Hotel Lido'])
+    expect(on.activities.map((a) => a.title)).toEqual(['Bootsfahrt'])
+    expect(on.participants).toEqual(['Ich', 'Anna'])
+    const off = buildSiteData(
+      trip,
+      { ...defaultSettings(trip), showStays: false, showPhotos: false, showParticipants: false },
+      entries,
+      undefined,
+      [],
+      extra
+    )
+    expect([off.stays, off.activities, off.participants, off.stats.photos, off.cover]).toEqual([[], [], [], 0, null])
+    // Ältere Einstellungen ohne die neuen Felder: Unterkünfte an, Unternehmungen aus
+    const old = buildSiteData(trip, { title: 'T', subtitle: '', intro: '', author: '', onlyHighlights: true }, entries, undefined, [], extra)
+    expect([old.stays.length, old.activities.length]).toEqual([1, 0])
+  })
+  it('zeichnet Unterkünfte und Unternehmungen in allen Vorlagen', () => {
+    const site = buildSiteData(trip, { ...defaultSettings(trip), showActivities: true }, [entry({})], '2026-08-01T00:00:00Z', [], {
+      stays: [{ ...stays[0], name: 'Hotel <Lido>' }],
+      activities: acts.slice(0, 1)
+    })
+    for (const template of ['klassisch', 'magazin', 'galerie'] as const) {
+      const html = renderSite(site, { ...defaultSettings(trip), template }, '')
+      expect(html).toContain('Hotel &lt;Lido&gt;')
+      expect(html).toContain('3 Nächte')
+      expect(html).toContain('Bootsfahrt')
     }
   })
 })

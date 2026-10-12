@@ -21,6 +21,12 @@ export interface ShareLink {
   photos: boolean
   /** Freigegebene Routen zeigen */
   routes: boolean
+  /** Unterkünfte zeigen (Name, Art, Zeitraum) – ältere Links haben das nicht → aus */
+  stays?: boolean
+  /** Dazu Adresse und Link der Unterkunft */
+  stayDetails?: boolean
+  /** Unternehmungen zeigen */
+  activities?: boolean
   title: string
   /** Nur für dich: für wen der Link ist, z. B. „Familie“ */
   note: string
@@ -37,6 +43,9 @@ export interface ShareDraft {
   mode: ShareMode
   photos: boolean
   routes: boolean
+  stays: boolean
+  stayDetails: boolean
+  activities: boolean
   title: string
   note: string
   password: string

@@ -1,7 +1,7 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteEntry } from '../types'
 import type { SiteTemplate, TemplateContext } from './types'
-import { footer, routesBlock, statsLine } from './parts'
+import { activitiesBlock, footer, routesBlock, staysBlock, statsLine } from './parts'
 
 /** Klassisch: Titelbild, Einleitung, dann jeder Tag als Karte mit Fotoraster. */
 function entry(e: SiteEntry, ctx: TemplateContext): string {
@@ -50,6 +50,7 @@ export const klassisch: SiteTemplate = {
     ${s.intro ? `<div class="lead mb-4">${paragraphs(s.intro)}</div>` : ''}
     ${statsLine(s)}
     ${routesBlock(s.routes)}
+    ${staysBlock(s.stays)}
     ${s.days
       .map(
         (d) => `
@@ -60,6 +61,7 @@ export const klassisch: SiteTemplate = {
     </section>`
       )
       .join('')}
+    ${activitiesBlock(s.activities)}
   </main>
   ${footer(s)}`
   }

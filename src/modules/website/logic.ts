@@ -1,6 +1,7 @@
 import { diffDays } from '../../core/dates'
 import { formatDate } from '../../core/format'
 import { MOODS } from '../journal/types'
+import { toSiteActivities, toSiteStays, type ActivityInput, type StayInput } from './sections'
 import type { SiteData, SiteDay, SitePhoto, SiteRoute, WebsiteSettingsDraft } from './types'
 
 export function defaultSettings(trip: { title: string; destination: string; startDate: string; endDate: string }): WebsiteSettingsDraft {
@@ -16,6 +17,12 @@ export function defaultSettings(trip: { title: string; destination: string; star
     onlyHighlights: true,
     showMood: true,
     showLocation: true,
+    showPhotos: true,
+    showRoutes: true,
+    showStays: true,
+    showStayDetails: false,
+    showActivities: false,
+    showParticipants: true,
     imageSize: 'mittel'
   }
 }
@@ -78,19 +85,44 @@ export interface EntryInput {
 /** Route für die Webseite – mit Tag (leer = ohne Tag). */
 export type RouteInput = SiteRoute & { date: string }
 
+/** Welche Bereiche gezeigt werden – fehlende Werte (ältere Einstellungen) bekommen den Standard. */
+export type SectionSettings = Partial<
+  Pick<WebsiteSettingsDraft, 'showPhotos' | 'showRoutes' | 'showStays' | 'showStayDetails' | 'showActivities' | 'showParticipants' | 'showLocation'>
+>
+export function sectionsOf(s: SectionSettings) {
+  return {
+    photos: s.showPhotos !== false,
+    routes: s.showRoutes !== false,
+    stays: s.showStays !== false,
+    stayDetails: s.showStayDetails === true,
+    activities: s.showActivities === true,
+    participants: s.showParticipants !== false,
+    location: s.showLocation !== false
+  }
+}
+
+/** Weitere Inhalte neben dem Tagebuch (schon ausgewählt, z. B. mit chooseStays). */
+export interface ExtraInput {
+  stays?: StayInput[]
+  activities?: ActivityInput[]
+}
+
 /**
  * Baut die Daten für die Vorlage: filtert (nur Highlights), gruppiert nach Tag, wählt das Titelbild.
  * `entries` enthalten schon die fertigen Bildquellen.
  */
 export function buildSiteData(
   trip: { destination: string; startDate: string; endDate: string; participants?: string[] },
-  settings: Pick<WebsiteSettingsDraft, 'title' | 'subtitle' | 'intro' | 'author' | 'onlyHighlights'>,
+  settings: Pick<WebsiteSettingsDraft, 'title' | 'subtitle' | 'intro' | 'author' | 'onlyHighlights'> & SectionSettings,
   entries: EntryInput[],
   generatedAt = new Date().toISOString(),
-  routes: RouteInput[] = []
+  routes: RouteInput[] = [],
+  extra: ExtraInput = {}
 ): SiteData {
+  const show = sectionsOf(settings)
   const chosen = entries
     .filter((e) => !settings.onlyHighlights || e.highlight)
+    .map((e) => (show.photos ? e : { ...e, photos: [] }))
     .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt))
 
   const byDate = new Map<string, SiteDay>()
@@ -102,7 +134,7 @@ export function buildSiteData(
   }
   for (const e of chosen) dayOf(e.date).entries.push({ title: e.title, text: e.text, mood: e.mood, location: e.location, photos: e.photos })
   const undated: SiteRoute[] = []
-  for (const { date, ...r } of routes) (date ? dayOf(date).routes : undated).push(r)
+  if (show.routes) for (const { date, ...r } of routes) (date ? dayOf(date).routes : undated).push(r)
   const days = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date))
   const allPhotos = days.flatMap((d) => d.entries.flatMap((e) => e.photos))
   // Titelbild: erstes Querformat, sonst erstes Foto überhaupt
@@ -116,10 +148,12 @@ export function buildSiteData(
     destination: trip.destination,
     startDate: trip.startDate,
     endDate: trip.endDate,
-    participants: trip.participants ?? [],
+    participants: show.participants ? (trip.participants ?? []) : [],
     cover,
     days,
     routes: undated,
+    stays: show.stays ? toSiteStays(extra.stays ?? [], show.stayDetails) : [],
+    activities: show.activities ? toSiteActivities(extra.activities ?? [], show.location) : [],
     stats: { days: diffDays(trip.startDate, trip.endDate) + 1, entries: chosen.length, photos: allPhotos.length },
     generatedAt
   }

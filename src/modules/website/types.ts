@@ -29,6 +29,14 @@ export interface WebsiteSettings {
   onlyHighlights: boolean
   showMood: boolean
   showLocation: boolean
+  /** Welche Bereiche auf die Seite kommen (ältere Einstellungen haben sie noch nicht → Standardwerte) */
+  showPhotos: boolean
+  showRoutes: boolean
+  showStays: boolean
+  /** Adresse und Link der Unterkünfte */
+  showStayDetails: boolean
+  showActivities: boolean
+  showParticipants: boolean
   imageSize: ImageSize
   updatedAt: string
 }
@@ -60,6 +68,27 @@ export interface SiteRoute {
   points: [number, number, number | null][]
 }
 
+/** Unterkunft auf der Webseite (ohne Preis, Buchungsnummer, Notizen). */
+export interface SiteStay {
+  name: string
+  type: string
+  emoji: string
+  checkIn: string
+  checkOut: string
+  nights: number | null
+  /** leer, wenn „Adresse & Link“ aus ist */
+  address: string
+  url: string
+}
+
+export interface SiteActivity {
+  title: string
+  kind: string
+  emoji: string
+  date: string
+  place: string
+}
+
 export interface SiteDay {
   date: string
   dayNumber: number | null
@@ -81,6 +110,8 @@ export interface SiteData {
   days: SiteDay[]
   /** Routen ohne Tag */
   routes: SiteRoute[]
+  stays: SiteStay[]
+  activities: SiteActivity[]
   stats: { days: number; entries: number; photos: number }
   generatedAt: string
 }

@@ -11,7 +11,7 @@ export const EXPIRY_OPTIONS: { days: number | null; label: string }[] = [
 ]
 
 export function emptyShareDraft(): ShareDraft {
-  return { mode: 'highlights', photos: true, routes: true, title: '', note: '', password: '', expiresDays: null, look: null }
+  return { mode: 'highlights', photos: true, routes: true, stays: true, stayDetails: false, activities: false, title: '', note: '', password: '', expiresDays: null, look: null }
 }
 
 /** Adresse des Links: /s/<code> auf dem eigenen Server. */
@@ -28,8 +28,14 @@ export function shareState(link: Pick<ShareLink, 'revoked' | 'expires'>, nowIso 
 }
 
 /** Kurzbeschreibung, z. B. "Nur Highlights · mit Fotos · Passwort" */
-export function describeShare(link: Pick<ShareLink, 'mode' | 'photos' | 'password'>): string {
-  return [MODE_LABEL[link.mode], link.photos ? 'mit Fotos' : 'ohne Fotos', link.password ? 'Passwort' : ''].filter(Boolean).join(' · ')
+export function describeShare(link: Pick<ShareLink, 'mode' | 'photos' | 'password'> & Partial<Pick<ShareLink, 'stays' | 'activities'>>): string {
+  return [
+    MODE_LABEL[link.mode],
+    link.photos ? 'mit Fotos' : 'ohne Fotos',
+    link.stays ? 'Unterkünfte' : '',
+    link.activities ? 'Unternehmungen' : '',
+    link.password ? 'Passwort' : ''
+  ].filter(Boolean).join(' · ')
 }
 
 /** "Noch nicht geöffnet" oder "3× geöffnet" */

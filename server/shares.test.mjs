@@ -41,6 +41,11 @@ before(async () => {
     { tbl: 'medications', id: 'm1', data: { id: 'm1', tripId: 't1', name: 'Geheim' } },
     { tbl: 'routes', id: 'r1', data: { id: 'r1', tripId: 't1', name: 'Monte Baldo', color: '#16a34a', kind: 'track', date: '2026-07-04', notes: 'Parkplatz Geheimtipp', showInShare: true, filename: 'tour.fit', original: ref('voll-1'), stats: { distance: 12345, ascent: 850, descent: 840, duration: 14400 }, preview: Array.from({ length: 1000 }, (_, i) => [45.7 + i * 0.0001, 10.8, 1000 + i]), points: [] } },
     { tbl: 'routes', id: 'r2', data: { id: 'r2', tripId: 't1', name: 'Privat', color: '#000000', kind: 'route', date: '', showInShare: false, stats: {}, preview: [[1, 1, null], [2, 2, null]] } },
+    { tbl: 'accommodations', id: 'a1', data: { id: 'a1', tripId: 't1', name: 'Hotel Lido', type: 'hotel', address: 'Via Roma 1, Riva', url: 'https://hotel-lido.example', checkIn: '2026-07-01', checkOut: '2026-07-04', price: 98765.43, currency: 'EUR', status: 'gebucht', bookingRef: 'BK-99817', cancelUntil: '2026-06-20', notes: 'Zimmer 12 Seeseite' } },
+    { tbl: 'accommodations', id: 'a2', data: { id: 'a2', tripId: 't1', name: 'Ideehotel', type: 'hotel', status: 'idee', checkIn: '', checkOut: '' } },
+    { tbl: 'accommodations', id: 'a3', data: { id: 'a3', tripId: 't1', name: 'Storno-Camping', type: 'camping', status: 'storniert', checkIn: '2026-07-04', checkOut: '2026-07-07' } },
+    { tbl: 'activities', id: 'act1', data: { id: 'act1', tripId: 't1', title: 'Bootsfahrt', category: 'natur', place: 'Hafen Riva', plannedDate: '2026-07-03', status: 'erledigt', pricePerPerson: 13579, notes: 'Tickets im Rucksack' } },
+    { tbl: 'activities', id: 'act2', data: { id: 'act2', tripId: 't1', title: 'Vielleicht Klettern', category: 'aktiv', status: 'idee', plannedDate: '' } },
     { tbl: 'websites', id: 't1', data: { tripId: 't1', template: 'magazin', accent: '#be123c', font: 'lora', dark: true, title: 'Sommer am See', subtitle: 'Juli 2026', intro: 'Hallo!', author: 'Marco', showMood: true, showLocation: true } }
   ].map((c) => ({ ...c, stamp }))
   await call('POST', '/api/push', KEY, { changes })
@@ -85,6 +90,25 @@ test('Lese-Link ganzes Tagebuch, ohne Fotos', async () => {
   assert.equal((await fetch(`${base}/api/public/${s.body.token}/photo/p1`)).status, 404)
   const noRoutes = await call('POST', '/api/shares', KEY, { tripId: 't1', routes: false })
   assert.equal((await call('GET', `/api/public/${noRoutes.body.token}`)).body.routes.length, 0)
+})
+
+test('Unterkünfte und Unternehmungen nur, wenn gewählt – ohne Preise, Buchungsnummer, Notizen', async () => {
+  const plain = await call('POST', '/api/shares', KEY, { tripId: 't1' })
+  const p0 = (await call('GET', `/api/public/${plain.body.token}`)).body
+  assert.deepEqual([p0.stays, p0.activities], [[], []], 'ältere/neue Links ohne Auswahl zeigen nichts davon')
+
+  const s = await call('POST', '/api/shares', KEY, { tripId: 't1', stays: true, activities: true })
+  assert.equal(s.body.stays, true)
+  const pub = (await call('GET', `/api/public/${s.body.token}`)).body
+  assert.deepEqual(pub.stays, [{ name: 'Hotel Lido', type: 'hotel', checkIn: '2026-07-01', checkOut: '2026-07-04', address: '', url: '' }], 'nur gebuchte, ohne Adresse')
+  assert.deepEqual(pub.activities, [{ title: 'Bootsfahrt', category: 'natur', date: '2026-07-03', place: 'Hafen Riva' }], 'nur erledigte')
+  const raw = JSON.stringify(pub)
+  for (const secret of ['98765', 'BK-99817', 'Zimmer 12', '2026-06-20', 'Ideehotel', 'Storno', '13579', 'Rucksack', 'Klettern', 'Via Roma']) assert.ok(!raw.includes(secret), `${secret} darf nicht drin sein`)
+
+  await call('PATCH', `/api/shares/${s.body.token}`, KEY, { stayDetails: true })
+  const det = (await call('GET', `/api/public/${s.body.token}`)).body
+  assert.equal(det.stays[0].address, 'Via Roma 1, Riva')
+  assert.equal(det.stays[0].url, 'https://hotel-lido.example')
 })
 
 test('Passwort: ohne/falsch abgelehnt, richtig mit Foto-Ticket', async () => {

@@ -2,8 +2,10 @@
  * Lese-Links: eine Reise für Freunde zum Ansehen freigeben – ohne Schlüssel, ohne Änderungsrecht.
  *
  * Herausgegeben wird nur, was ausdrücklich dazugehört: Reise-Eckdaten (Titel, Ziel, Zeitraum),
- * Tagebucheinträge (alle oder nur Highlights) und deren Fotos. Planung, Budget, Ausgaben, Apotheke,
- * Dokumente, Notfallnummern und Mitreisende bleiben immer privat.
+ * Tagebucheinträge (alle oder nur Highlights) und deren Fotos, freigegebene Routen und – wenn gewählt –
+ * Unterkünfte (Name, Art, Zeitraum, auf Wunsch Adresse/Link) und Unternehmungen (Titel, Art, Tag, Ort).
+ * Budget, Preise, Buchungsnummern, Ausgaben, Apotheke, Dokumente, Notfallnummern, Notizen und
+ * Mitreisende bleiben immer privat.
  */
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { createReadStream } from 'node:fs'
@@ -51,6 +53,41 @@ function publicRoute(r) {
   }
 }
 
+const str = (v, max) => String(v ?? '').trim().slice(0, max)
+const date = (v) => (DATE_RE.test(v ?? '') ? v : '')
+
+/** Wie in der App (website/sections.ts): nie stornierte; gibt es gebuchte, nur die gebuchten. */
+function chooseStays(list) {
+  const live = list.filter((s) => s.status !== 'storniert')
+  return live.some((s) => s.status === 'gebucht') ? live.filter((s) => s.status === 'gebucht') : live
+}
+function chooseActivities(list) {
+  const done = list.filter((a) => a.status === 'erledigt')
+  return done.length ? done : list.filter((a) => a.status === 'geplant')
+}
+
+/** Unterkunft für Lese-Links: ausdrücklich nur diese Felder – nie Preis, Buchungsnummer, Storno-Frist, Notizen. */
+function publicStay(a, details) {
+  const url = str(a.url, 500)
+  return {
+    name: str(a.name, 120),
+    type: /^[a-z]{1,20}$/.test(a.type ?? '') ? a.type : 'sonstiges',
+    checkIn: date(a.checkIn),
+    checkOut: date(a.checkOut),
+    address: details ? str(a.address, 200) : '',
+    url: details && /^https?:\/\/[^\s"'<>]+$/i.test(url) ? url : ''
+  }
+}
+
+function publicActivity(a, withPlace) {
+  return {
+    title: str(a.title, 120),
+    category: /^[a-z]{1,20}$/.test(a.category ?? '') ? a.category : 'sonstiges',
+    date: date(a.plannedDate),
+    place: withPlace ? str(a.place, 120) : ''
+  }
+}
+
 /** Nur bekannte, harmlose Gestaltungswerte übernehmen. */
 function cleanLook(look) {
   if (!look || typeof look !== 'object') return null
@@ -71,6 +108,9 @@ function cleanOptions(body, old = {}) {
     mode,
     photos: typeof body.photos === 'boolean' ? body.photos : old.photos ?? true,
     routes: typeof body.routes === 'boolean' ? body.routes : old.routes ?? true,
+    stays: typeof body.stays === 'boolean' ? body.stays : old.stays ?? false,
+    stayDetails: typeof body.stayDetails === 'boolean' ? body.stayDetails : old.stayDetails ?? false,
+    activities: typeof body.activities === 'boolean' ? body.activities : old.activities ?? false,
     title: typeof body.title === 'string' ? body.title.trim().slice(0, 120) : old.title ?? '',
     note: typeof body.note === 'string' ? body.note.trim().slice(0, 80) : old.note ?? '',
     look: body.look === null ? null : cleanLook(body.look) ?? old.look ?? null
@@ -167,6 +207,10 @@ export function createShares(store) {
       }))
     const routes = opts.routes === false ? [] : store.byTrip(row.space, 'routes', row.trip_id).filter((r) => r.showInShare).map(publicRoute).filter((r) => r.points.length >= 2)
     const look = opts.look ?? cleanLook(site) ?? cleanLook({})
+    const stays = opts.stays ? chooseStays(store.byTrip(row.space, 'accommodations', row.trip_id)).map((a) => publicStay(a, !!opts.stayDetails)).filter((a) => a.name) : []
+    const activities = opts.activities
+      ? chooseActivities(store.byTrip(row.space, 'activities', row.trip_id)).map((a) => publicActivity(a, look.showLocation)).filter((a) => a.title)
+      : []
     return {
       title: opts.title || site?.title || trip.title || 'Reise',
       subtitle: site?.subtitle || trip.destination || '',
@@ -176,7 +220,9 @@ export function createShares(store) {
       mode: opts.mode,
       look,
       entries,
-      routes
+      routes,
+      stays,
+      activities
     }
   }
 

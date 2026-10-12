@@ -3,7 +3,18 @@
  * und zeichnet sie mit den Vorlagen der Reise-Webseite. Keine App, kein Schlüssel, nur lesen.
  */
 import bootstrapCssRaw from 'bootstrap/dist/css/bootstrap.min.css?raw'
-import { buildSiteData, defaultSettings, esc, fontFaceCss, renderSite, type FontChoice, type RouteInput, type TemplateId } from '@/modules/website/public'
+import {
+  buildSiteData,
+  defaultSettings,
+  esc,
+  fontFaceCss,
+  renderSite,
+  type ActivityInput,
+  type FontChoice,
+  type RouteInput,
+  type StayInput,
+  type TemplateId
+} from '@/modules/website/public'
 
 interface PublicPhoto {
   id: string
@@ -20,6 +31,8 @@ interface PublicData {
   look: { template: TemplateId; accent: string; font: FontChoice; dark: boolean; showMood: boolean; showLocation: boolean }
   entries: { date: string; title: string; text: string; mood: number; location: string; highlight: boolean; createdAt: string; photos: PublicPhoto[] }[]
   routes?: RouteInput[]
+  stays?: StayInput[]
+  activities?: ActivityInput[]
   ticket: string
 }
 
@@ -58,14 +71,21 @@ function show(data: PublicData) {
     subtitle: data.subtitle,
     intro: data.intro,
     author: data.author,
-    onlyHighlights: false // Auswahl hat der Server schon getroffen
+    onlyHighlights: false, // Auswahl hat der Server schon getroffen
+    showPhotos: true,
+    showRoutes: true,
+    showStays: true,
+    showStayDetails: true, // Adresse/Link schickt der Server nur, wenn freigegeben
+    showActivities: true,
+    showParticipants: false
   }
   const site = buildSiteData(
     data.trip,
     settings,
     data.entries.map((e) => ({ ...e, photos: e.photos.map((p) => ({ src: photoUrl(p), caption: p.caption, width: p.width, height: p.height })) })),
     undefined,
-    data.routes ?? []
+    data.routes ?? [],
+    { stays: data.stays ?? [], activities: data.activities ?? [] }
   )
   const html = renderSite(site, settings, bootstrapCss, fontFaceCss(settings.font))
     // Lese-Links nicht in Suchmaschinen

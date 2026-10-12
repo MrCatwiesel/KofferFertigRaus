@@ -1,6 +1,6 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
-import { footer, routesBlock, statsLine } from './parts'
+import { activitiesBlock, footer, routesBlock, staysBlock, statsLine } from './parts'
 
 /** Magazin: große Bilder, Text abwechselnd links/rechts, Serif-Überschriften. */
 export const magazin: SiteTemplate = {
@@ -56,7 +56,9 @@ export const magazin: SiteTemplate = {
     ${s.intro ? `<div class="lead my-4 mx-auto" style="max-width: 720px">${paragraphs(s.intro)}</div>` : ''}
     ${statsLine(s)}
     ${routesBlock(s.routes)}
+    ${staysBlock(s.stays)}
     ${stories.join('')}
+    ${activitiesBlock(s.activities)}
   </main>
   ${footer(s)}`
   }

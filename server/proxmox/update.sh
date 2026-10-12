@@ -93,6 +93,24 @@ else
   echo "!! App konnte nicht geladen werden – die bisherige bleibt in Betrieb." >&2
 fi
 
+# ---------- Werkzeug für Offline-Karten (pmtiles) ----------
+PMTILES_VERSION=1.31.2
+if ! /usr/local/bin/pmtiles version 2>/dev/null | grep -q "pmtiles $PMTILES_VERSION"; then
+  case $(uname -m) in
+    x86_64) arch=x86_64 ;;
+    aarch64 | arm64) arch=arm64 ;;
+    *) arch="" ;;
+  esac
+  url="https://github.com/protomaps/go-pmtiles/releases/download/v$PMTILES_VERSION/go-pmtiles_${PMTILES_VERSION}_Linux_$arch.tar.gz"
+  if [[ -n $arch ]] && curl -fsSL "$url" -o "$tmp/pmtiles.tgz" && tar -xzf "$tmp/pmtiles.tgz" -C "$tmp" pmtiles; then
+    install -m 755 "$tmp/pmtiles" /usr/local/bin/pmtiles
+    echo "Werkzeug für Offline-Karten installiert (pmtiles $PMTILES_VERSION)."
+    if [[ $old == "$new" ]]; then systemctl restart nix-wie-weg-sync; fi # damit der Server es erkennt
+  else
+    echo "!! pmtiles konnte nicht installiert werden – Offline-Karten bleiben aus." >&2
+  fi
+fi
+
 # ---------- 3. Server neu starten, wenn sich sein Programm geändert hat ----------
 if [[ $old != "$new" ]]; then
   echo "$old" > "$STATE/server-vorher"

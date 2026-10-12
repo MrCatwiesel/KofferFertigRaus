@@ -206,7 +206,8 @@ export function purgeCssPostcss(opts) {
       root.walkAtRules((at) => {
         if (/^(media|supports|container|layer)$/i.test(at.name) && at.nodes && !at.nodes.length) at.remove()
       })
-      console.log(`[css] ${file.split(/[\\/]node_modules[\\/]/).pop()}: ${stats.removed} von ${stats.total} ungenutzten Selektoren entfernt`)
+      const name = file.split(/[\\/]node_modules[\\/]/).pop()
+      console.log(`[css] ${name}: ${stats.removed} von ${stats.total} Selektoren entfernt (ungenutzt)`)
       stats.total = stats.removed = 0
     }
   }

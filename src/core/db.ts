@@ -15,6 +15,7 @@ import type { Expense } from '@/modules/expenses/types'
 import type { MapPlace } from '@/modules/map/types'
 import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
 import type { Route } from '@/modules/routes/types'
+import type { OfflineMap } from '@/modules/map/offline'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -43,6 +44,8 @@ export class NixDb extends Dexie {
   places!: Table<MapPlace, string>
   piwigoAlbums!: Table<PiwigoAlbumLink, string>
   routes!: Table<Route, string>
+  /** Nur auf diesem Gerät: gespeicherte Offline-Karten (große Dateien, werden nicht abgeglichen) */
+  offlineMaps!: Table<OfflineMap, string>
   /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
   piwigoUploads!: Table<PiwigoUpload, string>
   /** Lokale Änderungen, die noch zum Server müssen */
@@ -141,7 +144,12 @@ export class NixDb extends Dexie {
       routes: 'id, tripId, date'
     })
 
-    // Nächste Änderung: this.version(16).stores({ … })
+    // v16: Offline-Karten (nur auf diesem Gerät)
+    this.version(16).stores({
+      offlineMaps: 'id, tripId'
+    })
+
+    // Nächste Änderung: this.version(17).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

@@ -7,6 +7,7 @@
  *  - Lese-Links: Reisen für Freunde zum Ansehen freigeben                            → shares.mjs
  *  - Piwigo-Brücke (optional)                                                        → piwigo.mjs
  *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
+ *  - Offline-Karten: Ausschnitte der Protomaps-Weltkarte (optional, Programm pmtiles) → maps.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
  * Start:  NWW_KEYS=<schlüssel> node server.mjs
@@ -22,9 +23,10 @@ import { createGroups } from './groups.mjs'
 import { createShares } from './shares.mjs'
 import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
+import { createMaps } from './maps.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.6.0'
+export const VERSION = '1.7.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -32,7 +34,7 @@ const MAX_JSON = 30 * 1024 * 1024
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
  *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
- *   appDir?: string | null }} opts
+ *   appDir?: string | null, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
   const store = createStore(resolve(opts.dataDir))
@@ -46,6 +48,7 @@ export function createSyncServer(opts) {
   const shares = createShares(store)
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
+  const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
   const cors = corsFor(opts.origins)
   const maxBlob = (opts.maxBlobMb ?? 30) * 1024 * 1024
 
@@ -85,6 +88,7 @@ export function createSyncServer(opts) {
         // → die Geräte gleichen dann einmal vollständig ab, damit nichts verloren geht
         epoch: store.secret('sync-epoch').slice(0, 16),
         piwigo: !!piwigo && group.piwigo,
+        maps: maps.available,
         group: group.name,
         admin: group.owner,
         shares: true
@@ -107,6 +111,8 @@ export function createSyncServer(opts) {
     if (blob) return handleBlob(req, res, space, blob[1])
 
     if (path === '/api/shares' || path.startsWith('/api/shares/')) return shares.handleOwner(req, res, url, path, group)
+
+    if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
 
     if (path === '/api/admin/groups' || path.startsWith('/api/admin/groups/')) {
       if (!group.owner) throw new HttpError(403, 'Nur der Besitzer des Servers darf Reisegruppen verwalten.')
@@ -161,6 +167,7 @@ export function createSyncServer(opts) {
     if (req.method === 'DELETE') {
       if (m[1] === groups.ownerSpace) throw new HttpError(400, 'Die eigene Gruppe kann nicht gelöscht werden.')
       groups.remove(m[1])
+      maps.removeSpace(m[1])
       return send(res, 200, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')
@@ -246,7 +253,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
           publicUrl: process.env.NWW_PIWIGO_PUBLIC_URL || undefined
         }
       : null,
-    appDir: process.env.NWW_APP_DIR || null
+    appDir: process.env.NWW_APP_DIR || null,
+    maps: { bin: process.env.NWW_PMTILES || undefined, source: process.env.NWW_MAPS_SOURCE || undefined }
   })
   const port = Number(process.env.PORT ?? 8787)
   const host = process.env.NWW_HOST || undefined // z. B. 127.0.0.1, wenn nginx im selben Container läuft

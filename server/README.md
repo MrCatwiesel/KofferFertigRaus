@@ -96,6 +96,16 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 - **Besitzer** ist der **erste** Schlüssel in `NWW_KEYS`. Nur er sieht in der App *Einstellungen → Geräte-Abgleich → Reisegruppen* und kann dort Gruppen für Freunde anlegen (eigener Schlüssel, getrennte Daten), sperren, löschen und Piwigo freigeben.
 - **Lese-Links** legt jede Gruppe selbst an: Reise → *Für Freunde freigeben*. Der Link `https://<server>/s/<code>` zeigt die Reise als Seite – nur Highlights oder das ganze Tagebuch, wahlweise mit Passwort und Ablaufdatum. Dafür muss der Server die App ausliefern (`NWW_APP_DIR`, richtet `install.sh` ein).
 
+## Offline-Karten
+
+Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.
+Der Server schneidet dafür mit dem Programm `pmtiles` einen Ausschnitt aus der frei verfügbaren
+[Protomaps-Weltkarte](https://docs.protomaps.com/basemaps/downloads) (OpenStreetMap-Daten) aus – es werden nur die
+nötigen Teile geladen, je nach Größe und Detail meist 5–80 MB. Die Karten liegen unter `<daten>/maps/<gruppe>/`,
+jede Reisegruppe sieht nur ihre eigenen.
+
+Warum nicht die normale OSM-Karte speichern? Deren Nutzungsregeln verbieten das Vorab-Laden für die Offline-Nutzung.
+
 ## Datensicherung des Servers
 
 Die Daten liegen im Docker-Volume `sync_data` (Datenbank + Fotos):
@@ -128,6 +138,9 @@ docker compose up -d --build
 | `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
+| `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
+| `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
+| `NWW_BACKUP_DIR` / `NWW_BACKUP_KEEP` | Nur Proxmox: Zielordner und Anzahl der täglichen Sicherungen (`backup.sh`) |
 
 ## Schnittstelle (für Entwickler)
 
@@ -149,6 +162,9 @@ docker compose up -d --build
 | GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
 | GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |
 | GET | `/api/piwigo/images/<id>?size=small\|xxlarge\|original` | Bilddatei |
+| GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |
+| GET/DELETE | `/api/maps/<id>` | Stand (`läuft`, `fertig`, `fehler`) / löschen |
+| GET | `/api/maps/<id>/datei` | fertige PMTiles-Datei (mit `Range`-Unterstützung) |
 
 Alle Aufrufe außer `/api/health`, `/api/public/…` und der App selbst brauchen `Authorization: Bearer <Schlüssel>`.
 

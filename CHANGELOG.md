@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.8.0 – 2026-10-12 (Server 1.7.0)
+
+### Neu
+- **Offline-Karten** (Reise → Karte → „Offline-Karten“): aktuellen Kartenausschnitt mit Detailstufe Übersicht / Normal / Wandern speichern. Dein Server schneidet ihn aus der Protomaps-Weltkarte (OpenStreetMap-Daten) aus, die App lädt die Datei einmal herunter
+- Ohne Internet schaltet die Karte automatisch auf die gespeicherte Karte um; Umschalter „Online | Offline“; Beschriftungen auf Deutsch; Orte, Routen und Verorten funktionieren wie gewohnt
+- Karten, die ein anderes Gerät der Reisegruppe erstellt hat, lassen sich mit einem Tipp übernehmen
+- Server: `/api/maps` (Bestellen, Stand, Herunterladen mit Range, Löschen), je Reisegruppe getrennt; `update.sh` und Docker-Image installieren das Werkzeug `pmtiles`
+
+### Hinweis
+- Die Bibliotheken für Offline-Karten werden erst geladen, wenn eine Offline-Karte gezeigt wird – der App-Start bleibt gleich schnell
+- Die Kartendateien bleiben auf dem jeweiligen Gerät (kein Abgleich, kein Backup); die App bittet den Browser, sie dauerhaft zu behalten
+
 ## 1.7.0 – 2026-10-12 (Server 1.6.0)
 
 ### Stabilität

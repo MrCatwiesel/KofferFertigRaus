@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { accommodationRepository } from '@/modules/accommodation/public'
 import { activityRepository } from '@/modules/activity/public'
 import { placeRepository } from './repository'
+import { offlineMapRepository } from './offline'
 
 /** Modul "Karte". */
 export const mapModule: AppModule = {
@@ -25,5 +26,8 @@ export const mapModule: AppModule = {
       return `${places.length} von ${total} Orten auf der Karte`
     }
   },
-  onTripDelete: (tripId) => placeRepository.removeByTrip(tripId)
+  onTripDelete: async (tripId) => {
+    await placeRepository.removeByTrip(tripId)
+    await offlineMapRepository.removeByTrip(tripId)
+  }
 }

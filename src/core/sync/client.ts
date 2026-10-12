@@ -16,6 +16,8 @@ export interface ServerInfo {
   admin?: boolean
   /** Server kann Lese-Links */
   shares?: boolean
+  /** Server kann Offline-Karten erstellen (Programm pmtiles vorhanden) */
+  maps?: boolean
 }
 
 export type ServerError = Error & { status?: number; needPassword?: boolean }

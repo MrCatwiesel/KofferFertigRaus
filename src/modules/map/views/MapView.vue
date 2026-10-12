@@ -14,6 +14,8 @@ import { SETTING, activityRepository, type Activity } from '@/modules/activity/p
 import { placeRepository } from '../repository'
 import { boundsOf, buildQuery, navLinks, splitByLocation, type Located, type MapItem } from '../logic'
 import { KIND_STYLE, type MapPlace } from '../types'
+import { offlineMapRepository, type Bbox, type OfflineMap } from '../offline'
+import OfflineMapsCard from './OfflineMapsCard.vue'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -65,6 +67,8 @@ const mapEl = ref<HTMLElement>()
 let map: L.Map | null = null
 let layer: L.LayerGroup | null = null
 let meMarker: L.CircleMarker | null = null
+let osm: L.TileLayer | null = null
+let offlineLayers: L.Layer[] = []
 const me = ref<{ lat: number; lon: number } | null>(null)
 let fitted = false
 
@@ -159,13 +163,18 @@ onMounted(async () => {
   await nextTick()
   if (!mapEl.value) return
   map = markRaw(L.map(mapEl.value, { zoomControl: true }).setView([48.1, 11.6], 5))
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
-  }).addTo(map)
+  osm = markRaw(
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+    })
+  )
   layer = markRaw(L.layerGroup().addTo(map))
   map.on('click', (e: L.LeafletMouseEvent) => onMapClick(e.latlng.lat, e.latlng.lng))
+  map.on('moveend', updateViewBbox)
   draw()
+  updateViewBbox()
+  void applyBase()
 })
 
 onUnmounted(() => {
@@ -178,6 +187,59 @@ watch(dayFilter, () => {
   fitted = false
   draw()
 })
+
+// ---- Kartengrundlage: online (OpenStreetMap) oder gespeicherte Offline-Karte ----
+const offlineMaps = useLiveQuery(() => offlineMapRepository.listByTrip(props.tripId), [] as OfflineMap[])
+const baseMode = ref<'online' | 'offline'>('online')
+const viewBbox = ref<Bbox | null>(null)
+const baseError = ref('')
+let baseToken = 0
+
+function updateViewBbox() {
+  if (!map) return
+  const b = map.getBounds()
+  viewBbox.value = [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()]
+}
+
+async function applyBase() {
+  if (!map) return
+  const token = ++baseToken
+  baseError.value = ''
+  for (const l of offlineLayers) l.remove()
+  offlineLayers = []
+  if (baseMode.value === 'offline' && offlineMaps.value.length) {
+    try {
+      const { createOfflineLayers } = await import('../offline-layer')
+      const dark = document.documentElement.getAttribute('data-bs-theme') === 'dark'
+      const layers = await createOfflineLayers(offlineMaps.value, dark)
+      if (token !== baseToken || !map) return
+      osm?.remove()
+      offlineLayers = layers.map((l) => markRaw(l).addTo(map!))
+      return
+    } catch (e) {
+      baseError.value = `Offline-Karte konnte nicht geladen werden: ${(e as Error).message}`
+    }
+  }
+  if (osm && map && !map.hasLayer(osm)) osm.addTo(map)
+}
+
+// Ohne Internet automatisch die gespeicherte Karte nehmen (falls vorhanden)
+const offlineKey = computed(() => offlineMaps.value.map((m) => m.id).join(','))
+watch(
+  [online, offlineKey],
+  ([on], [wasOn, oldKey]) => {
+    if (!offlineMaps.value.length) baseMode.value = 'online'
+    else if (!on && (wasOn !== on || !oldKey)) baseMode.value = 'offline'
+  },
+  { immediate: true }
+)
+watch([baseMode, offlineKey], () => void applyBase())
+
+function showOfflineMap(bbox: Bbox) {
+  baseMode.value = 'offline'
+  map?.fitBounds(L.latLngBounds([bbox[1], bbox[0]], [bbox[3], bbox[2]]))
+  mapEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
 
 // ---- Verorten ----
 const target = ref<MapItem | null>(null)
@@ -306,6 +368,12 @@ const nearest = computed(() => {
       <span v-if="locating" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
       <i v-else class="bi bi-crosshair me-1" aria-hidden="true"></i>Mein Standort
     </button>
+    <div v-if="offlineMaps.length" class="btn-group btn-group-sm" role="group" aria-label="Kartengrundlage">
+      <input id="base-online" v-model="baseMode" type="radio" class="btn-check" value="online" />
+      <label class="btn btn-outline-secondary" for="base-online"><i class="bi bi-globe me-1" aria-hidden="true"></i>Online</label>
+      <input id="base-offline" v-model="baseMode" type="radio" class="btn-check" value="offline" />
+      <label class="btn btn-outline-secondary" for="base-offline"><i class="bi bi-cloud-check me-1" aria-hidden="true"></i>Offline</label>
+    </div>
     <span class="small text-body-secondary ms-auto">
       <span class="legend" :style="{ background: KIND_STYLE.accommodation.color }"></span> Unterkunft
       <span class="legend ms-2" :style="{ background: KIND_STYLE.activity.color }"></span> Unternehmung
@@ -318,7 +386,11 @@ const nearest = computed(() => {
   </div>
 
   <div ref="mapEl" class="map mb-3" :class="{ picking: pickOnMap }"></div>
-  <p v-if="!online" class="small text-body-secondary">Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast.</p>
+  <p v-if="baseError" class="small text-danger">{{ baseError }}</p>
+  <p v-else-if="!online && !offlineMaps.length" class="small text-body-secondary">
+    Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast. Tipp: unten „Offline-Karten“ – dann ist die ganze Gegend gespeichert.
+  </p>
+  <p v-else-if="baseMode === 'offline'" class="small text-body-secondary">Gespeicherte Offline-Karte – außerhalb ihres Ausschnitts bleibt die Karte leer.</p>
 
   <!-- In der Nähe -->
   <section v-if="nearest.length" class="mb-3">
@@ -408,6 +480,8 @@ const nearest = computed(() => {
       </div>
     </div>
   </section>
+
+  <OfflineMapsCard :trip-id="tripId" :trip-title="trip?.title ?? ''" :view-bbox="viewBbox" @show="showOfflineMap" />
 
   <p v-if="items.length === 0" class="text-body-secondary">Lege Unterkünfte oder Unternehmungen an – dann kannst du sie hier auf die Karte setzen.</p>
 </template>

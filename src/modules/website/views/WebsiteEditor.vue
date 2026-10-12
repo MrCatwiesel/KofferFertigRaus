@@ -288,7 +288,7 @@ function resetTexts() {
       <p class="small text-body-secondary mb-2">
         Preise, Buchungsnummern und Notizen kommen nie auf die Seite.
         <template v-if="settings.showStays && accs.some((a) => a.status === 'gebucht')">Es werden nur gebuchte Unterkünfte gezeigt.</template>
-        <template v-if="settings.showActivities">{{ doneActivities ? 'Unternehmungen: nur erledigte.' : 'Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.' }}</template>
+        <template v-if="settings.showActivities">{{ ' ' }}{{ doneActivities ? 'Unternehmungen: nur erledigte.' : 'Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.' }}</template>
       </p>
       <label for="size" class="form-label small mb-1">Bildgröße</label>
       <select id="size" v-model="settings.imageSize" class="form-select form-select-sm mb-3">

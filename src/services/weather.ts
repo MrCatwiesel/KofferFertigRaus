@@ -104,3 +104,93 @@ export function describeCode(code: number): { kind: WeatherKind; label: string; 
   if (code >= 95) return { kind: 'gewitter', label: 'Gewitter', icon: 'cloud-lightning-rain' }
   return { kind: 'wolkig', label: 'Wechselhaft', icon: 'cloud-sun' }
 }
+
+// ---------------------------------------------------------------- Aussicht für einen Reisezeitraum
+
+const ARCHIVE_URL = 'https://archive-api.open-meteo.com/v1/archive'
+
+/** Tatsächliches Wetter vergangener Tage (Open-Meteo-Archiv, ERA5) */
+export async function fetchPastDays(latitude: number, longitude: number, start: string, end: string, signal?: AbortSignal): Promise<DailyWeather[]> {
+  const params = new URLSearchParams({
+    latitude: String(latitude),
+    longitude: String(longitude),
+    start_date: start,
+    end_date: end,
+    daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
+    timezone: 'auto'
+  })
+  const res = await fetch(`${ARCHIVE_URL}?${params}`, { signal })
+  if (!res.ok) throw new Error(`Wetterarchiv nicht erreichbar (${res.status})`)
+  return parseDaily(await res.json())
+}
+
+/** Zusammenfassung: Was erwartet uns? */
+export interface WeatherOutlook {
+  /** Vorhersage (Reise beginnt in ≤ 16 Tagen) oder Wetter derselben Tage der letzten Jahre */
+  source: 'vorhersage' | 'vorjahre'
+  years: number[]
+  minTemp: number
+  maxTemp: number
+  /** Anteil der Tage mit ≥ 1 mm Niederschlag (0–1) */
+  rainShare: number
+  /** Tage mit Schnee (Wettercode) */
+  snow: boolean
+  /** Tage mit Wind ≥ 50 km/h */
+  windy: boolean
+  /** Anzahl ausgewerteter Tage */
+  days: number
+}
+
+const SNOW_CODES = new Set([71, 73, 75, 77, 85, 86])
+
+export function summarizeOutlook(days: DailyWeather[], source: WeatherOutlook['source'], years: number[] = []): WeatherOutlook | null {
+  if (!days.length) return null
+  return {
+    source,
+    years,
+    minTemp: Math.round(Math.min(...days.map((d) => d.tempMin))),
+    maxTemp: Math.round(Math.max(...days.map((d) => d.tempMax))),
+    rainShare: days.filter((d) => d.precipitation >= 1).length / days.length,
+    snow: days.some((d) => SNOW_CODES.has(d.code)),
+    windy: days.some((d) => (d.windMax ?? 0) >= 50),
+    days: days.length
+  }
+}
+
+/** Datum um Jahre verschieben (ISO) */
+const minusYears = (iso: string, n: number) => `${Number(iso.slice(0, 4)) - n}${iso.slice(4)}`.replace(/-02-29$/, '-02-28')
+
+/**
+ * Aussicht für die Reise: Vorhersage, wenn die Reise innerhalb der Vorhersage liegt, sonst
+ * das Wetter derselben Tage der letzten drei Jahre (gibt ein gutes Gefühl für Temperaturen und Regen).
+ */
+export async function fetchOutlook(latitude: number, longitude: number, start: string, end: string, today: string): Promise<WeatherOutlook | null> {
+  const horizon = new Date(`${today}T12:00:00Z`)
+  horizon.setUTCDate(horizon.getUTCDate() + FORECAST_DAYS - 1)
+  if (end <= horizon.toISOString().slice(0, 10) && end >= today) {
+    const days = (await fetchDailyForecast(latitude, longitude)).filter((d) => d.date >= start && d.date <= end)
+    if (days.length) return summarizeOutlook(days, 'vorhersage')
+  }
+  // Längere Reisen auf 21 Tage begrenzen (Anfragegröße), das reicht für die Packliste
+  const endCut = new Date(Math.min(Date.parse(`${end}T12:00:00Z`), Date.parse(`${start}T12:00:00Z`) + 20 * 86400_000)).toISOString().slice(0, 10)
+  const thisYear = Number(today.slice(0, 4))
+  const years: number[] = []
+  const all: DailyWeather[] = []
+  for (let n = 1; n <= 3; n++) {
+    let s = minusYears(start, n)
+    let e = minusYears(endCut, n)
+    // Reise im nächsten Jahr: „Vorjahre“ relativ zum heutigen Jahr
+    const shift = Number(start.slice(0, 4)) - thisYear
+    if (shift > 0) {
+      s = minusYears(s, shift)
+      e = minusYears(e, shift)
+    }
+    try {
+      all.push(...(await fetchPastDays(latitude, longitude, s, e)))
+      years.push(Number(s.slice(0, 4)))
+    } catch {
+      /* ein Jahr fehlt – die anderen reichen */
+    }
+  }
+  return summarizeOutlook(all, 'vorjahre', years.sort())
+}

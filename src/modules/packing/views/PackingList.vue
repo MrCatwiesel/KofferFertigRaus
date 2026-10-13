@@ -5,6 +5,7 @@ import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/
 import { packingRepository } from '../repository'
 import { SHARED, emptyPackingDraft, groupByCategory, parseQuickAdd, persons, progress, progressByPerson } from '../logic'
 import { CATEGORY, type PackingCategory, type PackingItem } from '../types'
+import PackingSuggestions from '../components/PackingSuggestions.vue'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -56,6 +57,7 @@ async function unpackAll() {
 
 <template>
   <TripContextHeader :trip-id="tripId" title="Packliste" />
+  <PackingSuggestions :trip-id="tripId" :items="list" />
 
   <!-- Leerer Zustand -->
   <div v-if="list.length === 0" class="text-center py-4">

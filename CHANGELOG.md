@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.19.0 – 2026-10-13
+
+### Neu: Packliste denkt mit
+- **Vorschläge für diese Reise** oben in der Packliste – jeweils mit Begründung, einzeln abwählbar oder dauerhaft ausblendbar, persönliche Dinge je Mitreisendem:
+  - **Wetter:** Vorhersage, wenn die Reise in den nächsten 16 Tagen liegt – sonst das Wetter derselben Tage der letzten drei Jahre am Reiseziel (z. B. „-1 bis 12 °C, Regen an 67 % der Tage“): Regenjacke, Schirm, Mütze & Handschuhe, Pullover, Sonnencreme, Sonnenhut, Trinkflasche, Windjacke …
+  - **Zielland:** Steckdosen-Adapter (mit Typ), Bargeld in Landeswährung, Datenpaket/eSIM außerhalb des EU-Roamings, Vignette (Österreich, Schweiz, Slowenien, Tschechien …), Crit'Air-Plakette in Frankreich, Warnwesten fürs Auto im Ausland
+  - **Anreise:** Flüssigkeitenbeutel und Powerbank beim Fliegen
+  - **Unternehmungen & Routen:** Wanderschuhe, Tagesrucksack, Blasenpflaster; ab 1500 m Wanderstöcke und Funktionsjacke; Badesachen am Wasser; Badeschlappen für Therme
+  - **Unterkunft:** Camping (Stirnlampe, Schlafsack …), Hostel (Schloss, Ohrstöpsel), Ferienwohnung
+  - **Reisehinweise:** Mückenschutz und Moskitonetz bei Malaria-/Dengue-Gebieten
+- Was schon auf der Liste steht, wird nicht noch einmal vorgeschlagen
+
 ## 1.18.0 – 2026-10-13 (Server 1.14.0)
 
 ### Neu: Termine & Fristen, Kalender

@@ -3,6 +3,10 @@ import type { Page } from '@playwright/test'
 export const KEY = 'klicktest-schluessel-1234567890'
 export const NOW = '2026-07-01T10:00:00.000Z'
 
+/** Heutiges Datum (+ Tage) so, wie die App im Testbrowser es sieht – dort gilt Europe/Berlin (playwright.config.ts),
+ *  auf GitHub läuft der Testprozess dagegen in UTC: zwischen Mitternacht und 2 Uhr wären das verschiedene Tage */
+export const localDate = (days = 0) => new Date(Date.now() + days * 86400_000).toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' })
+
 /** Datensätze direkt in die App-Datenbank schreiben (an der App vorbei, ohne Abgleich) */
 export async function seed(page: Page, data: Record<string, object[]>) {
   await page.goto('/#/trip')

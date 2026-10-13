@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
-import { seed, trip } from './helpers'
+import { localDate, seed, trip } from './helpers'
 
-const today = new Date().toLocaleDateString('sv-SE') // lokales Datum wie in der App (UTC wäre nach Mitternacht falsch)
+const today = localDate()
 
 test('Ausgabe in Franken: EZB-Kurs automatisch, offline gespeicherter Kurs, Landeswährung vorgeschlagen', async ({ page, context }) => {
   let calls = 0

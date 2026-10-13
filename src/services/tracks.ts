@@ -130,3 +130,32 @@ export function profileSvg(points: readonly PlainPoint[], opts: { width?: number
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-profile" role="img" aria-label="Höhenprofil von ${label(minE)} bis ${label(maxE)}"><path d="${area}" fill="${color}" opacity=".18"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><line x1="${left}" y1="${H - bottom}" x2="${W - right}" y2="${H - bottom}" stroke="currentColor" opacity=".25"/><g font-size="11" fill="currentColor" opacity=".7" font-family="system-ui,sans-serif"><text x="${left - 6}" y="${y(maxE) + 4}" text-anchor="end">${label(maxE)}</text><text x="${left - 6}" y="${y(minE) + 4}" text-anchor="end">${label(minE)}</text><text x="${left}" y="${H - 5}">0</text><text x="${W - right}" y="${H - 5}" text-anchor="end">${formatDistance(total)}</text></g></svg>`
 }
 
+
+/**
+ * Mehrere Strecken gemeinsam als SVG (Übersichtskarte ohne Hintergrund), jede in ihrer Farbe.
+ * Gleiche Projektion wie trackSvg, damit die Lage der Touren zueinander stimmt.
+ */
+export function routesSvg(routes: readonly { points: readonly PlainPoint[]; color: string }[], opts: { width?: number; height?: number; stroke?: number } = {}): string {
+  const W = opts.width ?? 600
+  const H = opts.height ?? 400
+  const all = routes.flatMap((r) => r.points)
+  const b = bounds(all)
+  if (!b || all.length < 2) return ''
+  const k = Math.cos(rad((b[0][0] + b[1][0]) / 2))
+  const spanX = Math.max((b[1][1] - b[0][1]) * k, 1e-9)
+  const spanY = Math.max(b[1][0] - b[0][0], 1e-9)
+  const pad = 16
+  const scale = Math.min((W - 2 * pad) / spanX, (H - 2 * pad) / spanY)
+  const ox = (W - spanX * scale) / 2
+  const oy = (H - spanY * scale) / 2
+  const xy = (p: PlainPoint) => `${(ox + (p[1] - b[0][1]) * k * scale).toFixed(1)} ${(H - (oy + (p[0] - b[0][0]) * scale)).toFixed(1)}`
+  const sw = opts.stroke ?? 3
+  const paths = routes
+    .filter((r) => r.points.length > 1)
+    .map((r) => {
+      const d = r.points.map((p, i) => `${i ? 'L' : 'M'}${xy(p)}`).join('')
+      return `<path d="${d}" fill="none" stroke="#fff" stroke-width="${sw + 3}" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/><path d="${d}" fill="none" stroke="${safeHex(r.color)}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`
+    })
+    .join('')
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-routes" role="img" aria-label="Übersicht aller Touren">${paths}</svg>`
+}

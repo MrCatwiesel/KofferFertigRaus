@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.23.0 – 2026-10-13
+
+### Neu: Reisebericht als PDF / Fotobuch (Reise → Danach → „Reisebericht (PDF)“)
+- **Titelseite** mit Titelbild (eigenes oder schönstes Foto), Reiseziel, Flaggen, Zeitraum und Mitreisenden
+- **Überblick:** Tage, Einträge, Fotos, Kilometer und Höhenmeter, **Übersichtskarte aller Touren** mit Legende, gebuchte Unterkünfte, auf Wunsch die Ausgaben nach Bereichen
+- **Jeder Tag:** „Tag 2 · Montag, 5. Oktober 2026“, Tagebuch-Text mit Stimmung und Ort, Fotos mit Bildunterschrift, Touren mit Karte und Höhenprofil; Touren ohne Tag am Ende
+- Zwei Arten: **Bericht** (kompakt) und **Fotobuch** (große Fotos, jeder Tag auf neuer Seite); Fotos alle / höchstens 4 / keine, nur Höhepunkte, Bereiche ein- und ausschaltbar
+- **Drucken / als PDF sichern** – sauber auf A4 umbrochen, in den Farben und Schriften des gewählten Designs; alles auf dem Gerät, auch offline
+
 ## 1.22.0 – 2026-10-13
 
 ### Neu: Buchung einlesen

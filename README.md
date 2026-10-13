@@ -113,7 +113,7 @@ dann in der App *Einstellungen → Geräte-Abgleich*.
 
 ## Spenden einrichten
 
-In `src/config.ts` bei `donationUrl` den eigenen Link eintragen (z. B. Ko-fi, Liberapay, GitHub Sponsors). Ist das Feld leer, erscheinen keine Spenden-Hinweise.
+In `src/config.ts` bei `donationUrl` den Link eintragen (z. B. `https://paypal.me/<name>`). Ist das Feld leer, erscheinen keine Spenden-Hinweise.
 
 ## App Store (optional)
 
@@ -121,4 +121,8 @@ Die App ist eine PWA und lässt sich über „Teilen → Zum Home-Bildschirm“ 
 
 ## Lizenz
 
-Noch festzulegen (Vorschlag: AGPL-3.0 oder MIT).
+**GNU Affero General Public License v3.0** (AGPL-3.0, siehe [LICENSE](LICENSE)).
+
+Kurz gesagt: Jeder darf „Nix wie weg“ kostenlos nutzen, verändern und weitergeben – auch selbst betreiben.
+Wer eine **veränderte** Version weitergibt oder für andere als Dienst im Netz betreibt, muss deren Quellcode
+ebenfalls unter der AGPL offenlegen. So bleibt die App frei und niemand kann daraus ein geschlossenes Produkt machen.

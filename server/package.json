@@ -4,9 +4,12 @@
   "private": true,
   "description": "Abgleich-Server für die Reise-App „Nix wie weg“ – ohne Fremdpakete",
   "type": "module",
-  "engines": { "node": ">=22.13" },
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "start": "node server.mjs",
     "test": "node --test"
-  }
+  },
+  "license": "AGPL-3.0-only"
 }

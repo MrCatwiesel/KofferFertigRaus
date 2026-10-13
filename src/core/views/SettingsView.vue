@@ -138,8 +138,8 @@ async function persist() {
     <div class="card-body">
       <h2 class="h5">Über „{{ APP_CONFIG.name }}“</h2>
       <p class="small text-body-secondary">
-        Version {{ APP_VERSION }} · Freie Software, entwickelt in der Freizeit. Kostenlos, ohne Werbung, ohne Konto –
-        deine Daten bleiben auf deinem Gerät.
+        Version {{ APP_VERSION }} · Freie Software unter der <a :href="APP_CONFIG.licenseUrl" target="_blank" rel="noopener">{{ APP_CONFIG.license }}</a>,
+        entwickelt in der Freizeit. Kostenlos, ohne Werbung, ohne Konto – deine Daten bleiben auf deinen Geräten bzw. deinem eigenen Server.
       </p>
       <div class="d-flex flex-wrap gap-2">
         <a v-if="APP_CONFIG.donationUrl" :href="APP_CONFIG.donationUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger">
@@ -150,7 +150,8 @@ async function persist() {
         </a>
       </div>
       <p class="small text-body-secondary mt-3 mb-0">
-        Dienste: Wetter von Open-Meteo.com (CC BY 4.0), Karten und Adresssuche © OpenStreetMap-Mitwirkende (ODbL).
+        Dienste: Wetter und Höhen von Open-Meteo.com (CC BY 4.0) · Karten, Adresssuche und Wanderwege © OpenStreetMap-Mitwirkende (ODbL) ·
+        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData).
       </p>
     </div>
   </section>

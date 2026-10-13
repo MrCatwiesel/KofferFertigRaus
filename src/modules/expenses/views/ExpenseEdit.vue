@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { formatMoney } from '@/core/format'
 import { resizeBlob } from '@/services/images'
@@ -7,6 +7,10 @@ import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/
 import { expenseRepository } from '../repository'
 import { defaultExpenseDate, emptyExpenseDraft, inTripCurrency, validateExpense } from '../logic'
 import { CURRENCIES, EXPENSE_CATEGORY, type ExpenseDraft } from '../types'
+import { currencyName, currencyOf } from '@/core/countries'
+import { todayIso } from '@/core/dates'
+import { getMeta, setMeta } from '@/core/meta'
+import { getRate, type Rate } from '@/services/exchange'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -20,17 +24,58 @@ const listPath = computed(() => `/trip/${props.tripId}/ausgaben`)
 const tripCurrency = computed(() => trip.value?.currency ?? 'EUR')
 const people = computed(() => participantsOf(trip.value))
 
+/** Landeswährungen der Zielländer (z. B. CHF) – stehen in der Auswahl oben */
+const localCurrencies = computed(() => [...new Set((trip.value?.countries ?? []).map(currencyOf).filter((c): c is string => !!c && c !== tripCurrency.value))])
+const currencyOptions = computed(() => [...new Set([tripCurrency.value, ...localCurrencies.value, draft.currency, ...CURRENCIES])].filter(Boolean))
+const lastCurrencyKey = computed(() => `ausgaben.waehrung.${props.tripId}`)
+
+// Kurs: automatisch (EZB) für den Tag der Ausgabe, solange er nicht von Hand geändert wurde
+const rateInfo = ref<Rate | null>(null)
+const rateState = ref<'' | 'laedt' | 'fehlt'>('')
+const rateTouched = ref(false)
+const ready = ref(false)
+
+async function loadRate(force = false) {
+  if (draft.currency === tripCurrency.value || (rateTouched.value && !force)) return
+  rateState.value = 'laedt'
+  const r = await getRate(draft.currency, tripCurrency.value, draft.date || todayIso(), todayIso())
+  rateInfo.value = r
+  rateState.value = r ? '' : 'fehlt'
+  if (r) {
+    draft.rate = Math.round(r.rate * 1e6) / 1e6
+    rateTouched.value = false
+  }
+}
+watch(() => [draft.currency, draft.date], () => ready.value && void loadRate())
+const rateHint = computed(() => {
+  if (rateState.value === 'laedt') return 'Kurs wird abgefragt …'
+  if (rateState.value === 'fehlt') return `Kein EZB-Kurs für ${draft.currency} verfügbar – bitte Kurs eintragen (z. B. vom Kontoauszug oder Wechselbeleg).`
+  if (rateTouched.value || !rateInfo.value) return ''
+  const d = rateInfo.value.date.split('-').reverse().join('.')
+  return `EZB-Referenzkurs vom ${d}${rateInfo.value.cached ? ' (gespeichert, offline)' : ''}`
+})
+
 onMounted(async () => {
   trip.value = await tripRepository.get(props.tripId)
   if (!trip.value) return router.replace('/trip')
   if (!props.id) {
-    Object.assign(draft, emptyExpenseDraft({ date: defaultExpenseDate(trip.value.startDate, trip.value.endDate), currency: trip.value.currency }))
+    // Währung: zuletzt benutzte dieser Reise – sonst während der Reise die Landeswährung
+    const last = await getMeta<string>(lastCurrencyKey.value, '')
+    const running = defaultExpenseDate(trip.value.startDate, trip.value.endDate) === todayIso()
+    const currency = last || (running && localCurrencies.value.length === 1 ? localCurrencies.value[0] : trip.value.currency)
+    Object.assign(draft, emptyExpenseDraft({ date: defaultExpenseDate(trip.value.startDate, trip.value.endDate), currency }))
+    await nextTick() // erst danach auf Änderungen von Währung/Datum reagieren
+    ready.value = true
+    await loadRate()
     return
   }
   const item = await expenseRepository.get(props.id)
   if (!item) return router.replace(listPath.value)
   const { id: _i, tripId: _t, createdAt: _c, updatedAt: _u, ...rest } = item
   Object.assign(draft, { ...rest, splitAmong: [...rest.splitAmong] })
+  rateTouched.value = true // gespeicherten Kurs behalten
+  await nextTick()
+  ready.value = true
 })
 
 watch(
@@ -82,6 +127,7 @@ async function save() {
   }
   if (props.id) await expenseRepository.update(props.id, plain)
   else await expenseRepository.create(props.tripId, plain)
+  await setMeta(lastCurrencyKey.value, plain.currency)
   router.push(listPath.value)
 }
 
@@ -105,15 +151,21 @@ async function remove() {
     <div class="col-5 col-md-3">
       <label for="cur" class="form-label">Währung</label>
       <select id="cur" v-model="draft.currency" class="form-select form-select-lg">
-        <option v-for="c in [...new Set([tripCurrency, ...CURRENCIES])]" :key="c">{{ c }}</option>
+        <option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}{{ localCurrencies.includes(c) ? ` – ${currencyName(c)}` : '' }}</option>
       </select>
     </div>
     <div v-if="draft.currency !== tripCurrency" class="col-12 col-md-5">
       <label for="rate" class="form-label">Kurs: 1 {{ draft.currency }} = … {{ tripCurrency }}</label>
-      <input id="rate" v-model.number="draft.rate" type="number" inputmode="decimal" min="0" step="0.0001" class="form-control"
-             :class="{ 'is-invalid': submitted && errors.rate }" />
-      <div class="invalid-feedback">{{ errors.rate }}</div>
-      <div v-if="converted" class="form-text">= {{ converted }}</div>
+      <div class="input-group">
+        <input id="rate" v-model.number="draft.rate" type="number" inputmode="decimal" min="0" step="0.000001" class="form-control"
+               :class="{ 'is-invalid': submitted && errors.rate }" @input="rateTouched = true" />
+        <button type="button" class="btn btn-outline-secondary" title="EZB-Kurs für diesen Tag holen" aria-label="EZB-Kurs holen" @click="loadRate(true)">
+          <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+        </button>
+      </div>
+      <div class="invalid-feedback d-block">{{ submitted ? errors.rate : '' }}</div>
+      <div v-if="rateHint" class="form-text" data-rate-hint>{{ rateHint }}</div>
+      <div v-if="converted" class="form-text fw-semibold" data-converted>= {{ converted }}</div>
     </div>
 
     <div class="col-12 col-md-8">

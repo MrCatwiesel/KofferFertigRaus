@@ -151,7 +151,8 @@ async function persist() {
       </div>
       <p class="small text-body-secondary mt-3 mb-0">
         Dienste: Wetter und Höhen von Open-Meteo.com (CC BY 4.0) · Karten, Adresssuche und Wanderwege © OpenStreetMap-Mitwirkende (ODbL) ·
-        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData).
+        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData) ·
+        Wechselkurse: EZB-Referenzkurse über Frankfurter.
       </p>
     </div>
   </section>

@@ -34,4 +34,4 @@ export const EXPENSE_CATEGORY: Record<ExpenseCategory, { label: string; icon: st
   sonstiges: { label: 'Sonstiges', icon: 'three-dots', color: '#94a3b8' }
 }
 
-export const CURRENCIES = ['EUR', 'CHF', 'USD', 'GBP', 'DKK', 'SEK', 'NOK', 'PLN', 'CZK', 'HUF', 'HRK', 'TRY', 'THB', 'JPY']
+export const CURRENCIES = ['EUR', 'CHF', 'USD', 'GBP', 'DKK', 'SEK', 'NOK', 'ISK', 'PLN', 'CZK', 'HUF', 'RON', 'TRY', 'THB', 'JPY', 'AUD', 'CAD', 'MAD', 'EGP', 'AED']

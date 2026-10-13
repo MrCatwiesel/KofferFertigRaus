@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.20.0 – 2026-10-13
+
+### Neu: Fremdwährung bei Ausgaben
+- **Kurs automatisch:** Bei Ausgaben in fremder Währung holt die App den offiziellen EZB-Referenzkurs für den Tag der Ausgabe (über Frankfurter, kostenlos) und rechnet sofort in die Reisewährung um. Von Hand änderbar, Knopf zum Neu-Holen
+- **Offline:** Abgerufene Kurse bleiben gespeichert – ohne Netz nimmt die App den nächstliegenden bekannten Kurs (gekennzeichnet)
+- **Landeswährung vorgeschlagen:** Die Währungen der Zielländer stehen oben in der Auswahl (z. B. „CHF – Schweizer Franken“); während der Reise ist sie vorausgewählt, danach die zuletzt benutzte
+- Währungen ohne EZB-Kurs (z. B. Marokko, Ägypten): Hinweis, Kurs bitte von Hand eintragen
+- Währungsliste aktualisiert (Kroatien und Bulgarien zahlen mit Euro)
+
 ## 1.19.0 – 2026-10-13
 
 ### Neu: Packliste denkt mit

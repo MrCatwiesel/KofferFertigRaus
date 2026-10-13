@@ -1,5 +1,19 @@
 # Änderungsprotokoll
 
+## 1.25.0 – 2026-10-14 (Server 1.15.0)
+
+### Sicherheit und Zuverlässigkeit (unabhängige Code-Prüfung)
+- **Server:** Hochgeladene Dateien werden nur noch als Bild, Ton, PDF oder Routendatei angenommen und nie als Webseite ausgeliefert (vorher hätte ein Mitglied einer anderen Reisegruppe über einen Lese-Link Code einschleusen können). Lese-Links zeigen öffentlich nur echte Bilder
+- **Gesperrte oder gelöschte Reisegruppen:** Lese-Links und Kalender-Abo gelten sofort nicht mehr; beim Löschen wird das Abo entfernt
+- **Schutz vor Rateversuchen hinter dem Heim-Proxy:** Absender-Adresse wird korrekt ermittelt (vorgetäuschte Angaben zählen nicht); niemand kann andere durch Falscheingaben aussperren – wer den richtigen Zugang hat, kommt immer durch. Falsche Passwörter bei Lese-Links sperren nur den Rater selbst
+- **Abgleich bleibt nicht mehr hängen:** Eine zu große Datei (über 30 MB) oder eine auf dem Server fehlende Datei hält nicht mehr den ganzen Abgleich an – Hinweis unter Geräte-Abgleich, alles andere läuft weiter
+- **Keine verlorenen Änderungen:** Wer genau während eines Abgleichs etwas ändert, behält die eigene Änderung (vorher konnte sie in seltenen Fällen überschrieben werden oder nicht hochgeladen werden)
+- **Falsch gehende Uhren** blockieren keine späteren Änderungen mehr
+- **Sicherung einlesen:** danach gleicht das Gerät einmal komplett ab – anderswo gelöschte Einträge verschwinden wieder
+- Vorschau der Reise-Webseite und Belege: eingeschleuste Inhalte können nichts mehr ausführen
+- Lese-Links: Ort nur, wenn er auf der Seite gezeigt wird; schneller bei vielen Fotos; Zwischenspeicher des Servers begrenzt
+- **Spenden-Knopf** jetzt auch oben in den Einstellungen
+
 ## 1.24.1 – 2026-10-13
 
 - **Spenden:** Link zu PayPal unter Einstellungen → Über und als kleiner Hinweis nach dem Erstellen einer Reise-Webseite; „Sponsor“-Knopf auf GitHub

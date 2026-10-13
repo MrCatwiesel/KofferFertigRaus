@@ -67,7 +67,8 @@ export function longDate(iso: string): string {
 
 /** <img> mit Größenangaben (verhindert Springen beim Laden), lazy und mit Lightbox-Markierung. */
 export function img(p: SitePhoto, cls = '', eager = false): string {
-  return `<img src="${p.src}" alt="${esc(p.caption)}" width="${p.width}" height="${p.height}"${cls ? ` class="${cls}"` : ''} loading="${eager ? 'eager' : 'lazy'}" decoding="async" data-lb>`
+  // Maße als Zahl, Adresse maskiert: Daten können von anderen Geräten kommen
+  return `<img src="${esc(p.src)}" alt="${esc(p.caption)}" width="${Math.round(Number(p.width)) || 0}" height="${Math.round(Number(p.height)) || 0}"${cls ? ` class="${cls}"` : ''} loading="${eager ? 'eager' : 'lazy'}" decoding="async" data-lb>`
 }
 
 export interface EntryInput {

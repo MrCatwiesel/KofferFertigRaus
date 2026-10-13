@@ -62,7 +62,12 @@ async function persist() {
 </script>
 
 <template>
-  <h1 class="h3 mb-3">Einstellungen</h1>
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+    <h1 class="h3 mb-0">Einstellungen</h1>
+    <a v-if="APP_CONFIG.donationUrl" :href="APP_CONFIG.donationUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" data-donate>
+      <i class="bi bi-heart-fill me-1" aria-hidden="true"></i>Unterstützen
+    </a>
+  </div>
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
 

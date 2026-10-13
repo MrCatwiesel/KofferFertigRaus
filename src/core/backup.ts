@@ -1,3 +1,5 @@
+import { getMeta, setMeta } from './meta'
+import { safeBlobType } from './blob-types'
 import { db } from './db'
 import { decide, emptyStats, type MergeStats } from './merge'
 import { DATA_TABLES } from './tables'
@@ -34,7 +36,7 @@ function blobToDataUrl(blob: Blob): Promise<string> {
 /** data:-URL → Blob, ohne Netzwerk (funktioniert offline). */
 export function dataUrlToBlob(dataUrl: string): Blob {
   const [head, data] = dataUrl.split(',', 2)
-  const type = head.match(/^data:([^;]+)/)?.[1] ?? 'application/octet-stream'
+  const type = safeBlobType(head.match(/^data:([^;,]+)/)?.[1])
   if (head.includes(';base64')) {
     const bin = atob(data)
     const bytes = new Uint8Array(bin.length)
@@ -123,6 +125,9 @@ export async function importBackup(file: BackupFile): Promise<MergeStats> {
       if (toPut.length) await table.bulkPut(toPut)
     }
   })
+  // Beim nächsten Abgleich alles noch einmal vom Server holen: dort gelöschte Einträge, die mit der Sicherung
+  // wieder hereingekommen sind, werden dann auch hier wieder entfernt (sonst lebten sie nur auf diesem Gerät weiter)
+  if (await getMeta<number>('sync.lastSeq', 0)) await setMeta('sync.lastSeq', 0)
   return stats
 }
 

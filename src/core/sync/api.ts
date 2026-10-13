@@ -31,6 +31,19 @@ export async function loginDevice(
 }
 
 /** Netzwerkzugriff auf den Abgleich-Server. */
+/** Fehler mit HTTP-Status – 4xx bedeutet „dauerhaft“ (Wiederholen hilft nicht), z. B. Datei zu groß */
+export class SyncHttpError extends Error {
+  constructor(
+    message: string,
+    readonly status: number
+  ) {
+    super(message)
+  }
+  get permanent(): boolean {
+    return this.status >= 400 && this.status < 500 && this.status !== 408 && this.status !== 429
+  }
+}
+
 export class SyncApi {
   constructor(
     private readonly server: string,
@@ -72,7 +85,7 @@ export class SyncApi {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ changes })
     })
-    if (!res.ok) throw new Error(`Hochladen fehlgeschlagen (${res.status}).`)
+    if (!res.ok) throw new SyncHttpError(`Hochladen fehlgeschlagen (${res.status}).`, res.status)
     return res.json()
   }
 
@@ -89,12 +102,12 @@ export class SyncApi {
 
   async putBlob(hash: string, blob: Blob): Promise<void> {
     const res = await this.request(`/api/blob/${hash}`, { method: 'PUT', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob })
-    if (!res.ok) throw new Error(`Foto-Upload fehlgeschlagen (${res.status}).`)
+    if (!res.ok) throw new SyncHttpError(res.status === 413 ? 'Datei zu groß für den Server.' : `Foto-Upload fehlgeschlagen (${res.status}).`, res.status)
   }
 
   async getBlob(hash: string): Promise<Blob> {
     const res = await this.request(`/api/blob/${hash}`)
-    if (!res.ok) throw new Error(`Foto konnte nicht geladen werden (${res.status}).`)
+    if (!res.ok) throw new SyncHttpError(`Foto konnte nicht geladen werden (${res.status}).`, res.status)
     return res.blob()
   }
 }

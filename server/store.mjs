@@ -77,7 +77,11 @@ export function createStore(dataDir) {
       let ignored = 0
       db.exec('BEGIN')
       try {
+        // Zeitstempel weit in der Zukunft (falsch gehende Uhr) würden jede spätere Änderung blockieren → auf jetzt kürzen
+        const limit = new Date(Date.now() + 5 * 60_000).toISOString()
+        const nowIso = new Date().toISOString()
         for (const c of changes) {
+          if (c && typeof c.stamp === 'string' && c.stamp > limit && c.stamp.length <= 40) c.stamp = nowIso
           if (!c || !TABLE_RE.test(c.tbl) || typeof c.id !== 'string' || !c.id || c.id.length > 200) throw new HttpError(400, 'Ungültige Änderung')
           if (typeof c.stamp !== 'string' || !c.stamp || c.stamp.length > 40) throw new HttpError(400, 'Ungültiger Zeitstempel')
           const existing = q.get.get(space, c.tbl, c.id)

@@ -9,7 +9,8 @@
  */
 import { createHmac, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto'
 import { createReadStream } from 'node:fs'
-import { HttpError, readJson, send } from './http.mjs'
+import { HttpError, blobHeaders, readJson, send } from './http.mjs'
+import { clientIp } from './devices.mjs'
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{22}$/
 const MODES = new Set(['highlights', 'journal'])
@@ -124,7 +125,7 @@ function expiryFrom(days) {
   return new Date(Date.now() + n * 86400_000).toISOString()
 }
 
-export function createShares(store) {
+export function createShares(store, groups = null) {
   const { db } = store
   const secret = store.secret('share-secret')
   const fails = new Map()
@@ -166,18 +167,23 @@ export function createShares(store) {
     if (!row) throw new HttpError(404, 'Link nicht gefunden.')
     if (row.revoked) throw new HttpError(410, 'Dieser Link wurde zurückgezogen.')
     if (row.expires && row.expires < new Date().toISOString()) throw new HttpError(410, 'Dieser Link ist abgelaufen.')
+    // Gesperrte oder gelöschte Reisegruppe: ihre Links gelten nicht mehr
+    if (groups && !groups.get(row.space) || groups?.get(row.space)?.disabled) throw new HttpError(410, 'Dieser Link gilt nicht mehr.')
     if (row.pw_hash) {
       if (allowTicket && ticketValid(token, url.searchParams.get('t'))) return row
-      const f = fails.get(token)
+      // Fehlversuche je Link und Gegenstelle – wer falsch rät, sperrt nur sich selbst aus
+      const fk = `${token}|${clientIp(req)}`
+      const f = fails.get(fk)
       if (f && f.until > Date.now()) throw new HttpError(429, 'Zu viele Versuche – bitte kurz warten.')
       const pw = req.headers['x-share-password']
       if (!pw) throw new HttpError(401, 'Passwort nötig.', { needPassword: true })
       if (!checkPassword(pw, row.pw_hash)) {
         const n = (f?.n ?? 0) + 1
-        fails.set(token, { n, until: n >= 5 ? Date.now() + 60_000 * (n - 4) : 0 })
+        fails.set(fk, { n, until: n >= 5 ? Date.now() + 60_000 * (n - 4) : 0 })
+        if (fails.size > 5000) fails.delete(fails.keys().next().value)
         throw new HttpError(401, 'Passwort falsch.', { needPassword: true })
       }
-      fails.delete(token)
+      fails.delete(fk)
     }
     return row
   }
@@ -188,6 +194,7 @@ export function createShares(store) {
     const trip = store.record(row.space, 'trips', row.trip_id)
     if (!trip) throw new HttpError(404, 'Diese Reise gibt es nicht mehr.')
     const site = store.record(row.space, 'websites', row.trip_id)
+    const look = opts.look ?? cleanLook(site) ?? cleanLook({})
     const photos = new Map(opts.photos ? store.byTrip(row.space, 'photos', row.trip_id).map((p) => [p.id, p]) : [])
     const entries = store
       .byTrip(row.space, 'journalEntries', row.trip_id)
@@ -197,7 +204,7 @@ export function createShares(store) {
         title: String(e.title ?? ''),
         text: String(e.text ?? ''),
         mood: Number(e.mood) || 0,
-        location: String(e.location ?? ''),
+        location: look.showLocation ? String(e.location ?? '') : '',
         highlight: !!e.highlight,
         createdAt: String(e.createdAt ?? ''),
         photos: (e.photoIds ?? [])
@@ -206,7 +213,6 @@ export function createShares(store) {
           .map((p) => ({ id: p.id, width: Number(p.width) || 0, height: Number(p.height) || 0, caption: String(p.caption ?? '') }))
       }))
     const routes = opts.routes === false ? [] : store.byTrip(row.space, 'routes', row.trip_id).filter((r) => r.showInShare).map(publicRoute).filter((r) => r.points.length >= 2)
-    const look = opts.look ?? cleanLook(site) ?? cleanLook({})
     const stays = opts.stays ? chooseStays(store.byTrip(row.space, 'accommodations', row.trip_id)).map((a) => publicStay(a, !!opts.stayDetails)).filter((a) => a.name) : []
     const activities = opts.activities
       ? chooseActivities(store.byTrip(row.space, 'activities', row.trip_id)).map((a) => publicActivity(a, look.showLocation)).filter((a) => a.title)
@@ -226,9 +232,15 @@ export function createShares(store) {
     }
   }
 
-  /** Fotos dieses Links: nur aus den freigegebenen Einträgen. */
+  /** Fotos dieses Links: nur aus den freigegebenen Einträgen (kurz zwischengespeichert – eine Galerie fragt viele Fotos ab). */
+  const photoCache = new Map()
   function allowedPhotoIds(row) {
-    return new Set(content(row).entries.flatMap((e) => e.photos.map((p) => p.id)))
+    const hit = photoCache.get(row.token)
+    if (hit && hit.at > Date.now() - 60_000) return hit.ids
+    const ids = new Set(content(row).entries.flatMap((e) => e.photos.map((p) => p.id)))
+    if (photoCache.size > 500) photoCache.delete(photoCache.keys().next().value)
+    photoCache.set(row.token, { at: Date.now(), ids })
+    return ids
   }
 
   return {
@@ -290,12 +302,9 @@ export function createShares(store) {
       const ref = url.searchParams.get('size') === 'thumb' ? photo?.thumb : photo?.full
       const meta = ref?.__blobRef ? store.blobMeta(row.space, ref.__blobRef) : null
       if (!meta) throw new HttpError(404, 'Foto ist noch nicht auf dem Server.')
-      res.writeHead(200, {
-        'Content-Type': meta.type,
-        'Content-Length': String(meta.size),
-        'Cache-Control': 'private, max-age=86400',
-        'X-Content-Type-Options': 'nosniff'
-      })
+      // Öffentlich nur echte Bilder ausliefern – nie etwas, das der Browser als Seite ausführen würde
+      if (!/^image\/(jpeg|png|webp|gif|avif)$/.test(meta.type)) throw new HttpError(404, 'Foto nicht gefunden.')
+      res.writeHead(200, { ...blobHeaders(meta.type, meta.size), 'Cache-Control': 'private, max-age=86400' })
       if (req.method === 'HEAD') return res.end()
       return createReadStream(meta.path).pipe(res)
     }

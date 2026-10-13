@@ -19,7 +19,7 @@ import { HttpError, readBody, send } from './http.mjs'
 const MAX = 2 * 1024 * 1024
 const TOKEN_RE = /^[A-Za-z0-9_-]{22,64}$/
 
-export function createKalender(dataDir) {
+export function createKalender(dataDir, groups = null) {
   const dir = join(dataDir, 'kalender')
   mkdirSync(dir, { recursive: true })
   const tokensFile = join(dir, 'tokens.json')
@@ -42,7 +42,10 @@ export function createKalender(dataDir) {
     /** Öffentlicher Abruf über die geheime Adresse */
     handlePublic(req, res, path) {
       const m = path.match(/^\/api\/kalender\/([^/]+)\.ics$/)
-      if (!m || !TOKEN_RE.test(m[1]) || !tokens[m[1]]) throw new HttpError(404, 'Kalender nicht gefunden.')
+      if (!m || !TOKEN_RE.test(m[1]) || !Object.hasOwn(tokens, m[1])) throw new HttpError(404, 'Kalender nicht gefunden.')
+      // Gesperrte oder gelöschte Reisegruppe: Abo liefert nichts mehr
+      const grp = groups?.get(tokens[m[1]])
+      if (groups && (!grp || grp.disabled)) throw new HttpError(404, 'Kalender nicht gefunden.')
       const f = fileOf(tokens[m[1]])
       const body = existsSync(f)
         ? readFileSync(f)
@@ -54,6 +57,17 @@ export function createKalender(dataDir) {
         'X-Content-Type-Options': 'nosniff'
       })
       return res.end(req.method === 'HEAD' ? undefined : body)
+    },
+
+    /** Reisegruppe gelöscht: Abo-Adresse und Kalenderdatei entfernen */
+    removeSpace(space) {
+      let changed = false
+      for (const t of Object.keys(tokens)) if (tokens[t] === space) {
+        delete tokens[t]
+        changed = true
+      }
+      if (changed) save()
+      rmSync(fileOf(space), { force: true })
     },
 
     async handle(req, res, path, space) {

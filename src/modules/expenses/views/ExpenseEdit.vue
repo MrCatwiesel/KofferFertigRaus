@@ -86,6 +86,8 @@ watch(
   }
 )
 onUnmounted(() => receiptUrl.value && URL.revokeObjectURL(receiptUrl.value))
+/** Nur Bilder direkt öffnen – andere Dateiarten (z. B. aus fremden Quellen) nur herunterladen */
+const receiptViewable = computed(() => !!draft.receipt && /^image\//.test(draft.receipt.type))
 
 const num = (v: unknown) => (typeof v === 'number' && !Number.isNaN(v) ? v : 0)
 const errors = computed(() => validateExpense({ ...draft, amount: num(draft.amount), rate: num(draft.rate) }, tripCurrency.value))
@@ -213,7 +215,8 @@ async function remove() {
     <div class="col-12">
       <label class="form-label d-block">Beleg</label>
       <div v-if="receiptUrl" class="d-flex align-items-start gap-2 mb-2">
-        <a :href="receiptUrl" target="_blank" rel="noopener"><img :src="receiptUrl" alt="Beleg" class="receipt" /></a>
+        <a v-if="receiptViewable" :href="receiptUrl" target="_blank" rel="noopener"><img :src="receiptUrl" alt="Beleg" class="receipt" /></a>
+        <a v-else :href="receiptUrl" download="beleg" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1" aria-hidden="true"></i>Beleg herunterladen</a>
         <button type="button" class="btn btn-sm btn-outline-danger" @click="draft.receipt = null">Entfernen</button>
       </div>
       <label class="btn btn-outline-secondary">

@@ -166,6 +166,11 @@ async function copyKey() {
         </div>
         <button type="button" class="btn btn-outline-primary" :disabled="syncState.running || !online" @click="syncNow()">Jetzt</button>
       </div>
+      <div v-if="syncState.warnings.length" class="alert alert-warning small py-2 mt-3 mb-0">
+        <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Nicht alles konnte abgeglichen werden – der Rest läuft normal weiter:</div>
+        <ul class="mb-1 ps-3"><li v-for="w in syncState.warnings" :key="w">{{ w }}</li></ul>
+        <button type="button" class="btn btn-link btn-sm p-0" @click="syncState.warnings = []">Hinweise ausblenden</button>
+      </div>
     </div>
   </div>
 

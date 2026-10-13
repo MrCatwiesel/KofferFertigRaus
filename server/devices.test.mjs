@@ -41,6 +41,9 @@ test('Hilfen: Codes, Adresse hinter dem Proxy, Gerätetyp', () => {
   // Proxy im Heimnetz → weitergereichte Adresse; direkte Verbindung von außen → Kopfzeile ignorieren
   assert.equal(clientIp({ socket: { remoteAddress: '192.168.5.33' }, headers: { 'x-forwarded-for': '93.1.2.3, 10.0.0.1' } }), '93.1.2.3')
   assert.equal(clientIp({ socket: { remoteAddress: '93.9.9.9' }, headers: { 'x-forwarded-for': '1.2.3.4' } }), '93.9.9.9')
+  // Vorgetäuschte Einträge vorne zählen nicht; Kette Heim-Proxy → nginx
+  assert.equal(clientIp({ socket: { remoteAddress: '127.0.0.1' }, headers: { 'x-forwarded-for': '6.6.6.6, 93.1.2.3, 192.168.5.33' } }), '93.1.2.3')
+  assert.equal(clientIp({ socket: { remoteAddress: '127.0.0.1' }, headers: { 'x-forwarded-for': '192.168.5.50, 192.168.5.33' } }), '192.168.5.50')
   assert.equal(agentLabel('Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1'), 'iPad · Safari')
   assert.equal(agentLabel('Mozilla/5.0 (Linux; Android 15) AppleWebKit/537.36 Chrome/130.0 Mobile Safari/537.36'), 'Android · Chrome')
 })
@@ -123,9 +126,10 @@ test('Neuer Gruppenschlüssel: alter gilt nicht mehr, Geräte bleiben angemeldet
 test('Viele Fehlversuche → kurze Sperre für diese Adresse', async () => {
   const ip = { 'X-Forwarded-For': '203.0.113.7' } // Test läuft über 127.0.0.1 → gilt als Proxy im eigenen Netz
   for (let i = 0; i < 20; i++) await call('GET', '/api/info', `nwd_${'x'.repeat(32)}`, null, ip)
-  const locked = await call('GET', '/api/info', KEY, null, ip)
-  assert.equal(locked.status, 429)
-  assert.equal((await call('GET', '/api/info', KEY, null, { 'X-Forwarded-For': '203.0.113.8' })).status, 200, 'andere Adresse nicht betroffen')
+  const locked = await call('GET', '/api/info', `nwd_${'y'.repeat(32)}`, null, ip)
+  assert.equal(locked.status, 429, 'weitere Rateversuche gesperrt')
+  assert.equal((await call('GET', '/api/info', KEY, null, ip)).status, 200, 'mit gültigem Zugang kommt man trotzdem durch (niemand kann andere aussperren)')
+  assert.equal((await call('GET', '/api/info', `nwd_${'y'.repeat(32)}`, null, { 'X-Forwarded-For': '203.0.113.8' })).status, 401, 'andere Adresse nicht betroffen')
 })
 
 test('Lange nicht benutzte Geräte werden abgemeldet', async () => {

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { route, seed, trip } from './helpers'
 
-const plus = (days: number) => new Date(Date.now() + days * 86400_000).toISOString().slice(0, 10)
+const plus = (days: number) => new Date(Date.now() + days * 86400_000).toLocaleDateString('sv-SE')
 
 test('Packliste: Vorschläge nach Wetter der Vorjahre, Zielland und Routen', async ({ page }) => {
   // Ortssuche und Wetterarchiv (Open-Meteo) nachbauen: kalt und nass

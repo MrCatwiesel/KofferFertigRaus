@@ -21,7 +21,7 @@ import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { Readable } from 'node:stream'
 import { pathToFileURL } from 'node:url'
-import { HttpError, corsFor, readBody, readJson, send } from './http.mjs'
+import { HttpError, blobHeaders, corsFor, readBody, readJson, safeBlobType, send } from './http.mjs'
 import { HASH_RE, createStore, sha256 } from './store.mjs'
 import { createGroups } from './groups.mjs'
 import { createShares } from './shares.mjs'
@@ -35,7 +35,7 @@ import { createReiseinfo } from './reiseinfo.mjs'
 import { createKalender } from './kalender.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.14.0'
+export const VERSION = '1.15.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -54,12 +54,12 @@ export function createSyncServer(opts) {
     store.close()
     throw e
   }
-  const shares = createShares(store)
+  const shares = createShares(store, groups)
   const devices = createDevices(store, groups, { idleDays: opts.deviceIdleDays })
   const backupAdmin = createBackupAdmin(resolve(opts.dataDir))
   const routing = createRouting({ ...(opts.routing ?? {}), version: VERSION })
   const reiseinfo = createReiseinfo({ ...(opts.reiseinfo ?? {}), version: VERSION })
-  const kalender = createKalender(resolve(opts.dataDir))
+  const kalender = createKalender(resolve(opts.dataDir), groups)
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -175,11 +175,7 @@ export function createSyncServer(opts) {
         res.writeHead(404)
         return res.end()
       }
-      res.writeHead(200, {
-        'Content-Type': meta.type,
-        'Content-Length': String(meta.size),
-        'Cache-Control': 'private, max-age=31536000, immutable'
-      })
+      res.writeHead(200, { ...blobHeaders(meta.type, meta.size), 'Cache-Control': 'private, max-age=31536000, immutable' })
       if (req.method === 'HEAD') return res.end()
       return createReadStream(meta.path).pipe(res)
     }
@@ -187,7 +183,7 @@ export function createSyncServer(opts) {
       if (meta) return send(res, 200, { ok: true, existed: true })
       const body = await readBody(req, maxBlob)
       if (!HASH_RE.test(hash) || sha256(body) !== hash) throw new HttpError(400, 'Prüfsumme stimmt nicht.')
-      store.putBlob(space, hash, String(req.headers['content-type'] ?? 'application/octet-stream').slice(0, 100), body)
+      store.putBlob(space, hash, safeBlobType(req.headers['content-type']), body)
       return send(res, 201, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')
@@ -213,6 +209,7 @@ export function createSyncServer(opts) {
       groups.remove(m[1])
       maps.removeSpace(m[1])
       devices.removeSpace(m[1])
+      kalender.removeSpace(m[1])
       return send(res, 200, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')

@@ -2,7 +2,8 @@ import { reactive } from 'vue'
 import { db, onLocalChange, type OutboxEntry } from '../db'
 import { deleteMeta, getMeta, setMeta } from '../meta'
 import { DATA_TABLES } from '../tables'
-import { DeviceRevokedError, SyncApi, hashBlob, loginDevice } from './api'
+import { DeviceRevokedError, SyncApi, SyncHttpError, hashBlob, loginDevice } from './api'
+import { safeBlobType } from '../blob-types'
 import { asRemote, markRemote } from './tracking'
 import { applyAction, defaultDeviceName, isBlobRef, isInviteCode, normalizeInviteCode, uploadStamp, type RemoteChange } from './logic'
 import Dexie from 'dexie'
@@ -19,8 +20,18 @@ export const syncState = reactive({
   /** Name dieses Geräts beim Server (eigener Gerätezugang) – leer bei Anmeldung mit Gruppenschlüssel */
   device: null as { id: string; name: string } | null,
   /** Grund, falls dieses Gerät abgemeldet wurde – dann ruht der Abgleich */
-  revoked: ''
+  revoked: '',
+  /** Einzelne Einträge, die nicht vollständig abgeglichen werden konnten (der Rest läuft weiter) */
+  warnings: [] as string[]
 })
+
+/** Höchstgröße einer Datei für den Server (Standard des Servers: 30 MB) */
+const MAX_BLOB_BYTES = 30 * 1024 * 1024
+
+function warn(text: string) {
+  if (!syncState.warnings.includes(text)) syncState.warnings = [...syncState.warnings, text].slice(-20)
+}
+const label = (tbl: string, row: Record<string, unknown> | undefined) => String(row?.name ?? row?.title ?? row?.filename ?? row?.caption ?? '') || tbl
 
 const META = {
   server: 'sync.server',
@@ -141,13 +152,26 @@ async function enqueueAll(): Promise<void> {
 }
 
 /** Ersetzt Bilder durch Verweise und lädt sie hoch, falls der Server sie noch nicht hat. */
-async function encodeForUpload(api: SyncApi, row: Record<string, unknown>, uploaded: Set<string>): Promise<Record<string, unknown>> {
+async function encodeForUpload(api: SyncApi, tbl: string, row: Record<string, unknown>, uploaded: Set<string>): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = { ...row }
   for (const [k, v] of Object.entries(row)) {
     if (!(v instanceof Blob)) continue
+    // Zu große Datei: ohne sie abgleichen (bleibt auf diesem Gerät) – sonst stünde der ganze Abgleich still
+    if (v.size > MAX_BLOB_BYTES) {
+      out[k] = null
+      warn(`„${label(tbl, row)}“: Datei zu groß (${Math.round(v.size / 1048576)} MB) – bleibt nur auf diesem Gerät.`)
+      continue
+    }
     const hash = await hashBlob(v)
     if (!uploaded.has(hash)) {
-      if (!(await api.hasBlob(hash))) await api.putBlob(hash, v)
+      try {
+        if (!(await api.hasBlob(hash))) await api.putBlob(hash, v)
+      } catch (e) {
+        if (!(e instanceof SyncHttpError && e.permanent)) throw e
+        out[k] = null
+        warn(`„${label(tbl, row)}“: ${e.message} – bleibt nur auf diesem Gerät.`)
+        continue
+      }
       uploaded.add(hash)
     }
     out[k] = { __blobRef: hash, type: v.type }
@@ -155,12 +179,21 @@ async function encodeForUpload(api: SyncApi, row: Record<string, unknown>, uploa
   return out
 }
 
-async function decodeFromServer(api: SyncApi, data: Record<string, unknown>): Promise<Record<string, unknown>> {
+async function decodeFromServer(api: SyncApi, tbl: string, data: Record<string, unknown>, local?: Record<string, unknown>): Promise<Record<string, unknown>> {
   const out: Record<string, unknown> = { ...data }
   for (const [k, v] of Object.entries(data)) {
     if (!isBlobRef(v)) continue
-    const blob = await api.getBlob(v.__blobRef)
-    out[k] = blob.type === v.type ? blob : new Blob([blob], { type: v.type })
+    try {
+      const blob = await api.getBlob(v.__blobRef)
+      const type = safeBlobType(v.type)
+      out[k] = blob.type === type ? blob : new Blob([blob], { type })
+    } catch (e) {
+      // Datei fehlt auf dem Server (z. B. nach dem Zurückspielen einer Sicherung ohne Fotos): weitermachen,
+      // vorhandene Fassung hier behalten – sonst bliebe der Abgleich für alle Geräte an dieser Stelle hängen
+      if (!(e instanceof SyncHttpError && e.permanent)) throw e
+      out[k] = local?.[k] instanceof Blob ? local[k] : null
+      warn(`„${label(tbl, data)}“: Datei fehlt auf dem Server.`)
+    }
   }
   return out
 }
@@ -177,12 +210,27 @@ async function pushOutbox(api: SyncApi): Promise<void> {
       const row = (await db.table(e.tbl).get(e.id)) as Record<string, unknown> | undefined
       if (row) {
         if (Object.values(row).some((v) => v instanceof Blob)) syncState.progress = `Lade Fotos hoch (${++photos}) …`
-        changes.push({ tbl: e.tbl, id: e.id, stamp: uploadStamp(row, e.at), deleted: false, data: await encodeForUpload(api, row, uploaded) })
+        changes.push({ tbl: e.tbl, id: e.id, stamp: uploadStamp(row, e.at), deleted: false, data: await encodeForUpload(api, e.tbl, row, uploaded) })
       } else {
         changes.push({ tbl: e.tbl, id: e.id, stamp: e.at, deleted: true, data: null })
       }
     }
-    if (changes.length) await api.push(changes)
+    if (changes.length) {
+      try {
+        await api.push(changes)
+      } catch (err) {
+        if (!(err instanceof SyncHttpError && err.permanent)) throw err
+        // Ein ungültiger Eintrag darf nicht alle anderen aufhalten: einzeln senden, Abgelehnte auslassen
+        for (const c of changes) {
+          try {
+            await api.push([c])
+          } catch (e1) {
+            if (!(e1 instanceof SyncHttpError && e1.permanent)) throw e1
+            warn(`Eintrag in „${c.tbl}“ vom Server abgelehnt – bleibt nur auf diesem Gerät.`)
+          }
+        }
+      }
+    }
     // Nur entfernen, was inzwischen nicht erneut geändert wurde
     await db.transaction('rw', db.outbox, async () => {
       const current = await db.outbox.bulkGet(batch.map((e) => e.key))
@@ -209,7 +257,7 @@ async function pullChanges(api: SyncApi): Promise<number> {
       if (action === 'skip') continue
       if (action === 'put') {
         if (Object.values(c.data ?? {}).some(isBlobRef)) syncState.progress = 'Lade Fotos …'
-        plan.push({ change: c, action, data: await decodeFromServer(api, c.data ?? {}) })
+        plan.push({ change: c, action, data: await decodeFromServer(api, c.tbl, c.data ?? {}, local) })
       } else plan.push({ change: c, action })
     }
     // 2. Anwenden – als Abgleich markiert, damit es nicht zurückgeschickt wird
@@ -220,7 +268,11 @@ async function pullChanges(api: SyncApi): Promise<number> {
           markRemote(Dexie.currentTransaction?.idbtrans)
           for (const p of plan) {
             const t = db.table(p.change.tbl)
-            if (p.action === 'delete') await t.delete(p.change.id)
+            // Neu prüfen: während Fotos geladen wurden, kann hier jemand den Eintrag geändert haben – dann gewinnt die neuere Fassung
+            const now = (await t.get(p.change.id)) as Record<string, unknown> | undefined
+            const action = applyAction(now, p.change)
+            if (action === 'skip') continue
+            if (action === 'delete') await t.delete(p.change.id)
             else await t.put(p.data)
           }
         })

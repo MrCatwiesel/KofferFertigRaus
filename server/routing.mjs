@@ -38,8 +38,15 @@ export function createRouting(opts = {}) {
       const body = await res.text()
       if (res.status === 429 || res.status === 504) throw new HttpError(503, 'Der Kartendienst ist gerade ausgelastet – bitte gleich noch einmal.')
       if (!res.ok) throw new HttpError(502, body.trim().split('\n')[0].slice(0, 200) || `Kartendienst-Fehler (${res.status}).`)
-      if (cache.size > 100) cache.delete(cache.keys().next().value)
+      // Zwischenspeicher begrenzen: höchstens 100 Einträge und etwa 30 MB
       cache.set(key, { at: Date.now(), body })
+      let bytes = 0
+      for (const v of cache.values()) bytes += v.body.length
+      while (cache.size > 100 || bytes > 30_000_000) {
+        const k = cache.keys().next().value
+        bytes -= cache.get(k).body.length
+        cache.delete(k)
+      }
       return body
     } catch (e) {
       if (e instanceof HttpError) throw e

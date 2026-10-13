@@ -24,9 +24,12 @@ export function markRemote(idbtrans: unknown): void {
   if (idbtrans && typeof idbtrans === 'object') (idbtrans as Record<string, unknown>).__nwwRemote = true
 }
 
+/**
+ * Nur die markierte Transaktion gilt als Abgleich. (Früher galt zusätzlich jede Transaktion während eines Abgleichs –
+ * dadurch wurden eigene Änderungen in diesem Moment nie hochgeladen.)
+ */
 function isRemote(trans: unknown): boolean {
-  const flag = trans && typeof trans === 'object' ? (trans as Record<string, unknown>).__nwwRemote : undefined
-  return flag === true || (flag === undefined && remoteDepth > 0)
+  return !!trans && typeof trans === 'object' && (trans as Record<string, unknown>).__nwwRemote === true
 }
 
 /** Schlüssel der betroffenen Datensätze einer Schreibanfrage (ohne fehlgeschlagene). */

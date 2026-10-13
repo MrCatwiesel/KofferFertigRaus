@@ -40,8 +40,13 @@ const PRIVATE_IP = /^(::ffff:)?(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)
  */
 export function clientIp(req) {
   const direct = req.socket?.remoteAddress ?? ''
-  const fwd = String(req.headers['x-forwarded-for'] ?? '').split(',')[0].trim()
-  return fwd && PRIVATE_IP.test(direct) ? fwd : direct
+  if (!PRIVATE_IP.test(direct)) return direct
+  // Von rechts lesen: eigene Proxys (private Adressen) überspringen, die erste öffentliche Adresse ist der Absender.
+  // Die vorderen Einträge kann der Absender frei erfinden – sie zählen nur, wenn alles im eigenen Netz liegt.
+  const chain = String(req.headers['x-forwarded-for'] ?? '').split(',').map((x) => x.trim()).filter(Boolean)
+  if (!chain.length) return direct
+  for (let i = chain.length - 1; i >= 0; i--) if (!PRIVATE_IP.test(chain[i])) return chain[i]
+  return chain[0]
 }
 
 /** Kurzer Gerätetyp aus der Browser-Kennung (nur zur Anzeige). */
@@ -115,7 +120,12 @@ export function createDevices(store, groups, opts = {}) {
     const f = fails.get(clientIp(req))
     if (f?.until && f.until > Date.now()) throw new HttpError(429, 'Zu viele Fehlversuche – bitte 15 Minuten warten.')
   }
+  /**
+   * Fehlversuch zählen. Die Sperre greift nur bei falschen Zugangsdaten – wer einen gültigen Zugang hat,
+   * kommt immer durch (sonst könnte ein Fremder durch Falscheingaben andere aussperren).
+   */
   function fail(req) {
+    checkLock(req)
     const ip = clientIp(req)
     const t = Date.now()
     const f = fails.get(ip)
@@ -161,7 +171,6 @@ export function createDevices(store, groups, opts = {}) {
    * Gerätezugang (nwd_…) oder – wie bisher – Schlüssel der Reisegruppe.
    */
   function authenticate(req) {
-      checkLock(req)
       const m = (req.headers.authorization ?? '').match(/^Bearer\s+(.+)$/i)
       const token = m?.[1].trim() ?? ''
       if (token.startsWith(TOKEN_PREFIX)) {

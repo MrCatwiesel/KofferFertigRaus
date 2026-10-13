@@ -348,7 +348,8 @@ function resetTexts() {
     <div class="col-12 col-lg-7">
       <div class="preview-frame shadow-sm">
         <div class="preview-bar small text-body-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>Vorschau</div>
-        <iframe v-if="previewHtml" :srcdoc="previewHtml" title="Vorschau der Reise-Webseite" class="preview"></iframe>
+        <!-- sandbox: in der Vorschau läuft kein Skript (Schutz vor eingeschleusten Inhalten); Fotos laden trotzdem -->
+        <iframe v-if="previewHtml" :srcdoc="previewHtml" sandbox="allow-same-origin" title="Vorschau der Reise-Webseite" class="preview"></iframe>
       </div>
     </div>
   </div>

@@ -1,5 +1,9 @@
 # Änderungsprotokoll
 
+## 1.24.1 – 2026-10-13
+
+- **Spenden:** Link zu PayPal unter Einstellungen → Über und als kleiner Hinweis nach dem Erstellen einer Reise-Webseite; „Sponsor“-Knopf auf GitHub
+
 ## 1.24.0 – 2026-10-13
 
 ### Neu: Unsere Reisen in Zahlen (Meine Reisen → „Statistik“)

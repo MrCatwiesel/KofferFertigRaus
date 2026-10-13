@@ -9,7 +9,7 @@ export const APP_CONFIG = {
    * Spendenlink, z. B. https://paypal.me/<name>.
    * Leer lassen = Spenden-Hinweise werden nicht angezeigt.
    */
-  donationUrl: '',
+  donationUrl: 'https://www.paypal.me/MrCatwiesel',
   /** Anzeigename der Spendenplattform */
   donationLabel: 'PayPal',
   /** Lizenz und Link zum Lizenztext */

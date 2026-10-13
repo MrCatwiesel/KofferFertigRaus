@@ -113,7 +113,9 @@ dann in der App *Einstellungen → Geräte-Abgleich*.
 
 ## Spenden einrichten
 
-In `src/config.ts` bei `donationUrl` den Link eintragen (z. B. `https://paypal.me/<name>`). Ist das Feld leer, erscheinen keine Spenden-Hinweise.
+Die App ist kostenlos und ohne Werbung. Wer die Entwicklung unterstützen möchte: [PayPal](https://www.paypal.me/MrCatwiesel).
+
+Für eigene Fassungen: In `src/config.ts` bei `donationUrl` den Link eintragen. Ist das Feld leer, erscheinen keine Spenden-Hinweise.
 
 ## App Store (optional)
 

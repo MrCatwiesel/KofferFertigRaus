@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.16.0 – 2026-10-13
+
+### Neu: Aussehen nach Wunsch (Einstellungen → Aussehen)
+- **18 Designs:** Alpin, Frisch & modern, Retro-Reiseplakat, Mittelmeer, Nordisch klar, Toskana, Tropen, Wüste & Oase, Polarlicht, Großstadt, Reisetagebuch (Handschrift), Provence, Herbstwald, Küste & Ostsee, Sommerfrische, Nachtzug, Kontrastreich (sehr gut lesbar) und Klassisch – jedes mit eigenen Farben (hell und dunkel), Schriften, Formen, Logo und Hintergrundmuster. Vorschau aller Designs zum Antippen. Alle Farben sind automatisch auf gute Lesbarkeit geprüft
+- **Schriftgröße** (klein bis sehr groß) und **Ecken** (eckig bis sehr rund)
+- **Hintergrund einstellbar:** Schleier über dem Foto (0–90 %), Farbe des Schleiers (Design, Weiß, Schwarz), Unschärfe, Farbsättigung, durchscheinende Karten mit Milchglas-Effekt, Stärke des Musters; Schnellwahl *Klar · Ausgewogen · Ruhig · Glas · Abend*. Standard jetzt deutlich weniger verwaschen
+- Eigenes Hintergrundfoto **für ein Design oder für alle Designs**
+- **Reiseseite anpassen:** Bereiche beliebigen Reitern zuordnen, Reihenfolge ändern, als Kacheln, große Kacheln oder kompakte Liste; Reiter ein/aus (dann alles untereinander), Titelbild groß/mittel/klein/aus, Eckdaten, Zusammenfassungen und Unterwegs-Knöpfe ein/aus; jederzeit zurücksetzen. Bereiche, die in keinem Reiter mehr stehen, bleiben unter „Weitere Bereiche“ erreichbar – es geht keine Funktion verloren
+- „Anpassen“ direkt auf der Reiseseite
+
 ## 1.15.0 – 2026-10-13
 
 ### Neu: Übersichtlicher und schöner

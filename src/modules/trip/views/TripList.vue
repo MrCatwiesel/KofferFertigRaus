@@ -38,7 +38,7 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
   </div>
 
   <section v-for="g in groups" :key="g.id" class="mb-4">
-    <h2 class="h6 text-body-secondary text-uppercase small mb-2">{{ g.title }}</h2>
+    <h2 class="h6 text-body-secondary text-uppercase small mb-2 on-bg">{{ g.title }}</h2>
     <div class="row g-3">
       <div v-for="t in g.trips" :key="t.id" class="col-12 col-md-6 col-lg-4">
         <RouterLink :to="`/trip/${t.id}`" class="trip-card d-block text-decoration-none">
@@ -78,8 +78,8 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
 .trip-card {
   overflow: hidden;
   color: var(--nww-text);
-  background: var(--nww-surface);
-  border: 1px solid var(--nww-border);
+  background: var(--nww-card-bg);
+  border: var(--nww-border-width) solid var(--nww-border);
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--nww-shadow);
   transition: transform 0.15s ease;
@@ -87,9 +87,7 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
 .trip-card:hover {
   transform: translateY(-2px);
 }
-[data-nww-style='retro'] .trip-card {
-  border-width: 2px;
-}
+
 .trip-card-cover {
   height: 150px;
 }

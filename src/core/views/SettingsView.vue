@@ -4,7 +4,9 @@ import { downloadJson, exportBackup, importBackup, type BackupFile } from '../ba
 import { formatBytes, requestPersistentStorage, storageInfo, type StorageInfo } from '../storage'
 import { describeStats } from '../merge'
 import { APP_CONFIG, APP_VERSION } from '@/config'
-import AppearanceCard from '@/ui/AppearanceCard.vue'
+import AppLogo from '@/ui/AppLogo.vue'
+import { appearance } from '@/ui/appearance'
+import { getTheme } from '@/ui/themes'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -63,7 +65,16 @@ async function persist() {
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
 
-  <AppearanceCard />
+  <RouterLink to="/einstellungen/aussehen" class="card mb-3 text-decoration-none text-body">
+    <div class="card-body d-flex align-items-center gap-3">
+      <AppLogo :size="40" />
+      <div class="flex-grow-1">
+        <div class="h5 mb-0">Aussehen</div>
+        <div class="small text-body-secondary">Design „{{ getTheme(appearance.theme).label }}“ · Hintergrund · Schrift · Reiseseite anpassen</div>
+      </div>
+      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+    </div>
+  </RouterLink>
 
   <RouterLink to="/abgleich" class="card mb-3 text-decoration-none text-body">
     <div class="card-body d-flex align-items-center gap-3">

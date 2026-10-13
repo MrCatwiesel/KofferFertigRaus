@@ -1,12 +1,14 @@
 /*
- * App-Theme auf Basis von Bootstrap 5.3 – drei Stile (html[data-nww-style]), jeweils hell und dunkel.
- * Farben, Schriften und Formen nur über CSS-Variablen anpassen – so bleibt ein Update von Bootstrap problemlos.
+ * App-Theme auf Basis von Bootstrap 5.3. Die Designs (Farben, Schriften, Formen, Muster) stehen in themes.ts;
+ * appearance.ts setzt daraus CSS-Variablen auf <html>. Hier nur Regeln, die diese Variablen verwenden.
  *
  *   --nww-primary / -rgb / -hover   Hauptfarbe (Knöpfe, Links, Reiter)
- *   --nww-accent                    Zweitfarbe (Hervorhebungen, Sonne im Logo)
+ *   --nww-accent                    Zweitfarbe
  *   --nww-bg / --nww-surface        Seitenhintergrund / Karten
  *   --nww-heading-font              Schrift der Überschriften
- *   --nww-pattern                   gezeichnetes Hintergrundmuster (ohne eigenes Foto)
+ *   --nww-pattern                   gezeichnetes Hintergrundmuster (ohne Foto)
+ *   --nww-veil / -opacity, --nww-bg-blur, --nww-bg-saturate, --nww-card-opacity   Hintergrund-Regler
+ * Merkmale als Attribute: data-nww-tile, data-nww-shadow, data-nww-upper, data-nww-gradient, data-nww-glass
  */
 @import '@fontsource/lora/latin-500.css';
 @import '@fontsource/lora/latin-700.css';
@@ -19,161 +21,42 @@
 @import '@fontsource/roboto-slab/latin-500.css';
 @import '@fontsource/roboto-slab/latin-700.css';
 
+@import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/merriweather/latin-400.css';
+@import '@fontsource/merriweather/latin-700.css';
+@import '@fontsource/playfair-display/latin-700.css';
+@import '@fontsource/caveat/latin-700.css';
+
 :root {
   --app-bottom-nav-height: 64px;
-  --nww-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(0, 0, 0, 0.06);
-}
-
-/* ---------------------------------------------------------------- Alpin (Standard) */
-:root,
-[data-nww-style='alpin'] {
+  /* Vorgabe bis appearance.ts das gewählte Design setzt (Alpin hell) */
   --nww-primary: #2f5d50;
   --nww-primary-rgb: 47, 93, 80;
-  --nww-primary-hover: #244a3f;
+  --nww-primary-hover: #26473e;
   --nww-on-primary: #fff;
   --nww-accent: #c4703a;
-  --nww-accent-rgb: 196, 112, 58;
   --nww-bg: #f4efe4;
   --nww-surface: #fffdf8;
   --nww-surface-2: #f7f2e8;
   --nww-text: #26302b;
-  --nww-muted: #6b6f66;
+  --nww-text-rgb: 38, 48, 43;
+  --nww-muted: #5f645b;
   --nww-border: #e2d9c7;
-  --nww-chrome: #2f5d50;
   --nww-heading-font: 'Lora', Georgia, serif;
-  --nww-body-font: 'Nunito', system-ui, sans-serif;
   --nww-heading-weight: 700;
+  --nww-heading-adjust: none;
+  --nww-body-font: 'Nunito', system-ui, sans-serif;
   --nww-radius: 0.85rem;
-  --nww-sky-1: #f6d7a7;
-  --nww-sky-2: #e9a46a;
-  --nww-far: #8aa597;
-  --nww-mid: #4f7a68;
-  --nww-near: #2f5d50;
-  --nww-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600' fill='none' stroke='%232f5d50' stroke-opacity='.09' stroke-width='1.4'%3E%3Cpath d='M-20 120c80-40 140 30 220-10s120-70 200-20 140 40 220-10'/%3E%3Cpath d='M-20 170c90-30 150 40 230 0s120-60 190-15 140 45 220 0'/%3E%3Cpath d='M-20 220c100-20 160 50 240 10s110-50 180-10 140 50 220 5'/%3E%3Cpath d='M-20 400c70-50 150 10 230-30s140-40 210 10 130 30 200-20'/%3E%3Cpath d='M-20 450c80-40 150 20 230-20s140-30 200 15 130 30 210-15'/%3E%3Cpath d='M-20 500c90-30 150 30 230-10s130-20 190 20 130 30 220-10'/%3E%3Cellipse cx='430' cy='300' rx='70' ry='40'/%3E%3Cellipse cx='430' cy='300' rx='120' ry='70'/%3E%3Cellipse cx='150' cy='310' rx='50' ry='28'/%3E%3C/svg%3E");
-}
-[data-nww-style='alpin'][data-bs-theme='dark'],
-:root[data-bs-theme='dark']:not([data-nww-style]) {
-  --nww-primary: #86bba5;
-  --nww-primary-rgb: 134, 187, 165;
-  --nww-primary-hover: #a3cfbc;
-  --nww-on-primary: #10201a;
-  --nww-accent: #e39b63;
-  --nww-accent-rgb: 227, 155, 99;
-  --nww-bg: #121815;
-  --nww-surface: #1b231f;
-  --nww-surface-2: #222c27;
-  --nww-text: #e9e5db;
-  --nww-muted: #a7aaa0;
-  --nww-border: #2f3a34;
-  --nww-chrome: #121815;
-  --nww-sky-1: #3b3550;
-  --nww-sky-2: #7a4d4a;
-  --nww-far: #3d5248;
-  --nww-mid: #2c4038;
-  --nww-near: #1d2c26;
-  --nww-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-}
-
-/* ---------------------------------------------------------------- Frisch & modern */
-[data-nww-style='modern'] {
-  --nww-primary: #1463ff;
-  --nww-primary-rgb: 20, 99, 255;
-  --nww-primary-hover: #0b4fd6;
-  --nww-on-primary: #fff;
-  --nww-accent: #10b3a3;
-  --nww-accent-rgb: 16, 179, 163;
-  --nww-bg: #eef3fb;
-  --nww-surface: #ffffff;
-  --nww-surface-2: #f4f7fd;
-  --nww-text: #162036;
-  --nww-muted: #5d6a82;
-  --nww-border: #dde5f2;
-  --nww-chrome: #1463ff;
-  --nww-heading-font: 'Montserrat', system-ui, sans-serif;
-  --nww-body-font: 'Montserrat', system-ui, sans-serif;
-  --nww-heading-weight: 700;
-  --nww-radius: 1.15rem;
-  --nww-shadow: 0 2px 6px rgba(22, 32, 54, 0.05), 0 10px 30px rgba(22, 32, 54, 0.07);
-  --nww-sun: #ffd166;
-  --nww-sky-1: #8fd3ff;
-  --nww-sky-2: #3c7bff;
-  --nww-far: #7fb8e8;
-  --nww-mid: #2f8fd8;
-  --nww-near: #1463ff;
-  --nww-pattern: radial-gradient(40rem 30rem at 95% -5%, rgba(20, 99, 255, 0.16), transparent 70%),
-    radial-gradient(36rem 28rem at -10% 35%, rgba(16, 179, 163, 0.14), transparent 70%),
-    radial-gradient(30rem 24rem at 70% 110%, rgba(124, 92, 255, 0.1), transparent 70%);
-}
-[data-nww-style='modern'][data-bs-theme='dark'] {
-  --nww-primary: #6d9bff;
-  --nww-primary-rgb: 109, 155, 255;
-  --nww-primary-hover: #91b4ff;
-  --nww-on-primary: #0b1430;
-  --nww-accent: #2dd4bf;
-  --nww-accent-rgb: 45, 212, 191;
-  --nww-bg: #0b1120;
-  --nww-surface: #131b2e;
-  --nww-surface-2: #1a2339;
-  --nww-text: #e6ebf5;
-  --nww-muted: #9aa6bd;
-  --nww-border: #26314a;
-  --nww-chrome: #0b1120;
-  --nww-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-  --nww-sky-1: #233a7a;
-  --nww-sky-2: #4c2f80;
-  --nww-far: #1f3466;
-  --nww-mid: #1a2b55;
-  --nww-near: #131f40;
-}
-
-/* ---------------------------------------------------------------- Retro-Reiseplakat */
-[data-nww-style='retro'] {
-  --nww-primary: #1f6f78;
-  --nww-primary-rgb: 31, 111, 120;
-  --nww-primary-hover: #185a62;
-  --nww-on-primary: #fbf5e6;
-  --nww-accent: #e2603a;
-  --nww-accent-rgb: 226, 96, 58;
-  --nww-bg: #f1e5c9;
-  --nww-surface: #fbf4e3;
-  --nww-surface-2: #f5ead0;
-  --nww-text: #2b2620;
-  --nww-muted: #6e6253;
-  --nww-border: #2b2620;
-  --nww-chrome: #1f6f78;
-  --nww-heading-font: 'Roboto Slab', Rockwell, serif;
-  --nww-body-font: 'Nunito', system-ui, sans-serif;
-  --nww-heading-weight: 700;
-  --nww-radius: 0.45rem;
-  --nww-shadow: 4px 4px 0 rgba(43, 38, 32, 0.9);
-  --nww-sky-1: #f4c869;
-  --nww-sky-2: #e2603a;
-  --nww-far: #e9b44c;
-  --nww-mid: #1f6f78;
-  --nww-near: #133f45;
-  --nww-pattern: repeating-conic-gradient(from 0deg at 50% 115%, rgba(226, 96, 58, 0.06) 0deg 6deg, transparent 6deg 12deg);
-}
-[data-nww-style='retro'][data-bs-theme='dark'] {
-  --nww-primary: #5cbcc7;
-  --nww-primary-rgb: 92, 188, 199;
-  --nww-primary-hover: #7dccd5;
-  --nww-on-primary: #14262a;
-  --nww-accent: #f08a5d;
-  --nww-accent-rgb: 240, 138, 93;
-  --nww-bg: #1c1914;
-  --nww-surface: #26221b;
-  --nww-surface-2: #2e2920;
-  --nww-text: #f2e7d0;
-  --nww-muted: #b6a88f;
-  --nww-border: #8a7b62;
-  --nww-chrome: #1c1914;
-  --nww-shadow: 4px 4px 0 rgba(0, 0, 0, 0.6);
-  --nww-pattern: repeating-conic-gradient(from 0deg at 50% 115%, rgba(240, 138, 93, 0.035) 0deg 6deg, transparent 6deg 12deg);
-  --nww-sky-1: #6b3f2a;
-  --nww-sky-2: #2c4a50;
-  --nww-far: #7a5a2a;
-  --nww-mid: #1f4f55;
-  --nww-near: #12302f;
+  --nww-border-width: 1px;
+  --nww-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 4px 14px rgba(0, 0, 0, 0.06);
+  --nww-pattern: none;
+  --nww-veil: var(--nww-bg);
+  --nww-veil-opacity: 0.3;
+  --nww-bg-blur: 0px;
+  --nww-bg-saturate: 100%;
+  --nww-card-opacity: 100%;
+  /* Karten: deckend oder (Regler „durchscheinend“) mit dem Hintergrund gemischt */
+  --nww-card-bg: color-mix(in srgb, var(--nww-surface) var(--nww-card-opacity), transparent);
 }
 
 /* ---------------------------------------------------------------- Bootstrap an die Stile binden */
@@ -215,35 +98,52 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .navbar-brand {
   font-weight: var(--nww-heading-weight);
   letter-spacing: -0.01em;
 }
+/* Kleine Schriften (z. B. Handschrift) auf gleiche Höhe der Kleinbuchstaben bringen */
+:is(h1, h2, h3, h4, h5, .h1, .h2, .h3, .h4, .h5, .navbar-brand) {
+  font-size-adjust: var(--nww-heading-adjust);
+}
 .h6, h6 {
   font-family: var(--nww-body-font);
   font-weight: 700;
 }
-[data-nww-style='retro'] :is(h1, h2, .h1, .h2, .h3, .navbar-brand) {
+[data-nww-upper] :is(h1, h2, .h1, .h2, .h3, .navbar-brand) {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 /* Hintergrund: eigenes Foto (abgedunkelt/aufgehellt für Lesbarkeit) oder gezeichnetes Muster */
-html[data-nww-bg] body::before {
+html[data-nww-bg] body::before,
+html[data-nww-bg][data-nww-photo] body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
+}
+html[data-nww-bg] body::before {
   background: var(--nww-pattern);
 }
+/* Foto (Unschärfe/Sättigung einstellbar) und darüber ein einstellbarer Schleier für die Lesbarkeit */
 html[data-nww-bg][data-nww-photo] body::before {
-  background:
-    linear-gradient(color-mix(in srgb, var(--nww-bg) 72%, transparent), color-mix(in srgb, var(--nww-bg) 88%, transparent)),
-    var(--nww-bg-image) center / cover no-repeat;
+  inset: calc(var(--nww-bg-blur) * -2);
+  background: var(--nww-bg-image) center / cover no-repeat;
+  filter: blur(var(--nww-bg-blur)) saturate(var(--nww-bg-saturate));
+}
+html[data-nww-bg][data-nww-photo] body::after {
+  background: var(--nww-veil);
+  opacity: var(--nww-veil-opacity);
+}
+/* Überschriften und kleine Texte direkt auf dem Foto bleiben lesbar (Lichthof in der Hintergrundfarbe) */
+html[data-nww-bg][data-nww-photo] :is(.app-main > h1, .app-main > div > h1, .on-bg) {
+  color: var(--nww-text) !important;
+  text-shadow: 0 0 3px var(--nww-bg), 0 0 10px var(--nww-bg), 0 0 18px var(--nww-bg);
 }
 
 /* Karten und Listen heben sich vom Hintergrund ab */
 .card,
 .list-group {
-  --bs-card-bg: var(--nww-surface);
-  --bs-list-group-bg: var(--nww-surface);
+  --bs-card-bg: var(--nww-card-bg);
+  --bs-list-group-bg: var(--nww-card-bg);
   --bs-card-border-color: var(--nww-border);
   --bs-list-group-border-color: var(--nww-border);
 }
@@ -260,8 +160,13 @@ html[data-nww-bg][data-nww-photo] body::before {
   --bs-dropdown-bg: var(--nww-surface);
   background-color: var(--nww-surface);
 }
-[data-nww-style='retro'] :is(.card, .list-group:not(.list-group-flush)) {
-  border-width: 2px;
+[data-nww-glass] :is(.card, .list-group:not(.list-group-flush), .nww-tile, .nww-glass) {
+  backdrop-filter: blur(10px) saturate(1.2);
+  -webkit-backdrop-filter: blur(10px) saturate(1.2);
+}
+:is(.card, .list-group:not(.list-group-flush)) {
+  --bs-card-border-width: var(--nww-border-width);
+  --bs-list-group-border-width: var(--nww-border-width);
 }
 
 /* Knöpfe und Bedienelemente in der Hauptfarbe (Bootstrap setzt hier feste Farben) */
@@ -293,12 +198,9 @@ html[data-nww-bg][data-nww-photo] body::before {
   --bs-btn-disabled-border-color: var(--nww-primary);
   --bs-btn-focus-shadow-rgb: var(--nww-primary-rgb);
 }
-[data-nww-style='retro'] .btn {
-  font-weight: 700;
-  border-width: 2px;
-}
-[data-nww-style='modern'] .btn {
-  font-weight: 600;
+.btn {
+  --bs-btn-font-weight: 600;
+  --bs-btn-border-width: var(--nww-border-width);
 }
 .text-bg-primary {
   color: var(--nww-on-primary) !important;
@@ -342,8 +244,8 @@ html[data-nww-bg][data-nww-photo] body::before {
   backdrop-filter: saturate(1.4) blur(10px);
   -webkit-backdrop-filter: saturate(1.4) blur(10px);
 }
-[data-nww-style='retro'] .app-header {
-  border-bottom: 2px solid var(--nww-border) !important;
+.app-header {
+  border-bottom: var(--nww-border-width) solid var(--nww-border) !important;
 }
 
 /* Platz für die untere Navigation auf dem Handy */
@@ -394,8 +296,8 @@ html[data-nww-bg][data-nww-photo] body::before {
   padding: 0.9rem 1rem;
   color: var(--nww-text);
   text-decoration: none;
-  background: var(--nww-surface);
-  border: 1px solid var(--nww-border);
+  background: var(--nww-card-bg);
+  border: var(--nww-border-width) solid var(--nww-border);
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--nww-shadow);
   transition: transform 0.15s ease, border-color 0.15s ease;
@@ -416,15 +318,32 @@ html[data-nww-bg][data-nww-photo] body::before {
   background: rgba(var(--nww-primary-rgb), 0.12);
   border-radius: calc(var(--nww-radius) * 0.9);
 }
-[data-nww-style='retro'] .nww-tile {
-  border-width: 2px;
-}
-[data-nww-style='retro'] .nww-tile-icon {
+[data-nww-tile='solid'] .nww-tile-icon {
   color: var(--nww-on-primary);
   background: var(--nww-primary);
   border-radius: 50%;
 }
-[data-nww-style='modern'] .nww-tile-icon {
+[data-nww-tile='outline'] .nww-tile-icon {
+  background: none;
+  border: var(--nww-border-width) solid currentColor;
+  border-radius: 50%;
+}
+[data-nww-tile='gradient'] .nww-tile-icon {
   color: #fff;
   background: linear-gradient(135deg, var(--nww-primary), var(--nww-accent));
+}
+
+/* Schieberegler in der Hauptfarbe (Bootstrap setzt hier ein festes Blau) */
+.form-range::-webkit-slider-thumb {
+  background-color: var(--nww-primary);
+}
+.form-range::-webkit-slider-thumb:active {
+  background-color: var(--nww-primary-hover);
+}
+.form-range::-moz-range-thumb {
+  background-color: var(--nww-primary);
+}
+.form-range::-webkit-slider-runnable-track,
+.form-range::-moz-range-track {
+  background-color: var(--nww-surface-2);
 }

@@ -6,6 +6,7 @@ export function buildRouter() {
   const routes: RouteRecordRaw[] = [
     { path: '/', redirect: '/trip' },
     { path: '/einstellungen', name: 'settings', component: () => import('./views/SettingsView.vue') },
+    { path: '/einstellungen/aussehen', name: 'appearance', component: () => import('@/ui/AppearanceView.vue') },
     { path: '/abgleich', name: 'sync', component: () => import('./views/SyncSettings.vue') },
     { path: '/gruppen', name: 'groups', component: () => import('./views/GroupsAdmin.vue') },
     { path: '/sicherung', name: 'backup-targets', component: () => import('./views/BackupTargets.vue') },

@@ -4,10 +4,13 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
 import { flag } from '@/core/countries'
 import { getTripSections, type TripPhase } from '@/core/registry'
+import { sectionsIn, unplaced } from '@/core/trip-layout'
+import { appearance } from '@/ui/appearance'
 import { tripRepository } from '../repository'
 import { budgetPerPersonDay, defaultTripTab, formatDate, formatMoney, tripDays, tripPhase, tripStatusText } from '../logic'
 import { TRANSPORT_LABELS, type Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
+import SectionTiles from '../components/SectionTiles.vue'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -26,8 +29,10 @@ const TABS: { id: TripPhase; label: string; icon: string; intro: string }[] = [
 const tab = computed<TripPhase>(() => {
   const q = route.query.bereich
   if (TABS.some((t) => t.id === q)) return q as TripPhase
-  return trip.value ? defaultTripTab(trip.value) : 'planung'
+  return trip.value && layout.value.autoTab ? defaultTripTab(trip.value) : 'planung'
 })
+/** Aufteilung der Reiseseite (Einstellungen → Aussehen → Reiseseite) */
+const layout = computed(() => appearance.layout)
 const nowTab = computed(() => (trip.value ? defaultTripTab({ ...trip.value, archived: false }) : null))
 function select(id: TripPhase) {
   void router.replace({ query: { ...route.query, bereich: id } })
@@ -47,7 +52,22 @@ const facts = computed(() => {
 
 /** Bereiche, die andere Module beisteuern (Unterkünfte, Unternehmungen …) */
 const sections = getTripSections()
-const visible = computed(() => sections.map((s, i) => ({ s, i })).filter(({ s }) => (s.phases ?? ['planung']).includes(tab.value)))
+const indexed = sections.map((s, i) => ({ ...s, s, i }))
+const pick = (list: typeof indexed) => list.map(({ s, i }) => ({ s, i }))
+const visible = computed(() => pick(sectionsIn(tab.value, indexed, layout.value)))
+/** Ohne Reiter: alle Bereiche untereinander, jeder nur einmal (im ersten passenden Abschnitt) */
+const groups = computed(() => {
+  const seen = new Set<string>()
+  return TABS.map((t) => {
+    const items = sectionsIn(t.id, indexed, layout.value).filter((x) => !seen.has(x.moduleId))
+    items.forEach((x) => seen.add(x.moduleId))
+    return { ...t, items: pick(items) }
+  }).filter((g) => g.items.length)
+})
+/** Bereiche, die in keinem Reiter stehen – bleiben hier erreichbar */
+const extra = computed(() => pick(unplaced(indexed, layout.value)))
+const isTravelling = computed(() => !!trip.value && tripPhase(trip.value.startDate, trip.value.endDate) === 'unterwegs')
+const showQuick = computed(() => layout.value.quick && (layout.value.tabs ? tab.value === 'unterwegs' : isTravelling.value))
 
 /** Zusammenfassungen und geplante Kosten aller Bereiche – aktualisieren sich live. */
 const sectionData = useLiveQuery(
@@ -86,7 +106,7 @@ async function remove() {
 
 <template>
   <div v-if="trip">
-    <TripCover :trip="trip" class="hero mb-3">
+    <TripCover v-if="layout.hero !== 'aus'" :trip="trip" class="hero mb-3" :class="`hero-${layout.hero}`">
       <div class="d-flex flex-column justify-content-between h-100 p-3 p-md-4">
         <div class="d-flex justify-content-end gap-2">
           <RouterLink :to="`/trip/${trip.id}/titelbild`" class="btn btn-sm hero-btn" aria-label="Titelbild ändern">
@@ -116,24 +136,49 @@ async function remove() {
         </div>
       </div>
     </TripCover>
+    <div v-else class="d-flex align-items-start justify-content-between gap-2 mb-3">
+      <div>
+        <h1 class="h3 mb-1">{{ trip.title }}</h1>
+        <div class="text-body-secondary">
+          <span v-for="c in trip.countries ?? []" :key="c" class="me-1">{{ flag(c) }}</span>
+          <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ trip.destination }} · {{ tripStatusText(trip.startDate, trip.endDate) }}
+        </div>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown" aria-label="Aktionen"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
+          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">Titelbild ändern</RouterLink></li>
+          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">Mit Mitreisenden teilen</RouterLink></li>
+          <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
+          <li><hr class="dropdown-divider" /></li>
+          <li><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
+        </ul>
+      </div>
+    </div>
 
-    <div class="d-flex flex-wrap gap-2 mb-3">
+    <div v-if="layout.facts" class="d-flex flex-wrap gap-2 mb-3">
       <span v-for="f in facts" :key="f.icon" class="fact"><i :class="`bi bi-${f.icon} me-1`" aria-hidden="true"></i>{{ f.value }}</span>
     </div>
 
     <!-- Bereiche: vor, während und nach der Reise -->
-    <nav class="phase-tabs mb-2" aria-label="Bereiche der Reise">
-      <button v-for="t in TABS" :key="t.id" type="button" class="phase-tab" :class="{ active: tab === t.id }" :aria-current="tab === t.id ? 'page' : undefined"
-              @click="select(t.id)">
-        <i :class="`bi bi-${t.icon}`" aria-hidden="true"></i>
-        <span>{{ t.label }}</span>
-        <span v-if="nowTab === t.id" class="now-dot" title="Passt gerade"></span>
-      </button>
-    </nav>
-    <p class="small text-body-secondary mb-3">{{ TABS.find((t) => t.id === tab)!.intro }}</p>
+    <template v-if="layout.tabs">
+      <nav class="phase-tabs mb-2" aria-label="Bereiche der Reise">
+        <button v-for="t in TABS" :key="t.id" type="button" class="phase-tab" :class="{ active: tab === t.id }" :aria-current="tab === t.id ? 'page' : undefined"
+                @click="select(t.id)">
+          <i :class="`bi bi-${t.icon}`" aria-hidden="true"></i>
+          <span>{{ t.label }}</span>
+          <span v-if="nowTab === t.id" class="now-dot" title="Passt gerade"></span>
+        </button>
+      </nav>
+      <div class="d-flex align-items-center gap-2 mb-3">
+        <p class="small text-body-secondary mb-0 flex-grow-1 on-bg">{{ TABS.find((t) => t.id === tab)!.intro }}</p>
+        <RouterLink to="/einstellungen/aussehen?teil=reiseseite" class="btn btn-link btn-sm p-0 text-nowrap"><i class="bi bi-sliders me-1" aria-hidden="true"></i>Anpassen</RouterLink>
+      </div>
+    </template>
 
     <!-- Unterwegs: das Wichtigste zuerst -->
-    <div v-if="tab === 'unterwegs'" class="row g-2 mb-3">
+    <div v-if="showQuick" class="row g-2 mb-3">
       <div class="col-6">
         <RouterLink to="/heute" class="quick quick-primary"><i class="bi bi-sun" aria-hidden="true"></i>Heute</RouterLink>
       </div>
@@ -142,23 +187,30 @@ async function remove() {
       </div>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div v-for="{ s, i } in visible" :key="s.moduleId" class="col-12 col-sm-6 col-lg-4">
-        <RouterLink :to="s.to(trip.id)" class="nww-tile">
-          <span class="nww-tile-icon"><i :class="`bi bi-${s.icon}`" aria-hidden="true"></i></span>
-          <span class="flex-grow-1 min-w-0">
-            <span class="d-block fw-semibold">{{ s.title }}</span>
-            <span class="d-block small text-body-secondary">{{ sectionData[i]?.summary ?? '…' }}</span>
-            <span v-if="sectionData[i]?.cost && tab === 'planung'" class="d-block small text-body-secondary mt-1">
-              <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>{{ formatMoney(sectionData[i].cost, trip.currency) }}
-            </span>
-          </span>
-        </RouterLink>
+    <SectionTiles v-if="layout.tabs" :items="visible" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" :view="layout.view"
+                  :summaries="layout.summaries" :show-cost="tab === 'planung'" />
+    <template v-else>
+      <section v-for="g in groups" :key="g.id">
+        <h2 class="h6 text-body-secondary d-flex align-items-center gap-2 mt-2 on-bg"><i :class="`bi bi-${g.icon}`" aria-hidden="true"></i>{{ g.label }}
+          <span v-if="nowTab === g.id" class="now-dot position-static" title="Passt gerade"></span></h2>
+        <SectionTiles :items="g.items" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" :view="layout.view"
+                      :summaries="layout.summaries" :show-cost="g.id === 'planung'" />
+      </section>
+      <div class="text-end mb-3">
+        <RouterLink to="/einstellungen/aussehen?teil=reiseseite" class="btn btn-link btn-sm p-0"><i class="bi bi-sliders me-1" aria-hidden="true"></i>Anpassen</RouterLink>
       </div>
-    </div>
+    </template>
+
+    <!-- Sicherheitsnetz: Bereiche ohne Reiter bleiben erreichbar -->
+    <details v-if="extra.length" class="mb-4 extra">
+      <summary class="small text-body-secondary on-bg">Weitere Bereiche ({{ extra.length }})</summary>
+      <div class="mt-2">
+        <SectionTiles :items="extra" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" view="liste" :summaries="layout.summaries" :show-cost="false" />
+      </div>
+    </details>
 
     <!-- Budgetvergleich -->
-    <div v-if="budgetCheck && (tab === 'planung' || tab === 'danach')" class="card mb-4">
+    <div v-if="budgetCheck && (!layout.tabs || tab === 'planung' || tab === 'danach')" class="card mb-4">
       <div class="card-body py-2">
         <div class="d-flex justify-content-between small mb-1">
           <span>Geplante Kosten</span>
@@ -176,7 +228,7 @@ async function remove() {
       </div>
     </div>
 
-    <div v-if="trip.notes && tab === 'planung'" class="card mb-4">
+    <div v-if="trip.notes && (!layout.tabs || tab === 'planung')" class="card mb-4">
       <div class="card-body">
         <h2 class="h6 text-body-secondary">Notizen</h2>
         <p class="mb-0" style="white-space: pre-line">{{ trip.notes }}</p>
@@ -184,7 +236,7 @@ async function remove() {
     </div>
 
     <!-- Archiv -->
-    <div v-if="tab === 'teilen'" class="card mb-4">
+    <div v-if="!layout.tabs || tab === 'teilen'" class="card mb-4">
       <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
         <div class="flex-grow-1">
@@ -211,13 +263,25 @@ async function remove() {
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--nww-shadow);
 }
+.hero-klein {
+  height: 160px;
+}
+.hero-gross {
+  height: 320px;
+}
 @media (min-width: 768px) {
   .hero {
     height: 300px;
   }
+  .hero-klein {
+    height: 190px;
+  }
+  .hero-gross {
+    height: 420px;
+  }
 }
-[data-nww-style='retro'] .hero {
-  border: 2px solid var(--nww-border);
+[data-nww-shadow='hard'] .hero {
+  border: var(--nww-border-width) solid var(--nww-border);
 }
 .hero-text {
   color: #fff;
@@ -243,8 +307,8 @@ async function remove() {
   align-items: center;
   padding: 0.3rem 0.7rem;
   font-size: 0.875rem;
-  background: var(--nww-surface);
-  border: 1px solid var(--nww-border);
+  background: var(--nww-card-bg);
+  border: var(--nww-border-width) solid var(--nww-border);
   border-radius: 999px;
 }
 .fact .bi {
@@ -255,8 +319,8 @@ async function remove() {
   grid-template-columns: repeat(4, 1fr);
   gap: 0.25rem;
   padding: 0.25rem;
-  background: var(--nww-surface);
-  border: 1px solid var(--nww-border);
+  background: var(--nww-card-bg);
+  border: var(--nww-border-width) solid var(--nww-border);
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--nww-shadow);
 }
@@ -282,13 +346,10 @@ async function remove() {
   color: var(--nww-on-primary);
   background: var(--nww-primary);
 }
-[data-nww-style='modern'] .phase-tab.active {
+[data-nww-gradient] .phase-tab.active {
   background: linear-gradient(135deg, var(--nww-primary), var(--nww-accent));
 }
-[data-nww-style='retro'] .phase-tabs {
-  border-width: 2px;
-}
-[data-nww-style='retro'] .phase-tab {
+[data-nww-upper] .phase-tab {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 0.75rem;

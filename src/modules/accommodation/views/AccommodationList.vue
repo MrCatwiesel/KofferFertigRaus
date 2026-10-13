@@ -56,9 +56,14 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
     (bis {{ formatDate(d.accommodation.cancelUntil) }}).
   </div>
 
-  <RouterLink :to="`/trip/${tripId}/unterkuenfte/neu`" class="btn btn-primary mb-3">
-    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Unterkunft hinzufügen
-  </RouterLink>
+  <div class="d-flex flex-wrap gap-2 mb-3">
+    <RouterLink :to="`/trip/${tripId}/unterkuenfte/neu`" class="btn btn-primary">
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Unterkunft hinzufügen
+    </RouterLink>
+    <RouterLink :to="`/trip/${tripId}/buchung`" class="btn btn-outline-primary">
+      <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>Buchung einlesen
+    </RouterLink>
+  </div>
 
   <p v-if="sorted.length === 0" class="text-body-secondary">
     Noch keine Unterkunft. Lege auch Ideen an – so behältst du Vergleiche im Blick.

@@ -47,6 +47,9 @@ function duration(l: TravelLeg) {
 
 <template>
   <TripContextHeader :trip-id="tripId" title="An- und Rückreise" />
+  <RouterLink :to="`/trip/${tripId}/buchung`" class="btn btn-outline-primary btn-sm mb-3">
+    <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>Buchung einlesen (Flug, Bahn, Bus)
+  </RouterLink>
 
   <section v-for="g in groups" :key="g.dir" class="mb-4">
     <div class="d-flex align-items-baseline justify-content-between mb-2">

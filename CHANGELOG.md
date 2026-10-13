@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.22.0 – 2026-10-13
+
+### Neu: Buchung einlesen
+- **Bestätigungen automatisch übernehmen:** Text aus Mail oder PDF einfügen – oder die Datei wählen: **PDF**, gespeicherte **E-Mail (.eml)**, **Kalendereintrag (.ics)**, HTML. Die App erkennt (deutsch und englisch):
+  - **Unterkünfte** (Hotel, Gasthof, Ferienwohnung, Booking.com-, Airbnb-, HRS-Stil): Name, Art, Adresse, An- und Abreise (auch „vom 4. bis 9. Oktober“ oder „5 Nächte“), Gesamtpreis, Buchungsnummer, kostenlose Stornofrist, Link
+  - **Flüge** mit Flugnummer, Flughäfen, Datum und Uhrzeiten – Hin- und Rückflug werden automatisch zugeordnet
+  - **Bahn, Bus, Fähre** („ab Nürnberg Hbf 08:12 … an München Hbf 09:15“, Zugnummer)
+  - Alles andere: als **Beleg** unter Dokumente
+- Vorschlag zum Prüfen und Ändern, Hinweis wenn die Daten nicht zur Reise passen; dieselbe Buchung (gleiche Nummer) wird aktualisiert statt doppelt angelegt
+- Läuft **komplett auf dem Gerät** (pdf.js) – nichts wird hochgeladen; auch offline
+- Zu finden unter Unterkünfte, An- und Rückreise und als Bereich in der Planung
+
 ## 1.21.0 – 2026-10-13
 
 ### Neu: App-Sperre (Einstellungen → App-Sperre)

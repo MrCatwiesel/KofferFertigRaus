@@ -66,7 +66,7 @@ export default defineConfig(({ command }) => ({
       },
       workbox: {
         // nur woff2 – alle unterstützten Browser nutzen es, die alte woff-Datei wäre nur Ballast im Offline-Speicher
-        globPatterns: ['**/*.{js,css,html,svg,woff2}'],
+        globPatterns: ['**/*.{js,mjs,css,html,svg,woff2}'],
         // Lese-Links (/s/<code>) und die Schnittstelle nie durch die App-Startseite ersetzen
         navigateFallbackDenylist: [/\/s\/[A-Za-z0-9_-]+$/, /\/api\//],
         runtimeCaching: [

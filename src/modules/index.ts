@@ -18,6 +18,7 @@ import { reiseinfoModule } from './reiseinfo'
 import { termineModule } from './termine'
 import { bookingModule } from './booking'
 import { reportModule } from './report'
+import { statsModule } from './stats'
 
 /**
  * Liste der aktiven Module. Ein neues Modul:
@@ -43,5 +44,6 @@ export function registerAllModules(): void {
   registerModule(expensesModule)
   registerModule(websiteModule)
   registerModule(reportModule)
+  registerModule(statsModule)
   registerModule(shareModule)
 }

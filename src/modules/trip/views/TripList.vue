@@ -26,9 +26,14 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
 <template>
   <div class="d-flex align-items-center justify-content-between mb-3">
     <h1 class="h3 mb-0">Meine Reisen</h1>
-    <RouterLink to="/trip/neu" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Reise
-    </RouterLink>
+    <div class="d-flex gap-2">
+      <RouterLink v-if="trips.length" to="/statistik" class="btn btn-outline-primary" aria-label="Statistik">
+        <i class="bi bi-bar-chart" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Statistik</span>
+      </RouterLink>
+      <RouterLink to="/trip/neu" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Reise
+      </RouterLink>
+    </div>
   </div>
 
   <div v-if="trips.length === 0" class="card text-center py-5 px-3">

@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.24.0 – 2026-10-13
+
+### Neu: Unsere Reisen in Zahlen (Meine Reisen → „Statistik“)
+- **Je Jahr oder alle Jahre:** Reisen, Reisetage, Übernachtungen, Länder (mit Flaggen), Kilometer und Höhenmeter aller Touren, Fotos, Tagebuch-Einträge, Ausgaben
+- **Karte „Wo wir waren“** – ein Punkt je Reise, antippen öffnet sie
+- **Reisetage je Monat** als Balken – wann seid ihr am liebsten unterwegs?
+- **Rekorde:** längste Reise, längste Tour, meiste Höhenmeter
+- Liste aller Reisen mit Tagen, Kilometern, Höhenmetern und Fotos; geplante Reisen zählen erst, wenn sie begonnen haben
+
 ## 1.23.0 – 2026-10-13
 
 ### Neu: Reisebericht als PDF / Fotobuch (Reise → Danach → „Reisebericht (PDF)“)

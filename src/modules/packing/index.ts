@@ -1,6 +1,7 @@
 import type { AppModule } from '@/core/registry'
 import { packingRepository } from './repository'
 import { progress } from './logic'
+import { packingReminders } from './reminders'
 
 /** Modul "Packliste" (Meilenstein M2). */
 export const packingModule: AppModule = {
@@ -13,6 +14,7 @@ export const packingModule: AppModule = {
     { path: '/trip/:tripId/packliste/vorlagen', name: 'packing-templates', component: () => import('./views/PackingTemplates.vue'), props: true },
     { path: '/trip/:tripId/packliste/:id', name: 'packing-edit', component: () => import('./views/PackingEdit.vue'), props: true }
   ],
+  reminders: async (trip, today) => packingReminders(await packingRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung'],
     title: 'Packliste',

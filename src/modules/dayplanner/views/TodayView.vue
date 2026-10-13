@@ -5,6 +5,7 @@ import { useLiveQuery } from '@/core/composables'
 import { diffDays, todayIso } from '@/core/dates'
 import { formatDate } from '@/core/format'
 import { tripRepository, type Trip } from '@/modules/trip/public'
+import { DueReminders } from '@/modules/termine/public'
 
 /**
  * "Heute": springt direkt in den Tagesplan der laufenden Reise.
@@ -30,6 +31,7 @@ watch(running, (t) => {
       <span class="spinner-border text-primary" aria-hidden="true"></span>
     </template>
     <template v-else-if="next">
+      <div class="mx-auto mb-4" style="max-width: 36rem"><DueReminders :trip-id="next.id" /></div>
       <i class="bi bi-hourglass-split display-4 text-primary d-block mb-3" aria-hidden="true"></i>
       <p class="mb-1">Gerade läuft keine Reise.</p>
       <p class="text-body-secondary">

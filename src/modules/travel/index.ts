@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { tripRepository } from '@/modules/trip/public'
 import { travelRepository } from './repository'
 import { formatDuration, summarize, totalCost } from './logic'
+import { travelReminders } from './reminders'
 
 /** Modul "Anreise" (Meilenstein M1). */
 export const travelModule: AppModule = {
@@ -14,6 +15,7 @@ export const travelModule: AppModule = {
     { path: '/trip/:tripId/anreise/neu', name: 'travel-new', component: () => import('./views/TravelEdit.vue'), props: true },
     { path: '/trip/:tripId/anreise/:id', name: 'travel-edit', component: () => import('./views/TravelEdit.vue'), props: true }
   ],
+  reminders: async (trip) => travelReminders(await travelRepository.listByTrip(trip.id), trip),
   tripSection: {
     phases: ['planung', 'unterwegs'],
     title: 'An- und Rückreise',

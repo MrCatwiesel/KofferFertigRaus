@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 1.18.0 – 2026-10-13 (Server 1.14.0)
+
+### Neu: Termine & Fristen, Kalender
+- **Termine & Fristen** je Reise (neuer Bereich in Planung und Unterwegs): gesammelt aus allen Bereichen – Stornofristen und Aufenthalte (Unterkünfte), Abfahrten mit Uhrzeit und Online-Check-in bei Flügen (An-/Rückreise), geplante Unternehmungen und „noch buchen“, Ausweise/Pässe, die vor oder kurz nach der Reise ablaufen („verlängern“, 6 Wochen vorher), fehlende Dokumente, Impftermine und zu klärende Impfungen, ablaufende Medikamente, „Packen“ zwei Tage vor Abreise. Gruppiert nach Überfällig · Heute · Nächste 7 Tage · Später, ein Tipp führt zum Eintrag
+- **„Heute dran“** im Tagesplaner und auf „Heute“
+- **Kalender-Abo** (mit eigenem Server): Der Kalender auf iPad/iPhone, Android oder Outlook abonniert alle laufenden und kommenden Reisen über eine geheime Adresse und **erinnert rechtzeitig** (Fristen 2 Tage vorher, Abfahrten 2 Stunden vorher, Flüge 3 Stunden, Reisetage am Vorabend). Änderungen kommen nach jedem Abgleich automatisch an. Adresse erneuern oder Abo beenden jederzeit
+- **Kalenderdatei (.ics)** einer Reise zum einmaligen Importieren
+- Server: `/api/kalender` (Abo verwalten, hochladen) und `/api/kalender/<geheim>.ics`
+
+### Sonstiges
+- **Lizenz: GNU AGPL-3.0** (Text in LICENSE, Hinweis unter Einstellungen → Über). Spendenlink (PayPal) vorbereitet
+- Einstellungen → Über nennt alle genutzten Dienste
+
 ## 1.17.0 – 2026-10-13
 
 ### Behoben (gefunden in der Reise „Maria Alm“)

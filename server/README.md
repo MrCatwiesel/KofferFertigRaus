@@ -188,6 +188,9 @@ docker compose up -d --build
 | GET | `/api/routing/wanderwege/<id>` | Verlauf einer Route (Overpass `out geom`) |
 | GET | `/api/routing/strecke?lonlats=…&profile=hiking-mountain\|trekking\|fastbike\|car-fast\|shortest` | Strecke von A nach B (BRouter, GeoJSON mit Höhen) |
 | GET | `/api/reiseinfo/<CC>` | Reise- und Sicherheitshinweise des Auswärtigen Amts für ein Land (ISO-Code, z. B. `AT`; Liste 6 h, Länderseite 1 h zwischengespeichert) |
+| GET/PUT | `/api/kalender` | Kalender-Abo: Stand abfragen bzw. Kalenderdatei hochladen (macht die App selbst) |
+| POST/DELETE | `/api/kalender/link` | geheime Abo-Adresse anlegen/erneuern bzw. Abo beenden |
+| GET | `/api/kalender/<geheim>.ics` | **öffentlich**: die Kalenderdatei für Kalender-Apps (nur mit der geheimen Adresse) |
 | GET | `/api/reiseinfo/<CC>/vertretungen` | Deutsche Botschaft, Konsulate und Honorarkonsuln im Land (24 h zwischengespeichert) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |
 | GET/DELETE | `/api/maps/<id>` | Stand (`läuft`, `fertig`, `fehler`) / löschen |

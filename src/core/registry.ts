@@ -1,3 +1,4 @@
+import { sortReminders, type Reminder, type ReminderTrip } from './reminders'
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
 
@@ -21,6 +22,13 @@ export interface TripSection {
   summary?: (tripId: string) => Promise<string>
   /** Geplante Kosten dieses Bereichs (für den Budget-Vergleich) */
   plannedCost?: (tripId: string) => Promise<number>
+}
+
+/** Alle Termine und Fristen einer Reise aus allen Modulen (sortiert) */
+export async function getReminders(trip: ReminderTrip, today: string): Promise<Reminder[]> {
+  const out: Reminder[] = []
+  for (const m of getModules()) if (m.reminders) out.push(...(await m.reminders(trip, today).catch(() => [])))
+  return sortReminders(out)
 }
 
 /** Ein Foto als mögliches Titelbild */
@@ -130,6 +138,8 @@ export interface AppModule {
   onStart?: () => void
   /** Linien für die Reisekarte */
   mapOverlays?: (tripId: string) => Promise<MapOverlay[]>
+  /** Termine und Fristen dieser Reise (Stornofrist, Abfahrt, Impftermin …) */
+  reminders?: (trip: ReminderTrip, today: string) => Promise<Reminder[]>
   /** Fotos, die als Titelbild einer Reise in Frage kommen (z. B. aus dem Tagebuch) */
   coverPhotos?: (tripId: string) => Promise<CoverPhoto[]>
   /** Verweise unter den Tagen im Tagebuch */

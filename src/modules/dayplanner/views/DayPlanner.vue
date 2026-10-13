@@ -5,6 +5,7 @@ import { useLiveQuery, useOnline } from '@/core/composables'
 import { todayIso } from '@/core/dates'
 import { formatDate, formatDayShort } from '@/core/format'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
+import { DueReminders } from '@/modules/termine/public'
 import { CATEGORY, PRIORITY, SETTING, activityRepository, type Activity } from '@/modules/activity/public'
 import { describeCode, fetchDailyForecast, type Place } from '@/services/weather'
 import { weatherRepository } from '../repository'
@@ -103,6 +104,7 @@ const plannedCountByDate = computed(() => {
 
 <template>
   <TripContextHeader :trip-id="tripId" title="Tagesplaner" />
+  <DueReminders :trip-id="tripId" />
 
   <!-- Tage der Reise -->
   <div class="day-strip d-flex gap-2 overflow-auto pb-2 mb-3">

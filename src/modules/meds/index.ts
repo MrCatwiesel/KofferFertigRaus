@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { tripRepository } from '@/modules/trip/public'
 import { medicationRepository, vaccinationRepository } from './repository'
 import { summarizeMeds } from './logic'
+import { medsReminders } from './reminders'
 
 /** Modul "Reiseapotheke" (Meilenstein M2). */
 export const medsModule: AppModule = {
@@ -16,6 +17,7 @@ export const medsModule: AppModule = {
     { path: '/trip/:tripId/apotheke/impfung/neu', name: 'vacc-new', component: () => import('./views/VaccinationEdit.vue'), props: true },
     { path: '/trip/:tripId/apotheke/impfung/:id', name: 'vacc-edit', component: () => import('./views/VaccinationEdit.vue'), props: true }
   ],
+  reminders: async (trip, today) => medsReminders(await medicationRepository.listByTrip(trip.id), await vaccinationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
     title: 'Reiseapotheke',

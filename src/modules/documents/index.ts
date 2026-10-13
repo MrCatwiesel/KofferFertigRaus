@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { tripRepository } from '@/modules/trip/public'
 import { contactRepository, documentRepository } from './repository'
 import { summarizeDocs } from './logic'
+import { documentReminders } from './reminders'
 
 /** Modul "Dokumente & Notfall" (Meilenstein M2). */
 export const documentsModule: AppModule = {
@@ -16,6 +17,7 @@ export const documentsModule: AppModule = {
     { path: '/trip/:tripId/notfall/neu', name: 'contact-new', component: () => import('./views/ContactEdit.vue'), props: true },
     { path: '/trip/:tripId/notfall/:id', name: 'contact-edit', component: () => import('./views/ContactEdit.vue'), props: true }
   ],
+  reminders: async (trip, today) => documentReminders(await documentRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
     title: 'Dokumente & Notfall',

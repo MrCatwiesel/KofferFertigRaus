@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { tripRepository } from '@/modules/trip/public'
 import { activityRepository } from './repository'
 import { countByStatus, totalEstimatedCost } from './logic'
+import { activityReminders } from './reminders'
 
 /** Modul "Unternehmungen" (Meilenstein M1). */
 export const activityModule: AppModule = {
@@ -14,6 +15,7 @@ export const activityModule: AppModule = {
     { path: '/trip/:tripId/unternehmungen/neu', name: 'activity-new', component: () => import('./views/ActivityEdit.vue'), props: true },
     { path: '/trip/:tripId/unternehmungen/:id', name: 'activity-edit', component: () => import('./views/ActivityEdit.vue'), props: true }
   ],
+  reminders: async (trip, today) => activityReminders(await activityRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
     title: 'Unternehmungen',

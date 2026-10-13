@@ -10,6 +10,7 @@
  *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
  *  - Wanderwege-Suche (Overpass) und Routenplaner (BRouter) weitergereicht          → routing.mjs
  *  - Reisehinweise des Auswärtigen Amts weitergereicht (zwischengespeichert)        → reiseinfo.mjs
+ *  - Kalender-Abo: Termine und Fristen für Kalender-Apps                          → kalender.mjs
  *  - Offline-Karten: Ausschnitte der Protomaps-Weltkarte (optional, Programm pmtiles) → maps.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
@@ -31,9 +32,10 @@ import { createDevices } from './devices.mjs'
 import { createBackupAdmin } from './backup-targets.mjs'
 import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
+import { createKalender } from './kalender.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.13.0'
+export const VERSION = '1.14.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -57,6 +59,7 @@ export function createSyncServer(opts) {
   const backupAdmin = createBackupAdmin(resolve(opts.dataDir))
   const routing = createRouting({ ...(opts.routing ?? {}), version: VERSION })
   const reiseinfo = createReiseinfo({ ...(opts.reiseinfo ?? {}), version: VERSION })
+  const kalender = createKalender(resolve(opts.dataDir))
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -78,6 +81,8 @@ export function createSyncServer(opts) {
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
     if (path.startsWith('/api/public/')) return shares.handlePublic(req, res, url, path)
+    // Öffentlich: Kalender-Abo über die geheime Adresse
+    if ((req.method === 'GET' || req.method === 'HEAD') && /^\/api\/kalender\/[^/]+\.ics$/.test(path)) return kalender.handlePublic(req, res, path)
 
     // Die App selbst (gebaute Dateien), wenn NWW_APP_DIR gesetzt ist
     if (app && (req.method === 'GET' || req.method === 'HEAD') && !path.startsWith('/api/')) {
@@ -139,6 +144,8 @@ export function createSyncServer(opts) {
     if (path.startsWith('/api/routing/')) return routing.handle(req, res, url, path)
 
     if (path.startsWith('/api/reiseinfo/')) return reiseinfo.handle(req, res, path)
+
+    if (path === '/api/kalender' || path === '/api/kalender/link') return kalender.handle(req, res, path, space)
 
     if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
 

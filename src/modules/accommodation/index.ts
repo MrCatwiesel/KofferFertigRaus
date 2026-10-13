@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
+import { accommodationReminders } from './reminders'
 
 /** Modul "Unterkünfte" (Meilenstein M1). */
 export const accommodationModule: AppModule = {
@@ -14,6 +15,7 @@ export const accommodationModule: AppModule = {
     { path: '/trip/:tripId/unterkuenfte/neu', name: 'accommodation-new', component: () => import('./views/AccommodationEdit.vue'), props: true },
     { path: '/trip/:tripId/unterkuenfte/:id', name: 'accommodation-edit', component: () => import('./views/AccommodationEdit.vue'), props: true }
   ],
+  reminders: async (trip, today) => accommodationReminders(await accommodationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
     title: 'Unterkünfte',

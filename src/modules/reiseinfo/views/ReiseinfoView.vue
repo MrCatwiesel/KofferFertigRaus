@@ -5,8 +5,11 @@ import { countryName, flag } from '@/core/countries'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { countryInfoRepository } from '../repository'
 import { refreshTripInfos } from '../refresh'
-import { warningLabel } from '../parse'
-import { SOURCE_URL, type CountryInfo } from '../types'
+import { missionName, warningLabel } from '../parse'
+import { SOURCE_URL, type CountryInfo, type Mission } from '../types'
+import { telHref } from '@/modules/documents/public'
+
+const tel = (p: string) => telHref(p) ?? undefined
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -41,6 +44,10 @@ onMounted(async () => {
 async function seen(i: CountryInfo) {
   if (i.unseenChange) await countryInfoRepository.markSeen(i.id)
 }
+
+const mainMissions = (i: CountryInfo) => (i.missions ?? []).filter((m) => m.main)
+const honorary = (i: CountryInfo) => (i.missions ?? []).filter((m) => !m.main)
+const mapsLink = (m: Mission) => `https://www.openstreetmap.org/search?query=${encodeURIComponent(m.address)}`
 
 const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '')
 const badge = (level: string) => (level === 'danger' ? 'text-bg-danger' : level === 'warning' ? 'text-bg-warning' : 'text-bg-success')
@@ -84,6 +91,34 @@ const badge = (level: string) => (level === 'danger' ? 'text-bg-danger' : level 
             <span v-for="v in infoOf(c)!.vaccines" :key="v.name" class="badge me-1" :class="v.required ? 'text-bg-danger' : 'text-bg-light border'">
               {{ v.name }}{{ v.required ? ' – Pflicht' : '' }}
             </span>
+          </div>
+          <div v-if="infoOf(c)!.missions?.length" class="missions mb-2">
+            <div class="small fw-semibold mb-1"><i class="bi bi-bank me-1" aria-hidden="true"></i>Deutsche Vertretungen</div>
+            <div v-for="m in mainMissions(infoOf(c)!)" :key="m.id" class="mission border rounded p-2 mb-2">
+              <div class="fw-semibold">{{ missionName(m) }}</div>
+              <div v-if="m.address" class="small"><a :href="mapsLink(m)" target="_blank" rel="noopener">{{ m.address }}</a></div>
+              <div class="d-flex flex-wrap gap-2 mt-1">
+                <a v-if="m.phone" :href="tel(m.phone)" class="btn btn-sm btn-outline-success"><i class="bi bi-telephone me-1" aria-hidden="true"></i>{{ m.phone }}</a>
+                <a v-if="m.emergency" :href="tel(m.emergency)" class="btn btn-sm btn-danger"><i class="bi bi-telephone-plus me-1" aria-hidden="true"></i>Notfall: {{ m.emergency }}</a>
+                <a v-if="m.website" :href="m.website" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Webseite</a>
+              </div>
+              <div v-if="m.open" class="small text-body-secondary mt-1 pre">{{ m.open }}</div>
+            </div>
+            <details v-if="honorary(infoOf(c)!).length" class="small">
+              <summary>Honorarkonsuln ({{ honorary(infoOf(c)!).length }})</summary>
+              <ul class="list-unstyled mt-1 mb-0">
+                <li v-for="m in honorary(infoOf(c)!)" :key="m.id" class="mb-1">
+                  <span class="fw-semibold">{{ m.city || missionName(m) }}</span>
+                  <template v-if="m.address"> · {{ m.address }}</template>
+                  <template v-if="m.phone"> · <a :href="tel(m.phone)">{{ m.phone }}</a></template>
+                  <template v-if="m.mail"> · <a :href="`mailto:${m.mail}`">{{ m.mail }}</a></template>
+                </li>
+              </ul>
+            </details>
+            <div class="small text-body-secondary">
+              Botschaft{{ mainMissions(infoOf(c)!).length > 1 ? 'en' : '' }} und Honorarkonsuln am Reiseziel stehen auch unter
+              <RouterLink :to="`/trip/${tripId}/dokumente?tab=notfall`">Notfallnummern</RouterLink>.
+            </div>
           </div>
           <details v-for="s in infoOf(c)!.sections" :key="s.title" class="info-section" @toggle="seen(infoOf(c)!)">
             <summary class="fw-semibold">{{ s.title }}</summary>

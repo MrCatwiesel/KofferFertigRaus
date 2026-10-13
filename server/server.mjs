@@ -33,7 +33,7 @@ import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.12.0'
+export const VERSION = '1.13.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 

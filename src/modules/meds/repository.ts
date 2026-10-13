@@ -33,6 +33,10 @@ export const medicationRepository = {
 }
 
 export const vaccinationRepository = {
+  async createMany(tripId: string, drafts: VaccinationDraft[]): Promise<void> {
+    const ts = now()
+    await db.vaccinations.bulkAdd(drafts.map((d) => ({ ...d, id: newId(), tripId, createdAt: ts, updatedAt: ts })))
+  },
   listByTrip(tripId: string): Promise<Vaccination[]> {
     return db.vaccinations.where('tripId').equals(tripId).toArray()
   },

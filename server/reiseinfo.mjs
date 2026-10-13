@@ -1,16 +1,30 @@
 /**
  * Reise- und Sicherheitshinweise des Auswärtigen Amts (OpenData, frei nutzbar) über den eigenen Server.
- * Vorteile: kein CORS-Problem in der App, Zwischenspeicher (Länderliste 6 h, Länderseite 1 h),
+ * Vorteile: kein CORS-Problem in der App, Zwischenspeicher (Länderliste 6 h, Länderseite 1 h, Auslandsvertretungen 24 h),
  * und die App braucht nur den Ländercode – keine beliebigen Adressen.
+ *
+ *  GET /api/reiseinfo/<CC>              Reise- und Sicherheitshinweise (/opendata/travelwarning/<id>)
+ *  GET /api/reiseinfo/<CC>/vertretungen Deutsche Botschaft und Konsulate im Land (/opendata/representativesInCountry)
  */
 import { HttpError } from './http.mjs'
 
 const LIST_MS = 6 * 3600_000
 const DETAIL_MS = 3600_000
+const MISSIONS_MS = 24 * 3600_000
+
+/** Ländernamen vergleichbar machen ("Côte d’Ivoire" ~ "Cote d'Ivoire") */
+export const normName = (s) =>
+  String(s ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]/g, '')
 
 export function createReiseinfo(opts = {}) {
   const fetchImpl = opts.fetchImpl ?? fetch
-  const base = (opts.url || 'https://www.auswaertiges-amt.de/opendata/travelwarning').replace(/\/+$/, '')
+  const root = (opts.url || 'https://www.auswaertiges-amt.de/opendata').replace(/\/+$/, '')
+  const base = `${root}/travelwarning`
   const ua = `NixWieWeg/${opts.version ?? '1'} (selbst gehosteter Reiseplaner)`
   /** @type {Map<string, { at: number, body: any }>} */
   const cache = new Map()
@@ -43,15 +57,22 @@ export function createReiseinfo(opts = {}) {
   return {
     async handle(req, res, path) {
       if (req.method !== 'GET') throw new HttpError(405, 'Nicht erlaubt')
-      const m = path.match(/^\/api\/reiseinfo\/([A-Z]{2})$/)
+      const m = path.match(/^\/api\/reiseinfo\/([A-Z]{2})(\/vertretungen)?$/)
       if (!m) throw new HttpError(404, 'Unbekanntes Land')
       const list = await get(base, LIST_MS)
       const r = list?.response ?? {}
       const id = (r.contentList ?? []).find((k) => String(r[k]?.countryCode ?? '').toUpperCase() === m[1])
       if (!id || !/^\d{1,12}$/.test(String(id))) throw new HttpError(404, 'Für dieses Land gibt es keine Reisehinweise.')
-      const detail = await get(`${base}/${id}`, DETAIL_MS)
+      let body
+      if (m[2]) {
+        // Vertretungen sind nach deutschem Ländernamen sortiert – denselben Namen wie in den Reisehinweisen suchen
+        const name = normName(r[id].countryName)
+        const all = (await get(`${root}/representativesInCountry`, MISSIONS_MS))?.response ?? {}
+        const key = Object.keys(all).find((k) => /^\d+$/.test(k) && normName(all[k]?.country) === name)
+        body = { country: m[1], countryName: r[id].countryName ?? '', missions: key ? all[key] : null }
+      } else body = await get(`${base}/${id}`, DETAIL_MS)
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' })
-      res.end(JSON.stringify(detail))
+      res.end(JSON.stringify(body))
     }
   }
 }

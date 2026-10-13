@@ -1,4 +1,4 @@
-import { partText, warningLabel } from './parse'
+import { missionName, partText, warningLabel } from './parse'
 import { SOURCE_URL, type CountryInfo } from './types'
 
 const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString('de-DE') : '')
@@ -52,4 +52,39 @@ export function infoDocuments(i: CountryInfo): InfoDocument[] {
       notes: [w.text, securityText && clip(securityText, 1200), stand].filter(Boolean).join('\n\n')
     }
   ]
+}
+
+/** Eintrag für die Notfallnummern (wie ein EmergencyContactDraft, plus Kennung) */
+export interface InfoContact {
+  source: string
+  label: string
+  phone: string
+  notes: string
+}
+
+const normPlace = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/ß/g, 'ss')
+
+/**
+ * Notfallnummern aus den Auslandsvertretungen: Botschaft/Konsulate (Telefon und – falls genannt – Bereitschaftsdienst
+ * für Notfälle), dazu Honorarkonsuln, deren Ort im Reiseziel vorkommt.
+ */
+export function missionContacts(i: CountryInfo, destination = ''): InfoContact[] {
+  const dest = normPlace(destination)
+  const out: InfoContact[] = []
+  for (const m of i.missions ?? []) {
+    const near = !!m.city && dest.includes(normPlace(m.city))
+    if (!m.main && !near) continue
+    const name = missionName(m)
+    const src = `aa:${i.country}:vertretung:${m.id}`
+    const extra = [m.address, m.mail && `E-Mail: ${m.mail}`, m.website].filter(Boolean).join(' · ')
+    if (m.phone) out.push({ source: src, label: name, phone: m.phone, notes: [extra, m.open && clip(m.open, 300), 'Quelle: Auswärtiges Amt'].filter(Boolean).join('\n') })
+    if (m.emergency && m.emergency !== m.phone)
+      out.push({ source: `${src}:notfall`, label: `${name} – Notfall-Bereitschaft`, phone: m.emergency, notes: 'Außerhalb der Öffnungszeiten, nur in dringenden Notfällen (z. B. Pass verloren, Festnahme, schwerer Unfall). Quelle: Auswärtiges Amt' })
+  }
+  return out
 }

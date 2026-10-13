@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
 import { formatDate } from '@/core/format'
 import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/modules/trip/public'
@@ -11,9 +12,13 @@ const props = defineProps<{ tripId: string }>()
 
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const docs = useLiveQuery(() => documentRepository.listByTrip(props.tripId), [] as TravelDocument[])
-const contacts = useLiveQuery(() => contactRepository.listByTrip(props.tripId), [] as EmergencyContact[])
+const contactsRaw = useLiveQuery(() => contactRepository.listByTrip(props.tripId), [] as EmergencyContact[])
+// Eigene Nummern zuerst, danach die automatisch eingetragenen (Botschaft …)
+const contacts = computed(() =>
+  [...contactsRaw.value].sort((a, b) => Number(!!a.source) - Number(!!b.source) || (a.source && b.source ? a.label.localeCompare(b.label, 'de') : 0))
+)
 
-const tab = ref<'dokumente' | 'notfall'>('dokumente')
+const tab = ref<'dokumente' | 'notfall'>(useRoute().query.tab === 'notfall' ? 'notfall' : 'dokumente')
 const showNumbers = ref(false)
 
 const sorted = computed(() => (trip.value ? sortDocs(docs.value, trip.value.endDate) : docs.value))
@@ -131,6 +136,7 @@ async function addSuggestions() {
       <div v-for="c in contacts" :key="c.id" class="list-group-item d-flex align-items-center gap-3">
         <div class="flex-grow-1 min-w-0">
           <RouterLink :to="`/trip/${tripId}/notfall/${c.id}`" class="fw-semibold text-body text-decoration-none">{{ c.label }}</RouterLink>
+          <span v-if="c.source" class="badge text-bg-light border ms-1 fw-normal" title="Automatisch aus den Reisehinweisen des Auswärtigen Amts">Auswärtiges Amt</span>
           <div class="small text-body-secondary text-truncate">{{ c.phone }}<template v-if="c.notes"> · {{ c.notes }}</template></div>
         </div>
         <a v-if="telHref(c.phone)" :href="telHref(c.phone)!" class="btn btn-success btn-sm" :aria-label="`${c.label} anrufen`">

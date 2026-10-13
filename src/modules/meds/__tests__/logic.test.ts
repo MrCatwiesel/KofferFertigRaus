@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   dailySchedule, emptyMedicationDraft, emptyVaccinationDraft, expiryStatus, normalizeTimes, sortMeds, stockStatus,
-  summarizeMeds, unitsNeeded, vaccinationNeedsAction, validateMedication, validateVaccination
+  summarizeMeds, unitsNeeded, vaccinationNeedsAction, validateMedication, validateVaccination,
+  matchVaccination, mergeVaccineAdvice, vaccinationFromAdvice
 } from '../logic'
 import type { Medication, Vaccination } from '../types'
 
@@ -99,5 +100,28 @@ describe('Übersicht und Prüfung', () => {
     expect(validateMedication(emptyMedicationDraft({ name: 'X', times: [] })).times).toBeDefined()
     expect(validateMedication(emptyMedicationDraft({ name: 'X', kind: 'bedarf', times: [] }))).toEqual({})
     expect(validateVaccination(emptyVaccinationDraft()).name).toBeDefined()
+  })
+})
+
+describe('Impfungen aus den Reisehinweisen', () => {
+  const adv = mergeVaccineAdvice([
+    { countryName: 'Österreich', vaccines: [{ name: 'FSME', required: false }, { name: 'Tetanus', required: false }] },
+    { countryName: 'Ghana', vaccines: [{ name: 'Tetanus', required: false }, { name: 'Gelbfieber', required: true }] }
+  ])
+  it('fasst Länder zusammen, Pflicht zuerst', () => {
+    expect(adv.map((a) => a.name)).toEqual(['Gelbfieber', 'FSME', 'Tetanus'])
+    expect(adv.find((a) => a.name === 'Tetanus')!.countries).toEqual(['Österreich', 'Ghana'])
+  })
+  it('erkennt eingetragene Impfungen auch bei anderer Schreibweise', () => {
+    const list = [{ name: 'FSME-Impfung' }, { name: 'Tetanus/Diphtherie' }, { name: 'Keuchhusten' }, { name: 'Hepatitis A+B' }]
+    expect(matchVaccination({ name: 'FSME' }, list)?.name).toBe('FSME-Impfung')
+    expect(matchVaccination({ name: 'Tetanus' }, list)?.name).toBe('Tetanus/Diphtherie')
+    expect(matchVaccination({ name: 'Keuchhusten (Pertussis)' }, list)?.name).toBe('Keuchhusten')
+    expect(matchVaccination({ name: 'Hepatitis A' }, list)?.name).toBe('Hepatitis A+B')
+    expect(matchVaccination({ name: 'Hepatitis B' }, list)).toBeUndefined()
+    expect(matchVaccination({ name: 'Gelbfieber' }, list)).toBeUndefined()
+  })
+  it('neue Impfung mit Hinweis', () => {
+    expect(vaccinationFromAdvice(adv[0])).toMatchObject({ name: 'Gelbfieber', status: 'pruefen', notes: 'Pflicht bei Einreise (Ghana) – laut Auswärtigem Amt.' })
   })
 })

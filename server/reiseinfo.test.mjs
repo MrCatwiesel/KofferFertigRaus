@@ -14,6 +14,7 @@ let down = false
 async function fakeFetch(url, init = {}) {
   calls.push({ url: String(url), ua: init.headers?.['User-Agent'] })
   if (down) throw new Error('offline')
+  if (String(url) === 'https://aa.test/representativesInCountry') return new Response(fixture('aa-vertretungen.json'), { status: 200 })
   if (String(url) === 'https://aa.test/travelwarning') return new Response(fixture('aa-liste.json'), { status: 200 })
   if (String(url) === 'https://aa.test/travelwarning/210962') return new Response(fixture('aa-oesterreich.json'), { status: 200 })
   return new Response('nicht da', { status: 404 })
@@ -26,7 +27,7 @@ const call = async (path, key = KEY) => {
 
 before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'nww-reiseinfo-'))
-  server = createSyncServer({ keys: [KEY], dataDir: dir, reiseinfo: { url: 'https://aa.test/travelwarning/', fetchImpl: fakeFetch } })
+  server = createSyncServer({ keys: [KEY], dataDir: dir, reiseinfo: { url: 'https://aa.test/', fetchImpl: fakeFetch } })
   await new Promise((r) => server.listen(0, r))
   base = `http://127.0.0.1:${server.address().port}`
 })
@@ -59,4 +60,17 @@ test('Reisehinweise: Thailand liegt in der Liste, Einzelseite fehlt → Fehler, 
   down = true
   assert.equal((await call('/api/reiseinfo/AT')).status, 200, 'zwischengespeichert, auch wenn das Amt nicht erreichbar ist')
   down = false
+})
+
+test('Auslandsvertretungen: nach Ländernamen aus den Reisehinweisen gefunden', async () => {
+  const r = await call('/api/reiseinfo/AT/vertretungen')
+  assert.equal(r.status, 200)
+  assert.equal(r.body.countryName, 'Österreich')
+  assert.equal(r.body.missions.contentList.length, 3)
+  assert.equal(r.body.missions['300001'].city, 'Wien')
+  const th = await call('/api/reiseinfo/TH/vertretungen')
+  assert.equal(th.status, 200)
+  assert.equal(th.body.missions, null, 'Land ohne Eintrag → leer, kein Fehler')
+  assert.equal((await call('/api/reiseinfo/ZZ/vertretungen')).status, 404)
+  assert.equal((await call('/api/reiseinfo/AT/vertretungen/x')).status, 404)
 })

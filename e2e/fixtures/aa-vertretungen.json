@@ -1,0 +1,63 @@
+{
+ "response": {
+  "lastModified": 1750000000,
+  "211634": {
+   "lastModified": 1750000000,
+   "country": "Finnland",
+   "300010": {
+    "description": "Botschaft der Bundesrepublik Deutschland",
+    "city": "Helsinki",
+    "country": "Finnland",
+    "phone": "+358 9 458 580"
+   },
+   "contentList": [
+    "300010"
+   ]
+  },
+  "210960": {
+   "lastModified": 1750000000,
+   "country": "Österreich",
+   "300001": {
+    "lastModified": 1750000000,
+    "description": "Botschaft der Bundesrepublik Deutschland",
+    "leader": "Testname, Botschafterin",
+    "city": "Wien",
+    "country": "Österreich",
+    "address": "Gauermanngasse 2-4; 1010 Wien",
+    "postal": "Postfach 160; 1011 Wien",
+    "open": "Montag bis Freitag 09:00 bis 12:00 Uhr. Außerhalb der Dienstzeiten ist in dringenden Notfällen ein Bereitschaftsdienst unter +43 664 000 1111 erreichbar.",
+    "contact": "Kontaktformular https://wien.diplo.de/kontakt",
+    "phone": "+43 1 711 540",
+    "fax": "+43 1 713 8366",
+    "website": [
+     "https://wien.diplo.de"
+    ],
+    "misc": "Behördensprache: Deutsch"
+   },
+   "300002": {
+    "lastModified": 1750000000,
+    "description": "Honorarkonsul der Bundesrepublik Deutschland",
+    "leader": "Max Muster",
+    "city": "Zell am See",
+    "country": "Österreich",
+    "address": "Seegasse 1; 5700 Zell am See",
+    "mail": "zell@hk-diplo.de",
+    "phone": "+43 6542 000 22"
+   },
+   "300003": {
+    "lastModified": 1750000000,
+    "description": "Honorarkonsulin der Bundesrepublik Deutschland",
+    "leader": "Erika Muster",
+    "city": "Innsbruck",
+    "country": "Österreich",
+    "address": "Marktgraben 1; 6020 Innsbruck",
+    "phone": "+43 512 000 33"
+   },
+   "contentList": [
+    "300001",
+    "300002",
+    "300003"
+   ]
+  }
+ }
+}

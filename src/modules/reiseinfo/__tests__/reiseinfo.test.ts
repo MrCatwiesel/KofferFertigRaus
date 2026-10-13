@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import fixture from '../../../../e2e/fixtures/aa-oesterreich.json'
-import { decodeEntities, findVaccines, htmlToText, parseTravelWarning, splitSections, warningLabel } from '../parse'
-import { infoDocuments } from '../logic'
+import missionsFixture from '../../../../e2e/fixtures/aa-vertretungen.json'
+import { decodeEntities, findEmergencyPhone, findVaccines, htmlToText, missionName, parseMissions, parseTravelWarning, splitSections, warningLabel } from '../parse'
+import { infoDocuments, missionContacts } from '../logic'
 import type { CountryInfo } from '../types'
 import { countryName, flag, guessCountries } from '@/core/countries'
 
@@ -97,5 +98,35 @@ describe('Länder', () => {
     expect(countryName('AT')).toBe('Österreich')
     expect(flag('AT')).toBe('🇦🇹')
     expect(flag('x')).toBe('')
+  })
+})
+
+describe('Auslandsvertretungen', () => {
+  const missions = parseMissions(missionsFixture.response['210960'])
+
+  it('liest Botschaft und Honorarkonsuln, Botschaft zuerst', () => {
+    expect(missions.map((m) => m.city)).toEqual(['Wien', 'Innsbruck', 'Zell am See'])
+    expect(missions[0]).toMatchObject({ main: true, phone: '+43 1 711 540', emergency: '+43 664 000 1111', address: 'Gauermanngasse 2-4, 1010 Wien', website: 'https://wien.diplo.de' })
+    expect(missions[2]).toMatchObject({ main: false, mail: 'zell@hk-diplo.de', emergency: '' })
+    expect(parseMissions(null)).toEqual([])
+  })
+  it('Notfallnummer aus dem Text', () => {
+    expect(findEmergencyPhone('Öffnungszeiten 9–12 Uhr, Tel. +43 1 234. In Notfällen: +43 (0) 664 12 34 56.')).toBe('+43 (0) 664 12 34 56')
+    expect(findEmergencyPhone('Telefon +43 1 711 540')).toBe('')
+  })
+  it('Kurznamen', () => {
+    expect(missionName(missions[0])).toBe('Deutsche Botschaft Wien')
+    expect(missionName(missions[1])).toBe('Honorarkonsulin Innsbruck')
+    expect(missionName({ description: 'Generalkonsulat der Bundesrepublik Deutschland', city: 'Mailand' })).toBe('Deutsches Generalkonsulat Mailand')
+    expect(missionName({ description: 'Vertretungsbüro der Bundesrepublik Deutschland', city: 'Ramallah' })).toBe('Vertretungsbüro Ramallah')
+  })
+  it('Notfallnummern: Botschaft + Bereitschaft, Honorarkonsul nur am Reiseziel', () => {
+    const i = info({ missions })
+    expect(missionContacts(i, 'Fusch').map((c) => c.label)).toEqual(['Deutsche Botschaft Wien', 'Deutsche Botschaft Wien – Notfall-Bereitschaft'])
+    const near = missionContacts(i, 'Zell am See, Österreich')
+    expect(near.map((c) => c.source)).toEqual(['aa:AT:vertretung:300001', 'aa:AT:vertretung:300001:notfall', 'aa:AT:vertretung:300002'])
+    expect(near[2]).toMatchObject({ label: 'Honorarkonsul Zell am See', phone: '+43 6542 000 22' })
+    expect(near[0].notes).toContain('Gauermanngasse')
+    expect(missionContacts(info())).toEqual([])
   })
 })

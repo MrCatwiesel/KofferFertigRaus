@@ -45,11 +45,13 @@ export interface EmergencyContact {
   label: string
   phone: string
   notes: string
+  /** Automatisch angelegt, z. B. „aa:AT:vertretung:300001“ (Botschaft) – wird bei Änderungen aktualisiert */
+  source?: string
   createdAt: string
   updatedAt: string
 }
 
-export type EmergencyContactDraft = Omit<EmergencyContact, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
+export type EmergencyContactDraft = Omit<EmergencyContact, 'id' | 'tripId' | 'createdAt' | 'updatedAt' | 'source'>
 
 export const DOC_TYPE: Record<DocType, { label: string; icon: string }> = {
   ausweis: { label: 'Personalausweis', icon: 'person-vcard' },

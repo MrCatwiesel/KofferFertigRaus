@@ -5,6 +5,23 @@ export interface InfoSection {
   parts: { title: string; text: string }[]
 }
 
+/** Deutsche Auslandsvertretung im Land (Botschaft, Konsulat, Honorarkonsul …) */
+export interface Mission {
+  id: string
+  /** z. B. „Botschaft der Bundesrepublik Deutschland“ */
+  description: string
+  /** Botschaft/Generalkonsulat/Konsulat/Vertretungsbüro – false bei Honorarkonsuln */
+  main: boolean
+  city: string
+  address: string
+  phone: string
+  /** Bereitschaftsdienst für Notfälle außerhalb der Öffnungszeiten (aus dem Text gelesen) */
+  emergency: string
+  mail: string
+  website: string
+  open: string
+}
+
 /** Reise- und Sicherheitshinweise des Auswärtigen Amts für ein Land einer Reise (wird abgeglichen). */
 export interface CountryInfo {
   /** `${tripId}:${country}` */
@@ -29,6 +46,8 @@ export interface CountryInfo {
   sections: InfoSection[]
   /** Impfungen, die im Abschnitt „Impfschutz“ genannt werden */
   vaccines: { name: string; required: boolean }[]
+  /** Deutsche Auslandsvertretungen im Land (fehlt bei älteren Einträgen) */
+  missions?: Mission[]
   /** Neu seit dem letzten Ansehen geändert */
   unseenChange: boolean
   createdAt: string

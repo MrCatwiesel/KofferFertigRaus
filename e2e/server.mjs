@@ -41,6 +41,7 @@ async function fakeKartendienste(url, init = {}) {
 
 const aaFixture = (n) => new Response(readFileSync(join(import.meta.dirname, 'fixtures', n)), { status: 200 })
 async function fakeAuswaertigesAmt(url) {
+  if (String(url).endsWith('/representativesInCountry')) return aaFixture('aa-vertretungen.json')
   if (String(url).endsWith('/travelwarning')) return aaFixture('aa-liste.json')
   if (String(url).endsWith('/travelwarning/210962')) return aaFixture('aa-oesterreich.json')
   return new Response('nicht da', { status: 404 })

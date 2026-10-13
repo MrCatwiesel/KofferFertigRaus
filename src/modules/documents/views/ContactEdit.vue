@@ -11,13 +11,15 @@ const router = useRouter()
 
 const draft = reactive<EmergencyContactDraft>(emptyContactDraft())
 const submitted = ref(false)
+const source = ref('')
 const listPath = computed(() => `/trip/${props.tripId}/dokumente`)
 
 onMounted(async () => {
   if (!props.id) return
   const item = await contactRepository.get(props.id)
   if (!item) return router.replace(listPath.value)
-  const { id: _i, tripId: _t, createdAt: _c, updatedAt: _u, ...rest } = item
+  const { id: _i, tripId: _t, createdAt: _c, updatedAt: _u, source: src, ...rest } = item
+  source.value = src ?? ''
   Object.assign(draft, rest)
 })
 
@@ -41,6 +43,11 @@ async function remove() {
 
 <template>
   <TripContextHeader :trip-id="tripId" :title="id ? 'Nummer bearbeiten' : 'Neue Notfallnummer'" />
+
+  <div v-if="source" class="alert alert-info small py-2">
+    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Automatisch aus den Reisehinweisen des Auswärtigen Amts. Ändert sich dort etwas,
+    wird diese Nummer beim nächsten Aktualisieren angepasst; nimmst du das Land aus der Reise, verschwindet sie.
+  </div>
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">

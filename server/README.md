@@ -154,7 +154,7 @@ docker compose up -d --build
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
 | `NWW_DEVICE_IDLE_DAYS` | Geräte, die so viele Tage nicht abgeglichen haben, werden abgemeldet (Standard 180, `0` = nie) |
 | `NWW_OVERPASS_URL` / `NWW_BROUTER_URL` | Eigene Instanzen für Wanderwege-Suche bzw. Routenplaner (Standard: overpass-api.de, brouter.de) |
-| `NWW_AA_URL` | Adresse der Reisehinweise-Schnittstelle (Standard: `https://www.auswaertiges-amt.de/opendata/travelwarning`) |
+| `NWW_AA_URL` | OpenData-Adresse des Auswärtigen Amts (Standard: `https://www.auswaertiges-amt.de/opendata`) |
 | `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
 | `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
 | `NWW_BACKUP_DIR` / `NWW_BACKUP_KEEP` | Nur Proxmox: Zielordner und Anzahl der täglichen Sicherungen (`backup.sh`) |
@@ -188,6 +188,7 @@ docker compose up -d --build
 | GET | `/api/routing/wanderwege/<id>` | Verlauf einer Route (Overpass `out geom`) |
 | GET | `/api/routing/strecke?lonlats=…&profile=hiking-mountain\|trekking\|fastbike\|car-fast\|shortest` | Strecke von A nach B (BRouter, GeoJSON mit Höhen) |
 | GET | `/api/reiseinfo/<CC>` | Reise- und Sicherheitshinweise des Auswärtigen Amts für ein Land (ISO-Code, z. B. `AT`; Liste 6 h, Länderseite 1 h zwischengespeichert) |
+| GET | `/api/reiseinfo/<CC>/vertretungen` | Deutsche Botschaft, Konsulate und Honorarkonsuln im Land (24 h zwischengespeichert) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |
 | GET/DELETE | `/api/maps/<id>` | Stand (`läuft`, `fertig`, `fehler`) / löschen |
 | GET | `/api/maps/<id>/datei` | fertige PMTiles-Datei (mit `Range`-Unterstützung) |

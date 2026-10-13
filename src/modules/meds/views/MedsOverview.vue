@@ -4,10 +4,11 @@ import { useLiveQuery } from '@/core/composables'
 import { diffDays } from '@/core/dates'
 import { formatDate } from '@/core/format'
 import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/modules/trip/public'
+import { countryInfoRepository, type CountryInfo } from '@/modules/reiseinfo/public'
 import { medicationRepository, vaccinationRepository } from '../repository'
 import {
-  DEFAULT_RESERVE_DAYS, dailySchedule, emptyMedicationDraft, expiryStatus, sortMeds, stockStatus, unitsNeeded,
-  vaccinationNeedsAction
+  DEFAULT_RESERVE_DAYS, dailySchedule, emptyMedicationDraft, expiryStatus, matchVaccination, mergeVaccineAdvice, sortMeds, stockStatus,
+  unitsNeeded, vaccinationFromAdvice, vaccinationNeedsAction, type VaccineAdvice
 } from '../logic'
 import { FIRST_AID_KIT, KIND, VACC_STATUS, type Medication, type Vaccination } from '../types'
 
@@ -16,6 +17,20 @@ const props = defineProps<{ tripId: string }>()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const meds = useLiveQuery(() => medicationRepository.listByTrip(props.tripId), [] as Medication[])
 const vaccs = useLiveQuery(() => vaccinationRepository.listByTrip(props.tripId), [] as Vaccination[])
+
+const infos = useLiveQuery(() => countryInfoRepository.listByTrip(props.tripId), [] as CountryInfo[])
+
+// Impfungen aus den Reisehinweisen der Zielländer – mit den eingetragenen abgleichen
+const advice = computed(() =>
+  mergeVaccineAdvice(infos.value.filter((i) => trip.value?.countries?.includes(i.country)))
+    .map((a) => ({ ...a, match: matchVaccination(a, vaccs.value) }))
+)
+const adviceMissing = computed(() => advice.value.filter((a) => !a.match))
+const requiredMissing = computed(() => adviceMissing.value.some((a) => a.required))
+
+async function takeAdvice(list: VaccineAdvice[]) {
+  if (list.length) await vaccinationRepository.createMany(props.tripId, list.map(vaccinationFromAdvice))
+}
 
 type Tab = 'medikamente' | 'plan' | 'impfungen'
 const tab = ref<Tab>('medikamente')
@@ -65,7 +80,7 @@ async function addKit() {
     <li class="nav-item">
       <button class="nav-link" :class="{ active: tab === 'impfungen' }" @click="tab = 'impfungen'">
         Impfungen
-        <span v-if="trip && vaccs.some((v) => vaccinationNeedsAction(v, trip!.endDate))" class="badge text-bg-warning ms-1">!</span>
+        <span v-if="requiredMissing || (trip && vaccs.some((v) => vaccinationNeedsAction(v, trip!.endDate)))" class="badge text-bg-warning ms-1">!</span>
       </button>
     </li>
   </ul>
@@ -155,7 +170,33 @@ async function addKit() {
     <RouterLink :to="`/trip/${tripId}/apotheke/impfung/neu`" class="btn btn-primary mb-3">
       <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Impfung
     </RouterLink>
-    <p v-if="vaccs.length === 0" class="text-body-secondary">
+    <div v-if="advice.length" class="card mb-3 advice">
+      <div class="card-body py-2">
+        <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+          <h2 class="h6 mb-0 flex-grow-1"><i class="bi bi-shield-exclamation me-1" aria-hidden="true"></i>Laut Reisehinweisen</h2>
+          <button v-if="adviceMissing.length > 1" type="button" class="btn btn-sm btn-outline-primary" @click="takeAdvice(adviceMissing)">
+            Alle übernehmen ({{ adviceMissing.length }})
+          </button>
+        </div>
+        <ul class="list-unstyled mb-1">
+          <li v-for="a in advice" :key="a.name" class="d-flex flex-wrap align-items-center gap-2 py-1 border-top">
+            <span class="fw-semibold">{{ a.name }}</span>
+            <span v-if="a.required" class="badge text-bg-danger">Pflicht</span>
+            <span class="small text-body-secondary flex-grow-1">{{ a.countries.join(', ') }}</span>
+            <span v-if="a.match" class="badge" :class="VACC_STATUS[a.match.status].badge">eingetragen: {{ VACC_STATUS[a.match.status].label }}</span>
+            <button v-else type="button" class="btn btn-sm btn-outline-primary py-0" @click="takeAdvice([a])">
+              <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Übernehmen
+            </button>
+          </li>
+        </ul>
+        <p class="small text-body-secondary mb-0">
+          Vom Auswärtigen Amt genannt (Pflicht- und empfohlene Impfungen, auch Standardimpfungen). Was davon für euch nötig ist,
+          klärt die reisemedizinische Beratung – <RouterLink :to="`/trip/${tripId}/reisehinweise`">Details in den Reisehinweisen</RouterLink>.
+        </p>
+      </div>
+    </div>
+
+    <p v-if="vaccs.length === 0 && !advice.length" class="text-body-secondary">
       Prüfe rechtzeitig (am besten 6–8 Wochen vorher) mit Hausarzt oder reisemedizinischer Beratung, welche Impfungen für dein Ziel empfohlen sind.
     </p>
     <div class="vstack gap-2 mb-3">

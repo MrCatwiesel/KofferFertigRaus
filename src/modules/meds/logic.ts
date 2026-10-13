@@ -129,3 +129,51 @@ export function validateVaccination(d: VaccinationDraft): Partial<Record<keyof V
   if (!d.name.trim()) e.name = 'Bitte angeben, welche Impfung.'
   return e
 }
+
+/** Impfung, die in den Reisehinweisen der Zielländer genannt wird */
+export interface VaccineAdvice {
+  name: string
+  /** In mindestens einem Land Pflicht (z. B. Gelbfieber-Nachweis) */
+  required: boolean
+  /** Länder (Namen), in deren Hinweisen sie vorkommt */
+  countries: string[]
+}
+
+/** Genannte Impfungen mehrerer Länder zusammenfassen (Pflicht zuerst) */
+export function mergeVaccineAdvice(list: { countryName: string; vaccines: { name: string; required: boolean }[] }[]): VaccineAdvice[] {
+  const map = new Map<string, VaccineAdvice>()
+  for (const c of list)
+    for (const v of c.vaccines) {
+      const a = map.get(v.name) ?? { name: v.name, required: false, countries: [] }
+      a.required ||= v.required
+      if (!a.countries.includes(c.countryName)) a.countries.push(c.countryName)
+      map.set(v.name, a)
+    }
+  return [...map.values()].sort((a, b) => Number(b.required) - Number(a.required))
+}
+
+const vaccKey = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/\(.*?\)|impfung|-/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+/** Eingetragene Impfung zu einer Empfehlung finden („FSME“ ↔ „FSME-Impfung“, „Keuchhusten (Pertussis)“ ↔ „Keuchhusten“) */
+export function matchVaccination<T extends Pick<Vaccination, 'name'>>(advice: Pick<VaccineAdvice, 'name'>, list: T[]): T | undefined {
+  const a = vaccKey(advice.name)
+  const words = (s: string) => new RegExp(`(^|[^a-zäöü])${s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[^a-zäöü])`)
+  return list.find((v) => {
+    const k = vaccKey(v.name)
+    return !!k && (k === a || words(a).test(k) || words(k).test(a))
+  })
+}
+
+/** Neue Impfung aus einer Empfehlung (Status „Prüfen“) */
+export function vaccinationFromAdvice(a: VaccineAdvice): VaccinationDraft {
+  const where = a.countries.join(', ')
+  return emptyVaccinationDraft({
+    name: a.name,
+    notes: a.required ? `Pflicht bei Einreise (${where}) – laut Auswärtigem Amt.` : `Vom Auswärtigen Amt genannt für ${where} – mit Hausarzt/Reisemedizin klären.`
+  })
+}

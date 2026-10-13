@@ -31,7 +31,7 @@ export const reiseinfoModule: AppModule = {
     }
   },
   onTripSaved: async (tripId) => {
-    if (navigator.onLine) await refreshTripInfos(tripId)
+    await refreshTripInfos(tripId) // offline: nur Notfallnummern aus dem Gespeicherten, Abruf scheitert still
   },
   onTripDelete: (tripId) => countryInfoRepository.removeByTrip(tripId)
 }

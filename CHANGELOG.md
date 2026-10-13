@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.14.0 – 2026-10-13 (Server 1.13.0)
+
+### Neu
+- **Deutsche Botschaft automatisch in den Notfallnummern:** Für jedes Zielland trägt die App Botschaft bzw. Generalkonsulat mit Telefon, Adresse und Öffnungszeiten ein – und, falls das Auswärtige Amt eine nennt, die **Notfall-Bereitschaft** außerhalb der Öffnungszeiten. Honorarkonsuln kommen dazu, wenn ihr Ort im Reiseziel steht (z. B. „Zell am See“). Markiert mit „Auswärtiges Amt“, aktualisiert sich mit den Reisehinweisen
+- **Reisehinweise:** neuer Block „Deutsche Vertretungen“ mit Anruf-Knöpfen, Adresse (Karte), Webseite und allen Honorarkonsuln im Land
+- **Reiseapotheke → Impfungen:** „Laut Reisehinweisen“ zeigt die vom Auswärtigen Amt genannten Impfungen aller Zielländer, Pflichtimpfungen zuerst, und ob ihr sie schon eingetragen habt (erkennt auch „FSME-Impfung“ oder „Tetanus/Diphtherie“). Einzeln oder alle mit einem Tipp übernehmen (Status „Prüfen“). Fehlt eine Pflichtimpfung, zeigt der Reiter ein Ausrufezeichen
+- Server: `/api/reiseinfo/<Land>/vertretungen` (Auslandsvertretungen, 24 h zwischengespeichert). `NWW_AA_URL` meint jetzt die OpenData-Adresse ohne `/travelwarning`
+
 ## 1.13.0 – 2026-10-13 (Server 1.12.0)
 
 ### Neu: Zielländer und Reisehinweise

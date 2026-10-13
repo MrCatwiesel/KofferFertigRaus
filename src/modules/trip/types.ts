@@ -19,6 +19,12 @@ export interface Trip {
   /** Anreiseart – Detailplanung folgt im Modul "Anreise" */
   transport: 'auto' | 'bahn' | 'flug' | 'bus' | 'sonstiges'
   notes: string
+  /** Eigenes Titelbild (verkleinert); ohne Bild wird eine Landschaft gezeichnet */
+  cover?: Blob | null
+  /** Ausschnitt des Titelbilds senkrecht in Prozent (0 = oben, 100 = unten) */
+  coverY?: number
+  /** Abgeschlossen und ins Archiv gelegt (in der Reiseliste eingeklappt) */
+  archived?: boolean
   createdAt: string
   updatedAt: string
 }

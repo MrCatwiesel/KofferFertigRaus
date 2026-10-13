@@ -4,6 +4,7 @@ import { downloadJson, exportBackup, importBackup, type BackupFile } from '../ba
 import { formatBytes, requestPersistentStorage, storageInfo, type StorageInfo } from '../storage'
 import { describeStats } from '../merge'
 import { APP_CONFIG, APP_VERSION } from '@/config'
+import AppearanceCard from '@/ui/AppearanceCard.vue'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -61,6 +62,8 @@ async function persist() {
   <h1 class="h3 mb-3">Einstellungen</h1>
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
+
+  <AppearanceCard />
 
   <RouterLink to="/abgleich" class="card mb-3 text-decoration-none text-body">
     <div class="card-body d-flex align-items-center gap-3">

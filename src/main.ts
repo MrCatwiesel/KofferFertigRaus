@@ -9,15 +9,13 @@ import { registerAllModules } from './modules'
 import { buildRouter } from './core/router'
 import { startAutoSync } from './core/sync/engine'
 import { startModules } from './core/registry'
+import { startAppearance } from './ui/appearance'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
 
-// Dark Mode automatisch nach Systemeinstellung
-const dark = window.matchMedia('(prefers-color-scheme: dark)')
-const applyTheme = () => document.documentElement.setAttribute('data-bs-theme', dark.matches ? 'dark' : 'light')
-applyTheme()
-dark.addEventListener('change', applyTheme)
+// Aussehen: Stil, hell/dunkel (Standard: wie das Gerät) und Hintergrund
+startAppearance()
 
 createApp(App).use(buildRouter()).mount('#app')
 

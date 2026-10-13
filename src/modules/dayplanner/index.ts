@@ -18,6 +18,7 @@ export const dayplannerModule: AppModule = {
     { path: '/trip/:tripId/tagesplan', name: 'dayplanner', component: () => import('./views/DayPlanner.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Tagesplaner & Wetter',
     icon: 'cloud-sun',
     to: (tripId) => `/trip/${tripId}/tagesplan`,

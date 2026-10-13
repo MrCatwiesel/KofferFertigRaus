@@ -17,6 +17,7 @@ export const documentsModule: AppModule = {
     { path: '/trip/:tripId/notfall/:id', name: 'contact-edit', component: () => import('./views/ContactEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Dokumente & Notfall',
     icon: 'folder2-open',
     to: (tripId) => `/trip/${tripId}/dokumente`,

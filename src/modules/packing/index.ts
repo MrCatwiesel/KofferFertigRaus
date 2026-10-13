@@ -14,6 +14,7 @@ export const packingModule: AppModule = {
     { path: '/trip/:tripId/packliste/:id', name: 'packing-edit', component: () => import('./views/PackingEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung'],
     title: 'Packliste',
     icon: 'backpack',
     to: (tripId) => `/trip/${tripId}/packliste`,

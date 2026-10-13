@@ -23,6 +23,15 @@ export const tripRepository = {
     await db.trips.update(id, { ...draft, updatedAt: now() })
   },
 
+  /** Titelbild setzen (null = wieder die gezeichnete Landschaft) und Ausschnitt */
+  async setCover(id: string, cover: Blob | null, coverY = 50): Promise<void> {
+    await db.trips.update(id, { cover, coverY, updatedAt: now() })
+  },
+
+  async setArchived(id: string, archived: boolean): Promise<void> {
+    await db.trips.update(id, { archived, updatedAt: now() })
+  },
+
   /** Löscht die Reise und lässt alle Module ihre zugehörigen Daten entfernen. */
   async remove(id: string): Promise<void> {
     await notifyTripDeleted(id)

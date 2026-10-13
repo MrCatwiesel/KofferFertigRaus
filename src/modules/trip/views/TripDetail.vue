@@ -1,37 +1,55 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
-import { getTripSections } from '@/core/registry'
+import { flag } from '@/core/countries'
+import { getTripSections, type TripPhase } from '@/core/registry'
 import { tripRepository } from '../repository'
-import { budgetPerPersonDay, daysUntil, formatDate, formatMoney, tripDays } from '../logic'
+import { budgetPerPersonDay, defaultTripTab, formatDate, formatMoney, tripDays, tripPhase, tripStatusText } from '../logic'
 import { TRANSPORT_LABELS, type Trip } from '../types'
+import TripCover from '../components/TripCover.vue'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
+const route = useRoute()
 
 const trip = useLiveQuery(() => tripRepository.get(props.id), undefined as Trip | undefined)
+
+const TABS: { id: TripPhase; label: string; icon: string; intro: string }[] = [
+  { id: 'planung', label: 'Planung', icon: 'clipboard-check', intro: 'Alles vorbereiten – von der Anreise bis zur Packliste.' },
+  { id: 'unterwegs', label: 'Unterwegs', icon: 'compass', intro: 'Was ihr während der Reise braucht – griffbereit, auch offline.' },
+  { id: 'danach', label: 'Danach', icon: 'stars', intro: 'Erinnerungen festhalten, abrechnen, Fotos sortieren.' },
+  { id: 'teilen', label: 'Teilen & Archiv', icon: 'send', intro: 'Webseite und Lese-Links für Freunde – und die Reise ins Archiv legen.' }
+]
+
+/** Gewählter Bereich steht in der Adresse (?bereich=…), damit „Zurück“ wieder dort landet */
+const tab = computed<TripPhase>(() => {
+  const q = route.query.bereich
+  if (TABS.some((t) => t.id === q)) return q as TripPhase
+  return trip.value ? defaultTripTab(trip.value) : 'planung'
+})
+const nowTab = computed(() => (trip.value ? defaultTripTab({ ...trip.value, archived: false }) : null))
+function select(id: TripPhase) {
+  void router.replace({ query: { ...route.query, bereich: id } })
+}
 
 const facts = computed(() => {
   const t = trip.value
   if (!t) return []
   const perDay = budgetPerPersonDay(t)
   return [
-    { icon: 'calendar-range', label: 'Zeitraum', value: `${formatDate(t.startDate)} – ${formatDate(t.endDate)} (${tripDays(t.startDate, t.endDate)} Tage)` },
-    { icon: 'people', label: 'Personen', value: t.participants?.length ? t.participants.join(', ') : String(t.travelers) },
-    { icon: 'signpost-split', label: 'Anreise', value: TRANSPORT_LABELS[t.transport] },
-    {
-      icon: 'wallet2',
-      label: 'Budget',
-      value: t.budget ? formatMoney(t.budget, t.currency) + (perDay !== null ? ` (${formatMoney(perDay, t.currency)} p. P./Tag)` : '') : 'nicht festgelegt'
-    }
+    { icon: 'calendar-range', value: `${formatDate(t.startDate)} – ${formatDate(t.endDate)} · ${tripDays(t.startDate, t.endDate)} Tage` },
+    { icon: 'people', value: t.participants?.length ? t.participants.join(', ') : `${t.travelers} Personen` },
+    { icon: 'signpost-split', value: TRANSPORT_LABELS[t.transport] },
+    { icon: 'wallet2', value: t.budget ? formatMoney(t.budget, t.currency) + (perDay !== null ? ` · ${formatMoney(perDay, t.currency)} p. P./Tag` : '') : 'Budget offen' }
   ]
 })
 
-/** Abschnitte, die andere Module beisteuern (Unterkünfte, Unternehmungen …). */
+/** Bereiche, die andere Module beisteuern (Unterkünfte, Unternehmungen …) */
 const sections = getTripSections()
+const visible = computed(() => sections.map((s, i) => ({ s, i })).filter(({ s }) => (s.phases ?? ['planung']).includes(tab.value)))
 
-/** Zusammenfassungen und geplante Kosten aller Abschnitte – aktualisieren sich live. */
+/** Zusammenfassungen und geplante Kosten aller Bereiche – aktualisieren sich live. */
 const sectionData = useLiveQuery(
   () =>
     Promise.all(
@@ -51,8 +69,12 @@ const budgetCheck = computed(() => {
   return { planned, pct, over: t.budget !== null && planned > t.budget }
 })
 
-/** Platzhalter für die kommenden Module – zeigt die Roadmap direkt in der App. */
-const upcoming: { icon: string; title: string; milestone: string }[] = []
+const isOver = computed(() => !!trip.value && tripPhase(trip.value.startDate, trip.value.endDate) === 'vorbei')
+
+async function toggleArchive() {
+  if (!trip.value) return
+  await tripRepository.setArchived(props.id, !trip.value.archived)
+}
 
 async function remove() {
   if (!trip.value) return
@@ -64,55 +86,79 @@ async function remove() {
 
 <template>
   <div v-if="trip">
-    <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
-      <div>
-        <h1 class="h3 mb-1">{{ trip.title }}</h1>
-        <p class="text-body-secondary mb-0">
-          <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ trip.destination }}
-          <span v-if="daysUntil(trip.startDate) > 0"> · noch {{ daysUntil(trip.startDate) }} Tage</span>
-        </p>
+    <TripCover :trip="trip" class="hero mb-3">
+      <div class="d-flex flex-column justify-content-between h-100 p-3 p-md-4">
+        <div class="d-flex justify-content-end gap-2">
+          <RouterLink :to="`/trip/${trip.id}/titelbild`" class="btn btn-sm hero-btn" aria-label="Titelbild ändern">
+            <i class="bi bi-image me-1" aria-hidden="true"></i><span class="d-none d-sm-inline">Titelbild</span>
+          </RouterLink>
+          <div class="dropdown">
+            <button class="btn btn-sm hero-btn" data-bs-toggle="dropdown" aria-label="Aktionen">
+              <i class="bi bi-three-dots" aria-hidden="true"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
+              <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">Titelbild ändern</RouterLink></li>
+              <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">Mit Mitreisenden teilen</RouterLink></li>
+              <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
+              <li><hr class="dropdown-divider" /></li>
+              <li><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
+            </ul>
+          </div>
+        </div>
+        <div class="hero-text">
+          <div class="small mb-1">
+            <span v-if="trip.archived" class="badge text-bg-light me-1"><i class="bi bi-archive me-1" aria-hidden="true"></i>Archiv</span>
+            <span v-for="c in trip.countries ?? []" :key="c" class="me-1">{{ flag(c) }}</span>{{ tripStatusText(trip.startDate, trip.endDate) }}
+          </div>
+          <h1 class="mb-1 hero-title">{{ trip.title }}</h1>
+          <div><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ trip.destination }}</div>
+        </div>
       </div>
-      <div class="dropdown">
-        <button class="btn btn-outline-secondary" data-bs-toggle="dropdown" aria-label="Aktionen">
-          <i class="bi bi-three-dots" aria-hidden="true"></i>
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
-          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">Mit Mitreisenden teilen</RouterLink></li>
-          <li><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
-        </ul>
+    </TripCover>
+
+    <div class="d-flex flex-wrap gap-2 mb-3">
+      <span v-for="f in facts" :key="f.icon" class="fact"><i :class="`bi bi-${f.icon} me-1`" aria-hidden="true"></i>{{ f.value }}</span>
+    </div>
+
+    <!-- Bereiche: vor, während und nach der Reise -->
+    <nav class="phase-tabs mb-2" aria-label="Bereiche der Reise">
+      <button v-for="t in TABS" :key="t.id" type="button" class="phase-tab" :class="{ active: tab === t.id }" :aria-current="tab === t.id ? 'page' : undefined"
+              @click="select(t.id)">
+        <i :class="`bi bi-${t.icon}`" aria-hidden="true"></i>
+        <span>{{ t.label }}</span>
+        <span v-if="nowTab === t.id" class="now-dot" title="Passt gerade"></span>
+      </button>
+    </nav>
+    <p class="small text-body-secondary mb-3">{{ TABS.find((t) => t.id === tab)!.intro }}</p>
+
+    <!-- Unterwegs: das Wichtigste zuerst -->
+    <div v-if="tab === 'unterwegs'" class="row g-2 mb-3">
+      <div class="col-6">
+        <RouterLink to="/heute" class="quick quick-primary"><i class="bi bi-sun" aria-hidden="true"></i>Heute</RouterLink>
+      </div>
+      <div class="col-6">
+        <RouterLink :to="`/trip/${trip.id}/dokumente?tab=notfall`" class="quick quick-danger"><i class="bi bi-telephone" aria-hidden="true"></i>Notfall</RouterLink>
       </div>
     </div>
 
-    <ul class="list-group mb-4">
-      <li v-for="f in facts" :key="f.label" class="list-group-item d-flex gap-3">
-        <i :class="`bi bi-${f.icon} text-primary`" aria-hidden="true"></i>
-        <div>
-          <div class="small text-body-secondary">{{ f.label }}</div>
-          <div>{{ f.value }}</div>
-        </div>
-      </li>
-    </ul>
-
-    <!-- Planungsbereiche der Module -->
-    <h2 class="h6 text-body-secondary">Planung</h2>
-    <div class="list-group mb-3">
-      <RouterLink v-for="(s, i) in sections" :key="s.moduleId" :to="s.to(trip.id)"
-                  class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-        <i :class="`bi bi-${s.icon} fs-5 text-primary`" aria-hidden="true"></i>
-        <div class="flex-grow-1">
-          <div class="fw-semibold">{{ s.title }}</div>
-          <div class="small text-body-secondary">{{ sectionData[i]?.summary ?? '…' }}</div>
-        </div>
-        <span v-if="sectionData[i]?.cost" class="small text-body-secondary">
-          {{ formatMoney(sectionData[i].cost, trip.currency) }}
-        </span>
-        <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
-      </RouterLink>
+    <div class="row g-3 mb-4">
+      <div v-for="{ s, i } in visible" :key="s.moduleId" class="col-12 col-sm-6 col-lg-4">
+        <RouterLink :to="s.to(trip.id)" class="nww-tile">
+          <span class="nww-tile-icon"><i :class="`bi bi-${s.icon}`" aria-hidden="true"></i></span>
+          <span class="flex-grow-1 min-w-0">
+            <span class="d-block fw-semibold">{{ s.title }}</span>
+            <span class="d-block small text-body-secondary">{{ sectionData[i]?.summary ?? '…' }}</span>
+            <span v-if="sectionData[i]?.cost && tab === 'planung'" class="d-block small text-body-secondary mt-1">
+              <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>{{ formatMoney(sectionData[i].cost, trip.currency) }}
+            </span>
+          </span>
+        </RouterLink>
+      </div>
     </div>
 
     <!-- Budgetvergleich -->
-    <div v-if="budgetCheck" class="card mb-4">
+    <div v-if="budgetCheck && (tab === 'planung' || tab === 'danach')" class="card mb-4">
       <div class="card-body py-2">
         <div class="d-flex justify-content-between small mb-1">
           <span>Geplante Kosten</span>
@@ -130,22 +176,156 @@ async function remove() {
       </div>
     </div>
 
-    <div v-if="trip.notes" class="mb-4">
-      <h2 class="h6 text-body-secondary">Notizen</h2>
-      <p class="mb-0" style="white-space: pre-line">{{ trip.notes }}</p>
+    <div v-if="trip.notes && tab === 'planung'" class="card mb-4">
+      <div class="card-body">
+        <h2 class="h6 text-body-secondary">Notizen</h2>
+        <p class="mb-0" style="white-space: pre-line">{{ trip.notes }}</p>
+      </div>
     </div>
 
-    <h2 v-if="upcoming.length" class="h6 text-body-secondary">Bald verfügbar</h2>
-    <div class="row g-2">
-      <div v-for="m in upcoming" :key="m.title" class="col-6 col-md-3">
-        <div class="border rounded p-3 h-100 text-body-secondary">
-          <i :class="`bi bi-${m.icon} fs-4 d-block mb-1`" aria-hidden="true"></i>
-          <div class="small">{{ m.title }}</div>
-          <span class="badge text-bg-light border">{{ m.milestone }}</span>
+    <!-- Archiv -->
+    <div v-if="tab === 'teilen'" class="card mb-4">
+      <div class="card-body d-flex flex-wrap align-items-center gap-3">
+        <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">{{ trip.archived ? 'Im Archiv' : 'Archiv' }}</div>
+          <div class="small text-body-secondary">
+            <template v-if="trip.archived">Die Reise liegt im Archiv – in der Reiseliste eingeklappt, alle Daten bleiben erhalten.</template>
+            <template v-else-if="isOver">Fertig erzählt? Ins Archiv legen – die Reiseliste bleibt übersichtlich, nichts geht verloren.</template>
+            <template v-else>Nach der Reise kannst du sie hier ins Archiv legen.</template>
+          </div>
         </div>
+        <button type="button" class="btn" :class="trip.archived ? 'btn-outline-primary' : 'btn-primary'" @click="toggleArchive">
+          {{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}
+        </button>
       </div>
     </div>
   </div>
 
   <p v-else class="text-body-secondary">Reise wird geladen …</p>
 </template>
+
+<style scoped>
+.hero {
+  height: 240px;
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: var(--nww-shadow);
+}
+@media (min-width: 768px) {
+  .hero {
+    height: 300px;
+  }
+}
+[data-nww-style='retro'] .hero {
+  border: 2px solid var(--nww-border);
+}
+.hero-text {
+  color: #fff;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.45);
+}
+.hero-title {
+  font-size: clamp(1.7rem, 4.5vw, 2.6rem);
+  line-height: 1.1;
+}
+.hero-btn {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.32);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.hero-btn:hover {
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+}
+.fact {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.875rem;
+  background: var(--nww-surface);
+  border: 1px solid var(--nww-border);
+  border-radius: 999px;
+}
+.fact .bi {
+  color: var(--nww-primary);
+}
+.phase-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--nww-surface);
+  border: 1px solid var(--nww-border);
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: var(--nww-shadow);
+}
+.phase-tab {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0.25rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--nww-muted);
+  background: none;
+  border: 0;
+  border-radius: var(--bs-border-radius);
+}
+.phase-tab .bi {
+  font-size: 1.2rem;
+}
+.phase-tab.active {
+  color: var(--nww-on-primary);
+  background: var(--nww-primary);
+}
+[data-nww-style='modern'] .phase-tab.active {
+  background: linear-gradient(135deg, var(--nww-primary), var(--nww-accent));
+}
+[data-nww-style='retro'] .phase-tabs {
+  border-width: 2px;
+}
+[data-nww-style='retro'] .phase-tab {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
+}
+.now-dot {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.6rem;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--nww-accent);
+}
+.quick {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 100%;
+  padding: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: var(--bs-border-radius-lg);
+  box-shadow: var(--nww-shadow);
+}
+.quick .bi {
+  font-size: 1.3rem;
+}
+.quick-primary {
+  color: var(--nww-on-primary);
+  background: var(--nww-primary);
+}
+.quick-danger {
+  color: #fff;
+  background: #c0392b;
+}
+.min-w-0 {
+  min-width: 0;
+}
+</style>

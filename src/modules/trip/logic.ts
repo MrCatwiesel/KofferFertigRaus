@@ -87,3 +87,26 @@ export function validateTrip(draft: TripDraft): Partial<Record<keyof TripDraft, 
   if (new Set(names).size !== names.length) errors.participants = 'Jeder Name nur einmal.'
   return errors
 }
+
+/** Kurzer Stand für den Kopf der Reiseseite: „noch 12 Tage“, „Tag 2 von 5“, „vor 3 Wochen“ */
+export function tripStatusText(startDate: string, endDate: string, today: Date = new Date()): string {
+  const until = daysUntil(startDate, today)
+  if (until > 1) return `noch ${until} Tage`
+  if (until === 1) return 'morgen geht es los'
+  const total = tripDays(startDate, endDate)
+  const since = -daysUntil(endDate, today)
+  if (since <= 0) return until === 0 ? `heute geht es los · ${total} Tage` : `Tag ${1 - until} von ${total}`
+  if (since === 1) return 'gestern zurückgekommen'
+  if (since < 14) return `vor ${since} Tagen`
+  if (since < 60) return `vor ${Math.round(since / 7)} Wochen`
+  if (since < 365) return `vor ${Math.round(since / 30)} Monaten`
+  const y = Math.round(since / 365)
+  return y === 1 ? 'vor einem Jahr' : `vor ${y} Jahren`
+}
+
+/** Bereich der Reiseseite, der zum Datum passt */
+export function defaultTripTab(t: { startDate: string; endDate: string; archived?: boolean }, today: Date = new Date()): 'planung' | 'unterwegs' | 'danach' | 'teilen' {
+  if (t.archived) return 'teilen'
+  const p = tripPhase(t.startDate, t.endDate, today)
+  return p === 'vorbei' ? 'danach' : p
+}

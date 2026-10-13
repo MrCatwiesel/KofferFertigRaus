@@ -6,7 +6,7 @@ import { DATA_TABLES } from './tables'
 export const BACKUP_TABLES = DATA_TABLES
 
 /** Tabellen mit großen Binärdaten – im Backup optional. */
-export const LARGE_TABLES: readonly string[] = ['photos']
+export const LARGE_TABLES: readonly string[] = ['photos', 'appearance']
 
 export interface BackupFile {
   app: 'nix-wie-weg'
@@ -82,6 +82,7 @@ export async function exportTrip(tripId: string, options: { includeLarge?: boole
   const tables: Record<string, unknown[]> = { trips: [await encodeRow(trip)] }
   for (const name of BACKUP_TABLES) {
     if (name === 'trips' || (!options.includeLarge && LARGE_TABLES.includes(name))) continue
+    if (!db.table(name).schema.idxByName.tripId) continue // gehört zu keiner Reise (z. B. Aussehen)
     const rows = (await db.table(name).where('tripId').equals(tripId).toArray()) as Record<string, unknown>[]
     tables[name] = await Promise.all(rows.map(encodeRow))
   }

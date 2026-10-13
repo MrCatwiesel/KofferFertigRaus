@@ -15,6 +15,7 @@ export const accommodationModule: AppModule = {
     { path: '/trip/:tripId/unterkuenfte/:id', name: 'accommodation-edit', component: () => import('./views/AccommodationEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Unterkünfte',
     icon: 'house-door',
     to: (tripId) => `/trip/${tripId}/unterkuenfte`,

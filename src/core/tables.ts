@@ -21,5 +21,6 @@ export const DATA_TABLES = [
   'piwigoAlbums',
   'routes',
   'countryInfos',
+  'appearance',
   'photos'
 ] as const

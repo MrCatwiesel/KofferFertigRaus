@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { budgetPerPersonDay, cleanParticipants, daysUntil, emptyTripDraft, participantsOf, tripDays, tripPhase, validateTrip } from '../logic'
+import { budgetPerPersonDay, cleanParticipants, daysUntil, emptyTripDraft, participantsOf, tripDays, tripPhase, validateTrip, tripStatusText, defaultTripTab } from '../logic'
 
 describe('tripDays', () => {
   it('zählt An- und Abreisetag mit', () => {
@@ -54,5 +54,24 @@ describe('Teilnehmer', () => {
   it('meldet doppelte Namen', () => {
     const e = validateTrip({ ...emptyTripDraft(), title: 'X', destination: 'Y', startDate: '2026-07-01', endDate: '2026-07-02', participants: ['Anna', 'anna'] })
     expect(e.participants).toBeDefined()
+  })
+})
+
+describe('Stand der Reise und passender Bereich', () => {
+  const day = (iso: string) => new Date(`${iso}T12:00:00`)
+  it('Text für den Kopf', () => {
+    expect(tripStatusText('2026-11-20', '2026-11-26', day('2026-10-13'))).toBe('noch 38 Tage')
+    expect(tripStatusText('2026-10-14', '2026-10-20', day('2026-10-13'))).toBe('morgen geht es los')
+    expect(tripStatusText('2026-10-13', '2026-10-20', day('2026-10-13'))).toBe('heute geht es los · 8 Tage')
+    expect(tripStatusText('2026-10-11', '2026-10-18', day('2026-10-13'))).toBe('Tag 3 von 8')
+    expect(tripStatusText('2026-10-01', '2026-10-12', day('2026-10-13'))).toBe('gestern zurückgekommen')
+    expect(tripStatusText('2026-07-01', '2026-07-10', day('2026-10-13'))).toBe('vor 3 Monaten')
+    expect(tripStatusText('2025-05-01', '2025-05-04', day('2026-10-13'))).toBe('vor einem Jahr')
+  })
+  it('Bereich nach Datum, Archiv → Teilen & Archiv', () => {
+    expect(defaultTripTab({ startDate: '2026-11-20', endDate: '2026-11-26' }, day('2026-10-13'))).toBe('planung')
+    expect(defaultTripTab({ startDate: '2026-10-11', endDate: '2026-10-18' }, day('2026-10-13'))).toBe('unterwegs')
+    expect(defaultTripTab({ startDate: '2026-07-01', endDate: '2026-07-10' }, day('2026-10-13'))).toBe('danach')
+    expect(defaultTripTab({ startDate: '2026-07-01', endDate: '2026-07-10', archived: true }, day('2026-10-13'))).toBe('teilen')
   })
 })

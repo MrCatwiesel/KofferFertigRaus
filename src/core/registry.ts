@@ -6,8 +6,13 @@ import type { RouteRecordRaw } from 'vue-router'
  * (z. B. "Unterkünfte · 2 gebucht"). So zeigt die Reise-Seite neue Module an,
  * ohne sie zu kennen.
  */
+/** Abschnitte der Reiseseite: vor, während und nach der Reise, dazu Teilen & Archiv */
+export type TripPhase = 'planung' | 'unterwegs' | 'danach' | 'teilen'
+
 export interface TripSection {
   title: string
+  /** In welchen Reitern der Reiseseite der Bereich erscheint (Standard: nur Planung) */
+  phases?: TripPhase[]
   /** Bootstrap-Icon-Name ohne "bi-" */
   icon: string
   /** Ziel-Route für eine Reise */
@@ -16,6 +21,21 @@ export interface TripSection {
   summary?: (tripId: string) => Promise<string>
   /** Geplante Kosten dieses Bereichs (für den Budget-Vergleich) */
   plannedCost?: (tripId: string) => Promise<number>
+}
+
+/** Ein Foto als mögliches Titelbild */
+export interface CoverPhoto {
+  id: string
+  thumb: Blob
+  full: Blob
+  caption: string
+}
+
+/** Alle möglichen Titelbilder einer Reise aus allen Modulen */
+export async function getCoverPhotos(tripId: string): Promise<CoverPhoto[]> {
+  const out: CoverPhoto[] = []
+  for (const m of getModules()) if (m.coverPhotos) out.push(...(await m.coverPhotos(tripId).catch(() => [])))
+  return out
 }
 
 /** Ein Foto, das eine Fotoquelle liefert (schon als Bild-Datei, wird wie ein Kamerafoto verarbeitet). */
@@ -110,6 +130,8 @@ export interface AppModule {
   onStart?: () => void
   /** Linien für die Reisekarte */
   mapOverlays?: (tripId: string) => Promise<MapOverlay[]>
+  /** Fotos, die als Titelbild einer Reise in Frage kommen (z. B. aus dem Tagebuch) */
+  coverPhotos?: (tripId: string) => Promise<CoverPhoto[]>
   /** Verweise unter den Tagen im Tagebuch */
   dayLinks?: (tripId: string) => Promise<DayLink[]>
 }

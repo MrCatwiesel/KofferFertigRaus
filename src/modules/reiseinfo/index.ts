@@ -13,6 +13,7 @@ export const reiseinfoModule: AppModule = {
   order: 48,
   routes: [{ path: '/trip/:tripId/reisehinweise', name: 'reiseinfo', component: () => import('./views/ReiseinfoView.vue'), props: true }],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Reisehinweise',
     icon: 'shield-exclamation',
     to: (tripId) => `/trip/${tripId}/reisehinweise`,

@@ -13,6 +13,7 @@ export const websiteModule: AppModule = {
     { path: '/trip/:tripId/webseite', name: 'website', component: () => import('./views/WebsiteEditor.vue'), props: true }
   ],
   tripSection: {
+    phases: ['teilen'],
     title: 'Reise-Webseite',
     icon: 'globe2',
     to: (tripId) => `/trip/${tripId}/webseite`,

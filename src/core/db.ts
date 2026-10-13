@@ -10,6 +10,7 @@ import type { Medication, Vaccination } from '@/modules/meds/types'
 import type { EmergencyContact, TravelDocument } from '@/modules/documents/types'
 import type { WeatherCache } from '@/modules/dayplanner/types'
 import type { JournalEntry, Photo } from '@/modules/journal/types'
+import type { AppearanceRow } from '@/ui/appearance'
 import type { WebsiteSettings } from '@/modules/website/types'
 import type { Expense } from '@/modules/expenses/types'
 import type { MapPlace } from '@/modules/map/types'
@@ -40,6 +41,7 @@ export class NixDb extends Dexie {
   weather!: Table<WeatherCache, string>
   journalEntries!: Table<JournalEntry, string>
   photos!: Table<Photo, string>
+  appearance!: Table<AppearanceRow, string>
   websites!: Table<WebsiteSettings, string>
   expenses!: Table<Expense, string>
   places!: Table<MapPlace, string>
@@ -156,7 +158,12 @@ export class NixDb extends Dexie {
       countryInfos: 'id, tripId'
     })
 
-    // Nächste Änderung: this.version(18).stores({ … })
+    // v18: Aussehen – eigene Hintergrundbilder je Stil (abgeglichen)
+    this.version(18).stores({
+      appearance: 'id'
+    })
+
+    // Nächste Änderung: this.version(19).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

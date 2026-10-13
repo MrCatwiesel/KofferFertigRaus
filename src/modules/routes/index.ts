@@ -14,6 +14,7 @@ export const routesModule: AppModule = {
     { path: '/trip/:tripId/routen/:id', name: 'route', component: () => import('./views/RouteDetail.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs', 'danach'],
     title: 'Routen & Touren',
     icon: 'signpost-2',
     to: (tripId) => `/trip/${tripId}/routen`,

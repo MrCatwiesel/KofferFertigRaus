@@ -12,6 +12,7 @@ export const mapModule: AppModule = {
   order: 14,
   routes: [{ path: '/trip/:tripId/karte', name: 'map', component: () => import('./views/MapView.vue'), props: true }],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Karte',
     icon: 'map',
     to: (tripId) => `/trip/${tripId}/karte`,

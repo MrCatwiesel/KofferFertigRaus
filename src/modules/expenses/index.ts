@@ -16,6 +16,7 @@ export const expensesModule: AppModule = {
     { path: '/trip/:tripId/ausgaben/:id', name: 'expense-edit', component: () => import('./views/ExpenseEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs', 'danach'],
     title: 'Ausgaben',
     icon: 'wallet2',
     to: (tripId) => `/trip/${tripId}/ausgaben`,

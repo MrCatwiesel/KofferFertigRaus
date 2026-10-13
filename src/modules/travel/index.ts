@@ -15,6 +15,7 @@ export const travelModule: AppModule = {
     { path: '/trip/:tripId/anreise/:id', name: 'travel-edit', component: () => import('./views/TravelEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'An- und Rückreise',
     icon: 'signpost-split',
     to: (tripId) => `/trip/${tripId}/anreise`,

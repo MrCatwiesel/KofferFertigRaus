@@ -17,6 +17,7 @@ export const medsModule: AppModule = {
     { path: '/trip/:tripId/apotheke/impfung/:id', name: 'vacc-edit', component: () => import('./views/VaccinationEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Reiseapotheke',
     icon: 'capsule',
     to: (tripId) => `/trip/${tripId}/apotheke`,

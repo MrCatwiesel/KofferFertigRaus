@@ -14,6 +14,7 @@ export const journalModule: AppModule = {
     { path: '/trip/:tripId/tagebuch/:id', name: 'journal-edit', component: () => import('./views/JournalEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['unterwegs', 'danach', 'teilen'],
     title: 'Reisetagebuch',
     icon: 'journal-richtext',
     to: (tripId) => `/trip/${tripId}/tagebuch`,
@@ -26,5 +27,7 @@ export const journalModule: AppModule = {
       return parts.join(' · ')
     }
   },
+  coverPhotos: async (tripId) =>
+    (await photoRepository.listByTrip(tripId)).map((p) => ({ id: p.id, thumb: p.thumb, full: p.full, caption: p.caption })),
   onTripDelete: (tripId) => journalRepository.removeByTrip(tripId)
 }

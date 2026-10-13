@@ -15,6 +15,7 @@ export const activityModule: AppModule = {
     { path: '/trip/:tripId/unternehmungen/:id', name: 'activity-edit', component: () => import('./views/ActivityEdit.vue'), props: true }
   ],
   tripSection: {
+    phases: ['planung', 'unterwegs'],
     title: 'Unternehmungen',
     icon: 'star',
     to: (tripId) => `/trip/${tripId}/unternehmungen`,

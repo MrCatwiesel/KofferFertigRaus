@@ -1,5 +1,19 @@
 # Änderungsprotokoll
 
+## 1.15.0 – 2026-10-13
+
+### Neu: Übersichtlicher und schöner
+- **Reiseseite in Bereiche aufgeteilt:** Planung · Unterwegs · Danach · Teilen & Archiv. Die App öffnet automatisch den Bereich, der zum Datum passt (Punkt am Reiter). Unterwegs gibt es oben die großen Knöpfe „Heute“ und „Notfall“
+- **Titelbild je Reise:** eigenes Foto hochladen oder aus dem Reisetagebuch wählen, Ausschnitt verschieben. Ohne Foto zeichnet die App eine Landschaft passend zum Ziel (Berge, Meer oder Stadt) – jede Reise etwas anders
+- **Archiv:** abgeschlossene Reisen ins Archiv legen – in der Reiseliste eingeklappt, nichts geht verloren
+- **Reiseliste** mit Titelbildern, gruppiert nach „Gerade unterwegs“, „Geplant“, „Erinnerungen“
+- **Drei Stile zur Auswahl** (Einstellungen → Aussehen): *Alpin & natürlich* (Standard), *Frisch & modern*, *Retro-Reiseplakat* – jeweils mit eigenen Farben, Schriften, Logo und Hintergrundmuster, hell oder dunkel (oder wie das Gerät)
+- **Eigenes Hintergrundbild** je Stil – kommt per Abgleich auch auf die anderen Geräte
+- Neues App-Symbol
+
+### Behoben
+- Wechsel direkt von einer Reise zur anderen zeigte noch die vorige Reise
+
 ## 1.14.0 – 2026-10-13 (Server 1.13.0)
 
 ### Neu

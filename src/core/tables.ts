@@ -20,5 +20,6 @@ export const DATA_TABLES = [
   'places',
   'piwigoAlbums',
   'routes',
+  'countryInfos',
   'photos'
 ] as const

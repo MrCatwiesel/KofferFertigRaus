@@ -1,0 +1,21 @@
+{
+ "response": {
+  "contentList": [
+   "210962"
+  ],
+  "210962": {
+   "countryCode": "AT",
+   "iso3CountryCode": "AUT",
+   "countryName": "Österreich",
+   "title": "Österreich: Reise- und Sicherheitshinweise",
+   "warning": false,
+   "partialWarning": false,
+   "situationWarning": false,
+   "situationPartWarning": false,
+   "lastModified": 1760000000,
+   "lastChanges": "<p>Aktualisierung: Abschnitt Gesundheit</p>",
+   "content": "<h2>Aktuelles</h2><p>Keine besonderen Hinweise.</p>\n<h2>Sicherheit</h2><h3>Terrorismus</h3><p>Auch in &Ouml;sterreich kann es zu Anschl&auml;gen kommen.</p><h3>Kriminalit&auml;t</h3><ul><li>Achten Sie auf Taschendiebe.</li><li>Wertsachen im Hotelsafe lassen.</li></ul>\n<h2>Natur und Klima</h2><p>Lawinengefahr im Winter.</p>\n<h2>Reiseinfos</h2><h3>Infrastruktur/Verkehr</h3><p>Autobahnen sind vignettenpflichtig.</p>\n<h2>Einreise und Zoll</h2><h3>Reisedokumente</h3><p>Die Einreise ist f&uuml;r deutsche Staatsangeh&ouml;rige mit folgenden Dokumenten m&ouml;glich:</p><ul><li>Reisepass: Ja</li><li>Personalausweis: Ja</li></ul><h3>Visum</h3><p>F&uuml;r deutsche Staatsangeh&ouml;rige ist kein Visum erforderlich.</p>\n<h2>Gesundheit</h2><h3>Impfschutz</h3><p>Bei Einreise aus Deutschland sind keine Pflichtimpfungen vorgeschrieben.</p><p>Achten Sie darauf, dass Sie und Ihre Kinder die Standardimpfungen gem&auml;&szlig; Impfkalender des Robert Koch-Instituts auf dem aktuellen Stand haben, z.&nbsp;B. Tetanus, Diphtherie und Masern.</p><p>Als Reiseimpfung wird eine Impfung gegen FSME empfohlen.</p><h3>FSME</h3><p>Zecken &uuml;bertragen FSME.</p>",
+   "disclaimer": "Alle Angaben ohne Gewähr."
+  }
+ }
+}

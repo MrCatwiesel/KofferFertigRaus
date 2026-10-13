@@ -9,6 +9,7 @@ export function emptyTripDraft(): TripDraft {
   return {
     title: '',
     destination: '',
+    countries: [],
     startDate: '',
     endDate: '',
     travelers: 2,

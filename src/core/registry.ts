@@ -100,6 +100,8 @@ export interface AppModule {
   tripSection?: TripSection
   /** Aufräumen, wenn eine Reise gelöscht wird (eigene Daten zur Reise entfernen) */
   onTripDelete?: (tripId: string) => Promise<void>
+  /** Eine Reise wurde angelegt oder geändert (z. B. Zielländer → Reisehinweise holen) */
+  onTripSaved?: (tripId: string) => Promise<void>
   /** Zusätzliche Fotoquelle im Tagebuch */
   photoSource?: PhotoSource
   /** Neue eigene Fotos wurden gespeichert (mit Original, z. B. zum Hochladen in eine Galerie) */
@@ -145,6 +147,18 @@ export async function notifyTripDeleted(tripId: string): Promise<void> {
 }
 
 /** Alle zusätzlichen Fotoquellen (für das Tagebuch). */
+/** Nach dem Speichern einer Reise: Module benachrichtigen (Fehler einzelner Module stören nicht). */
+export async function notifyTripSaved(tripId: string): Promise<void> {
+  for (const m of modules) {
+    if (!m.onTripSaved) continue
+    try {
+      await m.onTripSaved(tripId)
+    } catch (e) {
+      console.warn(`onTripSaved (${m.id}):`, e)
+    }
+  }
+}
+
 export function getPhotoSources(): (PhotoSource & { moduleId: string })[] {
   return getModules()
     .filter((m) => m.photoSource)

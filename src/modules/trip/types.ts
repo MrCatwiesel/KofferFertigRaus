@@ -4,6 +4,8 @@ export interface Trip {
   title: string
   /** Hauptziel, z. B. "Gardasee, Italien" */
   destination: string
+  /** Zielländer (ISO-Codes, z. B. ["AT", "IT"]) – für Reise- und Sicherheitshinweise */
+  countries?: string[]
   /** ISO-Datum YYYY-MM-DD */
   startDate: string
   /** ISO-Datum YYYY-MM-DD */

@@ -16,6 +16,7 @@ import type { MapPlace } from '@/modules/map/types'
 import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
 import type { Route } from '@/modules/routes/types'
 import type { OfflineMap } from '@/modules/map/offline'
+import type { CountryInfo } from '@/modules/reiseinfo/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -44,6 +45,7 @@ export class NixDb extends Dexie {
   places!: Table<MapPlace, string>
   piwigoAlbums!: Table<PiwigoAlbumLink, string>
   routes!: Table<Route, string>
+  countryInfos!: Table<CountryInfo, string>
   /** Nur auf diesem Gerät: gespeicherte Offline-Karten (große Dateien, werden nicht abgeglichen) */
   offlineMaps!: Table<OfflineMap, string>
   /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
@@ -149,7 +151,12 @@ export class NixDb extends Dexie {
       offlineMaps: 'id, tripId'
     })
 
-    // Nächste Änderung: this.version(17).stores({ … })
+    // v17: Reise- und Sicherheitshinweise je Zielland (Auswärtiges Amt)
+    this.version(17).stores({
+      countryInfos: 'id, tripId'
+    })
+
+    // Nächste Änderung: this.version(18).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

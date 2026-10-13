@@ -30,6 +30,8 @@ export interface TravelDocument {
   /** Eingepackt / dabei */
   packed: boolean
   notes: string
+  /** Automatisch angelegt, z. B. „aa:AT:einreise“ (Reisehinweise) – wird dann bei Änderungen aktualisiert */
+  source?: string
   createdAt: string
   updatedAt: string
 }

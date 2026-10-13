@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.13.0 – 2026-10-13 (Server 1.12.0)
+
+### Neu: Zielländer und Reisehinweise
+- **Zielländer** beim Anlegen/Bearbeiten einer Reise (mehrere möglich). Steht das Land schon im Reiseziel („Fusch, Österreich“), schlägt die App es mit einem Tipp vor
+- **Reisehinweise** (neuer Punkt in der Planung): Reise- und Sicherheitshinweise des **Auswärtigen Amts** je Land – Warnstufe, Einreise und Zoll, Gesundheit/Impfschutz, Sicherheit, Natur und Klima, Reiseinfos; genannte Impfungen als Übersicht (Gelbfieber wird als Pflicht erkannt)
+- **Automatisch in der Dokumentenliste:** je Land „Einreise …“ (mit Reisedokumenten und Visum – „fehlt“, wenn ein Visum nötig ist), „Impfschutz …“ („fehlt“ bei Pflichtimpfung) und „Sicherheitslage …“, jeweils mit Stand und Quelle. Dein Haken/Status bleibt beim Aktualisieren erhalten; entfernte Länder verschwinden wieder
+- Aktualisiert sich beim Speichern der Reise und einmal täglich beim Öffnen; geänderte Hinweise sind mit „geändert“ markiert
+- Server: `/api/reiseinfo/<Land>` reicht die OpenData-Schnittstelle des Auswärtigen Amts weiter (zwischengespeichert, bei Ausfall die letzte Fassung)
+
 ## 1.12.0 – 2026-10-13 (Server 1.11.0)
 
 ### Neu

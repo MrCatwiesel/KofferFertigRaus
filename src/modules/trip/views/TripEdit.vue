@@ -2,6 +2,8 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { emptyTripDraft, tripRepository } from '../repository'
+import { notifyTripSaved } from '@/core/registry'
+import { allCountries, countryName, flag, guessCountries } from '@/core/countries'
 import { budgetPerPersonDay, cleanParticipants, formatMoney, tripDays, validateTrip } from '../logic'
 import { TRANSPORT_LABELS, type TripDraft } from '../types'
 
@@ -18,8 +20,30 @@ onMounted(async () => {
   const trip = await tripRepository.get(props.id)
   if (!trip) return router.replace('/trip')
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = trip
-  Object.assign(draft, { ...rest, participants: [...(rest.participants ?? [])] })
+  Object.assign(draft, { ...rest, participants: [...(rest.participants ?? [])], countries: [...(rest.countries ?? [])] })
 })
+
+// Zielländer (für Reise- und Sicherheitshinweise des Auswärtigen Amts)
+const countryList = allCountries()
+const countryInput = ref('')
+const countries = computed(() => draft.countries ?? [])
+/** Aus dem Reiseziel erkannte Länder, die noch fehlen */
+const suggested = computed(() => guessCountries(draft.destination).filter((c) => !countries.value.includes(c)))
+function addCountry(code: string) {
+  if (!code || countries.value.includes(code)) return
+  draft.countries = [...countries.value, code]
+}
+function addCountryFromInput() {
+  const t = countryInput.value.trim().toLowerCase()
+  const hit = countryList.find((c) => c.name.toLowerCase() === t || c.code.toLowerCase() === t)
+  if (hit) {
+    addCountry(hit.code)
+    countryInput.value = ''
+  }
+}
+function removeCountry(code: string) {
+  draft.countries = countries.value.filter((c) => c !== code)
+}
 
 const newParticipant = ref('')
 
@@ -58,12 +82,14 @@ async function save() {
     const budget = typeof draft.budget === 'number' && !Number.isNaN(draft.budget) ? draft.budget : null
     const participants = cleanParticipants(draft.participants)
     const travelers = participants.length || draft.travelers
-    const plain: TripDraft = { ...draft, budget, participants, travelers, title: draft.title.trim(), destination: draft.destination.trim() }
+    const plain: TripDraft = { ...draft, budget, participants, travelers, countries: [...(draft.countries ?? [])], title: draft.title.trim(), destination: draft.destination.trim() }
     if (props.id) {
       await tripRepository.update(props.id, plain)
+      void notifyTripSaved(props.id) // z. B. Reisehinweise für neue Zielländer holen
       router.push(`/trip/${props.id}`)
     } else {
       const id = await tripRepository.create(plain)
+      void notifyTripSaved(id)
       router.push(`/trip/${id}`)
     }
   } finally {
@@ -92,6 +118,26 @@ function invalid(field: keyof TripDraft) {
       <input id="destination" v-model="draft.destination" class="form-control"
              :class="{ 'is-invalid': invalid('destination') }" placeholder="Ort, Region oder Land" />
       <div class="invalid-feedback">{{ errors.destination }}</div>
+    </div>
+
+    <div class="col-12">
+      <label for="country" class="form-label">Zielländer <span class="small text-body-secondary">– für Reisehinweise, Einreise und Impfschutz</span></label>
+      <div v-if="countries.length" class="d-flex flex-wrap gap-1 mb-2">
+        <span v-for="c in countries" :key="c" class="badge rounded-pill text-bg-light border fs-6 fw-normal">
+          {{ flag(c) }} {{ countryName(c) }}
+          <button type="button" class="btn-close ms-1 align-middle" style="font-size: 0.6rem" :aria-label="`${countryName(c)} entfernen`" @click="removeCountry(c)"></button>
+        </span>
+      </div>
+      <input id="country" v-model="countryInput" list="country-list" class="form-control" placeholder="Land eingeben, z. B. Österreich"
+             autocomplete="off" @change="addCountryFromInput" @keydown.enter.prevent="addCountryFromInput" />
+      <datalist id="country-list">
+        <option v-for="c in countryList" :key="c.code" :value="c.name"></option>
+      </datalist>
+      <div v-if="suggested.length" class="mt-1 small">
+        Erkannt:
+        <button v-for="c in suggested" :key="c" type="button" class="btn btn-sm btn-outline-primary py-0 ms-1" @click="addCountry(c)">{{ flag(c) }} {{ countryName(c) }} hinzufügen</button>
+      </div>
+      <div class="form-text">Nach dem Speichern holt die App die Reise- und Sicherheitshinweise des Auswärtigen Amts und trägt Einreise, Impfschutz und Sicherheitslage in die Dokumente ein.</div>
     </div>
 
     <div class="col-6">

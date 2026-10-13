@@ -10,5 +10,6 @@ export function createSyncServer(opts: {
   appDir?: string | null
   deviceIdleDays?: number
   routing?: { overpassUrl?: string; brouterUrl?: string; fetchImpl?: typeof fetch }
+  reiseinfo?: { url?: string; fetchImpl?: typeof fetch }
   maps?: { bin?: string; source?: string; fetchImpl?: typeof fetch }
 }): Server

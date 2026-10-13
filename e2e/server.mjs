@@ -1,6 +1,6 @@
 // Startet den Abgleich-Server für die Klicktests: App aus dist/, Daten in einem frischen Temp-Ordner.
-// Die freien Kartendienste (Overpass, BRouter) werden nachgebaut – die Tests brauchen kein Internet.
-import { mkdtempSync } from 'node:fs'
+// Die freien Kartendienste (Overpass, BRouter) und das Auswärtige Amt werden nachgebaut – die Tests brauchen kein Internet.
+import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createSyncServer } from '../server/server.mjs'
@@ -39,10 +39,18 @@ async function fakeKartendienste(url, init = {}) {
   throw new Error(`unerwartete Anfrage: ${url}`)
 }
 
+const aaFixture = (n) => new Response(readFileSync(join(import.meta.dirname, 'fixtures', n)), { status: 200 })
+async function fakeAuswaertigesAmt(url) {
+  if (String(url).endsWith('/travelwarning')) return aaFixture('aa-liste.json')
+  if (String(url).endsWith('/travelwarning/210962')) return aaFixture('aa-oesterreich.json')
+  return new Response('nicht da', { status: 404 })
+}
+
 const server = createSyncServer({
   keys: [KEY],
   dataDir: mkdtempSync(join(tmpdir(), 'nww-e2e-')),
   appDir: join(import.meta.dirname, '..', 'dist'),
-  routing: { fetchImpl: fakeKartendienste }
+  routing: { fetchImpl: fakeKartendienste },
+  reiseinfo: { fetchImpl: fakeAuswaertigesAmt }
 })
 server.listen(port, () => console.log(`Klicktest-Server auf ${port}`))

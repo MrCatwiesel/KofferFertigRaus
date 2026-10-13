@@ -29,6 +29,26 @@ export const documentRepository = {
   },
   async removeByTrip(tripId: string): Promise<void> {
     await db.documents.where('tripId').equals(tripId).delete()
+  },
+  /**
+   * Automatisch erzeugten Eintrag anlegen oder aktualisieren (erkannt an `source`).
+   * Titel, Art und Notizen werden aktualisiert; was der Nutzer abhakt (Status, eingepackt) bleibt.
+   */
+  async upsertBySource(tripId: string, source: string, d: Pick<TravelDocument, 'type' | 'title' | 'notes' | 'status'>): Promise<'neu' | 'aktualisiert' | 'gleich'> {
+    const existing = (await db.documents.where('tripId').equals(tripId).toArray()).find((x) => x.source === source)
+    if (existing) {
+      if (existing.title === d.title && existing.notes === d.notes && existing.type === d.type) return 'gleich'
+      await db.documents.update(existing.id, { type: d.type, title: d.title, notes: d.notes, updatedAt: now() })
+      return 'aktualisiert'
+    }
+    const ts = now()
+    await db.documents.add({ ...d, person: '', number: '', validUntil: '', hasCopy: false, packed: false, source, id: newId(), tripId, createdAt: ts, updatedAt: ts })
+    return 'neu'
+  },
+  /** Automatisch erzeugte Einträge mit diesem Präfix entfernen (z. B. Land aus der Reise genommen) */
+  async removeBySourcePrefix(tripId: string, prefix: string): Promise<void> {
+    const ids = (await db.documents.where('tripId').equals(tripId).toArray()).filter((x) => x.source?.startsWith(prefix)).map((x) => x.id)
+    await db.documents.bulkDelete(ids)
   }
 }
 

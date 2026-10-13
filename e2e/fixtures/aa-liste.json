@@ -1,0 +1,30 @@
+{
+ "response": {
+  "contentList": [
+   "210962",
+   "201946"
+  ],
+  "210962": {
+   "countryCode": "AT",
+   "iso3CountryCode": "AUT",
+   "countryName": "Österreich",
+   "title": "Österreich: Reise- und Sicherheitshinweise",
+   "warning": false,
+   "partialWarning": false,
+   "situationWarning": false,
+   "situationPartWarning": false,
+   "lastModified": 1760000000
+  },
+  "201946": {
+   "countryCode": "TH",
+   "iso3CountryCode": "AUT",
+   "countryName": "Thailand",
+   "title": "Thailand: Reise- und Sicherheitshinweise",
+   "warning": false,
+   "partialWarning": false,
+   "situationWarning": false,
+   "situationPartWarning": true,
+   "lastModified": 1760000000
+  }
+ }
+}

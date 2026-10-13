@@ -14,6 +14,7 @@ import { mapModule } from './map'
 import { routesModule } from './routes'
 import { piwigoModule } from './piwigo'
 import { shareModule } from './share'
+import { reiseinfoModule } from './reiseinfo'
 
 /**
  * Liste der aktiven Module. Ein neues Modul:
@@ -27,6 +28,7 @@ export function registerAllModules(): void {
   registerModule(activityModule)
   registerModule(packingModule)
   registerModule(medsModule)
+  registerModule(reiseinfoModule)
   registerModule(documentsModule)
   registerModule(dayplannerModule)
   registerModule(mapModule)

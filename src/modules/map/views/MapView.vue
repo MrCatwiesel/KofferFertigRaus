@@ -26,7 +26,7 @@ const accs = useLiveQuery(() => accommodationRepository.listByTrip(props.tripId)
 const acts = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] as Activity[])
 const places = useLiveQuery(() => placeRepository.listByTrip(props.tripId), [] as MapPlace[])
 // Linien anderer Module (z. B. Routen)
-const overlays = useLiveQuery(() => getMapOverlays(props.tripId), [] as MapOverlay[])
+const overlays = useLiveQuery(() => getMapOverlays(props.tripId), [] as MapOverlay[], { shallow: true })
 const router = useRouter()
 
 const dayFilter = ref('')

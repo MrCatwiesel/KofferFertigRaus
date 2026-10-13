@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.26.0 – 2026-10-14
+
+### Schnell auch mit vielen Daten (Lasttest)
+Gemessen mit 80 Reisen, 3200 Unternehmungen, 1100 Fotos und 240 Routen auf einem 4× gebremsten Rechner (etwa ein älteres iPad):
+- **Sicherung mit allen Fotos klappt jetzt:** Vorher brach sie bei so vielen Fotos ohne Meldung ab (die Datei wurde als ein einziger riesiger Text gebaut). Jetzt wird sie Stück für Stück geschrieben und gelesen – 1,1 GB in gut einer Minute, Einlesen ähnlich. Mit Fortschrittsanzeige. Ältere Sicherungsdateien lassen sich weiter einlesen, neue auch mit älteren App-Versionen
+- **App-Start ohne Ruckeln:** Die Pflege der Routen (Namen reparieren, Höhen ergänzen) lud bei jedem Start alle Routen zweimal – die Oberfläche hing dabei bis zu einer Sekunde. Jetzt wird jede Route nur einmal geprüft (blockiert 1,9 s → 0,1 s)
+- **Karte und Routen flotter:** Routenpunkte werden nicht mehr einzeln von Vue beobachtet (Karte 1,8 s → 1,2 s, längste Blockade 0,9 s → 0,15 s; Routenliste 1,5 s → 1,2 s)
+- Lasttest zum Wiederholen: `NWW_LAST=1 npx playwright test last` (Ergebnis in test-results/last.json)
+
 ## 1.25.0 – 2026-10-14 (Server 1.15.0)
 
 ### Sicherheit und Zuverlässigkeit (unabhängige Code-Prüfung)

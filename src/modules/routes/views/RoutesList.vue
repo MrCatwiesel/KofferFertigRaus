@@ -12,7 +12,7 @@ import type { Route } from '../types'
 
 const props = defineProps<{ tripId: string }>()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
-const routes = useLiveQuery(() => routeRepository.listByTrip(props.tripId), [] as Route[])
+const routes = useLiveQuery(() => routeRepository.listByTrip(props.tripId), [] as Route[], { shallow: true })
 
 const sorted = computed(() =>
   [...routes.value].sort((a, b) => (a.date || '9999').localeCompare(b.date || '9999') || a.createdAt.localeCompare(b.createdAt))

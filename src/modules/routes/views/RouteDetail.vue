@@ -14,7 +14,7 @@ import { FORMAT_LABEL, ROUTE_COLORS, type Route, type RouteDraft } from '../type
 const props = defineProps<{ tripId: string; id: string }>()
 const router = useRouter()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
-const route = useLiveQuery(() => routeRepository.get(props.id), undefined as Route | undefined)
+const route = useLiveQuery(() => routeRepository.get(props.id), undefined as Route | undefined, { shallow: true })
 const online = useOnline()
 
 // Datei ohne Höhenangaben → Höhen aus dem Geländemodell ergänzen

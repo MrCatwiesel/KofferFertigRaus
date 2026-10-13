@@ -50,10 +50,7 @@ export const routesModule: AppModule = {
   // Namen mit falscher Zeichenkodierung aus älteren Versionen reparieren („Gro�glockner“)
   // und fehlende Höhen ergänzen (Dateien ohne Höhenangaben, z. B. aus manchen Apps exportiert)
   onStart: () => {
-    setTimeout(async () => {
-      await routeRepository.repairNames().catch(() => 0)
-      if (navigator.onLine) await routeRepository.fillAllMissingElevations().catch(() => 0)
-    }, 8000) // nach dem ersten Abgleich, damit auch Routen der anderen Geräte dabei sind
+    setTimeout(() => void routeRepository.maintain(navigator.onLine).catch(() => 0), 8000) // nach dem ersten Abgleich, damit auch Routen der anderen Geräte dabei sind
   },
   onTripDelete: (tripId) => routeRepository.removeByTrip(tripId)
 }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { downloadJson, exportBackup, importBackup, type BackupFile } from '../backup'
+import { downloadBlob, exportBackup, importBackup } from '../backup'
 import { formatBytes, requestPersistentStorage, storageInfo, type StorageInfo } from '../storage'
 import { describeStats } from '../merge'
 import { APP_CONFIG, APP_VERSION } from '@/config'
@@ -12,6 +12,8 @@ import { lock } from '../lock'
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
 const busy = ref(false)
+/** Fortschritt beim Sichern/Einlesen (0…1), null = nichts läuft */
+const progress = ref<{ label: string; value: number } | null>(null)
 const storage = ref<StorageInfo | null>(null)
 
 async function refreshStorage() {
@@ -22,14 +24,16 @@ onMounted(refreshStorage)
 async function doExport() {
   busy.value = true
   try {
-    const data = await exportBackup({ includeLarge: includePhotos.value })
+    progress.value = { label: 'Sicherung wird erstellt', value: 0 }
+    const { blob, exportedAt } = await exportBackup({ includeLarge: includePhotos.value, onProgress: (v) => (progress.value = { label: 'Sicherung wird erstellt', value: v }) })
     const suffix = includePhotos.value ? '-mit-fotos' : ''
-    downloadJson(data, `nix-wie-weg-backup-${data.exportedAt.slice(0, 10)}${suffix}.json`)
-    message.value = { type: 'success', text: 'Backup wurde heruntergeladen.' }
+    downloadBlob(blob, `nix-wie-weg-backup-${exportedAt.slice(0, 10)}${suffix}.json`)
+    message.value = { type: 'success', text: `Backup wurde heruntergeladen (${formatBytes(blob.size)}).` }
   } catch (err) {
     message.value = { type: 'danger', text: `Export fehlgeschlagen: ${(err as Error).message}` }
   } finally {
     busy.value = false
+    progress.value = null
   }
 }
 
@@ -39,16 +43,19 @@ async function doImport(event: Event) {
   if (!file) return
   busy.value = true
   try {
-    const data = JSON.parse(await file.text()) as BackupFile
-    const stats = await importBackup(data)
-    const what = data.scope ? `Reise „${data.scope.title}“` : 'Backup'
-    message.value = { type: 'success', text: `${what} eingelesen: ${describeStats(stats)}.` }
+    progress.value = { label: 'Wird eingelesen', value: 0 }
+    const result = await importBackup(file, undefined, (v) => (progress.value = { label: 'Wird eingelesen', value: v }))
+    if (result) {
+      const what = result.meta.scope ? `Reise „${result.meta.scope.title}“` : 'Backup'
+      message.value = { type: 'success', text: `${what} eingelesen: ${describeStats(result.stats)}.` }
+    }
     await refreshStorage()
   } catch (err) {
     message.value = { type: 'danger', text: `Import fehlgeschlagen: ${(err as Error).message}` }
   } finally {
     input.value = ''
     busy.value = false
+    progress.value = null
   }
 }
 
@@ -125,6 +132,12 @@ async function persist() {
           <i class="bi bi-upload me-1" aria-hidden="true"></i>Backup oder geteilte Reise einlesen
           <input type="file" accept="application/json" class="d-none" @change="doImport" />
         </label>
+      </div>
+      <div v-if="progress" class="mt-2" data-progress>
+        <div class="small text-body-secondary mb-1">{{ progress.label }} … {{ Math.round(progress.value * 100) }} %</div>
+        <div class="progress" role="progressbar" :aria-valuenow="Math.round(progress.value * 100)" aria-valuemin="0" aria-valuemax="100" :aria-label="progress.label">
+          <div class="progress-bar" :style="{ width: `${progress.value * 100}%` }"></div>
+        </div>
       </div>
     </div>
   </section>

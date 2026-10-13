@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { db } from '../db'
-import { exportTrip, importBackup, type BackupFile } from '../backup'
+import { exportTrip, importBackup } from '../backup'
 import { describeStats } from '../merge'
 import { formatBytes } from '../storage'
 
@@ -32,9 +32,9 @@ async function create() {
   busy.value = true
   message.value = null
   try {
-    const data = await exportTrip(props.tripId, { includeLarge: includePhotos.value })
+    const { blob } = await exportTrip(props.tripId, { includeLarge: includePhotos.value })
     if (fileUrl.value) URL.revokeObjectURL(fileUrl.value)
-    file.value = new File([JSON.stringify(data)], fileName.value, { type: 'application/json' })
+    file.value = new File([blob], fileName.value, { type: 'application/json' })
     fileUrl.value = URL.createObjectURL(file.value)
   } catch (e) {
     message.value = { type: 'danger', text: (e as Error).message }
@@ -68,12 +68,11 @@ async function readBack(event: Event) {
   if (!f) return
   busy.value = true
   try {
-    const data = JSON.parse(await f.text()) as BackupFile
-    if (data.scope && data.scope.tripId !== props.tripId) {
-      if (!confirm(`Diese Datei gehört zur Reise „${data.scope.title}“, nicht zu „${title.value}“. Trotzdem einlesen?`)) return
-    }
-    const stats = await importBackup(data)
-    message.value = { type: 'success', text: `Abgeglichen: ${describeStats(stats)}.` }
+    const result = await importBackup(
+      f,
+      (meta) => !meta.scope || meta.scope.tripId === props.tripId || confirm(`Diese Datei gehört zur Reise „${meta.scope.title}“, nicht zu „${title.value}“. Trotzdem einlesen?`)
+    )
+    if (result) message.value = { type: 'success', text: `Abgeglichen: ${describeStats(result.stats)}.` }
   } catch (e) {
     message.value = { type: 'danger', text: `Einlesen fehlgeschlagen: ${(e as Error).message}` }
   } finally {

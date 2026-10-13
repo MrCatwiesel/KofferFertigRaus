@@ -1,4 +1,5 @@
 import { db, newId, now } from '@/core/db'
+import { getMeta, setMeta } from '@/core/meta'
 import { computeStats, dateOf, interpolateElevations, lacksElevation, roundPoints, simplifyTo } from './logic'
 import { fetchElevations } from './planning/api'
 import { matchesGarbled } from './parse/text'
@@ -89,34 +90,55 @@ export const routeRepository = {
     return true
   },
 
-  /** Alle Routen ohne Höhen nachträglich ergänzen (höchstens 10 je Start, um den Dienst zu schonen) */
-  async fillAllMissingElevations(): Promise<number> {
-    const flat = (await db.routes.toArray()).filter((r) => lacksElevation(r.points)).slice(0, 10)
-    let n = 0
-    for (const r of flat) if (await this.fillElevations(r.id)) n++
-    return n
-  },
-
   /**
-   * Namen reparieren, die vor Version 1.17 mit falscher Zeichenkodierung eingelesen wurden („Gro�glockner“):
-   * Originaldatei neu lesen und den passenden, richtig geschriebenen Namen übernehmen.
+   * Pflege beim Start: Namen mit falscher Zeichenkodierung aus Versionen vor 1.17 reparieren („Gro�glockner“)
+   * und fehlende Höhen ergänzen (Dateien ohne Höhenangaben; höchstens 10 Abfragen je Start, um den Dienst zu schonen).
+   *
+   * Jede Route wird nur einmal angesehen – welche schon geprüft sind, steht in `routes.geprueft` (nur auf diesem Gerät).
+   * Vorher wurden bei jedem Start alle Routen zweimal komplett geladen; mit einigen hundert Routen blockierte das
+   * die Oberfläche spürbar.
    */
-  async repairNames(): Promise<number> {
-    let fixed = 0
-    const broken = (await db.routes.toArray()).filter((r) => r.name.includes('\uFFFD') && r.original instanceof Blob && r.filename)
-    for (const r of broken) {
-      try {
-        const bytes = new Uint8Array(await r.original!.arrayBuffer())
-        const { routes } = await parseRouteFile(r.filename, bytes)
-        const name = routes.map((p) => p.name).find((n) => matchesGarbled(r.name, n))
-        if (name) {
-          await db.routes.update(r.id, { name, updatedAt: now() })
-          fixed++
+  async maintain(online: boolean): Promise<{ names: number; elevations: number }> {
+    const keys = (await db.routes.toCollection().primaryKeys()) as string[]
+    const checked = new Set(await getMeta<string[]>(CHECKED_KEY, []))
+    const todo = keys.filter((k) => !checked.has(k))
+    const result = { names: 0, elevations: 0 }
+    let asked = 0
+    for (let i = 0; i < todo.length; i += 20) {
+      const rows = (await db.routes.bulkGet(todo.slice(i, i + 20))).filter((r): r is Route => !!r)
+      for (const r of rows) {
+        if (await repairName(r)) result.names++
+        if (lacksElevation(r.points)) {
+          if (!online || asked >= 10) continue // beim nächsten Start noch einmal
+          asked++
+          if (!(await this.fillElevations(r.id).catch(() => false))) continue
+          result.elevations++
         }
-      } catch {
-        /* Datei nicht lesbar – Name bleibt */
+        checked.add(r.id)
       }
+      await new Promise((res) => setTimeout(res, 0)) // Oberfläche zwischendurch zum Zug kommen lassen
     }
-    return fixed
+    const alive = new Set(keys)
+    if (todo.length || checked.size !== keys.length) await setMeta(CHECKED_KEY, [...checked].filter((k) => alive.has(k)))
+    return result
+  }
+}
+
+/** Gemerkt: Routen, die schon auf Namen und Höhen geprüft sind */
+const CHECKED_KEY = 'routes.geprueft'
+
+/** Einen kaputten Namen aus der Originaldatei neu lesen */
+async function repairName(r: Route): Promise<boolean> {
+  if (!r.name.includes('\uFFFD') || !(r.original instanceof Blob) || !r.filename) return false
+  try {
+    const bytes = new Uint8Array(await r.original.arrayBuffer())
+    const { routes } = await parseRouteFile(r.filename, bytes)
+    const name = routes.map((p) => p.name).find((n) => matchesGarbled(r.name, n))
+    if (!name) return false
+    await db.routes.update(r.id, { name, updatedAt: now() })
+    r.name = name
+    return true
+  } catch {
+    return false // Datei nicht lesbar – Name bleibt
   }
 }

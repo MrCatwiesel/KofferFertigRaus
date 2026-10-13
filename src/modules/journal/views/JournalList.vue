@@ -15,7 +15,7 @@ const props = defineProps<{ tripId: string }>()
 
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const entries = useLiveQuery(() => journalRepository.listByTrip(props.tripId), [] as JournalEntry[])
-const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[])
+const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[], { shallow: true })
 const thumbs = useObjectUrls(photos, (p) => p.id, (p) => p.thumb)
 // Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
 const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])

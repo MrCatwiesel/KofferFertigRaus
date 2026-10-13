@@ -7,6 +7,7 @@ import { APP_CONFIG, APP_VERSION } from '@/config'
 import AppLogo from '@/ui/AppLogo.vue'
 import { appearance } from '@/ui/appearance'
 import { getTheme } from '@/ui/themes'
+import { lock } from '../lock'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -71,6 +72,17 @@ async function persist() {
       <div class="flex-grow-1">
         <div class="h5 mb-0">Aussehen</div>
         <div class="small text-body-secondary">Design „{{ getTheme(appearance.theme).label }}“ · Hintergrund · Schrift · Reiseseite anpassen</div>
+      </div>
+      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+    </div>
+  </RouterLink>
+
+  <RouterLink to="/einstellungen/sperre" class="card mb-3 text-decoration-none text-body">
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi fs-3" :class="lock.enabled ? 'bi-shield-lock-fill text-success' : 'bi-shield-lock text-primary'" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="h5 mb-0">App-Sperre</div>
+        <div class="small text-body-secondary">{{ lock.enabled ? `An${lock.biometric ? ' · mit Face ID / Touch ID' : ''}` : 'Aus – mit Code oder Face ID schützen' }}</div>
       </div>
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>

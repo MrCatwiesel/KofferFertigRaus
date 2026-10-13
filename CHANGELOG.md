@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.21.0 – 2026-10-13
+
+### Neu: App-Sperre (Einstellungen → App-Sperre)
+- **Code** (4–8 Ziffern) je Gerät, optional **Face ID / Touch ID** (auf iPad/iPhone mit der installierten App)
+- Sperrt **sofort beim Verlassen** der App (dann zeigt auch der App-Umschalter nur die Sperre) oder nach 1, 5, 15 oder 60 Minuten; beim Start immer gesperrt
+- Nach 5 Fehlversuchen steigende Wartezeit; Code wird nur als Prüfwert (PBKDF2) gespeichert
+- Ehrlicher Hinweis: Schutz vor neugierigen Blicken – die Daten auf dem Gerät sind nicht verschlüsselt
+
 ## 1.20.0 – 2026-10-13
 
 ### Neu: Fremdwährung bei Ausgaben

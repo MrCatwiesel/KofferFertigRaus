@@ -10,12 +10,15 @@ import { buildRouter } from './core/router'
 import { startAutoSync } from './core/sync/engine'
 import { startModules } from './core/registry'
 import { startAppearance } from './ui/appearance'
+import { startLock } from './core/lock'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
 
 // Aussehen: Stil, hell/dunkel (Standard: wie das Gerät) und Hintergrund
 startAppearance()
+// App-Sperre (Code / Face ID), falls auf diesem Gerät eingerichtet
+startLock()
 
 createApp(App).use(buildRouter()).mount('#app')
 

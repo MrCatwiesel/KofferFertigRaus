@@ -3,13 +3,16 @@ import { getNavItems } from '@/core/registry'
 import { useOnline } from '@/core/composables'
 import { syncState } from '@/core/sync/engine'
 import AppLogo from '@/ui/AppLogo.vue'
+import LockScreen from '@/core/views/LockScreen.vue'
+import { lock } from '@/core/lock'
 
 const navItems = getNavItems()
 const online = useOnline()
 </script>
 
 <template>
-  <header class="navbar navbar-expand app-header border-bottom sticky-top">
+  <LockScreen v-if="lock.locked" />
+  <header class="navbar navbar-expand app-header border-bottom sticky-top" :inert="lock.locked">
     <div class="container">
       <RouterLink to="/" class="navbar-brand fw-semibold d-flex align-items-center gap-2">
         <AppLogo :size="30" />Nix wie weg
@@ -36,17 +39,17 @@ const online = useOnline()
     </div>
   </header>
 
-  <div v-if="!online" class="bg-warning-subtle text-warning-emphasis small text-center py-1">
+  <div v-if="!online" :inert="lock.locked" class="bg-warning-subtle text-warning-emphasis small text-center py-1">
     <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Offline – alle Daten bleiben verfügbar.
   </div>
 
-  <main class="container py-3 app-main">
+  <main class="container py-3 app-main" :inert="lock.locked" :aria-hidden="lock.locked">
     <!-- key: beim Wechsel zu einer anderen Reise neu aufbauen (Abfragen hängen an der Adresse); Reiter (?bereich=) bleiben -->
     <RouterView :key="$route.path" />
   </main>
 
   <!-- Untere Navigation für das Handy -->
-  <nav class="bottom-nav d-md-none border-top" aria-label="Hauptnavigation">
+  <nav class="bottom-nav d-md-none border-top" :inert="lock.locked" aria-label="Hauptnavigation">
     <RouterLink v-for="item in navItems" :key="item.id" :to="item.to" active-class="active">
       <i :class="`bi bi-${item.icon}`" aria-hidden="true"></i><span>{{ item.title }}</span>
     </RouterLink>

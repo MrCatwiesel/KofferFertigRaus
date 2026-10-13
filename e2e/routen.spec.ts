@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { KEY, connect, seed, trip } from './helpers'
+import { KEY, connect, route, seed, trip } from './helpers'
 
 test.beforeEach(async ({ page }) => {
   await page.route('https://tile.openstreetmap.org/**', (r) => r.abort())
@@ -48,4 +48,38 @@ test('Wanderweg im Kartenausschnitt suchen und übernehmen', async ({ page }) =>
   await page.getByRole('button', { name: 'Speichern' }).click()
   await expect(page).toHaveURL(/\/routen\/[^/]+$/)
   await expect(page.locator('textarea')).toHaveValue(/Aus OpenStreetMap \(Relation 4711\).*Heiligenblut – Kaprun.*Gehzeit ca\./)
+})
+
+test('GPX in Latin-1 ohne Höhen: Umlaute richtig, Höhen ergänzt', async ({ page }) => {
+  await page.goto('/#/trip/t1/routen')
+  const xml = `<?xml version="1.0" encoding="ISO-8859-1"?><gpx version="1.1" creator="x"><trk><name>Großglockner-Hochalpenstraße</name><trkseg>${Array.from(
+    { length: 30 },
+    (_, i) => `<trkpt lat="${47.07 + i * 0.002}" lon="${12.75 + i * 0.002}"></trkpt>`
+  ).join('')}</trkseg></trk></gpx>`
+  const buffer = Buffer.from(xml, 'latin1')
+  await page.locator('input[type=file]').setInputFiles({ name: 'glockner.gpx', mimeType: 'application/gpx+xml', buffer })
+  await expect(page.locator('.alert')).toContainText('Höhen ergänzt für 1 Route')
+  await page.getByText('Großglockner-Hochalpenstraße').first().click()
+  await expect(page.getByText(/Höhen aus dem Geländemodell ergänzt/)).toBeVisible()
+  await expect(page.locator('.profile svg')).toBeVisible()
+})
+
+test('Früher kaputt eingelesener Name wird beim Start repariert', async ({ page }) => {
+  const xml = `<?xml version="1.0" encoding="ISO-8859-1"?><gpx version="1.1"><trk><name>Großglockner-Hochalpenstraße</name><trkseg><trkpt lat="47.07" lon="12.75"><ele>1500</ele></trkpt><trkpt lat="47.08" lon="12.77"><ele>1600</ele></trkpt></trkseg></trk></gpx>`
+  await page.evaluate(
+    ([bytes, r]) =>
+      new Promise<void>((resolve) => {
+        const o = indexedDB.open('nix-wie-weg')
+        o.onsuccess = () => {
+          const tx = o.result.transaction(['routes'], 'readwrite')
+          tx.objectStore('routes').put({ ...r, original: new Blob([new Uint8Array(bytes)], { type: 'application/gpx+xml' }) })
+          tx.oncomplete = () => resolve()
+        }
+      }),
+    [[...Buffer.from(xml, 'latin1')], route({ name: 'Gro�glockner-Hochalpenstra�e', filename: 'glockner.gpx' })] as const
+  )
+  await page.goto('/#/trip/t1/routen')
+  await page.reload()
+  await expect(page.getByText('Gro\uFFFDglockner-Hochalpenstra\uFFFDe').first()).toBeVisible()
+  await expect(page.getByText('Großglockner-Hochalpenstraße').first()).toBeVisible({ timeout: 20_000 })
 })

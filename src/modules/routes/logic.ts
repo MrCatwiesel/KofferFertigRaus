@@ -166,3 +166,36 @@ export function hikingTime(distance: number, ascent: number, descent: number): n
   const vertical = ascent / 300 + descent / 500
   return Math.round((Math.max(horizontal, vertical) + Math.min(horizontal, vertical) / 2) * 3600)
 }
+
+/** Haben zu wenige Punkte eine Höhe? (z. B. Aufzeichnung ohne Höhenmesser oder Export ohne Höhen) */
+export function lacksElevation(points: TrackPoint[]): boolean {
+  if (points.length < 2) return false
+  return points.filter((p) => p[2] !== null && Number.isFinite(p[2])).length < points.length * 0.5
+}
+
+/**
+ * Höhen für alle Punkte aus einigen Stützstellen (Index → Höhe) ergänzen, dazwischen linear nach Wegstrecke.
+ * Vorhandene Höhen bleiben, wenn `keep` gesetzt ist.
+ */
+export function interpolateElevations(points: TrackPoint[], samples: { index: number; ele: number | null }[], keep = false): TrackPoint[] {
+  const known = samples.filter((s): s is { index: number; ele: number } => s.ele !== null && Number.isFinite(s.ele)).sort((a, b) => a.index - b.index)
+  if (!known.length) return points
+  // Wegstrecke bis zu jedem Punkt
+  const dist: number[] = [0]
+  for (let i = 1; i < points.length; i++) dist.push(dist[i - 1] + haversine(points[i - 1], points[i]))
+  let k = 0
+  return points.map((p, i) => {
+    if (keep && p[2] !== null) return p
+    while (k < known.length - 1 && known[k + 1].index <= i) k++
+    const a = known[k]
+    const b = known[Math.min(k + 1, known.length - 1)]
+    let ele = a.ele
+    if (i <= known[0].index) ele = known[0].ele
+    else if (b.index > a.index && i > a.index) {
+      const span = dist[b.index] - dist[a.index]
+      const t = span > 0 ? (dist[i] - dist[a.index]) / span : 0
+      ele = a.ele + (b.ele - a.ele) * Math.min(1, t)
+    }
+    return [p[0], p[1], Math.round(ele * 10) / 10, p[3]] as TrackPoint
+  })
+}

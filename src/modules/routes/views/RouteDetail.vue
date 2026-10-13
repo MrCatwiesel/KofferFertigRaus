@@ -6,7 +6,8 @@ import { eachDay } from '@/core/dates'
 import { formatDayShort } from '@/core/format'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import RouteMap from '../components/RouteMap.vue'
-import { formatDistance, formatDuration, gpxFileName, profileSvg, toGpx } from '../logic'
+import { formatDistance, formatDuration, gpxFileName, lacksElevation, profileSvg, toGpx } from '../logic'
+import { useOnline } from '@/core/composables'
 import { routeRepository } from '../repository'
 import { FORMAT_LABEL, ROUTE_COLORS, type Route, type RouteDraft } from '../types'
 
@@ -14,6 +15,21 @@ const props = defineProps<{ tripId: string; id: string }>()
 const router = useRouter()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const route = useLiveQuery(() => routeRepository.get(props.id), undefined as Route | undefined)
+const online = useOnline()
+
+// Datei ohne Höhenangaben → Höhen aus dem Geländemodell ergänzen
+const eleBusy = ref(false)
+const eleMsg = ref('')
+const noEle = computed(() => !!route.value && lacksElevation(route.value.points))
+async function fillEle() {
+  eleBusy.value = true
+  eleMsg.value = ''
+  try {
+    eleMsg.value = (await routeRepository.fillElevations(props.id)) ? '' : 'Höhen konnten nicht abgerufen werden – bitte später noch einmal.'
+  } finally {
+    eleBusy.value = false
+  }
+}
 
 const draft = reactive<RouteDraft>({ name: '', color: ROUTE_COLORS[0], date: '', notes: '', showInShare: false })
 const loaded = ref(false)
@@ -104,6 +120,17 @@ async function remove() {
         </div>
       </div>
     </div>
+
+    <div v-if="noEle" class="alert alert-info d-flex flex-wrap align-items-center gap-2 py-2">
+      <span class="flex-grow-1 small"><i class="bi bi-graph-up me-1" aria-hidden="true"></i>Die Datei enthält keine Höhen – daher kein Höhenprofil und keine Höhenmeter.</span>
+      <button type="button" class="btn btn-sm btn-primary" :disabled="eleBusy || !online" @click="fillEle">
+        <span v-if="eleBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Höhen ergänzen
+      </button>
+      <div v-if="eleMsg" class="w-100 small text-danger">{{ eleMsg }}</div>
+    </div>
+    <p v-else-if="route.elevationSource === 'gelaende'" class="small text-body-secondary">
+      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Höhen aus dem Geländemodell ergänzt (Open-Meteo, ca. 90 m Raster) – nicht gemessen.
+    </p>
 
     <section class="card mb-3">
       <div class="card-body">

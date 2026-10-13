@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## 1.17.0 – 2026-10-13
+
+### Behoben (gefunden in der Reise „Maria Alm“)
+- **Umlaute in Routennamen:** GPX/KML-Dateien in älterer Zeichenkodierung (ISO-8859-1/Windows-1252) wurden falsch gelesen – „Gro�glockner-Hochalpenstra�e“. Die App erkennt die Kodierung jetzt selbst. Bereits importierte Routen werden beim Start automatisch repariert (aus der gespeicherten Originaldatei)
+- **Routen ohne Höhen:** Enthält eine Datei keine Höhenangaben (z. B. „Edelweißspitze“: 0 Höhenmeter, kein Profil), ergänzt die App die Höhen aus dem Geländemodell (Open-Meteo) – automatisch beim Import, für vorhandene Routen beim Start, oder per Knopf „Höhen ergänzen“. Solche Höhen sind gekennzeichnet
+
 ## 1.16.0 – 2026-10-13
 
 ### Neu: Aussehen nach Wunsch (Einstellungen → Aussehen)

@@ -5,7 +5,7 @@ import { formatDayShort } from '@/core/format'
 import { requestPersistentStorage } from '@/core/storage'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import RouteMap from '../components/RouteMap.vue'
-import { statsLine, trackSvg } from '../logic'
+import { lacksElevation, statsLine, trackSvg } from '../logic'
 import { ACCEPT, parseRouteFile } from '../parse'
 import { buildRoute, routeRepository } from '../repository'
 import type { Route } from '../types'
@@ -48,6 +48,13 @@ async function importFiles(event: Event) {
   if (created.length) await routeRepository.addMany(created)
   result.value = { ok: created.length ? `${created.length} ${created.length === 1 ? 'Route' : 'Routen'} übernommen.` : '', errors }
   busy.value = false
+  // Dateien ohne Höhen: im Hintergrund aus dem Geländemodell ergänzen
+  const flat = created.filter((r) => lacksElevation(r.points))
+  if (flat.length && navigator.onLine) {
+    let n = 0
+    for (const r of flat) if (await routeRepository.fillElevations(r.id)) n++
+    if (n && result.value) result.value = { ...result.value, ok: `${result.value.ok} Höhen ergänzt für ${n === 1 ? '1 Route' : `${n} Routen`} (Datei ohne Höhenangaben).` }
+  }
 }
 
 const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color: r.color, stroke: 3 })

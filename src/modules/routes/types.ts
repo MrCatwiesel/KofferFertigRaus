@@ -51,6 +51,8 @@ export interface Route {
   filename: string
   /** Originaldatei (z. B. vom Garmin) – zum späteren Herunterladen */
   original: Blob | null
+  /** Höhen nachträglich aus dem Geländemodell ergänzt (Datei hatte keine) */
+  elevationSource?: 'gelaende'
   createdAt: string
   updatedAt: string
 }

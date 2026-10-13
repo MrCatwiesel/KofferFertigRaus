@@ -1,3 +1,4 @@
+import { decodeText } from './text'
 import type { ParsedRoute, RouteKind, TrackPoint } from '../types'
 
 /**
@@ -126,7 +127,7 @@ export function parseFit(bytes: Uint8Array, fallbackName: string): ParsedRoute[]
     for (const f of def.fields) {
       if (off + f.size > bytes.length) break
       if (def.global === MSG_COURSE && f.num === 5 && (f.base & 0x1f) === 0x07) {
-        name = new TextDecoder().decode(bytes.subarray(off, off + f.size)).replace(/\0[\s\S]*$/, '')
+        name = decodeText(bytes.subarray(off, off + f.size)).replace(/\0[\s\S]*$/, '')
       } else if (f.num === 253) {
         const t = readValue(view, off, f, def.little)
         if (t !== null) {

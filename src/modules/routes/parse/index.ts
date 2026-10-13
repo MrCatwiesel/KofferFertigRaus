@@ -4,6 +4,7 @@ import { parseGeoJson } from './geojson'
 import { parseGpx } from './gpx'
 import { parseKml } from './kml'
 import { parseTcx } from './tcx'
+import { decodeText } from './text'
 
 export const ACCEPT = '.gpx,.fit,.tcx,.kml,.kmz,.geojson,.json'
 
@@ -48,17 +49,17 @@ export async function unzipKml(bytes: Uint8Array): Promise<string> {
   if (!entry) throw new Error('In der KMZ-Datei ist keine KML-Datei.')
   const start = entry.local + 30 + view.getUint16(entry.local + 26, true) + view.getUint16(entry.local + 28, true)
   const data = bytes.subarray(start, start + entry.size)
-  if (entry.method === 0) return new TextDecoder().decode(data)
+  if (entry.method === 0) return decodeText(data)
   if (entry.method !== 8) throw new Error('KMZ: unbekannte Kompression.')
   const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
-  return new Response(stream).text()
+  return decodeText(new Uint8Array(await new Response(stream).arrayBuffer()))
 }
 
 /** Format an Endung und Inhalt erkennen. */
 export function detectFormat(filename: string, bytes: Uint8Array): FileFormat | null {
   if (isFit(bytes)) return 'fit'
   if (bytes[0] === 0x50 && bytes[1] === 0x4b) return 'kmz'
-  const head = new TextDecoder().decode(bytes.subarray(0, 2000)).replace(/^﻿/, '').trimStart()
+  const head = decodeText(bytes.subarray(0, 2000)).replace(/^\uFEFF/, '').trimStart()
   if (/<gpx\b/i.test(head)) return 'gpx'
   if (/<kml\b/i.test(head)) return 'kml'
   if (/<TrainingCenterDatabase\b/i.test(head)) return 'tcx'
@@ -74,7 +75,7 @@ export async function parseRouteFile(filename: string, bytes: Uint8Array): Promi
   const format = detectFormat(filename, bytes)
   if (!format) throw new Error(`${filename}: Format nicht erkannt (GPX, FIT, TCX, KML, KMZ oder GeoJSON).`)
   const name = baseName(filename)
-  const text = () => new TextDecoder().decode(bytes)
+  const text = () => decodeText(bytes)
   let routes: ParsedRoute[]
   switch (format) {
     case 'fit':

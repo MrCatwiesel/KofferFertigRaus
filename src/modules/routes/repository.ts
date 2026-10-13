@@ -1,5 +1,8 @@
 import { db, newId, now } from '@/core/db'
-import { computeStats, dateOf, roundPoints, simplifyTo } from './logic'
+import { computeStats, dateOf, interpolateElevations, lacksElevation, roundPoints, simplifyTo } from './logic'
+import { fetchElevations } from './planning/api'
+import { matchesGarbled } from './parse/text'
+import { parseRouteFile } from './parse'
 import type { ParsedRoute, Route, RouteDraft, RouteFormat } from './types'
 import { ROUTE_COLORS } from './types'
 
@@ -60,5 +63,60 @@ export const routeRepository = {
   },
   count(tripId: string): Promise<number> {
     return db.routes.where('tripId').equals(tripId).count()
+  },
+
+  /**
+   * Fehlende Höhen aus dem Geländemodell (Open-Meteo) ergänzen – für Dateien ohne Höhenangaben.
+   * Fragt höchstens 300 Stützstellen ab und rechnet dazwischen. Gibt zurück, ob etwas ergänzt wurde.
+   */
+  async fillElevations(id: string): Promise<boolean> {
+    const r = await db.routes.get(id)
+    if (!r || !lacksElevation(r.points)) return false
+    const step = Math.max(1, Math.ceil(r.points.length / 300))
+    const idx = r.points.map((_, i) => i).filter((i) => i % step === 0 || i === r.points.length - 1)
+    const ele = await fetchElevations(idx.map((i) => [r.points[i][0], r.points[i][1]]))
+    if (!ele.some((e) => e !== null)) return false
+    const points = interpolateElevations(r.points, idx.map((index, k) => ({ index, ele: ele[k] })), true)
+    const s = computeStats(points)
+    await db.routes.update(id, {
+      points,
+      preview: roundPoints(simplifyTo(points, MAX_PREVIEW)).map(([la, lo, e]) => [la, lo, e]),
+      // Strecke und Zeiten bleiben (aus der vollständigen Datei berechnet), nur die Höhen kommen dazu
+      stats: { ...r.stats, ascent: s.ascent, descent: s.descent, minEle: s.minEle, maxEle: s.maxEle },
+      elevationSource: 'gelaende',
+      updatedAt: now()
+    })
+    return true
+  },
+
+  /** Alle Routen ohne Höhen nachträglich ergänzen (höchstens 10 je Start, um den Dienst zu schonen) */
+  async fillAllMissingElevations(): Promise<number> {
+    const flat = (await db.routes.toArray()).filter((r) => lacksElevation(r.points)).slice(0, 10)
+    let n = 0
+    for (const r of flat) if (await this.fillElevations(r.id)) n++
+    return n
+  },
+
+  /**
+   * Namen reparieren, die vor Version 1.17 mit falscher Zeichenkodierung eingelesen wurden („Gro�glockner“):
+   * Originaldatei neu lesen und den passenden, richtig geschriebenen Namen übernehmen.
+   */
+  async repairNames(): Promise<number> {
+    let fixed = 0
+    const broken = (await db.routes.toArray()).filter((r) => r.name.includes('\uFFFD') && r.original instanceof Blob && r.filename)
+    for (const r of broken) {
+      try {
+        const bytes = new Uint8Array(await r.original!.arrayBuffer())
+        const { routes } = await parseRouteFile(r.filename, bytes)
+        const name = routes.map((p) => p.name).find((n) => matchesGarbled(r.name, n))
+        if (name) {
+          await db.routes.update(r.id, { name, updatedAt: now() })
+          fixed++
+        }
+      } catch {
+        /* Datei nicht lesbar – Name bleibt */
+      }
+    }
+    return fixed
   }
 }

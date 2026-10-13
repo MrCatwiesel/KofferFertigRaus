@@ -1,0 +1,18 @@
+# Einmalig: offiziellen Lizenztext (GNU AGPL-3.0) von gnu.org holen und als LICENSE ablegen. Wird danach wieder entfernt.
+name: Lizenz
+on: workflow_dispatch
+permissions:
+  contents: write
+jobs:
+  lizenz:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          curl -fsSL https://www.gnu.org/licenses/agpl-3.0.txt -o LICENSE
+          grep -q "GNU AFFERO GENERAL PUBLIC LICENSE" LICENSE
+          git config user.name "Nix wie weg"
+          git config user.email "public@demari.de"
+          git add LICENSE
+          git commit -m "Lizenz: GNU AGPL-3.0 (offizieller Text von gnu.org)" || echo "unverändert"
+          git push

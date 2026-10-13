@@ -26,6 +26,7 @@ test('PDF-Bestätigung einer Unterkunft einlesen und übernehmen', async ({ page
   await page.getByTestId('booking-file').setInputFiles('e2e/fixtures/buchung-hotel.pdf')
   await expect(page.getByText(/gibt es schon – wird aktualisiert/)).toBeVisible()
   await page.getByRole('button', { name: 'Aktualisieren' }).click()
+  await expect(page).toHaveURL(/unterkuenfte\/[^/]+$/) // erst fertig speichern lassen
   await page.goto('/#/trip/t1/unterkuenfte')
   await expect(page.getByText('Gasthof Alpenrose')).toHaveCount(1)
 })

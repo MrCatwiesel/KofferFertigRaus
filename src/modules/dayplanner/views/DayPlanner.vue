@@ -255,7 +255,7 @@ const plannedCountByDate = computed(() => {
       </div>
     </div>
     <button v-if="plan.suggestions.length > 5" type="button" class="btn btn-link btn-sm px-0 mb-3" @click="showAllSuggestions = !showAllSuggestions">
-      {{ showAllSuggestions ? $t('Weniger zeigen') : `Alle ${plan.suggestions.length} Vorschläge zeigen` }}
+      {{ showAllSuggestions ? $t('Weniger zeigen') : $t('Alle {0} Vorschläge zeigen', [plan.suggestions.length]) }}
     </button>
 
     <details v-if="plan.closed.length" class="small text-body-secondary mb-3">

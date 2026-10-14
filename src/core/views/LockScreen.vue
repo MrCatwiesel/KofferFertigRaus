@@ -59,7 +59,7 @@ const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
       <h1 class="h4 mb-1">{{ $t('Nix wie weg') }}</h1>
       <p class="text-body-secondary small mb-3">{{ $t('Gesperrt – Code eingeben') }}</p>
 
-      <div class="dots mb-2" :class="{ shake }" aria-live="polite" :aria-label="`${pin.length} von ${lock.length} Ziffern`">
+      <div class="dots mb-2" :class="{ shake }" aria-live="polite" :aria-label="$t('{0} von {1} Ziffern', [pin.length, lock.length])">
         <span v-for="i in lock.length" :key="i" class="dot" :class="{ filled: i <= pin.length }"></span>
       </div>
       <div class="msg small mb-2" role="alert">

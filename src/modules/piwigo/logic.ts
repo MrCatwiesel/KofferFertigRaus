@@ -1,4 +1,5 @@
 import type { PiwigoAlbum, PiwigoUpload } from './types'
+import { t, tn } from '@/core/i18n'
 
 const REF_PREFIX = 'piwigo:'
 
@@ -16,7 +17,7 @@ export function parseExternalRef(ref: string | undefined): number | null {
 
 /** Vorschlag für den Albumnamen einer Reise: Titel, ergänzt um das Jahr, wenn es fehlt. */
 export function albumNameFor(trip: { title: string; destination?: string; startDate?: string }): string {
-  const title = (trip.title || trip.destination || 'Reise').trim()
+  const title = (trip.title || trip.destination || t('Reise')).trim()
   const year = /^\d{4}/.exec(trip.startDate ?? '')?.[0]
   return year && !title.includes(year) ? `${title} ${year}` : title
 }
@@ -69,7 +70,7 @@ export function describeQueue(uploads: Pick<PiwigoUpload, 'status'>[]): string {
   if (!uploads.length) return ''
   const errors = uploads.filter((u) => u.status === 'error').length
   const waiting = uploads.length
-  const parts = [`${waiting} ${waiting === 1 ? 'Foto wartet' : 'Fotos warten'}`]
-  if (errors) parts.push(`${errors} mit Fehler`)
+  const parts = [tn(waiting, '{n} Foto wartet', '{n} Fotos warten')]
+  if (errors) parts.push(t('{0} mit Fehler', [errors]))
   return parts.join(' · ')
 }

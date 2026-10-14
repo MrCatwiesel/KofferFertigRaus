@@ -249,7 +249,7 @@ const form = reactive({ showPw: false })
   <!-- Bearbeiten -->
   <div v-if="editing" class="card border-primary mb-3">
     <div class="card-body">
-      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? $t('Ziel bearbeiten') : `Neues Ziel: ${TYPE_INFO[editing.type].label}` }}</h2>
+      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? $t('Ziel bearbeiten') : $t('Neues Ziel: {0}', [TYPE_INFO[editing.type].label]) }}</h2>
       <p class="small text-body-secondary">{{ TYPE_INFO[editing.type].hint }}</p>
       <form class="row g-2" @submit.prevent="saveEdit">
         <div class="col-12 col-sm-8">

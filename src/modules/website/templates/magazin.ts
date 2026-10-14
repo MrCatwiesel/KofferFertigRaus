@@ -1,6 +1,7 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
 import { activitiesBlock, footer, overviewBlock, routesBlock, staysBlock, statsLine } from './parts'
+import { t } from '@/core/i18n'
 
 /** Magazin: große Bilder, Text abwechselnd links/rechts, Serif-Überschriften. */
 export const magazin: SiteTemplate = {
@@ -33,7 +34,7 @@ export const magazin: SiteTemplate = {
         <div class="row g-4 align-items-start">
           ${first ? `<div class="col-md-6 lead-img">${img(first)}${first.caption ? `<div class="caption">${esc(first.caption)}</div>` : ''}${rest.length ? `<div class="thumbs">${rest.map((p) => img(p)).join('')}</div>` : ''}</div>` : ''}
           <div class="${first ? 'col-md-6' : 'col-12'}">
-            <div class="date">${d.dayNumber ? `Tag ${d.dayNumber} · ` : ''}${esc(longDate(d.date))}</div>
+            <div class="date">${d.dayNumber ? t('Tag {0} · ', [d.dayNumber]) : ''}${esc(longDate(d.date))}</div>
             ${e.title ? `<h2 class="mt-1">${esc(e.title)}</h2>` : ''}
             ${meta ? `<div class="small text-body-secondary mb-3">${meta}</div>` : ''}
             ${paragraphs(e.text)}
@@ -42,7 +43,7 @@ export const magazin: SiteTemplate = {
       </article>`
       }),
       d.routes.length
-        ? `<section class="story"><div class="date">${d.dayNumber ? `Tag ${d.dayNumber} · ` : ''}${esc(longDate(d.date))}</div>${routesBlock(d.routes)}</section>`
+        ? `<section class="story"><div class="date">${d.dayNumber ? t('Tag {0} · ', [d.dayNumber]) : ''}${esc(longDate(d.date))}</div>${routesBlock(d.routes)}</section>`
         : ''
     ])
     return `

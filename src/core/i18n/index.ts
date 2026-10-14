@@ -22,7 +22,7 @@ let dict: Record<string, string> = {}
  * Englisch automatisch für Geräte, die nicht Deutsch sprechen? Erst, wenn alles übersetzt ist –
  * bis dahin nur, wenn man Englisch in den Einstellungen ausdrücklich wählt.
  */
-export const ENGLISH_COMPLETE = false
+export const ENGLISH_COMPLETE = true
 
 /** Sprache des Geräts: Deutsch nur, wenn das Gerät Deutsch spricht – sonst Englisch */
 export function deviceLang(languages: readonly string[] = globalThis.navigator?.languages ?? [], complete = ENGLISH_COMPLETE): Lang {

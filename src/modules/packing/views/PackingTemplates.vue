@@ -149,7 +149,7 @@ async function addFromOther() {
         <option v-for="t in otherTrips" :key="t.id" :value="t.id">{{ t.title }} ({{ formatDate(t.startDate) }})</option>
       </select>
       <button type="button" class="btn btn-outline-primary" :disabled="busy || !fromOther.length" @click="addFromOther">
-        {{ sourceTrip ? `${fromOther.length} übernehmen` : $t('Übernehmen') }}
+        {{ sourceTrip ? $t('{0} übernehmen', [fromOther.length]) : $t('Übernehmen') }}
       </button>
     </div>
     <div v-if="sourceTrip && sourceItems.length === 0" class="form-text">{{ $t('Diese Reise hat keine Packliste.') }}</div>

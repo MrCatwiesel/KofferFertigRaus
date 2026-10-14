@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.39.0 – 2026-10-14 (Server 1.20.0)
+
+### Englische Fassung fertig
+- **Die ganze App gibt es jetzt auf Englisch** – auch Tagebuch, Sprachnotizen, Reisebericht und Fotobuch (PDF), Reise-Webseite, Lese-Links samt Betrachter-Seite, Piwigo und Statistik
+- **Automatisch:** Geräte, die nicht Deutsch eingestellt haben, starten auf Englisch. Umstellen jederzeit unter *Einstellungen → Sprache · Language*
+- Fehlermeldungen des Servers erscheinen in der Sprache der App
+- **Push-Benachrichtigungen in der Sprache des Geräts** (Server 1.20): Testnachricht, Neues von den Mitreisenden und Unwetterwarnungen kommen englisch, wenn die App auf Englisch steht. Erinnerungen an Termine waren schon in der App-Sprache
+- Die Reise- und Sicherheitshinweise des Auswärtigen Amts bleiben deutsch (so liefert sie das Amt); Ländernamen und Überschriften sind übersetzt
+- Für Deutsch ändert sich nichts
+
 ## 1.38.0 – 2026-10-14
 
 ### Englisch (Teil 3): Packliste, Reisehinweise und Unterwegs

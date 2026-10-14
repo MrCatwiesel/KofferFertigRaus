@@ -7,6 +7,7 @@
 import { reactive } from 'vue'
 import { getMeta, setMeta } from './meta'
 import { ServerClient } from './sync/client'
+import { lang } from './i18n'
 import { t } from '@/core/i18n'
 
 export interface PushPrefs {
@@ -122,7 +123,7 @@ async function subscribe(publicKey: string): Promise<PushSubscription> {
 
 async function register(sub: PushSubscription, prefs?: Partial<PushPrefs>) {
   const json = sub.toJSON()
-  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs })
+  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs, lang: lang.value })
 }
 
 /**
@@ -153,6 +154,12 @@ export async function disablePush(): Promise<void> {
 export async function setPushPrefs(prefs: Partial<PushPrefs>): Promise<void> {
   await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { prefs })
   await loadPushStatus()
+}
+
+/** Sprache der App hat sich geändert: Server schickt Nachrichten dann in dieser Sprache */
+export async function updatePushLang(): Promise<void> {
+  if (!pushState.active) return
+  await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { lang: lang.value }).catch(() => null)
 }
 
 export async function sendTestPush(): Promise<void> {

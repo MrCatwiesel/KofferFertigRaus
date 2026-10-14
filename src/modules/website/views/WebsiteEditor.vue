@@ -19,6 +19,7 @@ import { buildSiteData, defaultSettings, fileNameFor, type EntryInput, type Extr
 import { renderSite } from '../render'
 import { embeddedFontCss, fontFaceCss } from '../fonts'
 import { ACCENT_PRESETS, FONT_GROUPS, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -106,13 +107,13 @@ const doneActivities = computed(() => acts.value.some((a) => a.status === 'erled
 /** Auswahlknöpfe für die Bereiche der Seite */
 type SectionKey = 'showPhotos' | 'showRoutes' | 'showStays' | 'showActivities' | 'showParticipants' | 'showMood' | 'showLocation'
 const sectionButtons = computed<{ key: SectionKey; label: string; icon: string; count?: number }[]>(() => [
-  { key: 'showPhotos', label: 'Fotos', icon: 'images', count: photos.value.length },
-  { key: 'showRoutes', label: 'Routen', icon: 'signpost-split', count: routeInputs.value.length },
-  { key: 'showStays', label: 'Unterkünfte', icon: 'building', count: stayInputs.value.length },
-  { key: 'showActivities', label: 'Unternehmungen', icon: 'flag', count: activityInputs.value.length },
-  { key: 'showParticipants', label: 'Mitreisende', icon: 'people', count: trip.value?.participants.length ?? 0 },
-  { key: 'showLocation', label: 'Orte', icon: 'geo-alt' },
-  { key: 'showMood', label: 'Stimmung', icon: 'emoji-smile' }
+  { key: 'showPhotos', label: t('Fotos'), icon: 'images', count: photos.value.length },
+  { key: 'showRoutes', label: t('Routen'), icon: 'signpost-split', count: routeInputs.value.length },
+  { key: 'showStays', label: t('Unterkünfte'), icon: 'building', count: stayInputs.value.length },
+  { key: 'showActivities', label: t('Unternehmungen'), icon: 'flag', count: activityInputs.value.length },
+  { key: 'showParticipants', label: t('Mitreisende'), icon: 'people', count: trip.value?.participants.length ?? 0 },
+  { key: 'showLocation', label: t('Orte'), icon: 'geo-alt' },
+  { key: 'showMood', label: t('Stimmung'), icon: 'emoji-smile' }
 ])
 
 const previewUrls = useObjectUrls(photos, (p) => p.id, (p) => p.full)
@@ -296,7 +297,7 @@ function resetTexts() {
         <label class="form-label small mb-1">{{ $t('Akzentfarbe') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <button v-for="c in ACCENT_PRESETS" :key="c" type="button" class="swatch" :style="{ background: c }"
-                  :class="{ active: settings.accent === c }" :aria-label="`Farbe ${c}`" @click="settings.accent = c"></button>
+                  :class="{ active: settings.accent === c }" :aria-label="$t('Farbe {0}', [c])" @click="settings.accent = c"></button>
           <input v-model="settings.accent" type="color" class="form-control form-control-color" :aria-label="$t('Eigene Farbe')" />
         </div>
       </div>
@@ -357,7 +358,7 @@ function resetTexts() {
       </div>
       <div v-if="settings.showRoutes && hiddenRoutes.length" class="alert alert-light border small py-2 mb-2" data-hidden-routes>
         <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>
-        {{ $t('{0} nicht für die Webseite freigegeben', [hiddenRoutes.length === 1 ? $t('1 Route ist') : `${hiddenRoutes.length} Routen sind`]) }}
+        {{ $t('{0} nicht für die Webseite freigegeben', [hiddenRoutes.length === 1 ? $t('1 Route ist') : $t('{0} Routen sind', [hiddenRoutes.length])]) }}
         <template v-if="hiddenRoutes.length <= 3">({{ hiddenRoutes.map((r) => r.name).join(', ') }})</template>.
         <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="showAllRoutes">{{ $t('Alle zeigen') }}</button>
       </div>

@@ -13,7 +13,7 @@ import { expenseRepository, inTripCurrency } from '@/modules/expenses/public'
 import { placeRepository } from '@/modules/map/public'
 import TripsMap from '../components/TripsMap.vue'
 import { summarize, yearsOf, type TripExtra } from '../logic'
-import { locale } from '@/core/i18n'
+import { locale, t, tn } from '@/core/i18n'
 
 const router = useRouter()
 const trips = shallowRef<Trip[]>([])
@@ -57,7 +57,7 @@ void load()
 const years = computed(() => yearsOf(trips.value))
 const s = computed(() => summarize(trips.value, extra.value, year.value, today))
 const km = (m: number) => `${Math.round(m / 1000).toLocaleString(locale())} km`
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
+const MONTHS = [t('Jan'), t('Feb'), t('Mär'), t('Apr'), t('Mai'), t('Jun'), t('Jul'), t('Aug'), t('Sep'), t('Okt'), t('Nov'), t('Dez')]
 const maxMonth = computed(() => Math.max(1, ...s.value.months))
 const mapPoints = computed(() =>
   s.value.rows
@@ -66,14 +66,14 @@ const mapPoints = computed(() =>
 )
 const tiles = computed(() =>
   [
-    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? 'Reise' : 'Reisen' },
-    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: 'Reisetage' },
-    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: 'Übernachtungen' },
-    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? 'Land' : 'Länder' },
-    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: `auf ${s.value.routes} ${s.value.routes === 1 ? 'Tour' : 'Touren'}` },
+    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? t('Reise') : t('Reisen') },
+    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: t('Reisetage') },
+    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: t('Übernachtungen') },
+    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? t('Land') : t('Länder') },
+    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: tn(s.value.routes, 'auf {n} Tour', 'auf {n} Touren') },
     { icon: 'graph-up-arrow', n: s.value.ascent, value: `${s.value.ascent.toLocaleString(locale())} m`, label: 'bergauf' },
-    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString(locale()), label: 'Fotos' },
-    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: 'Tagebuch-Einträge' }
+    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString(locale()), label: t('Fotos') },
+    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: t('Tagebuch-Einträge') }
   ].filter((t) => t.n > 0)
 )
 </script>
@@ -124,7 +124,7 @@ const tiles = computed(() =>
     <section class="card mb-3">
       <div class="card-body">
         <h2 class="h6">{{ $t('Reisetage je Monat') }}</h2>
-        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="`Reisetage je Monat: ${s.months.join(', ')}`">
+        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="$t('Reisetage je Monat: {0}', [s.months.join(', ')])">
           <g v-for="(v, i) in s.months" :key="i">
             <rect :x="i * 50 + 8" :y="140 - (v / maxMonth) * 120" width="34" :height="Math.max(v ? 2 : 0, (v / maxMonth) * 120)" rx="4" fill="var(--nww-primary)" />
             <text v-if="v" :x="i * 50 + 25" :y="134 - (v / maxMonth) * 120" text-anchor="middle" class="m-val">{{ v }}</text>

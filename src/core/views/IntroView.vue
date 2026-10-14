@@ -29,7 +29,7 @@ async function done(to: string) {
       <p class="mb-4">{{ slide.text }}</p>
 
       <div class="d-flex justify-content-center gap-2 mb-4" role="tablist" :aria-label="$t('Seiten der Einführung')">
-        <button v-for="(s, k) in slides" :key="k" type="button" class="dot" :class="{ active: k === i }" role="tab" :aria-selected="k === i" :aria-label="`Seite ${k + 1}: ${s.title}`" @click="i = k"></button>
+        <button v-for="(s, k) in slides" :key="k" type="button" class="dot" :class="{ active: k === i }" role="tab" :aria-selected="k === i" :aria-label="$t('Seite {0}: {1}', [k + 1, s.title])" @click="i = k"></button>
       </div>
 
       <div class="d-flex justify-content-between gap-2 flex-wrap">

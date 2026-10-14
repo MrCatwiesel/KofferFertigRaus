@@ -42,6 +42,11 @@ const ART_NAMEN = {
 /** Nummern von „awareness_type“ (MeteoAlarm) */
 const ART_NUMMERN = { 1: 'wind', 2: 'schnee', 3: 'gewitter', 4: 'nebel', 5: 'hitze', 6: 'kaelte', 7: 'kueste', 8: 'waldbrand', 9: 'lawinen', 10: 'regen', 12: 'hochwasser', 13: 'hochwasser' }
 export const STUFEN = { 1: 'Grün', 2: 'Gelb', 3: 'Orange', 4: 'Rot' }
+const STUFEN_EN = { 1: 'Green', 2: 'Yellow', 3: 'Orange', 4: 'Red' }
+const ARTEN_EN = {
+  wind: 'Wind', schnee: 'Snow/ice', gewitter: 'Thunderstorm', nebel: 'Fog', hitze: 'Heat', kaelte: 'Cold', kueste: 'Coastal event',
+  waldbrand: 'Forest fire', lawinen: 'Avalanches', regen: 'Heavy rain', hochwasser: 'Flooding', sonstiges: 'Severe weather'
+}
 const FARBEN = { green: 1, yellow: 2, orange: 3, red: 4 }
 const SEVERITY = { minor: 1, moderate: 2, severe: 3, extreme: 4 }
 
@@ -325,18 +330,19 @@ export function createUnwetterQuelle(opts = {}) {
   return { warnungen, regions, feed }
 }
 
-/** „Di 14:00 – Mi 02:00“ in der Zeitzone des Geräts */
-export function zeitraum(beginn, ende, zeitzone = 'Europe/Berlin', now = Date.now()) {
+/** „Di 14:00 – Mi 02:00“ in der Zeitzone des Geräts (lang 'en': „Tue 14:00 – Wed 02:00“) */
+export function zeitraum(beginn, ende, zeitzone = 'Europe/Berlin', now = Date.now(), lang = 'de') {
+  const loc = lang === 'en' ? 'en-GB' : 'de-DE'
   let fmt
   try {
-    fmt = new Intl.DateTimeFormat('de-DE', { timeZone: zeitzone, weekday: 'short', hour: '2-digit', minute: '2-digit' })
+    fmt = new Intl.DateTimeFormat(loc, { timeZone: zeitzone, weekday: 'short', hour: '2-digit', minute: '2-digit' })
   } catch {
-    fmt = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit' })
+    fmt = new Intl.DateTimeFormat(loc, { timeZone: 'Europe/Berlin', weekday: 'short', hour: '2-digit', minute: '2-digit' })
   }
   const f = (iso) => fmt.format(new Date(iso)).replace(',', '')
   const b = Date.parse(beginn)
-  const from = !Number.isNaN(b) && b > now ? f(beginn) : 'jetzt'
-  return ende ? `${from} – ${f(ende)}` : `ab ${from}`
+  const from = !Number.isNaN(b) && b > now ? f(beginn) : lang === 'en' ? 'now' : 'jetzt'
+  return ende ? `${from} – ${f(ende)}` : `${lang === 'en' ? 'from' : 'ab'} ${from}`
 }
 
 /**
@@ -424,16 +430,17 @@ export function createUnwetter(store, quelle, push, opts = {}) {
         q.markSent.run(row.owner, key, new Date(at).toISOString())
         const ort = active[w.orte[0]]
         const regionen = w.regionen.map((r) => r.name).slice(0, 3).join(', ')
-        const message = {
-          title: `⚠️ Warnstufe ${STUFEN[w.stufe]}: ${w.artName}`,
-          body: [`${regionen} · ${zeitraum(w.beginn, w.ende, watch.zeitzone, at)}`, ort?.titel ? `Reise: ${ort.titel}` : '', w.titel && w.titel !== w.ereignis ? w.titel : ''].filter(Boolean).join('\n').slice(0, 300),
+        // Nachricht in der Sprache der App auf dem jeweiligen Gerät
+        const message = (lang) => ({
+          title: lang === 'en' ? `⚠️ Warning level ${STUFEN_EN[w.stufe]}: ${ARTEN_EN[w.art] ?? ARTEN_EN.sonstiges}` : `⚠️ Warnstufe ${STUFEN[w.stufe]}: ${w.artName}`,
+          body: [`${regionen} · ${zeitraum(w.beginn, w.ende, watch.zeitzone, at, lang)}`, ort?.titel ? `${lang === 'en' ? 'Trip' : 'Reise'}: ${ort.titel}` : '', w.titel && w.titel !== w.ereignis ? w.titel : ''].filter(Boolean).join('\n').slice(0, 300),
           url: ort?.reise ? `#/trip/${ort.reise}/unwetter` : '#/',
           tag: `unwetter:${key}`.slice(0, 100)
-        }
+        })
         const ttl = Math.max(600, Math.min(48 * 3600, Math.round(((Date.parse(w.ende) || at + 6 * 3600_000) - at) / 1000)))
         for (const s of subs) {
           if (w.stufe < 3 && !s.prefs.unwetterGelb) continue
-          const r = await push.deliver(s, message, { ttl, urgency: w.stufe >= 3 ? 'high' : 'normal' })
+          const r = await push.deliver(s, message(s.prefs.lang), { ttl, urgency: w.stufe >= 3 ? 'high' : 'normal' })
           if (r.ok) sent++
         }
       }

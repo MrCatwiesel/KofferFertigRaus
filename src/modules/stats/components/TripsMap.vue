@@ -3,6 +3,7 @@
 import { markRaw, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ points: { id: string; title: string; sub: string; at: [number, number] }[] }>()
 const emit = defineEmits<{ open: [id: string] }>()
@@ -30,7 +31,7 @@ onMounted(async () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+    attribution: t('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende')
   }).addTo(map)
   layer = markRaw(L.layerGroup().addTo(map))
   draw()

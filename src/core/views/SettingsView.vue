@@ -9,6 +9,7 @@ import { appearance } from '@/ui/appearance'
 import { getTheme } from '@/ui/themes'
 import { lock } from '../lock'
 import { ENGLISH_COMPLETE, lang, langSetting, setLang, t, type LangSetting } from '@/core/i18n'
+import { updatePushLang } from '../push'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -70,7 +71,7 @@ async function persist() {
 
 // Sprache (gilt für dieses Gerät)
 const langChoice = ref<LangSetting>(langSetting())
-const changeLang = () => void setLang(langChoice.value)
+const changeLang = () => void setLang(langChoice.value).then(() => updatePushLang())
 </script>
 
 <template>

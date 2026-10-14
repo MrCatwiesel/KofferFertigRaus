@@ -88,6 +88,7 @@ test('Texte für Änderungen anderer', () => {
   assert.equal(changeSummary({ journalEntries: { neu: 1, geaendert: 0 }, photos: { neu: 5, geaendert: 0 } }), 'Neu: ein Tagebucheintrag, 5 Fotos')
   assert.equal(changeSummary({ activities: { neu: 1, geaendert: 2 }, expenses: { neu: 0, geaendert: 1 } }), 'Neu: eine Unternehmung · 3 Änderungen')
   assert.equal(changeSummary({ routes: { neu: 0, geaendert: 1 } }), '1 Änderung')
+  assert.equal(changeSummary({ journalEntries: { neu: 1, geaendert: 0 }, photos: { neu: 5, geaendert: 2 } }, 'en'), 'New: a journal entry, 5 photos · 2 changes')
 })
 
 // ---------------------------------------------------------------- Ablauf mit Server
@@ -176,6 +177,11 @@ test('Testnachricht kommt verschlüsselt beim Gerät an', async () => {
   assert.equal(msg.headers['Content-Encoding'], 'aes128gcm')
   assert.match(msg.headers.Authorization, /^vapid t=.+, k=/)
   assert.equal(s.ipad.read(msg).title, 'Nix wie weg')
+  // App auf Englisch: Sprache wird am Abo gemerkt, Nachrichten kommen englisch
+  assert.equal((await call('PATCH', '/api/benachrichtigungen/abo', s.marco, { lang: 'en' })).body.prefs.lang, 'en')
+  await call('POST', '/api/benachrichtigungen/test', s.marco)
+  assert.equal(s.ipad.read(outbox.at(-1)).body, 'Notifications are working 👍')
+  await call('PATCH', '/api/benachrichtigungen/abo', s.marco, { lang: 'de' })
   assert.ok((await call('GET', '/api/benachrichtigungen', s.marco)).body.abo.lastOk)
 })
 

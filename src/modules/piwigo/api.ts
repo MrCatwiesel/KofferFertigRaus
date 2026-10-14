@@ -1,5 +1,6 @@
 import { ServerClient, type ServerError } from '@/core/sync/client'
 import type { PiwigoAlbum, PiwigoImage, PiwigoStatus } from './types'
+import { t } from '@/core/i18n'
 
 /** Bildgrößen von Piwigo: small für Vorschauen, xxlarge zum Übernehmen. */
 export type PiwigoSize = 'thumb' | 'small' | 'medium' | 'large' | 'xlarge' | 'xxlarge' | 'original'
@@ -22,8 +23,8 @@ export class PiwigoApi {
       return await this.client.request(`/api/piwigo${path}`, init)
     } catch (e) {
       const err = e as ServerError
-      if (err.status === 404 && path === '') err.message = 'Piwigo ist auf dem Server nicht eingerichtet.'
-      if (err.status === 403) err.message = 'Piwigo ist für diese Reisegruppe nicht freigegeben.'
+      if (err.status === 404 && path === '') err.message = t('Piwigo ist auf dem Server nicht eingerichtet.')
+      if (err.status === 403) err.message = t('Piwigo ist für diese Reisegruppe nicht freigegeben.')
       throw err
     }
   }

@@ -48,6 +48,22 @@ export const CHANGE_LABELS = {
 }
 
 /** unwetter: Warnstufe Orange und Rot an den Reiseorten (unwetter.mjs), unwetterGelb: auch Gelb */
+/** Englische Fassungen für Nachrichten an Geräte mit englischer App (prefs.lang = 'en') */
+export const CHANGE_LABELS_EN = {
+  journalEntries: ['a', 'journal entry', 'journal entries'],
+  photos: ['a', 'photo', 'photos'],
+  voiceNotes: ['a', 'voice note', 'voice notes'],
+  activities: ['an', 'activity', 'activities'],
+  routes: ['a', 'route', 'routes'],
+  accommodations: ['an', 'accommodation', 'accommodations'],
+  travelLegs: ['a', 'journey leg', 'journey legs'],
+  expenses: ['an', 'expense', 'expenses'],
+  places: ['a', 'place', 'places'],
+  documents: ['a', 'document', 'documents'],
+  polls: ['a', 'poll', 'polls'],
+  pollVotes: ['a', 'vote', 'votes']
+}
+
 export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false, unwetter: true, unwetterGelb: false }
 
 const b64u = (buf) => Buffer.from(buf).toString('base64url')
@@ -132,16 +148,17 @@ export function validEndpoint(endpoint, hosts = PUSH_HOSTS) {
 
 // ---------------------------------------------------------------- Texte
 
-/** Zusammenfassung der gesammelten Änderungen, z. B. „2 Tagebucheinträge, 5 Fotos“ */
-export function changeSummary(counts) {
+/** Zusammenfassung der gesammelten Änderungen, z. B. „2 Tagebucheinträge, 5 Fotos“ (lang 'en': englisch) */
+export function changeSummary(counts, lang = 'de') {
+  const en = lang === 'en'
   const parts = []
-  for (const [tbl, [article, one, many]] of Object.entries(CHANGE_LABELS)) {
+  for (const [tbl, [article, one, many]] of Object.entries(en ? CHANGE_LABELS_EN : CHANGE_LABELS)) {
     const n = counts[tbl]?.neu ?? 0
     if (n) parts.push(n === 1 ? `${article} ${one}` : `${n} ${many}`)
   }
   const changed = Object.values(counts).reduce((n, c) => n + (c.geaendert ?? 0), 0)
-  const neu = parts.length ? `Neu: ${parts.join(', ')}` : ''
-  const mod = changed ? `${changed} ${changed === 1 ? 'Änderung' : 'Änderungen'}` : ''
+  const neu = parts.length ? `${en ? 'New' : 'Neu'}: ${parts.join(', ')}` : ''
+  const mod = changed ? `${changed} ${en ? (changed === 1 ? 'change' : 'changes') : changed === 1 ? 'Änderung' : 'Änderungen'}` : ''
   return [neu, mod].filter(Boolean).join(' · ')
 }
 
@@ -203,6 +220,8 @@ export function createBenachrichtigungen(store, members, opts = {}) {
   const now = () => new Date().toISOString()
   const prefsOf = (row) => ({ ...DEFAULT_PREFS, ...JSON.parse(row.prefs || '{}') })
   const cleanPrefs = (p, base = DEFAULT_PREFS) => Object.fromEntries(Object.keys(DEFAULT_PREFS).map((k) => [k, typeof p?.[k] === 'boolean' ? p[k] : base[k]]))
+  /** Sprache der App auf dem Gerät (nur gespeichert, wenn die App sie schickt) */
+  const langOf = (lang, old) => (lang === 'en' || lang === 'de' ? { lang } : old && prefsOf(old).lang ? { lang: prefsOf(old).lang } : {})
   /** Zeitplan gehört der Person – oder (Gerät ohne Person) der ganzen Gruppe */
   const ownerOf = (space, memberId) => (memberId ? `${space}:${memberId}` : space)
 
@@ -345,8 +364,8 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       lastSent.set(key, at)
       const who = [...p.who].slice(0, 3).join(', ')
       const r = await deliver(sub, {
-        title: `${trip.title || 'Reise'}: ${who}`,
-        body: changeSummary(p.counts),
+        title: `${trip.title || (prefsOf(sub).lang === 'en' ? 'Trip' : 'Reise')}: ${who}`,
+        body: changeSummary(p.counts, prefsOf(sub).lang),
         url: `#/trip/${p.trip}`,
         tag: `trip:${p.trip}`
       }, { ttl: 24 * 3600 })
@@ -436,14 +455,15 @@ export function createBenachrichtigungen(store, members, opts = {}) {
         // Schlüssel gleich prüfen (Länge, Kurvenpunkt) – sonst scheitert erst das Senden
         encryptPayload('x', keys)
         const old = q.sub.get(device.id)
-        const prefs = cleanPrefs(body.prefs, old ? prefsOf(old) : DEFAULT_PREFS)
+        const prefs = { ...cleanPrefs(body.prefs, old ? prefsOf(old) : DEFAULT_PREFS), ...langOf(body.lang, old) }
         q.upsert.run(device.id, space, member?.id ?? null, body.endpoint, keys.p256dh, keys.auth, JSON.stringify(prefs), old?.created ?? now())
         return send(res, 200, { ok: true, prefs })
       }
       if (sub === '/abo' && req.method === 'PATCH') {
         const row = q.sub.get(device.id)
         if (!row) throw new HttpError(404, 'Auf diesem Gerät sind Benachrichtigungen nicht eingeschaltet.')
-        const prefs = cleanPrefs((await readJson(req)).prefs, prefsOf(row))
+        const body = await readJson(req)
+        const prefs = { ...cleanPrefs(body.prefs, prefsOf(row)), ...langOf(body.lang, row) }
         q.setPrefs.run(JSON.stringify(prefs), device.id)
         return send(res, 200, { ok: true, prefs })
       }
@@ -454,7 +474,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       if (sub === '/test' && req.method === 'POST') {
         const row = q.sub.get(device.id)
         if (!row) throw new HttpError(404, 'Auf diesem Gerät sind Benachrichtigungen nicht eingeschaltet.')
-        const r = await deliver(row, { title: 'Nix wie weg', body: 'Benachrichtigungen funktionieren 👍', url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
+        const r = await deliver(row, { title: 'Nix wie weg', body: prefsOf(row).lang === 'en' ? 'Notifications are working 👍' : 'Benachrichtigungen funktionieren 👍', url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
         if (r.gone) throw new HttpError(410, 'Der Push-Dienst kennt dieses Gerät nicht mehr – bitte Benachrichtigungen neu einschalten.')
         if (!r.ok) throw new HttpError(502, q.sub.get(device.id)?.last_error ?? 'Senden ging nicht.')
         return send(res, 200, { ok: true })

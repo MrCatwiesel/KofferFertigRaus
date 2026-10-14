@@ -2,7 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
 import { journalStats, photosForMap } from './logic'
 import { routeRepository } from '@/modules/routes/public'
-import { N_ } from '@/core/i18n'
+import { N_, t, tn } from '@/core/i18n'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
@@ -22,10 +22,10 @@ export const journalModule: AppModule = {
     to: (tripId) => `/trip/${tripId}/tagebuch`,
     async summary(tripId) {
       const [entries, photos] = await Promise.all([journalRepository.listByTrip(tripId), photoRepository.countByTrip(tripId)])
-      if (entries.length === 0) return 'Noch keine Einträge'
+      if (entries.length === 0) return t('Noch keine Einträge')
       const s = journalStats(entries, photos)
-      const parts = [`${s.entries} ${s.entries === 1 ? 'Eintrag' : 'Einträge'}`, `${s.photos} Fotos`]
-      if (s.highlights) parts.push(`${s.highlights} Highlights`)
+      const parts = [`${tn(s.entries, '{n} Eintrag', '{n} Einträge')}`, t('{0} Fotos', [s.photos])]
+      if (s.highlights) parts.push(t('{0} Highlights', [s.highlights]))
       return parts.join(' · ')
     }
   },

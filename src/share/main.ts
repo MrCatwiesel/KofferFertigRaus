@@ -16,6 +16,7 @@ import {
   type TemplateId
 } from '@/modules/website/public'
 import { renderStaticMap } from '@/services/static-map'
+import { startLang, t } from '@/core/i18n'
 
 interface PublicPhoto {
   id: string
@@ -48,9 +49,9 @@ function message(title: string, text: string) {
 
 function askPassword(wrong: boolean) {
   view.innerHTML = `
-    <h1>Diese Reise ist geschützt</h1>
-    <p${wrong ? ' class="err"' : ''}>${wrong ? 'Das Passwort stimmt nicht.' : 'Bitte das Passwort eingeben, das du bekommen hast.'}</p>
-    <form><input type="password" autocomplete="current-password" aria-label="Passwort" required autofocus><button type="submit">Ansehen</button></form>`
+    <h1>${esc(t('Diese Reise ist geschützt'))}</h1>
+    <p${wrong ? ' class="err"' : ''}>${esc(wrong ? t('Das Passwort stimmt nicht.') : t('Bitte das Passwort eingeben, das du bekommen hast.'))}</p>
+    <form><input type="password" autocomplete="current-password" aria-label="${esc(t('Passwort'))}" required autofocus><button type="submit">${esc(t('Ansehen'))}</button></form>`
   view.querySelector('form')!.addEventListener('submit', (e) => {
     e.preventDefault()
     const pw = view.querySelector('input')!.value
@@ -88,7 +89,7 @@ async function mapImage(lines: { points: [number, number, number | null][]; colo
 async function addMaps(routes: RouteInput[]): Promise<{ routes: RouteInput[]; overview?: string }> {
   const usable = routes.filter((r) => r.points.length > 1)
   if (!usable.length) return { routes }
-  view.innerHTML = '<div class="spin" role="status" aria-label="Lädt"></div><p>Karten werden geladen …</p>'
+  view.innerHTML = `<div class="spin" role="status" aria-label="${esc(t('Lädt'))}"></div><p>${esc(t('Karten werden geladen …'))}</p>`
   const work = Promise.all([
     Promise.all(routes.map((r) => (r.points.length > 1 ? mapImage([{ points: r.points, color: r.color }], 1000, 560, true) : Promise.resolve(undefined)))),
     usable.length > 1 ? mapImage(usable.map((r) => ({ points: r.points, color: r.color })), 1200, 700, false) : Promise.resolve(undefined)
@@ -136,19 +137,19 @@ async function show(data: PublicData) {
 }
 
 async function load(password = '') {
-  if (!token) return message('Link unvollständig', 'Bitte den ganzen Link öffnen, so wie du ihn bekommen hast.')
+  if (!token) return message(t('Link unvollständig'), t('Bitte den ganzen Link öffnen, so wie du ihn bekommen hast.'))
   let res: Response
   try {
     res = await fetch(api(), { headers: password ? { 'X-Share-Password': password } : {}, cache: 'no-store' })
   } catch {
-    return message('Keine Verbindung', 'Der Server ist gerade nicht erreichbar. Bitte später noch einmal versuchen.')
+    return message(t('Keine Verbindung'), t('Der Server ist gerade nicht erreichbar. Bitte später noch einmal versuchen.'))
   }
   const body = await res.json().catch(() => ({}))
   if (res.ok) return show(body as PublicData)
   if (res.status === 401 && body.needPassword) return askPassword(!!password)
-  if (res.status === 410) return message('Nicht mehr verfügbar', body.error ?? 'Dieser Link gilt nicht mehr.')
-  if (res.status === 429) return message('Kurz warten', body.error ?? 'Zu viele Versuche.')
-  return message('Nicht gefunden', 'Diesen Link gibt es nicht (mehr).')
+  if (res.status === 410) return message(t('Nicht mehr verfügbar'), (body.error ? t(body.error) : t('Dieser Link gilt nicht mehr.')))
+  if (res.status === 429) return message(t('Kurz warten'), (body.error ? t(body.error) : t('Zu viele Versuche.')))
+  return message(t('Nicht gefunden'), t('Diesen Link gibt es nicht (mehr).'))
 }
 
 let saved = ''
@@ -157,4 +158,5 @@ try {
 } catch {
   /* privates Fenster */
 }
-void load(saved)
+// Sprache wie im Browser (bzw. wie zuletzt in der App gewählt)
+void startLang().finally(() => load(saved))

@@ -1,4 +1,5 @@
 /** Ein Tagebucheintrag – meist einer pro Tag, mehrere sind möglich. */
+import { N_, translated } from '@/core/i18n'
 export interface JournalEntry {
   id: string
   tripId: string
@@ -62,10 +63,10 @@ export interface VoiceNote {
   updatedAt: string
 }
 
-export const MOODS: { value: number; emoji: string; label: string }[] = [
-  { value: 5, emoji: '😍', label: 'Traumhaft' },
-  { value: 4, emoji: '😊', label: 'Schön' },
-  { value: 3, emoji: '🙂', label: 'Okay' },
-  { value: 2, emoji: '😕', label: 'Durchwachsen' },
-  { value: 1, emoji: '😩', label: 'Anstrengend' }
-]
+export const MOODS: { value: number; emoji: string; label: string }[] = translated([
+  { value: 5, emoji: '😍', label: N_('Traumhaft') },
+  { value: 4, emoji: '😊', label: N_('Schön') },
+  { value: 3, emoji: '🙂', label: N_('Okay') },
+  { value: 2, emoji: '😕', label: N_('Durchwachsen') },
+  { value: 1, emoji: '😩', label: N_('Anstrengend') }
+])

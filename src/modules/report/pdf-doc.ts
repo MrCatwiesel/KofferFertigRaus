@@ -7,7 +7,7 @@
 import type { Content, ContentStack, TDocumentDefinitions } from 'pdfmake/interfaces'
 import { MM, chunkPhotos, estimateTextHeight, pageGeometry, slotRects, type PageFormat, type PageGeometry, type Rect } from './pdf-layout'
 import { photoColumns } from './logic'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 export interface PdfPhoto {
   id: string
@@ -147,7 +147,7 @@ function styles(accent: string) {
 function overview(input: PdfInput, width: number, height: number, img: ImageSource): Content[] {
   const out: Content[] = []
   if (!input.stats.length && !input.overviewSvg && !input.overviewMap && !input.stays.length && !input.money.length) return out
-  out.push({ text: 'Überblick', style: 'h2' })
+  out.push({ text: t('Überblick'), style: 'h2' })
   if (input.stats.length)
     out.push({
       columns: input.stats.map((s) => ({ stack: [{ text: s.value, fontSize: 16, bold: true, color: input.accent }, { text: s.label, style: 'meta' }], width: '*' })),
@@ -168,8 +168,8 @@ function overview(input: PdfInput, width: number, height: number, img: ImageSour
         margin: [0, 0, 0, 12]
       })
   }
-  if (input.stays.length) out.push({ text: 'Unterkünfte', style: 'h3' }, { ul: input.stays, fontSize: 10, margin: [0, 0, 0, 8] })
-  if (input.money.length) out.push({ text: 'Ausgaben', style: 'h3' }, ...input.money.map((m) => ({ text: m, fontSize: 10 })))
+  if (input.stays.length) out.push({ text: t('Unterkünfte'), style: 'h3' }, { ul: input.stays, fontSize: 10, margin: [0, 0, 0, 8] })
+  if (input.money.length) out.push({ text: t('Ausgaben'), style: 'h3' }, ...input.money.map((m) => ({ text: m, fontSize: 10 })))
   return out
 }
 
@@ -209,7 +209,7 @@ function routeBlock(r: PdfRoute, width: number, height: number, img: ImageSource
 
 function entryHead(e: PdfEntry): Content[] {
   const meta = [e.location, e.moodLabel].filter(Boolean).join(' · ')
-  return [{ text: e.title || 'Ohne Titel', style: 'h2' }, ...(meta ? [{ text: meta, style: 'meta', margin: [0, 0, 0, 6] } as Content] : [])]
+  return [{ text: e.title || t('Ohne Titel'), style: 'h2' }, ...(meta ? [{ text: meta, style: 'meta', margin: [0, 0, 0, 6] } as Content] : [])]
 }
 
 // ——— Bericht: A4 hoch, Text im Vordergrund ———
@@ -234,7 +234,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   let first = true
   for (const d of input.days) {
     content.push({
-      stack: [{ text: d.dayNo ? `TAG ${d.dayNo} · ${dateLong(d.date).toUpperCase()}` : dateLong(d.date).toUpperCase(), style: 'day' }],
+      stack: [{ text: d.dayNo ? t('TAG {0} · {1}', [d.dayNo, dateLong(d.date).toUpperCase()]) : dateLong(d.date).toUpperCase(), style: 'day' }],
       margin: [0, first ? 0 : 14, 0, 4],
       pageBreak: first ? 'before' : undefined,
       headlineLevel: 1
@@ -248,7 +248,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
     for (const r of d.routes) content.push(routeBlock(r, W, g.box.h, img))
   }
   if (input.otherRoutes.length) {
-    content.push({ text: 'Weitere Touren', style: 'h2', margin: [0, 14, 0, 4], headlineLevel: 1, pageBreak: first ? 'before' : undefined })
+    content.push({ text: t('Weitere Touren'), style: 'h2', margin: [0, 14, 0, 4], headlineLevel: 1, pageBreak: first ? 'before' : undefined })
     for (const r of input.otherRoutes) content.push(routeBlock(r, W, g.box.h, img))
   }
 
@@ -262,7 +262,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
     footer: (page, pages) =>
       page === 1
         ? ''
-        : { columns: [{ text: `${input.trip.title} · Erstellt mit „Nix wie weg“`, style: 'meta' }, { text: `${page} / ${pages}`, style: 'meta', alignment: 'right' }], margin: [g.margin, 6, g.margin, 0] },
+        : { columns: [{ text: t('{0} · Erstellt mit „Nix wie weg“', [input.trip.title]), style: 'meta' }, { text: `${page} / ${pages}`, style: 'meta', alignment: 'right' }], margin: [g.margin, 6, g.margin, 0] },
     // Tagesüberschrift nie allein unten auf der Seite
     pageBreakBefore: (node, following) => node.headlineLevel === 1 && following.length === 0
   }
@@ -338,7 +338,7 @@ function photobook(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   if (ov.length) content.push({ stack: ov, pageBreak: 'before' })
 
   for (const d of input.days) {
-    const dayLine = d.dayNo ? `TAG ${d.dayNo} · ${dateLong(d.date).toUpperCase()}` : dateLong(d.date).toUpperCase()
+    const dayLine = d.dayNo ? t('TAG {0} · {1}', [d.dayNo, dateLong(d.date).toUpperCase()]) : dateLong(d.date).toUpperCase()
     let firstOfDay = true
     for (const e of d.entries) {
       const ps = paras(e.text)
@@ -369,12 +369,12 @@ function photobook(input: PdfInput, img: ImageSource): TDocumentDefinitions {
     }
   }
   if (input.otherRoutes.length) {
-    content.push({ text: 'Weitere Touren', style: 'h2', pageBreak: 'before' })
+    content.push({ text: t('Weitere Touren'), style: 'h2', pageBreak: 'before' })
     for (const r of input.otherRoutes) content.push(routeBlock(r, g.box.w, g.box.h, img))
   }
 
   return {
-    info: { title: `${input.trip.title} – Fotobuch`, author: 'Nix wie weg', creator: 'Nix wie weg' },
+    info: { title: t('{0} – Fotobuch', [input.trip.title]), author: 'Nix wie weg', creator: 'Nix wie weg' },
     pageSize: { width: g.width, height: g.height },
     pageMargins: g.margin,
     defaultStyle: { font: 'Roboto', fontSize: 10.5, color: '#222222' },

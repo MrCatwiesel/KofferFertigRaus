@@ -54,7 +54,7 @@ const until = (iso: string) => new Intl.DateTimeFormat(locale(), { weekday: 'sho
 
 <template>
   <div class="border rounded p-3 text-center" data-invite>
-    <div v-if="person" class="fw-semibold mb-2">{{ reset ? `Neues Passwort für ${person}` : `Einladung für ${person}` }}</div>
+    <div v-if="person" class="fw-semibold mb-2">{{ reset ? $t('Neues Passwort für {0}', [person]) : $t('Einladung für {0}', [person]) }}</div>
     <div class="qr mx-auto mb-2" role="img" :aria-label="$t('QR-Code der Einladung')" v-html="svg"></div>
     <div class="small mb-1">{{ $t('Mit der Kamera scannen – oder in der App unter „Geräte-Abgleich“ eingeben:') }}</div>
     <div class="fs-4 font-monospace fw-semibold mb-1 user-select-all" data-invite-code>{{ code }}</div>

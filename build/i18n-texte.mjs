@@ -31,6 +31,16 @@ export function collectKeys(root = new URL('../src', import.meta.url).pathname) 
     }
   }
   walk(root)
+  // Fehlermeldungen des Servers: die App zeigt sie übersetzt an (t(json.error))
+  const server = new URL('../server', `file://${root}/`).pathname
+  for (const n of readdirSync(server).filter((f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs'))) {
+    const src = readFileSync(join(server, n), 'utf8')
+    for (const m of src.matchAll(/HttpError\(\d+, '((?:[^'\\]|\\.)*)'/g)) {
+      const k = unq(m[1])
+      if (!keys.has(k)) keys.set(k, new Set())
+      keys.get(k).add(`server/${n}`)
+    }
+  }
   return keys
 }
 

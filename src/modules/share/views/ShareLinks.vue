@@ -9,6 +9,7 @@ import { FONT_GROUPS, TEMPLATE_INFO, websiteRepository } from '@/modules/website
 import { ShareApi } from '../api'
 import { EXPIRY_OPTIONS, MODE_LABEL, accessLabel, describeShare, emptyShareDraft, shareName, shareState, shareUrl } from '../logic'
 import type { ShareDraft, ShareLink, ShareLook, ShareMode } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -39,7 +40,7 @@ async function load() {
   const info = await api.client.info()
   if (!info) {
     state.value = 'error'
-    message.value = online.value ? 'Server nicht erreichbar.' : 'Offline – Lese-Links lassen sich nur mit Verbindung zum Server verwalten.'
+    message.value = online.value ? t('Server nicht erreichbar.') : t('Offline – Lese-Links lassen sich nur mit Verbindung zum Server verwalten.')
     return
   }
   if (!info.shares) return (state.value = 'old-server')
@@ -79,7 +80,7 @@ async function update(link: ShareLink, patch: Partial<ShareDraft> & { revoked?: 
 }
 
 async function remove(link: ShareLink) {
-  if (!api || !confirm(`Lese-Link „${shareName(link)}“ endgültig löschen? Wer ihn hat, sieht danach nichts mehr.`)) return
+  if (!api || !confirm(t('Lese-Link „{0}“ endgültig löschen? Wer ihn hat, sieht danach nichts mehr.', [shareName(link)]))) return
   try {
     await api.remove(link.token)
     links.value = links.value.filter((l) => l.token !== link.token)
@@ -97,13 +98,13 @@ async function copy(link: ShareLink) {
     copied.value = link.token
     setTimeout(() => (copied.value = ''), 2000)
   } catch {
-    prompt('Link kopieren:', urlOf(link))
+    prompt(t('Link kopieren:'), urlOf(link))
   }
 }
 
 async function shareLink(link: ShareLink) {
   try {
-    await navigator.share({ title: link.title || 'Unsere Reise', url: urlOf(link) })
+    await navigator.share({ title: link.title || t('Unsere Reise'), url: urlOf(link) })
   } catch {
     /* abgebrochen */
   }
@@ -116,7 +117,7 @@ function setMode(link: ShareLink, mode: ShareMode) {
 }
 
 async function changePassword(link: ShareLink) {
-  const pw = prompt(link.password ? 'Neues Passwort (leer lassen = Passwort entfernen):' : 'Passwort für diesen Link:')
+  const pw = prompt(link.password ? t('Neues Passwort (leer lassen = Passwort entfernen):') : t('Passwort für diesen Link:'))
   if (pw === null) return
   await update(link, { password: pw })
 }
@@ -274,7 +275,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
           <div class="flex-grow-1 min-w-0">
             <div class="fw-semibold text-truncate">
               {{ shareName(l) }}
-              <span v-if="shareState(l) !== 'aktiv'" class="badge text-bg-secondary ms-1">{{ shareState(l) }}</span>
+              <span v-if="shareState(l) !== 'aktiv'" class="badge text-bg-secondary ms-1">{{ $t(shareState(l)) }}</span>
               <i v-if="l.password" class="bi bi-lock-fill text-body-secondary ms-1" :title="$t('Mit Passwort')" :aria-label="$t('Mit Passwort')"></i>
             </div>
             <div class="small text-body-secondary">
@@ -312,7 +313,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
           </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-          <div class="btn-group btn-group-sm" role="group" :aria-label="`Inhalt von ${shareName(l)}`">
+          <div class="btn-group btn-group-sm" role="group" :aria-label="$t('Inhalt von {0}', [shareName(l)])">
             <button v-for="m in (['highlights', 'journal'] as ShareMode[])" :key="m" type="button" class="btn"
                     :class="l.mode === m ? 'btn-primary' : 'btn-outline-primary'" :aria-pressed="l.mode === m" @click="setMode(l, m)">
               {{ MODE_LABEL[m] }}

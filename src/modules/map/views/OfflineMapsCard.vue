@@ -138,7 +138,7 @@ const kmLabel = (b: Bbox) => {
             <div class="text-truncate">{{ m.name }}</div>
             <div class="small text-body-secondary">{{ kmLabel(m.bbox) }} · {{ detailLabel(m.maxzoom) }} · {{ formatMb(m.size) }}</div>
           </button>
-          <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="`${m.name} löschen`" @click="removeLocal(m)">
+          <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="$t('{0} löschen', [m.name])" @click="removeLocal(m)">
             <i class="bi bi-trash" aria-hidden="true"></i>
           </button>
         </div>

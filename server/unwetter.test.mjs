@@ -106,6 +106,7 @@ test('MeteoAlarm nicht erreichbar: Fehler je Land statt Absturz', async () => {
 test('Zeitraum in der Zeitzone des Geräts', () => {
   assert.equal(zeitraum('2030-07-14T12:00:00Z', '2030-07-14T22:00:00Z', 'Europe/Vienna', NOW), 'So. 14:00 – Mo. 00:00')
   assert.equal(zeitraum('2030-07-14T06:00:00Z', '2030-07-14T22:00:00Z', 'Europe/Vienna', NOW), 'jetzt – Mo. 00:00')
+  assert.equal(zeitraum('2030-07-14T12:00:00Z', '2030-07-14T22:00:00Z', 'Europe/Vienna', NOW, 'en'), 'Sun 14:00 – Mon 00:00')
 })
 
 // ---------------------------------------------------------------- über den Server, mit Push

@@ -196,7 +196,7 @@ function invalid(field: keyof TripDraft) {
         <div v-for="p in draft.participants" :key="p" class="d-flex align-items-center gap-2 py-1">
           <span class="flex-grow-1 small">{{ p }}</span>
           <span v-if="lockedFor(p)" class="small text-body-secondary"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ lockedFor(p)!.name }}</span>
-          <select v-else class="form-select form-select-sm w-auto" :value="links[p] ?? ''" :aria-label="`Konto für ${p}`" @change="setLink(p, ($event.target as HTMLSelectElement).value)">
+          <select v-else class="form-select form-select-sm w-auto" :value="links[p] ?? ''" :aria-label="$t('Konto für {0}', [p])" @change="setLink(p, ($event.target as HTMLSelectElement).value)">
             <option value="">{{ $t('– nicht verknüpft –') }}</option>
             <option v-for="m in people.members" :key="m.id" :value="m.id">{{ m.name }}{{ m.id === people.me?.id ? $t(' (ich)') : '' }}</option>
           </select>

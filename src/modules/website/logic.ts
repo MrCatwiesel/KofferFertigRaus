@@ -4,7 +4,7 @@ import { formatDate } from '../../core/format'
 import { MOODS } from '../journal/types'
 import { toSiteActivities, toSiteStays, type ActivityInput, type StayInput } from './sections'
 import type { SiteData, SiteDay, SitePhoto, SiteRoute, WebsiteSettingsDraft } from './types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 export function defaultSettings(trip: { title: string; destination: string; startDate: string; endDate: string }): WebsiteSettingsDraft {
   return {

@@ -195,7 +195,7 @@ const pct = (x: number) => `${Math.round(x * 100)} %`
       </div>
 
       <div v-if="isOpen(p, today) && editable" class="input-group input-group-sm mb-2">
-        <input v-model="newOption[p.id]" class="form-control" :placeholder="$t('Weitere Antwort')" maxlength="200" :aria-label="`Weitere Antwort für ${p.question}`" @keydown.enter.prevent="addOption(p)" />
+        <input v-model="newOption[p.id]" class="form-control" :placeholder="$t('Weitere Antwort')" maxlength="200" :aria-label="$t('Weitere Antwort für {0}', [p.question])" @keydown.enter.prevent="addOption(p)" />
         <button type="button" class="btn btn-outline-secondary" @click="addOption(p)">{{ $t('Hinzufügen') }}</button>
       </div>
 

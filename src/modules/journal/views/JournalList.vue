@@ -11,7 +11,7 @@ import { useObjectUrls } from '../composables'
 import type { JournalEntry, Photo, VoiceNote } from '../types'
 import { formatSeconds } from '@/services/recorder'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
-import { locale } from '@/core/i18n'
+import { locale, t, tn } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -27,7 +27,7 @@ const voicesByEntry = computed(() => {
   return m
 })
 const voiceLabel = (v: VoiceNote) =>
-  v.title || `Sprachnotiz ${new Date(v.recordedAt).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })}`
+  v.title || t('Sprachnotiz {0}', [new Date(v.recordedAt).toLocaleTimeString(locale(), { hour: '2-digit', minute: '2-digit' })])
 // Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
 const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])
 const linksByDay = computed(() => {
@@ -63,8 +63,8 @@ function toggleHighlight(e: JournalEntry) {
 
 async function removeEntry(e: JournalEntry) {
   const n = photosByEntry.value.get(e.id)?.length ?? 0
-  const what = `„${e.title || 'Eintrag ohne Titel'}“${n ? ` mit ${n} ${n === 1 ? 'Foto' : 'Fotos'}` : ''}`
-  if (!confirm(`${what} löschen? Das lässt sich nicht rückgängig machen.`)) return
+  const what = `„${e.title || t('Eintrag ohne Titel')}“${n ? tn(n, ' mit {n} Foto', ' mit {n} Fotos') : ''}`
+  if (!confirm(t('{0} löschen? Das lässt sich nicht rückgängig machen.', [what]))) return
   await journalRepository.remove(e.id)
 }
 </script>
@@ -121,7 +121,7 @@ async function removeEntry(e: JournalEntry) {
       <article v-for="e in d.entries" :key="e.id" class="card mb-2">
         <div v-if="photosByEntry.get(e.id)?.length" class="photo-strip">
           <button v-for="(p, i) in photosByEntry.get(e.id)!.slice(0, 4)" :key="p.id" type="button" class="photo-btn"
-                  :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
+                  :aria-label="$t('Foto {0} groß anzeigen', [i + 1])" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
             <img :src="thumbs.get(p.id)" :alt="p.caption || ''" loading="lazy" />
             <span v-if="i === 3 && photosByEntry.get(e.id)!.length > 4" class="more">+{{ photosByEntry.get(e.id)!.length - 4 }}</span>
           </button>

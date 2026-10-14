@@ -87,7 +87,7 @@ async function addSuggestions() {
       <li v-for="d in sorted" :key="d.id" class="list-group-item d-flex gap-2 align-items-start position-relative"
           :class="{ 'text-body-secondary': d.packed }">
         <input class="form-check-input mt-1 flex-none position-relative z-2" type="checkbox" :checked="d.packed"
-               :disabled="d.status !== 'vorhanden'" :aria-label="`${d.title} eingepackt`" @change="togglePacked(d)" />
+               :disabled="d.status !== 'vorhanden'" :aria-label="$t('{0} eingepackt', [d.title])" @change="togglePacked(d)" />
         <div class="flex-grow-1 min-w-0">
           <div class="d-flex justify-content-between gap-2">
             <RouterLink :to="`/trip/${tripId}/dokumente/${d.id}`" class="fw-semibold text-body text-decoration-none stretched-link"

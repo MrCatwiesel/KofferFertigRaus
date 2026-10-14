@@ -107,7 +107,7 @@ async function unpackAll() {
     <!-- Schnell hinzufügen -->
     <form class="input-group mb-3" @submit.prevent="quickAdd">
       <input v-model="quickName" class="form-control" :aria-label="$t('Neuer Eintrag')"
-             :placeholder="person && person !== SHARED ? `Für ${person}, z. B. „2x Badehose“` : $t('Hinzufügen, z. B. „2x Badehose“')" />
+             :placeholder="person && person !== SHARED ? $t('Für {0}, z. B. „2x Badehose“', [person]) : $t('Hinzufügen, z. B. „2x Badehose“')" />
       <select v-model="quickCategory" class="form-select flex-grow-0 w-auto" :aria-label="$t('Kategorie')">
         <option v-for="(c, key) in CATEGORY" :key="key" :value="key">{{ c.label }}</option>
       </select>

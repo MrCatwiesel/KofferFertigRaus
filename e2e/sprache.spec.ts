@@ -1,11 +1,10 @@
 import { expect, test } from '@playwright/test'
 import { seed, trip } from './helpers'
 
-test('Englisch: umschalten in den Einstellungen, Reise, Hilfe und Einführung auf Englisch, zurück auf Deutsch', async ({ page }) => {
+test('Englisch: umschalten in den Einstellungen, Reise, Packliste, Ausgaben, Tagebuch, Hilfe und Einführung auf Englisch, zurück auf Deutsch', async ({ page }) => {
   await page.goto('/#/einstellungen')
   await page.locator('#app-lang').selectOption('en')
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible()
-  await expect(page.locator('[data-settings-lang]')).toContainText('English is still a work in progress')
   await expect(page.locator('.bottom-nav, .navbar-nav').first()).toContainText('Trips')
 
   // Bleibt nach dem Neuladen
@@ -18,6 +17,14 @@ test('Englisch: umschalten in den Einstellungen, Reise, Hilfe und Einführung au
   await expect(page.locator('body')).toContainText('5 days')
   await expect(page.locator('body')).toContainText('01/07/2026')
 
+  // Weitere Bereiche: Packliste, Ausgaben, Tagebuch, Unwetter
+  await page.goto('/#/trip/en1/packliste')
+  await expect(page.getByRole('heading', { name: 'Packing list' })).toBeVisible()
+  await page.goto('/#/trip/en1/ausgaben')
+  await expect(page.getByRole('heading', { name: 'Expenses' })).toBeVisible()
+  await page.goto('/#/trip/en1/tagebuch')
+  await expect(page.getByRole('heading', { name: 'Journal' })).toBeVisible()
+
   await page.goto('/#/hilfe')
   await expect(page.getByRole('heading', { name: 'Help', exact: true })).toBeVisible()
   await page.locator('[data-help-search]').fill('thunderstorm')
@@ -29,4 +36,13 @@ test('Englisch: umschalten in den Einstellungen, Reise, Hilfe und Einführung au
   await page.goto('/#/einstellungen')
   await page.locator('#app-lang').selectOption('de')
   await expect(page.getByRole('heading', { name: 'Einstellungen' })).toBeVisible()
+})
+
+test('Englisch automatisch für englischsprachige Geräte', async ({ browser }) => {
+  const ctx = await browser.newContext({ locale: 'en-GB' })
+  const page = await ctx.newPage()
+  await page.goto('/#/trip')
+  await expect(page.getByRole('heading', { name: 'My trips' })).toBeVisible()
+  await expect(page.getByText('Short introduction (1 minute)')).toBeVisible()
+  await ctx.close()
 })

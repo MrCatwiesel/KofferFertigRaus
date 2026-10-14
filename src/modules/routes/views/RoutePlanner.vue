@@ -373,7 +373,7 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
         <ol v-if="waypoints.length" class="list-group list-group-numbered mb-2">
           <li v-for="(w, i) in waypoints" :key="i" class="list-group-item d-flex align-items-center gap-2 py-1 small">
             <span class="flex-grow-1 text-truncate"><strong>{{ letter(i, waypoints.length) }}</strong> · {{ w.label || `${w.lat.toFixed(4)}, ${w.lon.toFixed(4)}` }}</span>
-            <button type="button" class="btn btn-sm btn-link text-danger p-0" :aria-label="`Punkt ${i + 1} entfernen`" @click="removePoint(i)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0" :aria-label="$t('Punkt {0} entfernen', [i + 1])" @click="removePoint(i)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </li>
         </ol>
         <div class="d-flex gap-2 mb-2">

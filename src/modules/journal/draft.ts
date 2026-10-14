@@ -5,6 +5,7 @@
  * zum Weiterschreiben.
  */
 import type { DayFact } from '@/core/registry'
+import { t } from '@/core/i18n'
 
 export interface DayDraft {
   title: string
@@ -22,7 +23,7 @@ export function composeDayDraft(facts: readonly DayFact[], ctx: { dayNo: number;
   // Absätze: Rahmen (Anreise, Wetter) · Erlebtes (Unternehmungen, Touren) · Abend (Unterkunft, Ausgaben)
   const groups = [sorted.filter((f) => f.order < 30), sorted.filter((f) => f.order >= 30 && f.order < 50), sorted.filter((f) => f.order >= 50)]
   return {
-    title: pick(sorted, 'title', 'titleRank') || (ctx.dayNo > 0 ? `Tag ${ctx.dayNo}` : ''),
+    title: pick(sorted, 'title', 'titleRank') || (ctx.dayNo > 0 ? t('Tag {0}', [ctx.dayNo]) : ''),
     location: pick(sorted, 'location', 'locationRank') || ctx.destination.split(',')[0].trim(),
     text: groups
       .filter((g) => g.length)

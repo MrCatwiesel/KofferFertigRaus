@@ -118,7 +118,7 @@ async function remove() {
         <label class="form-label d-block">{{ $t('Einnahmezeiten') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <div v-for="(t, i) in draft.times" :key="i" class="input-group w-auto">
-            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="`Einnahmezeit ${i + 1}`" />
+            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="$t('Einnahmezeit {0}', [i + 1])" />
             <button type="button" class="btn btn-outline-secondary" :aria-label="$t('Zeit entfernen')" @click="removeTime(i)">
               <i class="bi bi-x" aria-hidden="true"></i>
             </button>

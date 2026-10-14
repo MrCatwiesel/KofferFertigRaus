@@ -237,7 +237,7 @@ function assignDevice(d: Device, memberId: string) {
                 <span v-if="m.disabled" class="badge text-bg-secondary ms-1">{{ $t('gesperrt') }}</span>
                 <span v-else-if="!m.hasPassword" class="badge text-bg-warning ms-1">{{ $t('Einladung offen') }}</span>
               </div>
-              <select class="form-select form-select-sm w-auto" :value="m.role" :aria-label="`Rolle von ${m.name}`" :disabled="busy"
+              <select class="form-select form-select-sm w-auto" :value="m.role" :aria-label="$t('Rolle von {0}', [m.name])" :disabled="busy"
                       @change="update(m, { role: ($event.target as HTMLSelectElement).value as MemberRole })">
                 <option v-for="r in roles" :key="r" :value="r">{{ ROLE_LABEL[r] }}</option>
               </select>
@@ -245,7 +245,7 @@ function assignDevice(d: Device, memberId: string) {
                 <i class="bi bi-suitcase2 me-1" aria-hidden="true"></i>{{ $t('Reisen') }}
               </button>
               <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="`Aktionen für ${m.name}`"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
+                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="$t('Aktionen für {0}', [m.name])"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
                 <ul class="dropdown-menu dropdown-menu-end">
                   <li><button class="dropdown-item" @click="newInvite(m)">{{ m.hasPassword ? $t('Passwort zurücksetzen') : $t('Neue Einladung') }}</button></li>
                   <li><button class="dropdown-item" @click="rename(m)">{{ $t('Umbenennen') }}</button></li>

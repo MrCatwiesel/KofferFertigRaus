@@ -188,7 +188,7 @@ const until = (iso: string) =>
             </div>
           </div>
           <div class="dropdown flex-none">
-            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="`Aktionen für ${d.name}`"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="$t('Aktionen für {0}', [d.name])"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><button class="dropdown-item" @click="rename(d)">{{ $t('Umbenennen') }}</button></li>
               <li v-if="d.current"><button class="dropdown-item text-danger" @click="logoutHere">{{ $t('Dieses Gerät abmelden') }}</button></li>

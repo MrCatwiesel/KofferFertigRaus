@@ -143,6 +143,8 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 - Der Server schickt nur an die Push-Dienste von Apple, Google, Mozilla und Microsoft (nicht an beliebige Adressen).
   Ausgehend braucht er dafür Internet (https, Port 443) – hinter einem Proxy wie bisher für Routenplaner und Reisehinweise.
 - Abgemeldete Geräte bekommen nichts mehr; meldet der Push-Dienst ein Abo als ungültig, vergisst der Server es.
+- **Sprache** (ab Server 1.20): Die App meldet beim Einschalten und bei jedem Sprachwechsel ihre Sprache (`de`/`en`) mit;
+  Neues von den Mitreisenden, Unwetterwarnungen und die Testnachricht kommen in dieser Sprache.
 
 ## Unwetterwarnungen (ab Server 1.18)
 

@@ -152,7 +152,7 @@ async function remove() {
             <span class="form-label small d-block">{{ $t('Farbe') }}</span>
             <div class="d-flex flex-wrap gap-1" role="radiogroup" :aria-label="$t('Farbe')">
               <button v-for="c in ROUTE_COLORS" :key="c" type="button" class="swatch" :class="{ active: draft.color === c }" :style="{ background: c }"
-                      :aria-label="`Farbe ${c}`" :aria-pressed="draft.color === c" @click="draft.color = c"></button>
+                      :aria-label="$t('Farbe {0}', [c])" :aria-pressed="draft.color === c" @click="draft.color = c"></button>
             </div>
           </div>
         </div>

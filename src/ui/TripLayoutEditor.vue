@@ -96,7 +96,7 @@ function reset() {
         <i :class="`bi bi-${TAB_LABEL[p].icon} me-1`" aria-hidden="true"></i>{{ TAB_LABEL[p].label }}
       </button>
     </div>
-    <ul class="list-group mb-2" :aria-label="`Bereiche im Reiter ${TAB_LABEL[tab].label}`">
+    <ul class="list-group mb-2" :aria-label="$t('Bereiche im Reiter {0}', [TAB_LABEL[tab].label])">
       <li v-for="(s, k) in inTab" :key="s.moduleId" class="list-group-item d-flex align-items-center gap-2 py-2" :data-edit-section="s.moduleId">
         <i :class="`bi bi-${s.icon} text-primary`" aria-hidden="true"></i>
         <span class="flex-grow-1 min-w-0">
@@ -109,7 +109,7 @@ function reset() {
         <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="k === inTab.length - 1" :aria-label="`${s.title} nach unten`" @click="move(s.moduleId, 1)">
           <i class="bi bi-arrow-down" aria-hidden="true"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-danger" :aria-label="`${s.title} aus diesem Reiter nehmen`" @click="removeSection(s.moduleId)">
+        <button type="button" class="btn btn-sm btn-outline-danger" :aria-label="$t('{0} aus diesem Reiter nehmen', [s.title])" @click="removeSection(s.moduleId)">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </li>

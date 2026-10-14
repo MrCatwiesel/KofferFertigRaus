@@ -1,3 +1,4 @@
+import { countryName } from '@/core/countries'
 import { missionName, partText, warningLabel } from './parse'
 import { SOURCE_URL, type CountryInfo } from './types'
 import { locale, t } from '@/core/i18n'
@@ -19,7 +20,8 @@ export interface InfoDocument {
  * Einreise/Reisedokumente, Impfschutz und Sicherheitslage – jeweils mit Stand und Quelle.
  */
 export function infoDocuments(i: CountryInfo): InfoDocument[] {
-  const name = i.countryName || i.country
+  // Ländername in der Sprache der App (die Hinweise selbst bleiben deutsch)
+  const name = countryName(i.country) || i.countryName || i.country
   const stand = t('Quelle: Auswärtiges Amt, Stand {0} – {1}', [date(i.lastModified), SOURCE_URL])
   const docs = partText(i.sections, /einreise/i, /reisedokument/i)
   const visa = partText(i.sections, /einreise/i, /visum|visa/i)
@@ -34,14 +36,14 @@ export function infoDocuments(i: CountryInfo): InfoDocument[] {
     {
       source: `aa:${i.country}:einreise`,
       type: 'visum',
-      title: t('Einreise {0}{1}', [name, visaNeeded ? ' – Visum nötig' : '']),
+      title: t('Einreise {0}{1}', [name, visaNeeded ? t(' – Visum nötig') : '']),
       status: visaNeeded ? 'fehlt' : 'vorhanden',
       notes: [docs && t('Reisedokumente:\n{0}', [clip(docs)]), visa && t('Visum:\n{0}', [clip(visa, 800)]), entryOther && t('Einreise:\n{0}', [clip(entryOther, 800)]), stand].filter(Boolean).join('\n\n')
     },
     {
       source: `aa:${i.country}:impfschutz`,
       type: 'gesundheit',
-      title: `Impfschutz ${name}${requiredVacc.length ? ` – Pflicht: ${requiredVacc.join(', ')}` : ''}`,
+      title: t('Impfschutz {0}{1}', [name, requiredVacc.length ? t(' – Pflicht: {0}', [requiredVacc.join(', ')]) : '']),
       status: requiredVacc.length ? 'fehlt' : 'vorhanden',
       notes: [i.vaccines.length ? t('Genannte Impfungen: {0}', [i.vaccines.map((v) => v.name + (v.required ? ' (Pflicht)' : '')).join(', ')]) : '', vacc && clip(vacc), stand].filter(Boolean).join('\n\n')
     },

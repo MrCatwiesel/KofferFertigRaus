@@ -1,6 +1,7 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
 import { activitiesBlock, footer, overviewBlock, routesBlock, staysBlock, statsLine } from './parts'
+import { t } from '@/core/i18n'
 
 /** Galerie: Fotos im Vordergrund (Mauerwerk-Raster), Texte kurz darunter. */
 export const galerie: SiteTemplate = {
@@ -35,7 +36,7 @@ export const galerie: SiteTemplate = {
       .map(
         (d) => `
     <section>
-      <div class="gal-day">${d.dayNumber ? `<span class="num">Tag ${d.dayNumber}</span>` : ''}<span class="text-body-secondary">${esc(longDate(d.date))}</span></div>
+      <div class="gal-day">${d.dayNumber ? `<span class="num">${t('Tag {0}', [d.dayNumber])}</span>` : ''}<span class="text-body-secondary">${esc(longDate(d.date))}</span></div>
       ${d.entries
         .map((e) => {
           const meta = [ctx.settings.showLocation && e.location ? esc(e.location) : '', ctx.settings.showMood ? moodEmoji(e.mood) : '']

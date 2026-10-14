@@ -91,7 +91,9 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - `src/core/i18n/index.ts`, ohne Pakete. **Der deutsche Text ist der Schlüssel:** im Skript `t('Neue Reise')`, in Vorlagen `$t('Neue Reise')` (globale Eigenschaft – `$`, damit `v-for="t in …"` nicht stört). Platzhalter `t('{0} von {1}', [a, b])` oder benannt; Einzahl/Mehrzahl `tn(n, '{n} Tag', '{n} Tage')`.
 - **Konstanten** (Beschriftungen in Objekten/Listen, die beim Laden ausgewertet werden): Texte mit `N_('…')` markieren und das Objekt mit `translated(…)` einpacken – übersetzt wird beim Lesen.
 - Englische Texte in `src/core/i18n/en/*.ts` (`'Deutsch': 'English'`), nur bei Englisch nachgeladen. Fehlt eine Übersetzung, erscheint Deutsch.
-- `node build/i18n-texte.mjs fehlend` listet fehlende Übersetzungen je Datei. Der Test `src/core/__tests__/i18n.test.ts` prüft für die fertigen Bereiche (`FERTIG`), dass alles übersetzt ist und keine Platzhalter erfunden werden.
+- `node build/i18n-texte.mjs fehlend` listet fehlende Übersetzungen je Datei (auch die Fehlermeldungen `HttpError(…)` des Servers – die App zeigt sie mit `t(json.error)` an). Der Test `src/core/__tests__/i18n.test.ts` prüft, dass **alles** übersetzt ist und keine Platzhalter erfunden werden – ein neuer Text ohne englische Fassung lässt `npm test` scheitern.
+- Sprache: „Wie das Gerät“ = Deutsch, wenn das Gerät Deutsch spricht, sonst Englisch (`ENGLISH_COMPLETE`). Gemerkt in `localStorage` (`nww.sprache`).
+- Push vom Server: Die App schickt ihre Sprache mit dem Abo (`lang`), der Server formuliert Testnachricht, „Neues von den Mitreisenden“ und Unwetter-Push danach.
 - Datum/Zahlen über `locale()` statt `'de-DE'`; Ländernamen über `Intl.DisplayNames` in der App-Sprache.
 - Hilfe und Einführung auf Englisch: `src/core/hilfe/inhalt-en.ts` (gleiche ids), ausgewählt über `hilfe/sprache.ts`.
 - **Neue Texte immer mit `t`/`$t` schreiben** und die englische Fassung eintragen.

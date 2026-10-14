@@ -11,6 +11,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 - **Mit Freunden teilen:** Lese-Links je Reise (nur Highlights oder ganzes Tagebuch), eigene Reisegruppen für Freunde
 - **Hilfe eingebaut:** „?“ auf jeder Seite, Suche, kurze Einführung beim ersten Start
+- **Deutsch und Englisch** (automatisch nach Gerät, umschaltbar in den Einstellungen)
 
 **App online:** https://mrcatwiesel.github.io/nix-wie-weg-/
 

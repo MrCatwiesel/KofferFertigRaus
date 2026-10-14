@@ -561,7 +561,7 @@ const nearest = computed(() => {
         class="btn p-0 border-0 photo-pick"
         :class="{ active: photoTarget?.id === p.id }"
         :title="p.caption || formatDayShort(p.date)"
-        :aria-label="`Foto ${p.caption || formatDayShort(p.date)} auf der Karte setzen`"
+        :aria-label="$t('Foto {0} auf der Karte setzen', [p.caption || formatDayShort(p.date)])"
         @click="startPlacePhoto(p)"
       >
         <img :src="thumbUrl(p)" alt="" />

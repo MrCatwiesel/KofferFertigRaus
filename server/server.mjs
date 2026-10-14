@@ -13,6 +13,7 @@
  *  - Reisehinweise des Auswärtigen Amts weitergereicht (zwischengespeichert)        → reiseinfo.mjs
  *  - Kalender-Abo: Termine und Fristen für Kalender-Apps                          → kalender.mjs
  *  - Offline-Karten: Ausschnitte der Protomaps-Weltkarte (optional, Programm pmtiles) → maps.mjs
+ *  - Push-Benachrichtigungen (Web Push): Erinnerungen und Änderungen anderer          → benachrichtigungen.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
  * Start:  NWW_KEYS=<schlüssel> node server.mjs
@@ -35,9 +36,10 @@ import { createBackupAdmin } from './backup-targets.mjs'
 import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
 import { createKalender } from './kalender.mjs'
+import { createBenachrichtigungen } from './benachrichtigungen.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.16.0'
+export const VERSION = '1.17.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -45,7 +47,7 @@ const MAX_JSON = 30 * 1024 * 1024
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
  *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
- *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, reiseinfo?: { url?: string, fetchImpl?: typeof fetch }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
+ *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, reiseinfo?: { url?: string, fetchImpl?: typeof fetch }, push?: { fetchImpl?: typeof fetch, subject?: string, hosts?: (RegExp|string)[], timer?: boolean }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
   const store = createStore(resolve(opts.dataDir))
@@ -63,6 +65,8 @@ export function createSyncServer(opts) {
   const routing = createRouting({ ...(opts.routing ?? {}), version: VERSION })
   const reiseinfo = createReiseinfo({ ...(opts.reiseinfo ?? {}), version: VERSION })
   const kalender = createKalender(resolve(opts.dataDir), groups)
+  const push = createBenachrichtigungen(store, members, opts.push ?? {})
+  if (opts.push?.timer !== false) push.start()
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -79,7 +83,7 @@ export function createSyncServer(opts) {
     const path = url.pathname.replace(/\/+$/, '')
 
     if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
-      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true, people: true })
+      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true })
     }
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
@@ -132,14 +136,17 @@ export function createSyncServer(opts) {
       if (!Array.isArray(body.changes)) throw new HttpError(400, 'changes fehlt')
       const access = members.accessFor(space, member)
       const relink = new Set()
+      const applied = []
       const result = store.push(space, body.changes, {
         deny: (c, oldData) => access.denyWrite(c.tbl, c.id, oldData, c.deleted ? null : (c.data ?? null)),
         accepted: (c, oldData, json) => {
           members.trackRefs(space, c.tbl, c.id, json)
+          applied.push({ tbl: c.tbl, id: c.id, deleted: !!c.deleted, data: c.data ?? null, isNew: !oldData })
           if (c.tbl === 'trips' && JSON.stringify(oldData?.memberLinks ?? {}) !== JSON.stringify(c.data?.memberLinks ?? {})) relink.add(c.id)
         }
       })
       for (const tripId of relink) members.linksChanged(space, tripId)
+      if (applied.length) push.noteChanges({ space, member, device: auth.device, changes: applied })
       // Abgelehnte Änderungen: Server-Fassung mitschicken (unsichtbar/nicht vorhanden → Löschung), das Gerät nimmt sie zurück
       result.rejected = result.rejected.map((r) => {
         const cur = store.current(space, r.tbl, r.id)
@@ -182,6 +189,8 @@ export function createSyncServer(opts) {
     if (zugriff) return handleTripAccess(req, res, space, decodeURIComponent(zugriff[1]), member, isAdmin)
 
     if (path === '/api/geraete' || path.startsWith('/api/geraete/') || path === '/api/einladungen') return devices.handle(req, res, path, auth)
+
+    if (path === '/api/benachrichtigungen' || path.startsWith('/api/benachrichtigungen/')) return push.handle(req, res, path, auth)
 
     if (path.startsWith('/api/routing/')) return routing.handle(req, res, url, path)
 
@@ -331,6 +340,7 @@ export function createSyncServer(opts) {
       maps.removeSpace(m[1])
       devices.removeSpace(m[1])
       kalender.removeSpace(m[1])
+      push.removeSpace(m[1])
       return send(res, 200, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')
@@ -397,7 +407,11 @@ export function createSyncServer(opts) {
       else res.end()
     })
   })
-  server.on('close', () => store.close())
+  server.on('close', () => {
+    push.stop()
+    store.close()
+  })
+  server.benachrichtigungen = push
   return server
 }
 
@@ -419,6 +433,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     appDir: process.env.NWW_APP_DIR || null,
     routing: { overpassUrl: process.env.NWW_OVERPASS_URL || undefined, brouterUrl: process.env.NWW_BROUTER_URL || undefined },
     reiseinfo: { url: process.env.NWW_AA_URL || undefined },
+    push: { subject: process.env.NWW_PUSH_KONTAKT || undefined },
     deviceIdleDays: process.env.NWW_DEVICE_IDLE_DAYS ? Number(process.env.NWW_DEVICE_IDLE_DAYS) : undefined,
     maps: { bin: process.env.NWW_PMTILES || undefined, source: process.env.NWW_MAPS_SOURCE || undefined }
   })

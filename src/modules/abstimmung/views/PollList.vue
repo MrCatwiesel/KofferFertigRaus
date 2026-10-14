@@ -11,6 +11,7 @@ import { activityRepository, type Activity } from '@/modules/activity/public'
 import { pollRepository, voteRepository } from '../repository'
 import { isOpen, missingVoters, optionsFromLines, tally, toggleChoice } from '../logic'
 import type { Poll, PollVote } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const today = todayIso()
@@ -60,8 +61,8 @@ async function create() {
       return a ? [{ id: newId(), text: a.title, activityId: a.id }] : []
     })
   ]
-  if (!form.question.trim()) return void (formError.value = 'Bitte eine Frage eingeben.')
-  if (options.length < 2) return void (formError.value = 'Bitte mindestens zwei Antworten angeben.')
+  if (!form.question.trim()) return void (formError.value = t('Bitte eine Frage eingeben.'))
+  if (options.length < 2) return void (formError.value = t('Bitte mindestens zwei Antworten angeben.'))
   await pollRepository.create(props.tripId, { question: form.question.trim(), notes: form.notes.trim(), options, multiple: form.multiple, deadline: form.deadline }, me.value.name || people.me?.name || '')
   Object.assign(form, { question: '', lines: '', ideas: [], multiple: false, deadline: '', notes: '' })
   showForm.value = false
@@ -78,10 +79,10 @@ async function addOption(p: Poll) {
 }
 const setClosed = (p: Poll, closed: boolean) => pollRepository.update(p.id, { closed })
 async function remove(p: Poll) {
-  if (confirm(`Abstimmung „${p.question}“ samt allen Stimmen löschen?`)) await pollRepository.remove(p.id)
+  if (confirm(t('Abstimmung „{0}“ samt allen Stimmen löschen?', [p.question]))) await pollRepository.remove(p.id)
 }
 async function restart(p: Poll) {
-  if (confirm('Alle Stimmen löschen und neu abstimmen?')) {
+  if (confirm(t('Alle Stimmen löschen und neu abstimmen?'))) {
     await voteRepository.clear(p.id)
     await pollRepository.update(p.id, { closed: false })
   }

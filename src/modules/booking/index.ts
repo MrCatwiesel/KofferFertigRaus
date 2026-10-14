@@ -1,5 +1,5 @@
 import type { AppModule } from '@/core/registry'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul „Buchung einlesen“: Bestätigungen (Text, PDF, E-Mail, Kalender) → Unterkunft, An-/Rückreise oder Beleg. */
 export const bookingModule: AppModule = {
@@ -13,6 +13,6 @@ export const bookingModule: AppModule = {
     title: N_('Buchung einlesen'),
     icon: 'file-earmark-arrow-down',
     to: (tripId) => `/trip/${tripId}/buchung`,
-    summary: async () => 'Bestätigung als PDF, Mail oder Text → Unterkunft oder Fahrt eintragen'
+    summary: async () => t('Bestätigung als PDF, Mail oder Text → Unterkunft oder Fahrt eintragen')
   }
 }

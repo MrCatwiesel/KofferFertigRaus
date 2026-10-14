@@ -5,6 +5,7 @@ import { TripContextHeader } from '@/modules/trip/public'
 import { contactRepository } from '../repository'
 import { emptyContactDraft, validateContact } from '../logic'
 import type { EmergencyContactDraft } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -35,7 +36,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.label}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{0}“ löschen?', [draft.label]))) return
   await contactRepository.remove(props.id)
   router.replace(listPath.value)
 }

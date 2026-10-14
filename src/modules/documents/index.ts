@@ -3,7 +3,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { contactRepository, documentRepository } from './repository'
 import { summarizeDocs } from './logic'
 import { documentReminders } from './reminders'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Dokumente & Notfall" (Meilenstein M2). */
 export const documentsModule: AppModule = {
@@ -26,12 +26,12 @@ export const documentsModule: AppModule = {
     to: (tripId) => `/trip/${tripId}/dokumente`,
     async summary(tripId) {
       const [trip, docs] = await Promise.all([tripRepository.get(tripId), documentRepository.listByTrip(tripId)])
-      if (!trip || docs.length === 0) return 'Noch leer – mit Vorschlägen starten'
+      if (!trip || docs.length === 0) return t('Noch leer – mit Vorschlägen starten')
       const s = summarizeDocs(docs, trip.endDate)
       const parts = [`${s.total} Dokumente`]
-      if (s.missing) parts.push(`${s.missing} fehlen`)
-      if (s.problems) parts.push(`${s.problems} Gültigkeit prüfen`)
-      if (!s.missing && !s.problems) parts.push('alles in Ordnung')
+      if (s.missing) parts.push(t('{0} fehlen', [s.missing]))
+      if (s.problems) parts.push(t('{0} Gültigkeit prüfen', [s.problems]))
+      if (!s.missing && !s.problems) parts.push(t('alles in Ordnung'))
       return parts.join(' · ')
     }
   },

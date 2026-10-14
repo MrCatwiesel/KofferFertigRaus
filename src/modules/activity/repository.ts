@@ -1,5 +1,6 @@
 import { db, newId, now } from '@/core/db'
 import type { Activity, ActivityDraft, ActivityStatus } from './types'
+import { t } from '@/core/i18n'
 
 export const activityRepository = {
   listByTrip(tripId: string): Promise<Activity[]> {

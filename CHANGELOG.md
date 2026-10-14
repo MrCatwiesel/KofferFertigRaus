@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## 1.37.0 – 2026-10-14
+
+### Englisch (Teil 2): Planung
+- Auf Englisch jetzt auch: **An- und Rückreise, Unterkünfte, Buchung einlesen, Unternehmungen, Abstimmungen, Dokumente & Notfallnummern, Reiseapotheke und Termine & Fristen** – samt Erinnerungen, Kalender-Abo-Texten und den Sätzen im Tagebuch-Entwurf
+- Vorschläge (Dokumente, Grundausstattung der Reiseapotheke) werden in der gewählten Sprache angelegt
+- Noch auf Deutsch: Packliste, Reisehinweise, Unterwegs- und Danach-Bereiche – folgen als Nächstes
+
 ## 1.36.0 – 2026-10-14
 
 ### Neu: Englisch (Teil 1)

@@ -13,7 +13,7 @@ import { documentRepository, emptyDocumentDraft } from '@/modules/documents/publ
 import { parseBooking, type BookingGuess, type LegGuess } from '../parse'
 import { fileToText } from '../extract'
 import { MODE_LABEL, excerpt, legDrafts, outsideTrip, stayDraft } from '../logic'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -43,10 +43,10 @@ async function analyse() {
   guess.value = g
   kind.value = g.kind === 'unbekannt' ? 'dokument' : g.kind
   Object.assign(stay, g.stay)
-  const t = trip.value
-  const ld = legDrafts(g, { startDate: t?.startDate ?? '', endDate: t?.endDate ?? '', currency: t?.currency ?? 'EUR' }, '')
+  const tr = trip.value
+  const ld = legDrafts(g, { startDate: tr?.startDate ?? '', endDate: tr?.endDate ?? '', currency: tr?.currency ?? 'EUR' }, '')
   legs.value = g.legs.map((l, i) => ({ ...l, direction: ld[i].direction }))
-  docTitle.value = g.stay.name || (g.legs[0] ? `${MODES[g.legs[0].mode]} ${g.legs[0].from} – ${g.legs[0].to}` : 'Buchung')
+  docTitle.value = g.stay.name || (g.legs[0] ? `${MODES[g.legs[0].mode]} ${g.legs[0].from} – ${g.legs[0].to}` : t('Buchung'))
   // Schon eingetragen? (gleiche Buchungsnummer)
   existing.value = null
   if (g.bookingRef && g.kind === 'unterkunft') {
@@ -67,7 +67,7 @@ async function pickFile(e: Event) {
     source.value = file.name
     await analyse()
   } catch (err) {
-    error.value = (err as Error).message || 'Datei konnte nicht gelesen werden.'
+    error.value = (err as Error).message || t('Datei konnte nicht gelesen werden.')
   } finally {
     busy.value = false
   }
@@ -79,7 +79,7 @@ async function paste() {
     source.value = ''
     await analyse()
   } catch {
-    error.value = 'Kein Zugriff auf die Zwischenablage – bitte lange ins Feld tippen und „Einsetzen“ wählen.'
+    error.value = t('Kein Zugriff auf die Zwischenablage – bitte lange ins Feld tippen und „Einsetzen“ wählen.')
   }
 }
 
@@ -90,11 +90,11 @@ const outside = computed(() => {
   return outsideTrip(dates, t)
 })
 
-const note = computed(() => `Aus Buchungsbestätigung eingelesen${source.value ? ` (${source.value})` : ''}.`)
+const note = computed(() => (source.value ? t('Aus Buchungsbestätigung eingelesen ({0}).', [source.value]) : t('Aus Buchungsbestätigung eingelesen.')))
 
 async function save() {
-  const t = trip.value
-  if (!t || !guess.value) return
+  const tr = trip.value
+  if (!tr || !guess.value) return
   if (kind.value === 'unterkunft') {
     const d = stayDraft({ ...stay, type: stay.type as never }, note.value)
     if (existing.value) {
@@ -106,7 +106,7 @@ async function save() {
     return router.push(`/trip/${props.tripId}/unterkuenfte/${id}`)
   }
   if (kind.value === 'reise') {
-    const drafts = legDrafts({ ...guess.value, legs: legs.value }, { startDate: t.startDate, endDate: t.endDate, currency: t.currency }, note.value).map((d, i) => ({
+    const drafts = legDrafts({ ...guess.value, legs: legs.value }, { startDate: tr.startDate, endDate: tr.endDate, currency: tr.currency }, note.value).map((d, i) => ({
       ...d,
       direction: legs.value[i].direction
     }))
@@ -115,7 +115,7 @@ async function save() {
   }
   const id = await documentRepository.create(
     props.tripId,
-    emptyDocumentDraft({ type: 'buchung', title: docTitle.value || 'Buchung', number: guess.value.bookingRef, status: 'vorhanden', notes: `${note.value}\n\n${excerpt(text.value)}` })
+    emptyDocumentDraft({ type: 'buchung', title: docTitle.value || t('Buchung'), number: guess.value.bookingRef, status: 'vorhanden', notes: `${note.value}\n\n${excerpt(text.value)}` })
   )
   return router.push(`/trip/${props.tripId}/dokumente/${id}`)
 }

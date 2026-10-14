@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type MedKind = 'dauer' | 'bedarf' | 'notfall'
 
 /** Ein Medikament oder Artikel der Reiseapotheke. */
@@ -52,33 +53,33 @@ export interface Vaccination {
 
 export type VaccinationDraft = Omit<Vaccination, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
-export const KIND: Record<MedKind, { label: string; icon: string; hint: string }> = {
-  dauer: { label: 'Dauermedikation', icon: 'clock-history', hint: 'regelmäßig nach Plan' },
-  bedarf: { label: 'Bei Bedarf', icon: 'bandaid', hint: 'z. B. Schmerzmittel, Pflaster' },
-  notfall: { label: 'Notfall', icon: 'exclamation-octagon', hint: 'z. B. Allergie-Notfallset' }
-}
+export const KIND: Record<MedKind, { label: string; icon: string; hint: string }> = translated({
+  dauer: { label: N_('Dauermedikation'), icon: 'clock-history', hint: N_('regelmäßig nach Plan') },
+  bedarf: { label: N_('Bei Bedarf'), icon: 'bandaid', hint: N_('z. B. Schmerzmittel, Pflaster') },
+  notfall: { label: N_('Notfall'), icon: 'exclamation-octagon', hint: N_('z. B. Allergie-Notfallset') }
+})
 
-export const VACC_STATUS: Record<VaccinationStatus, { label: string; badge: string }> = {
-  pruefen: { label: 'Prüfen', badge: 'text-bg-warning' },
-  geplant: { label: 'Termin geplant', badge: 'text-bg-primary' },
-  erledigt: { label: 'Erledigt', badge: 'text-bg-success' }
-}
+export const VACC_STATUS: Record<VaccinationStatus, { label: string; badge: string }> = translated({
+  pruefen: { label: N_('Prüfen'), badge: 'text-bg-warning' },
+  geplant: { label: N_('Termin geplant'), badge: 'text-bg-primary' },
+  erledigt: { label: N_('Erledigt'), badge: 'text-bg-success' }
+})
 
 /**
  * Übliche Bestandteile einer Reiseapotheke (ohne Dosierungen).
  * Auswahl und Mittel mit Arzt oder Apotheke abstimmen.
  */
-export const FIRST_AID_KIT: { name: string; kind: MedKind }[] = [
-  { name: 'Schmerz- und Fiebermittel', kind: 'bedarf' },
-  { name: 'Mittel gegen Durchfall', kind: 'bedarf' },
-  { name: 'Mittel gegen Reiseübelkeit', kind: 'bedarf' },
-  { name: 'Allergiemittel', kind: 'bedarf' },
-  { name: 'Wund- und Desinfektionsspray', kind: 'bedarf' },
-  { name: 'Pflaster & Blasenpflaster', kind: 'bedarf' },
-  { name: 'Verbandszeug & Mullbinde', kind: 'bedarf' },
-  { name: 'Fieberthermometer', kind: 'bedarf' },
-  { name: 'Pinzette / Zeckenzange', kind: 'bedarf' },
-  { name: 'Insektenschutz & Gel gegen Stiche', kind: 'bedarf' },
-  { name: 'Sonnenschutz & After-Sun', kind: 'bedarf' },
-  { name: 'Elektrolyt-Pulver', kind: 'bedarf' }
-]
+export const FIRST_AID_KIT: { name: string; kind: MedKind }[] = translated([
+  { name: N_('Schmerz- und Fiebermittel'), kind: 'bedarf' },
+  { name: N_('Mittel gegen Durchfall'), kind: 'bedarf' },
+  { name: N_('Mittel gegen Reiseübelkeit'), kind: 'bedarf' },
+  { name: N_('Allergiemittel'), kind: 'bedarf' },
+  { name: N_('Wund- und Desinfektionsspray'), kind: 'bedarf' },
+  { name: N_('Pflaster & Blasenpflaster'), kind: 'bedarf' },
+  { name: N_('Verbandszeug & Mullbinde'), kind: 'bedarf' },
+  { name: N_('Fieberthermometer'), kind: 'bedarf' },
+  { name: N_('Pinzette / Zeckenzange'), kind: 'bedarf' },
+  { name: N_('Insektenschutz & Gel gegen Stiche'), kind: 'bedarf' },
+  { name: N_('Sonnenschutz & After-Sun'), kind: 'bedarf' },
+  { name: N_('Elektrolyt-Pulver'), kind: 'bedarf' }
+])

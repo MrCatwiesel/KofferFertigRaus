@@ -1,6 +1,7 @@
 import { db, newId, now } from '@/core/db'
 import type { Poll, PollDraft, PollVote } from './types'
 import { voteId } from './logic'
+import { t } from '@/core/i18n'
 
 export const pollRepository = {
   listByTrip(tripId: string): Promise<Poll[]> {

@@ -3,7 +3,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { medicationRepository, vaccinationRepository } from './repository'
 import { summarizeMeds } from './logic'
 import { medsReminders } from './reminders'
-import { N_ } from '@/core/i18n'
+import { N_, t, tn } from '@/core/i18n'
 
 /** Modul "Reiseapotheke" (Meilenstein M2). */
 export const medsModule: AppModule = {
@@ -30,13 +30,13 @@ export const medsModule: AppModule = {
         medicationRepository.listByTrip(tripId),
         vaccinationRepository.listByTrip(tripId)
       ])
-      if (!trip || (meds.length === 0 && vaccs.length === 0)) return 'Noch leer'
+      if (!trip || (meds.length === 0 && vaccs.length === 0)) return t('Noch leer')
       const s = summarizeMeds(meds, vaccs, trip.startDate, trip.endDate)
-      const parts = [`${s.count} ${s.count === 1 ? 'Eintrag' : 'Einträge'}`]
-      if (s.short) parts.push(`${s.short} reicht nicht`)
-      if (s.expiring) parts.push(`${s.expiring} läuft ab`)
-      if (s.vaccinationsOpen) parts.push(`${s.vaccinationsOpen} Impfung offen`)
-      if (parts.length === 1 && s.unpacked === 0 && s.count > 0) parts.push('alles eingepackt')
+      const parts = [tn(s.count, '{n} Eintrag', '{n} Einträge')]
+      if (s.short) parts.push(t('{0} reicht nicht', [s.short]))
+      if (s.expiring) parts.push(t('{0} läuft ab', [s.expiring]))
+      if (s.vaccinationsOpen) parts.push(t('{0} Impfung offen', [s.vaccinationsOpen]))
+      if (parts.length === 1 && s.unpacked === 0 && s.count > 0) parts.push(t('alles eingepackt'))
       return parts.join(' · ')
     }
   },

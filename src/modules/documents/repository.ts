@@ -1,5 +1,6 @@
 import { db, newId, now } from '@/core/db'
 import type { EmergencyContact, EmergencyContactDraft, TravelDocument, TravelDocumentDraft } from './types'
+import { t } from '@/core/i18n'
 
 export const documentRepository = {
   listByTrip(tripId: string): Promise<TravelDocument[]> {

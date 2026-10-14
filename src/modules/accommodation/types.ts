@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type AccommodationType = 'hotel' | 'ferienwohnung' | 'camping' | 'hostel' | 'privat' | 'sonstiges'
 export type AccommodationStatus = 'idee' | 'angefragt' | 'gebucht' | 'storniert'
 
@@ -28,18 +29,18 @@ export interface Accommodation {
 
 export type AccommodationDraft = Omit<Accommodation, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
-export const ACCOMMODATION_TYPE_LABELS: Record<AccommodationType, string> = {
-  hotel: 'Hotel',
-  ferienwohnung: 'Ferienwohnung',
-  camping: 'Camping',
-  hostel: 'Hostel',
-  privat: 'Privat / Freunde',
-  sonstiges: 'Sonstiges'
-}
+export const ACCOMMODATION_TYPE_LABELS: Record<AccommodationType, string> = translated({
+  hotel: N_('Hotel'),
+  ferienwohnung: N_('Ferienwohnung'),
+  camping: N_('Camping'),
+  hostel: N_('Hostel'),
+  privat: N_('Privat / Freunde'),
+  sonstiges: N_('Sonstiges')
+})
 
-export const ACCOMMODATION_STATUS: Record<AccommodationStatus, { label: string; badge: string }> = {
-  idee: { label: 'Idee', badge: 'text-bg-light border' },
-  angefragt: { label: 'Angefragt', badge: 'text-bg-warning' },
-  gebucht: { label: 'Gebucht', badge: 'text-bg-success' },
-  storniert: { label: 'Storniert', badge: 'text-bg-secondary' }
-}
+export const ACCOMMODATION_STATUS: Record<AccommodationStatus, { label: string; badge: string }> = translated({
+  idee: { label: N_('Idee'), badge: 'text-bg-light border' },
+  angefragt: { label: N_('Angefragt'), badge: 'text-bg-warning' },
+  gebucht: { label: N_('Gebucht'), badge: 'text-bg-success' },
+  storniert: { label: N_('Storniert'), badge: 'text-bg-secondary' }
+})

@@ -1,5 +1,6 @@
 import { diffDays, todayIso } from '../../core/dates'
 import type { Medication, MedicationDraft, Vaccination, VaccinationDraft } from './types'
+import { t } from '@/core/i18n'
 
 /** Standard-Reserve in Tagen für Verspätungen oder Verlust. */
 export const DEFAULT_RESERVE_DAYS = 3
@@ -116,17 +117,17 @@ export function sortMeds(list: Medication[]): Medication[] {
 
 export function validateMedication(d: MedicationDraft): Partial<Record<keyof MedicationDraft, string>> {
   const e: Partial<Record<keyof MedicationDraft, string>> = {}
-  if (!d.name.trim()) e.name = 'Bitte einen Namen angeben.'
-  if (d.unitsPerDose !== null && d.unitsPerDose <= 0) e.unitsPerDose = 'Muss größer als 0 sein.'
-  if (d.stockUnits !== null && d.stockUnits < 0) e.stockUnits = 'Darf nicht negativ sein.'
-  if (d.kind === 'dauer' && normalizeTimes(d.times).length === 0) e.times = 'Mindestens eine Einnahmezeit.'
-  if (d.times.some((t) => t && !TIME_RE.test(t))) e.times = 'Zeit im Format HH:MM.'
+  if (!d.name.trim()) e.name = t('Bitte einen Namen angeben.')
+  if (d.unitsPerDose !== null && d.unitsPerDose <= 0) e.unitsPerDose = t('Muss größer als 0 sein.')
+  if (d.stockUnits !== null && d.stockUnits < 0) e.stockUnits = t('Darf nicht negativ sein.')
+  if (d.kind === 'dauer' && normalizeTimes(d.times).length === 0) e.times = t('Mindestens eine Einnahmezeit.')
+  if (d.times.some((t) => t && !TIME_RE.test(t))) e.times = t('Zeit im Format HH:MM.')
   return e
 }
 
 export function validateVaccination(d: VaccinationDraft): Partial<Record<keyof VaccinationDraft, string>> {
   const e: Partial<Record<keyof VaccinationDraft, string>> = {}
-  if (!d.name.trim()) e.name = 'Bitte angeben, welche Impfung.'
+  if (!d.name.trim()) e.name = t('Bitte angeben, welche Impfung.')
   return e
 }
 
@@ -174,6 +175,6 @@ export function vaccinationFromAdvice(a: VaccineAdvice): VaccinationDraft {
   const where = a.countries.join(', ')
   return emptyVaccinationDraft({
     name: a.name,
-    notes: a.required ? `Pflicht bei Einreise (${where}) – laut Auswärtigem Amt.` : `Vom Auswärtigen Amt genannt für ${where} – mit Hausarzt/Reisemedizin klären.`
+    notes: a.required ? t('Pflicht bei Einreise ({0}) – laut Auswärtigem Amt.', [where]) : t('Vom Auswärtigen Amt genannt für {0} – mit Hausarzt/Reisemedizin klären.', [where])
   })
 }

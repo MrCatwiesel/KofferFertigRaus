@@ -4,7 +4,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
 import { accommodationReminders } from './reminders'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Unterkünfte" (Meilenstein M1). */
 export const accommodationModule: AppModule = {
@@ -25,9 +25,9 @@ export const accommodationModule: AppModule = {
     to: (tripId) => `/trip/${tripId}/unterkuenfte`,
     async summary(tripId) {
       const [trip, list] = await Promise.all([tripRepository.get(tripId), accommodationRepository.listByTrip(tripId)])
-      if (!trip || list.length === 0) return 'Noch keine Unterkunft'
+      if (!trip || list.length === 0) return t('Noch keine Unterkunft')
       const c = coverage(trip.startDate, trip.endDate, list)
-      return c.totalNights === 0 ? `${list.length} erfasst` : `${c.bookedNights} von ${c.totalNights} Nächten gebucht`
+      return c.totalNights === 0 ? t('{0} erfasst', [list.length]) : t('{0} von {1} Nächten gebucht', [c.bookedNights, c.totalNights])
     },
     async plannedCost(tripId) {
       const [trip, list] = await Promise.all([tripRepository.get(tripId), accommodationRepository.listByTrip(tripId)])

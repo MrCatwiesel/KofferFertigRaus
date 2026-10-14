@@ -6,7 +6,7 @@ import { formatDate } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { asReminderTrip, startCalendarSync } from './calendar'
 import { startPushSchedule } from './push-zeitplan'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul „Termine & Fristen“: sammelt, was die anderen Bereiche an Daten kennen – und gibt es an den Kalender. */
 export const termineModule: AppModule = {
@@ -17,7 +17,7 @@ export const termineModule: AppModule = {
   routes: [{ path: '/trip/:tripId/termine', name: 'termine', component: () => import('./views/TermineView.vue'), props: true }],
   // Die Reise selbst als Termin (mehrtägig)
   reminders: async (trip) => [
-    { id: `trip:${trip.id}`, tripId: trip.id, date: trip.startDate, endDate: trip.endDate, kind: 'reise', title: `Reise: ${trip.title}`, location: trip.destination || undefined, to: `/trip/${trip.id}` }
+    { id: `trip:${trip.id}`, tripId: trip.id, date: trip.startDate, endDate: trip.endDate, kind: 'reise', title: t('Reise: {0}', [trip.title]), location: trip.destination || undefined, to: `/trip/${trip.id}` }
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
@@ -32,9 +32,9 @@ export const termineModule: AppModule = {
       const overdue = list.filter((r) => groupOf(r, today) === 'ueberfaellig').length
       const next = list.find((r) => (r.endDate ?? r.date) >= today)
       const parts: string[] = []
-      if (overdue) parts.push(`${overdue} überfällig`)
-      if (next) parts.push(`Nächstes: ${next.title} (${next.date === today ? 'heute' : formatDate(next.date)})`)
-      return parts.join(' · ') || 'Keine offenen Termine – Kalender-Abo möglich'
+      if (overdue) parts.push(t('{0} überfällig', [overdue]))
+      if (next) parts.push(t('Nächstes: {0} ({1})', [next.title, next.date === today ? t('heute') : formatDate(next.date)]))
+      return parts.join(' · ') || t('Keine offenen Termine – Kalender-Abo möglich')
     }
   },
   onStart: () => {

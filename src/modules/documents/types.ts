@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type DocType =
   | 'ausweis'
   | 'reisepass'
@@ -55,27 +56,27 @@ export interface EmergencyContact {
 
 export type EmergencyContactDraft = Omit<EmergencyContact, 'id' | 'tripId' | 'createdAt' | 'updatedAt' | 'source'>
 
-export const DOC_TYPE: Record<DocType, { label: string; icon: string }> = {
-  ausweis: { label: 'Personalausweis', icon: 'person-vcard' },
-  reisepass: { label: 'Reisepass', icon: 'passport' },
-  visum: { label: 'Visum / Einreise', icon: 'globe2' },
-  fuehrerschein: { label: 'Führerschein', icon: 'car-front' },
-  fahrzeug: { label: 'Fahrzeugpapiere', icon: 'file-earmark-text' },
-  versicherung: { label: 'Versicherung', icon: 'shield-check' },
-  ticket: { label: 'Ticket', icon: 'ticket-perforated' },
-  buchung: { label: 'Buchung', icon: 'receipt' },
-  gesundheit: { label: 'Gesundheit', icon: 'heart-pulse' },
-  sonstiges: { label: 'Sonstiges', icon: 'file-earmark' }
-}
+export const DOC_TYPE: Record<DocType, { label: string; icon: string }> = translated({
+  ausweis: { label: N_('Personalausweis'), icon: 'person-vcard' },
+  reisepass: { label: N_('Reisepass'), icon: 'passport' },
+  visum: { label: N_('Visum / Einreise'), icon: 'globe2' },
+  fuehrerschein: { label: N_('Führerschein'), icon: 'car-front' },
+  fahrzeug: { label: N_('Fahrzeugpapiere'), icon: 'file-earmark-text' },
+  versicherung: { label: N_('Versicherung'), icon: 'shield-check' },
+  ticket: { label: N_('Ticket'), icon: 'ticket-perforated' },
+  buchung: { label: N_('Buchung'), icon: 'receipt' },
+  gesundheit: { label: N_('Gesundheit'), icon: 'heart-pulse' },
+  sonstiges: { label: N_('Sonstiges'), icon: 'file-earmark' }
+})
 
-export const DOC_STATUS: Record<DocStatus, { label: string; badge: string }> = {
-  fehlt: { label: 'Fehlt', badge: 'text-bg-danger' },
-  beantragt: { label: 'Beantragt', badge: 'text-bg-warning' },
-  vorhanden: { label: 'Vorhanden', badge: 'text-bg-success' }
-}
+export const DOC_STATUS: Record<DocStatus, { label: string; badge: string }> = translated({
+  fehlt: { label: N_('Fehlt'), badge: 'text-bg-danger' },
+  beantragt: { label: N_('Beantragt'), badge: 'text-bg-warning' },
+  vorhanden: { label: N_('Vorhanden'), badge: 'text-bg-success' }
+})
 
 /** Allgemeine Notrufnummern, die immer angezeigt werden. */
-export const STANDARD_NUMBERS = [
-  { label: 'Notruf in der EU', phone: '112', note: 'Polizei, Feuerwehr, Rettung – in allen EU-Ländern' },
-  { label: 'Sperr-Notruf (Karten, Handy)', phone: '+49116116', note: 'Bank- und Kreditkarten sperren, aus dem Ausland mit +49' }
-]
+export const STANDARD_NUMBERS = translated([
+  { label: N_('Notruf in der EU'), phone: '112', note: N_('Polizei, Feuerwehr, Rettung – in allen EU-Ländern') },
+  { label: N_('Sperr-Notruf (Karten, Handy)'), phone: '+49116116', note: N_('Bank- und Kreditkarten sperren, aus dem Ausland mit +49') }
+])

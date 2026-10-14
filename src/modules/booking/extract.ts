@@ -3,6 +3,7 @@
  * E-Mails: Text- und HTML-Teil, auch quoted-printable/base64 und ISO-8859-1; angehängte Kalenderdateien werden mitgelesen.
  */
 import { htmlToText } from '@/core/html-text'
+import { t } from '@/core/i18n'
 
 /** Bytes → Text: UTF-8, sonst westeuropäisch (Windows-1252) */
 export function bytesToText(bytes: Uint8Array, charset = ''): string {
@@ -103,6 +104,6 @@ export async function fileToText(file: File): Promise<string> {
   const text = bytesToText(bytes)
   if (name.endsWith('.eml') || /^(received|return-path|mime-version|from|date|message-id|subject|delivered-to):/im.test(text.slice(0, 2000))) return emailToText(text)
   if (name.endsWith('.html') || name.endsWith('.htm') || /^\s*<(!doctype|html)/i.test(text)) return htmlToText(text)
-  if (file.type.startsWith('image/')) throw new Error('Bilder (Fotos/Screenshots) kann die App nicht lesen – bitte den Text kopieren und einfügen oder die PDF/E-Mail nehmen.')
+  if (file.type.startsWith('image/')) throw new Error(t('Bilder (Fotos/Screenshots) kann die App nicht lesen – bitte den Text kopieren und einfügen oder die PDF/E-Mail nehmen.'))
   return text
 }

@@ -6,6 +6,7 @@ import { PersonSelect, TripContextHeader, VisibilitySelect, tripRepository, type
 import { medicationRepository } from '../repository'
 import { DEFAULT_RESERVE_DAYS, emptyMedicationDraft, normalizeTimes, stockStatus, unitsNeeded, validateMedication } from '../logic'
 import { KIND, type MedicationDraft } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -60,7 +61,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{0}“ löschen?', [draft.name]))) return
   await medicationRepository.remove(props.id)
   router.replace(listPath.value)
 }

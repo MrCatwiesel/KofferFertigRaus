@@ -7,7 +7,7 @@ import { syncState } from '@/core/sync/engine'
 import { pushState } from '@/core/push'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { aboStatus, aboUrls, disableAbo, enableAbo, remindersOfTrip, shareIcs, tripIcs, type AboStatus } from '../calendar'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const today = todayIso()
@@ -20,10 +20,10 @@ const list = useLiveQuery(async () => {
 }, [] as Reminder[])
 
 const GROUPS: { id: ReminderGroup; label: string; cls: string }[] = [
-  { id: 'ueberfaellig', label: 'Überfällig', cls: 'text-danger' },
-  { id: 'heute', label: 'Heute', cls: 'text-primary' },
-  { id: 'woche', label: 'Nächste 7 Tage', cls: '' },
-  { id: 'spaeter', label: 'Später', cls: '' }
+  { id: 'ueberfaellig', label: t('Überfällig'), cls: 'text-danger' },
+  { id: 'heute', label: t('Heute'), cls: 'text-primary' },
+  { id: 'woche', label: t('Nächste 7 Tage'), cls: '' },
+  { id: 'spaeter', label: t('Später'), cls: '' }
 ]
 const grouped = computed(() => GROUPS.map((g) => ({ ...g, items: list.value.filter((r) => groupOf(r, today) === g.id) })).filter((g) => g.items.length))
 const past = computed(() => list.value.filter((r) => groupOf(r, today) === 'vorbei'))
@@ -76,19 +76,19 @@ async function run(fn: () => Promise<unknown>, ok: string) {
     busy.value = false
   }
 }
-const start = () => run(() => enableAbo(), 'Kalender-Abo ist eingerichtet. Jetzt auf dem iPad „Im Kalender abonnieren“ antippen.')
-const renew = () => confirm('Neue geheime Adresse erzeugen? Die alte funktioniert dann nicht mehr – bereits abonnierte Kalender müssen neu abonniert werden.') && run(() => enableAbo(true), 'Neue Adresse erzeugt.')
-const stop = () => confirm('Kalender-Abo beenden? Abonnierte Kalender bekommen dann keine Termine mehr.') && run(disableAbo, 'Kalender-Abo beendet.')
+const start = () => run(() => enableAbo(), t('Kalender-Abo ist eingerichtet. Jetzt auf dem iPad „Im Kalender abonnieren“ antippen.'))
+const renew = () => confirm(t('Neue geheime Adresse erzeugen? Die alte funktioniert dann nicht mehr – bereits abonnierte Kalender müssen neu abonniert werden.')) && run(() => enableAbo(true), t('Neue Adresse erzeugt.'))
+const stop = () => confirm(t('Kalender-Abo beenden? Abonnierte Kalender bekommen dann keine Termine mehr.')) && run(disableAbo, t('Kalender-Abo beendet.'))
 async function copy() {
   if (!urls.value) return
   try {
     await navigator.clipboard.writeText(urls.value.https)
-    message.value = { type: 'info', text: 'Adresse kopiert.' }
+    message.value = { type: 'info', text: t('Adresse kopiert.') }
   } catch {
     message.value = { type: 'info', text: urls.value.https }
   }
 }
-const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat(locale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : 'noch nie')
+const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat(locale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : t('noch nie'))
 </script>
 
 <template>

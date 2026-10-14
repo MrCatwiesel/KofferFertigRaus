@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type ActivityCategory = 'kultur' | 'natur' | 'aktiv' | 'essen' | 'entspannung' | 'kinder' | 'sonstiges'
 export type ActivitySetting = 'innen' | 'aussen' | 'gemischt'
 export type ActivityStatus = 'idee' | 'geplant' | 'erledigt' | 'verworfen'
@@ -34,31 +35,31 @@ export interface Activity {
 
 export type ActivityDraft = Omit<Activity, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
-export const CATEGORY: Record<ActivityCategory, { label: string; icon: string }> = {
-  kultur: { label: 'Kultur', icon: 'bank' },
-  natur: { label: 'Natur', icon: 'tree' },
-  aktiv: { label: 'Aktiv', icon: 'bicycle' },
-  essen: { label: 'Essen & Trinken', icon: 'cup-hot' },
-  entspannung: { label: 'Entspannung', icon: 'water' },
-  kinder: { label: 'Für Kinder', icon: 'balloon' },
-  sonstiges: { label: 'Sonstiges', icon: 'three-dots' }
-}
+export const CATEGORY: Record<ActivityCategory, { label: string; icon: string }> = translated({
+  kultur: { label: N_('Kultur'), icon: 'bank' },
+  natur: { label: N_('Natur'), icon: 'tree' },
+  aktiv: { label: N_('Aktiv'), icon: 'bicycle' },
+  essen: { label: N_('Essen & Trinken'), icon: 'cup-hot' },
+  entspannung: { label: N_('Entspannung'), icon: 'water' },
+  kinder: { label: N_('Für Kinder'), icon: 'balloon' },
+  sonstiges: { label: N_('Sonstiges'), icon: 'three-dots' }
+})
 
-export const SETTING: Record<ActivitySetting, { label: string; icon: string }> = {
-  innen: { label: 'Drinnen', icon: 'house' },
-  aussen: { label: 'Draußen', icon: 'sun' },
-  gemischt: { label: 'Drinnen & draußen', icon: 'cloud-sun' }
-}
+export const SETTING: Record<ActivitySetting, { label: string; icon: string }> = translated({
+  innen: { label: N_('Drinnen'), icon: 'house' },
+  aussen: { label: N_('Draußen'), icon: 'sun' },
+  gemischt: { label: N_('Drinnen & draußen'), icon: 'cloud-sun' }
+})
 
-export const PRIORITY: Record<ActivityPriority, string> = {
-  1: 'Muss',
-  2: 'Gern',
-  3: 'Vielleicht'
-}
+export const PRIORITY: Record<ActivityPriority, string> = translated({
+  1: N_('Muss'),
+  2: N_('Gern'),
+  3: N_('Vielleicht')
+})
 
-export const ACTIVITY_STATUS: Record<ActivityStatus, { label: string; badge: string }> = {
-  idee: { label: 'Idee', badge: 'text-bg-light border' },
-  geplant: { label: 'Geplant', badge: 'text-bg-primary' },
-  erledigt: { label: 'Erledigt', badge: 'text-bg-success' },
-  verworfen: { label: 'Verworfen', badge: 'text-bg-secondary' }
-}
+export const ACTIVITY_STATUS: Record<ActivityStatus, { label: string; badge: string }> = translated({
+  idee: { label: N_('Idee'), badge: 'text-bg-light border' },
+  geplant: { label: N_('Geplant'), badge: 'text-bg-primary' },
+  erledigt: { label: N_('Erledigt'), badge: 'text-bg-success' },
+  verworfen: { label: N_('Verworfen'), badge: 'text-bg-secondary' }
+})

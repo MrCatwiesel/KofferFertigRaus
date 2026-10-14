@@ -6,6 +6,7 @@ import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/pub
 import { activityRepository } from '../repository'
 import { emptyActivityDraft, estimatedCost, validateActivity } from '../logic'
 import { ACTIVITY_STATUS, CATEGORY, PRIORITY, SETTING, type ActivityDraft } from '../types'
+import { t, tn } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -38,7 +39,7 @@ const errors = computed(() =>
 const costInfo = computed(() => {
   const p = num(draft.pricePerPerson)
   if (!p || !trip.value) return null
-  return `ca. ${formatMoney(estimatedCost({ pricePerPerson: p }, trip.value.travelers), draft.currency)} für ${trip.value.travelers} ${trip.value.travelers === 1 ? 'Person' : 'Personen'}`
+  return tn(trip.value.travelers, 'ca. {money} für {n} Person', 'ca. {money} für {n} Personen', { money: formatMoney(estimatedCost({ pricePerPerson: p }, trip.value.travelers), draft.currency) })
 })
 
 function invalid(f: keyof ActivityDraft) {
@@ -71,7 +72,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.title}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{0}“ löschen?', [draft.title]))) return
   await activityRepository.remove(props.id)
   router.replace(listPath.value)
 }

@@ -1,4 +1,5 @@
 import type { TravelDirection, TravelLeg, TravelLegDraft, TravelMode } from './types'
+import { t } from '@/core/i18n'
 
 /** Modus aus der Reise (Feld "Anreise") auf die Etappen-Arten abbilden. */
 export function modeFromTripTransport(t: string): TravelMode {
@@ -47,8 +48,8 @@ export function durationMinutes(departTime: string, arriveTime: string): number 
 
 /** "8:05 Std." bzw. "45 Min." */
 export function formatDuration(min: number): string {
-  if (min < 60) return `${min} Min.`
-  return `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')} Std.`
+  if (min < 60) return t('{0} Min.', [min])
+  return t('{0} Std.', [`${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}`])
 }
 
 /** Spritkosten einer Autoetappe: km × Verbrauch/100 × Preis. */
@@ -158,13 +159,13 @@ export function reverseLegs(outbound: TravelLeg[], returnDate: string): TravelLe
 
 export function validateLeg(d: TravelLegDraft): Partial<Record<keyof TravelLegDraft, string>> {
   const e: Partial<Record<keyof TravelLegDraft, string>> = {}
-  if (!d.from.trim()) e.from = 'Bitte Startort angeben.'
-  if (!d.to.trim()) e.to = 'Bitte Zielort angeben.'
-  if (d.departTime && !TIME_RE.test(d.departTime)) e.departTime = 'Format HH:MM'
-  if (d.arriveTime && !TIME_RE.test(d.arriveTime)) e.arriveTime = 'Format HH:MM'
+  if (!d.from.trim()) e.from = t('Bitte Startort angeben.')
+  if (!d.to.trim()) e.to = t('Bitte Zielort angeben.')
+  if (d.departTime && !TIME_RE.test(d.departTime)) e.departTime = t('Format HH:MM')
+  if (d.arriveTime && !TIME_RE.test(d.arriveTime)) e.arriveTime = t('Format HH:MM')
   for (const k of ['distanceKm', 'cost', 'consumption', 'fuelPrice', 'tolls'] as const) {
     const v = d[k]
-    if (v !== null && v < 0) e[k] = 'Darf nicht negativ sein.'
+    if (v !== null && v < 0) e[k] = t('Darf nicht negativ sein.')
   }
   return e
 }

@@ -11,6 +11,7 @@ import {
   unitsNeeded, vaccinationFromAdvice, vaccinationNeedsAction, type VaccineAdvice
 } from '../logic'
 import { FIRST_AID_KIT, KIND, VACC_STATUS, type Medication, type Vaccination } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -49,7 +50,7 @@ const missingKit = computed(() => {
 
 const expiryLabel = {
   abgelaufen: { text: 'abgelaufen', cls: 'text-danger' },
-  waehrend: { text: 'läuft während der Reise ab', cls: 'text-warning-emphasis' }
+  waehrend: { text: t('läuft während der Reise ab'), cls: 'text-warning-emphasis' }
 } as const
 
 function expiry(m: Medication) {

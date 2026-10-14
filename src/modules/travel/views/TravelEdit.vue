@@ -9,6 +9,7 @@ import {
   recommendedBreaks, validateLeg
 } from '../logic'
 import { DIRECTION, MODE, type TravelDirection, type TravelLegDraft } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -88,7 +89,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm('Diese Etappe löschen?')) return
+  if (!props.id || !confirm(t('Diese Etappe löschen?'))) return
   await travelRepository.remove(props.id)
   router.replace(listPath.value)
 }

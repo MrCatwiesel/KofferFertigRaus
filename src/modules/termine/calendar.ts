@@ -9,6 +9,7 @@ import { todayIso } from '@/core/dates'
 import { ServerClient } from '@/core/sync/client'
 import { syncState } from '@/core/sync/engine'
 import { tripRepository, type Trip } from '@/modules/trip/public'
+import { t } from '@/core/i18n'
 
 const META_ABO = 'kalender.abo'
 const META_HASH = 'kalender.hash'
@@ -19,13 +20,13 @@ export const asReminderTrip = (t: Trip): ReminderTrip => ({ id: t.id, title: t.t
 const appUrl = () => `${location.origin}${location.pathname}`
 
 /** Termine einer Reise, Name der Reise vorangestellt (im Kalender sieht man sonst nicht, zu welcher Reise es gehört) */
-export async function remindersOfTrip(t: Trip, today = todayIso()): Promise<Reminder[]> {
-  const list = await getReminders(asReminderTrip(t), today)
-  return list.map((r) => (r.id === `trip:${t.id}` ? r : { ...r, detail: [r.detail, `Reise: ${t.title}`].filter(Boolean).join('\n') }))
+export async function remindersOfTrip(trip: Trip, today = todayIso()): Promise<Reminder[]> {
+  const list = await getReminders(asReminderTrip(trip), today)
+  return list.map((r) => (r.id === `trip:${trip.id}` ? r : { ...r, detail: [r.detail, t('Reise: {0}', [trip.title])].filter(Boolean).join('\n') }))
 }
 
-export async function tripIcs(t: Trip): Promise<string> {
-  return buildIcs(await remindersOfTrip(t), { name: `${t.title} – Nix wie weg`, appUrl: appUrl() })
+export async function tripIcs(trip: Trip): Promise<string> {
+  return buildIcs(await remindersOfTrip(trip), { name: t('{0} – Nix wie weg', [trip.title]), appUrl: appUrl() })
 }
 
 /** Alle laufenden und kommenden Reisen (nicht archiviert, höchstens 30 Tage vorbei) */
@@ -35,7 +36,7 @@ export async function allIcs(): Promise<string> {
   const trips = (await tripRepository.listAll()).filter((t) => !t.archived && t.endDate >= cutoff)
   const all: Reminder[] = []
   for (const t of trips) all.push(...(await remindersOfTrip(t, today)))
-  return buildIcs(all, { name: 'Nix wie weg – Reisen', appUrl: appUrl() })
+  return buildIcs(all, { name: t('Nix wie weg – Reisen'), appUrl: appUrl() })
 }
 
 /** Kalenderdatei teilen (iPad: „Zum Kalender hinzufügen“) oder herunterladen */
@@ -98,7 +99,7 @@ export async function uploadCalendar(force = false): Promise<boolean> {
 
 export async function enableAbo(renew = false): Promise<AboStatus> {
   const client = await ServerClient.fromSync()
-  if (!client) throw new Error('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.')
+  if (!client) throw new Error(t('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.'))
   let status = await client.json<AboStatus>('/api/kalender')
   if (!status.token || renew) status = await client.json<AboStatus>('/api/kalender/link', 'POST')
   await setMeta(META_ABO, true)

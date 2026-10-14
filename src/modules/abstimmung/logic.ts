@@ -1,5 +1,6 @@
 /** Reine Funktionen für Abstimmungen (ohne Datenbank und Vue). */
 import type { Poll, PollOption, PollVote } from './types'
+import { t } from '@/core/i18n'
 
 /** Kennung der Stimme: je Abstimmung und Name genau eine */
 export const voteId = (pollId: string, voter: string) => `${pollId}:${voter.trim().replace(/\s+/g, ' ')}`
@@ -61,8 +62,8 @@ export function missingVoters(poll: Poll, votes: PollVote[], participants: strin
 /** Kurzfassung für die Reiseseite */
 export function summary(polls: Poll[], votes: PollVote[], me: string, today: string): string {
   const open = polls.filter((p) => isOpen(p, today))
-  if (!polls.length) return 'Gemeinsam entscheiden: Ziel, Restaurant, Ausflug …'
-  if (!open.length) return `${polls.length} beendet`
+  if (!polls.length) return t('Gemeinsam entscheiden: Ziel, Restaurant, Ausflug …')
+  if (!open.length) return t('{0} beendet', [polls.length])
   const waiting = me ? open.filter((p) => !votes.some((v) => v.pollId === p.id && v.voter === me && v.choices.length)).length : 0
-  return [`${open.length} offen`, waiting ? `${waiting} wartet auf deine Stimme` : ''].filter(Boolean).join(' · ')
+  return [t('{0} offen', [open.length]), waiting ? t('{0} wartet auf deine Stimme', [waiting]) : ''].filter(Boolean).join(' · ')
 }

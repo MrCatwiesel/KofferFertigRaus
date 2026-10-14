@@ -1,5 +1,6 @@
 import { db, newId, now } from '@/core/db'
 import type { Medication, MedicationDraft, Vaccination, VaccinationDraft } from './types'
+import { t } from '@/core/i18n'
 
 export const medicationRepository = {
   listByTrip(tripId: string): Promise<Medication[]> {

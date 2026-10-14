@@ -5,6 +5,7 @@ import { PersonSelect, TripContextHeader } from '@/modules/trip/public'
 import { vaccinationRepository } from '../repository'
 import { emptyVaccinationDraft, validateVaccination } from '../logic'
 import { VACC_STATUS, type VaccinationDraft } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -33,7 +34,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{0}“ löschen?', [draft.name]))) return
   await vaccinationRepository.remove(props.id)
   router.replace(listPath.value)
 }

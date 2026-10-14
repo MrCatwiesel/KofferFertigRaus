@@ -1,5 +1,6 @@
 import { db, newId, now } from '@/core/db'
 import type { Accommodation, AccommodationDraft } from './types'
+import { t } from '@/core/i18n'
 
 export const accommodationRepository = {
   listByTrip(tripId: string): Promise<Accommodation[]> {

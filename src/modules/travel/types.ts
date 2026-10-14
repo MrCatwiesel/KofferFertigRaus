@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type TravelDirection = 'hin' | 'rueck'
 export type TravelMode = 'auto' | 'bahn' | 'flug' | 'bus' | 'faehre' | 'fahrrad' | 'sonstiges'
 
@@ -36,17 +37,17 @@ export interface TravelLeg {
 
 export type TravelLegDraft = Omit<TravelLeg, 'id' | 'tripId' | 'position' | 'createdAt' | 'updatedAt'>
 
-export const MODE: Record<TravelMode, { label: string; icon: string }> = {
-  auto: { label: 'Auto', icon: 'car-front' },
-  bahn: { label: 'Bahn', icon: 'train-front' },
-  flug: { label: 'Flug', icon: 'airplane' },
-  bus: { label: 'Bus', icon: 'bus-front' },
-  faehre: { label: 'Fähre', icon: 'water' },
-  fahrrad: { label: 'Fahrrad', icon: 'bicycle' },
-  sonstiges: { label: 'Sonstiges', icon: 'signpost-2' }
-}
+export const MODE: Record<TravelMode, { label: string; icon: string }> = translated({
+  auto: { label: N_('Auto'), icon: 'car-front' },
+  bahn: { label: N_('Bahn'), icon: 'train-front' },
+  flug: { label: N_('Flug'), icon: 'airplane' },
+  bus: { label: N_('Bus'), icon: 'bus-front' },
+  faehre: { label: N_('Fähre'), icon: 'water' },
+  fahrrad: { label: N_('Fahrrad'), icon: 'bicycle' },
+  sonstiges: { label: N_('Sonstiges'), icon: 'signpost-2' }
+})
 
-export const DIRECTION: Record<TravelDirection, string> = {
-  hin: 'Hinreise',
-  rueck: 'Rückreise'
-}
+export const DIRECTION: Record<TravelDirection, string> = translated({
+  hin: N_('Hinreise'),
+  rueck: N_('Rückreise')
+})

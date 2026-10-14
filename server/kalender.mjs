@@ -62,7 +62,9 @@ export function createKalender(dataDir, groups = null) {
     /** Reisegruppe gelöscht: Abo-Adresse und Kalenderdatei entfernen */
     removeSpace(space) {
       let changed = false
-      for (const t of Object.keys(tokens)) if (tokens[t] === space) {
+      // auch die Abos der einzelnen Personen („<space>:<person>“)
+      for (const t of Object.keys(tokens)) if (tokens[t] === space || tokens[t].startsWith(`${space}:`)) {
+        rmSync(fileOf(tokens[t]), { force: true })
         delete tokens[t]
         changed = true
       }

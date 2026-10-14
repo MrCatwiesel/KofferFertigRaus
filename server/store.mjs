@@ -48,7 +48,8 @@ export function createStore(dataDir) {
   `)
 
   const q = {
-    get: db.prepare('SELECT stamp FROM records WHERE space = ? AND tbl = ? AND id = ?'),
+    get: db.prepare('SELECT stamp, deleted, data FROM records WHERE space = ? AND tbl = ? AND id = ?'),
+    setSeq: db.prepare('UPDATE records SET seq = ? WHERE space = ? AND tbl = ? AND id = ?'),
     record: db.prepare('SELECT data FROM records WHERE space = ? AND tbl = ? AND id = ? AND deleted = 0'),
     byTrip: db.prepare("SELECT data FROM records WHERE space = ? AND tbl = ? AND deleted = 0 AND json_extract(data, '$.tripId') = ?"),
     upsert: db.prepare(`INSERT INTO records (space, tbl, id, stamp, deleted, data, seq) VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -71,10 +72,16 @@ export function createStore(dataDir) {
   return {
     db,
 
-    /** Übernimmt Änderungen der Geräte – neuere gewinnt. */
-    push(space, changes) {
+    /**
+     * Übernimmt Änderungen der Geräte – neuere gewinnt.
+     * @param {{ deny?: (c: object, oldData: object | null) => string | null, accepted?: (c: object, oldData: object | null, json: string | null) => void }} [hooks]
+     *   deny: Grund, warum die Änderung nicht erlaubt ist (→ abgelehnt, Antwort enthält die Server-Fassung);
+     *   accepted: nach dem Übernehmen (in derselben Transaktion)
+     */
+    push(space, changes, hooks = {}) {
       let accepted = 0
       let ignored = 0
+      const rejected = []
       db.exec('BEGIN')
       try {
         // Zeitstempel weit in der Zukunft (falsch gehende Uhr) würden jede spätere Änderung blockieren → auf jetzt kürzen
@@ -85,12 +92,20 @@ export function createStore(dataDir) {
           if (!c || !TABLE_RE.test(c.tbl) || typeof c.id !== 'string' || !c.id || c.id.length > 200) throw new HttpError(400, 'Ungültige Änderung')
           if (typeof c.stamp !== 'string' || !c.stamp || c.stamp.length > 40) throw new HttpError(400, 'Ungültiger Zeitstempel')
           const existing = q.get.get(space, c.tbl, c.id)
+          const oldData = existing && !existing.deleted ? parse(existing) : null
+          const reason = hooks.deny?.(c, oldData) ?? null
+          if (reason) {
+            rejected.push({ tbl: c.tbl, id: c.id, reason })
+            continue
+          }
           if (existing && existing.stamp >= c.stamp) {
             ignored++
             continue
           }
           const seq = q.nextSeq.get(space).seq
-          q.upsert.run(space, c.tbl, c.id, c.stamp, c.deleted ? 1 : 0, c.deleted ? null : JSON.stringify(c.data ?? null), seq)
+          const json = c.deleted ? null : JSON.stringify(c.data ?? null)
+          q.upsert.run(space, c.tbl, c.id, c.stamp, c.deleted ? 1 : 0, json, seq)
+          hooks.accepted?.(c, oldData, json)
           accepted++
         }
         db.exec('COMMIT')
@@ -98,7 +113,26 @@ export function createStore(dataDir) {
         db.exec('ROLLBACK')
         throw e
       }
-      return { accepted, ignored, seq: q.maxSeq.get(space)?.seq ?? 0 }
+      return { accepted, ignored, rejected, seq: q.maxSeq.get(space)?.seq ?? 0 }
+    },
+
+    /** Aktuelle Fassung eines Datensatzes für den Abgleich (auch gelöschte) – oder null. */
+    current(space, tbl, id) {
+      const r = q.get.get(space, tbl, id)
+      return r ? { tbl, id, stamp: r.stamp, deleted: !!r.deleted, data: r.data ? JSON.parse(r.data) : null } : null
+    },
+
+    /** Datensätze erneut an alle Geräte ausliefern (neue Laufnummer, Inhalt unverändert) – z. B. nach geänderten Rechten. */
+    bump(space, rows) {
+      if (!rows.length) return
+      db.exec('BEGIN')
+      try {
+        for (const r of rows) q.setSeq.run(q.nextSeq.get(space).seq, space, r.tbl, r.id)
+        db.exec('COMMIT')
+      } catch (e) {
+        db.exec('ROLLBACK')
+        throw e
+      }
     },
 
     pull(space, since, limit) {

@@ -5,6 +5,7 @@
  *  - Daten: SQLite-Datei (eingebaut in Node.js), Fotos als einzelne Dateien        → store.mjs
  *  - Zugang: geheimer Schlüssel je Reisegruppe, Gruppen-Verwaltung durch den Besitzer → groups.mjs
  *  - Geräte-Anmeldung: eigener Zugang je Gerät, Einladungen, Abmelden                → devices.mjs
+ *  - Personen und Rechte: Rollen, Zugriff je Reise, private Einträge                 → members.mjs
  *  - Lese-Links: Reisen für Freunde zum Ansehen freigeben                            → shares.mjs
  *  - Piwigo-Brücke (optional)                                                        → piwigo.mjs
  *  - Die App selbst ausliefern (optional, NWW_APP_DIR)                               → static.mjs
@@ -29,13 +30,14 @@ import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 import { createMaps } from './maps.mjs'
 import { createDevices } from './devices.mjs'
+import { createMembers } from './members.mjs'
 import { createBackupAdmin } from './backup-targets.mjs'
 import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
 import { createKalender } from './kalender.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.15.0'
+export const VERSION = '1.16.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -55,7 +57,8 @@ export function createSyncServer(opts) {
     throw e
   }
   const shares = createShares(store, groups)
-  const devices = createDevices(store, groups, { idleDays: opts.deviceIdleDays })
+  const members = createMembers(store)
+  const devices = createDevices(store, groups, members, { idleDays: opts.deviceIdleDays })
   const backupAdmin = createBackupAdmin(resolve(opts.dataDir))
   const routing = createRouting({ ...(opts.routing ?? {}), version: VERSION })
   const reiseinfo = createReiseinfo({ ...(opts.reiseinfo ?? {}), version: VERSION })
@@ -93,8 +96,9 @@ export function createSyncServer(opts) {
     if (path === '/api/anmelden') return devices.login(req, res)
 
     const auth = devices.authenticate(req)
-    const { group } = auth
+    const { group, member } = auth
     const { space } = group
+    const isAdmin = !member || member.role === 'verwalter'
     if (!auth.device && (path === '/api/push' || path === '/api/pull')) devices.noteKeyUse(space)
 
     if (req.method === 'GET' && path === '/api/info') {
@@ -106,21 +110,42 @@ export function createSyncServer(opts) {
         seq,
         // Kennung des Datenbestands: ändert sich nach dem Zurückspielen einer Sicherung (restore.sh)
         // → die Geräte gleichen dann einmal vollständig ab, damit nichts verloren geht
-        epoch: store.secret('sync-epoch').slice(0, 16),
+        epoch: store.secret('sync-epoch').slice(0, 16) + (auth.device?.epoch ?? ''),
         piwigo: !!piwigo && group.piwigo,
         maps: maps.available,
         devices: true,
         device: auth.device,
         group: group.name,
         admin: group.owner,
-        shares: true
+        shares: true,
+        // Personen und Rechte (1.16): wer bin ich, wer ist noch dabei, abweichende Rechte je Reise
+        people: true,
+        member: member ? members.toMember(member) : null,
+        manager: isAdmin,
+        members: members.list(space).filter((m) => !m.disabled).map((m) => ({ id: m.id, name: m.name, role: m.role })),
+        tripAccess: member ? members.memberAccess(space, member.id) : {}
       })
     }
 
     if (req.method === 'POST' && path === '/api/push') {
       const body = JSON.parse((await readBody(req, MAX_JSON)).toString('utf8') || '{}')
       if (!Array.isArray(body.changes)) throw new HttpError(400, 'changes fehlt')
-      const result = store.push(space, body.changes)
+      const access = members.accessFor(space, member)
+      const relink = new Set()
+      const result = store.push(space, body.changes, {
+        deny: (c, oldData) => access.denyWrite(c.tbl, c.id, oldData, c.deleted ? null : (c.data ?? null)),
+        accepted: (c, oldData, json) => {
+          members.trackRefs(space, c.tbl, c.id, json)
+          if (c.tbl === 'trips' && JSON.stringify(oldData?.memberLinks ?? {}) !== JSON.stringify(c.data?.memberLinks ?? {})) relink.add(c.id)
+        }
+      })
+      for (const tripId of relink) members.linksChanged(space, tripId)
+      // Abgelehnte Änderungen: Server-Fassung mitschicken (unsichtbar/nicht vorhanden → Löschung), das Gerät nimmt sie zurück
+      result.rejected = result.rejected.map((r) => {
+        const cur = store.current(space, r.tbl, r.id)
+        const visible = cur && !cur.deleted && access.canSee(cur.tbl, cur.id, cur.data)
+        return { ...r, current: visible ? cur : { tbl: r.tbl, id: r.id, stamp: cur?.stamp ?? '', deleted: true, data: null } }
+      })
       if (auth.device) devices.noteSync(auth.device.id, req)
       return send(res, 200, result)
     }
@@ -129,15 +154,32 @@ export function createSyncServer(opts) {
       const since = Math.max(0, Number(url.searchParams.get('since') ?? 0) || 0)
       const limit = Math.min(1000, Math.max(1, Number(url.searchParams.get('limit') ?? 500) || 500))
       const page = store.pull(space, since, limit)
+      if (member) {
+        // Nicht sichtbare Datensätze gehen als Löschung raus – so verschwinden sie auch von Geräten, die sie schon haben
+        const access = members.accessFor(space, member)
+        page.changes = page.changes.map((c) => (c.deleted || access.canSee(c.tbl, c.id, c.data) ? c : { ...c, deleted: true, data: null }))
+      }
       // Letzte Seite geholt → Gerät ist auf Stand `seq` (bzw. auf dem aktuellen Stand, wenn nichts Neues kam)
       if (auth.device) devices.noteSync(auth.device.id, req, page.more ? null : page.changes.length ? page.seq : store.info(space).seq)
       return send(res, 200, page)
     }
 
     const blob = path.match(/^\/api\/blob\/([a-f0-9]{64})$/)
-    if (blob) return handleBlob(req, res, space, blob[1])
+    if (blob) return handleBlob(req, res, space, blob[1], member)
 
-    if (path === '/api/shares' || path.startsWith('/api/shares/')) return shares.handleOwner(req, res, url, path, group)
+    if (path === '/api/shares' || path.startsWith('/api/shares/')) {
+      // Personen: Lese-Links nur für Reisen, die sie sehen (Liste) bzw. bearbeiten (anlegen, ändern) dürfen
+      const guard = member ? (tripId, need) => {
+        const role = members.tripRole(space, member, tripId)
+        return need === 'bearbeiten' ? role === 'bearbeiten' : role !== 'kein'
+      } : null
+      return shares.handleOwner(req, res, url, path, group, guard)
+    }
+
+    if (path === '/api/personen' || path.startsWith('/api/personen/')) return handlePeople(req, res, path, auth)
+
+    const zugriff = path.match(/^\/api\/zugriff\/([^/]{1,200})$/)
+    if (zugriff) return handleTripAccess(req, res, space, decodeURIComponent(zugriff[1]), member, isAdmin)
 
     if (path === '/api/geraete' || path.startsWith('/api/geraete/') || path === '/api/einladungen') return devices.handle(req, res, path, auth)
 
@@ -145,7 +187,8 @@ export function createSyncServer(opts) {
 
     if (path.startsWith('/api/reiseinfo/')) return reiseinfo.handle(req, res, path)
 
-    if (path === '/api/kalender' || path === '/api/kalender/link') return kalender.handle(req, res, path, space)
+    // Kalender-Abo: je Person eigenes (zeigt nur, was die Person sehen darf)
+    if (path === '/api/kalender' || path === '/api/kalender/link') return kalender.handle(req, res, path, member ? `${space}:${member.id}` : space)
 
     if (path === '/api/maps' || path.startsWith('/api/maps/')) return maps.handle(req, res, path, group)
 
@@ -168,10 +211,11 @@ export function createSyncServer(opts) {
     throw new HttpError(404, 'Unbekannte Adresse')
   }
 
-  async function handleBlob(req, res, space, hash) {
+  async function handleBlob(req, res, space, hash, member) {
     const meta = store.blobMeta(space, hash)
     if (req.method === 'HEAD' || req.method === 'GET') {
-      if (!meta) {
+      // Personen bekommen nur Dateien, auf die ein für sie sichtbarer Datensatz verweist
+      if (!meta || (member && !members.canSeeBlob(space, members.accessFor(space, member), hash))) {
         res.writeHead(404)
         return res.end()
       }
@@ -185,6 +229,69 @@ export function createSyncServer(opts) {
       if (!HASH_RE.test(hash) || sha256(body) !== hash) throw new HttpError(400, 'Prüfsumme stimmt nicht.')
       store.putBlob(space, hash, safeBlobType(req.headers['content-type']), body)
       return send(res, 201, { ok: true })
+    }
+    throw new HttpError(405, 'Nicht erlaubt')
+  }
+
+  /** Personen verwalten: Liste für alle, Ändern nur Verwalter (oder Gerät ohne Person). */
+  async function handlePeople(req, res, path, auth) {
+    const { group, member, device } = auth
+    const space = group.space
+    const admin = !member || member.role === 'verwalter'
+    const sub = path.slice('/api/personen'.length)
+    if (sub === '' && req.method === 'GET') {
+      if (!admin) return send(res, 200, { members: members.list(space).filter((m) => !m.disabled).map((m) => ({ id: m.id, name: m.name, role: m.role })) })
+      return send(res, 200, { members: members.list(space) })
+    }
+    if (!admin) throw new HttpError(403, 'Nur Verwalter dürfen Personen verwalten.')
+    if (sub === '' && req.method === 'POST') {
+      const body = await readJson(req)
+      // „Das bin ich“: das eigene Gerät (bisher ohne Person) gehört ab jetzt dieser Person
+      const self = body.self === true
+      if (self && (member || !device)) throw new HttpError(400, 'Nur von einem angemeldeten Gerät ohne Person aus möglich.')
+      if (self && body.password === undefined) throw new HttpError(400, 'Bitte ein Passwort festlegen.', { code: 'passwort' })
+      if (!members.list(space).length && body.role !== 'verwalter' && !self) throw new HttpError(400, 'Die erste Person muss Verwalter sein.')
+      const created = members.create(space, { name: body.name, role: self ? 'verwalter' : body.role, password: self ? body.password : undefined })
+      if (self) {
+        devices.assign(space, device.id, created.id)
+        return send(res, 201, { member: created })
+      }
+      return send(res, 201, { member: created, invite: devices.invite(space, device?.id ?? null, created.id) })
+    }
+    const m = sub.match(/^\/([a-f0-9]{16})(\/einladung)?$/)
+    if (!m) throw new HttpError(404, 'Unbekannte Adresse')
+    if (m[2] && req.method === 'POST') {
+      const target = members.get(space, m[1])
+      if (!target) throw new HttpError(404, 'Person nicht gefunden.')
+      return send(res, 201, devices.invite(space, device?.id ?? null, target.id, !!target.pw_hash))
+    }
+    if (m[2]) throw new HttpError(405, 'Nicht erlaubt')
+    if (req.method === 'PATCH') {
+      const body = await readJson(req)
+      const updated = members.update(space, m[1], { name: body.name, role: body.role, disabled: body.disabled })
+      if (updated.disabled) devices.revokeMember(space, updated.id, 'Zugang gesperrt')
+      return send(res, 200, { member: updated })
+    }
+    if (req.method === 'DELETE') {
+      members.remove(space, m[1])
+      devices.revokeMember(space, m[1], 'Person entfernt')
+      return send(res, 200, { ok: true })
+    }
+    throw new HttpError(405, 'Nicht erlaubt')
+  }
+
+  /** Zugriff je Reise: lesen für alle mit Zugriff, ändern nur Verwalter. */
+  async function handleTripAccess(req, res, space, tripId, member, isAdmin) {
+    if (req.method === 'GET') {
+      if (member && members.tripRole(space, member, tripId) === 'kein') throw new HttpError(404, 'Reise nicht gefunden.')
+      return send(res, 200, { access: members.tripAccess(space, tripId) })
+    }
+    if (req.method === 'PUT') {
+      if (!isAdmin) throw new HttpError(403, 'Nur Verwalter ändern den Zugriff.')
+      const body = await readJson(req)
+      if (typeof body.member !== 'string') throw new HttpError(400, 'Person fehlt.')
+      members.setTripAccess(space, tripId, body.member, body.role ?? null)
+      return send(res, 200, { access: members.tripAccess(space, tripId) })
     }
     throw new HttpError(405, 'Nicht erlaubt')
   }
@@ -207,6 +314,7 @@ export function createSyncServer(opts) {
     if (req.method === 'DELETE') {
       if (m[1] === groups.ownerSpace) throw new HttpError(400, 'Die eigene Gruppe kann nicht gelöscht werden.')
       groups.remove(m[1])
+      members.removeSpace(m[1])
       maps.removeSpace(m[1])
       devices.removeSpace(m[1])
       kalender.removeSpace(m[1])

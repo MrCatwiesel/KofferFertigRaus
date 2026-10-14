@@ -245,15 +245,24 @@ export function createShares(store, groups = null) {
 
   return {
     /** Verwaltung durch die Reisegruppe (mit Schlüssel). */
-    async handleOwner(req, res, url, path, group) {
+    /**
+     * Verwaltung der Links. `guard(tripId, need)` (Personen mit Rechten): darf die Reise sehen ('lesen')
+     * bzw. bearbeiten ('bearbeiten')? Ohne guard: voller Zugriff.
+     */
+    async handleOwner(req, res, url, path, group, guard = null) {
       const sub = path.slice('/api/shares'.length)
+      const need = (tripId, kind) => {
+        if (guard && !guard(tripId, kind)) throw new HttpError(403, 'Für diese Reise hast du kein Recht dazu.')
+      }
       if (sub === '' && req.method === 'GET') {
         const tripId = url.searchParams.get('tripId')
-        return send(res, 200, { shares: q.list.all(group.space, tripId, tripId).map(toShare) })
+        const rows = q.list.all(group.space, tripId, tripId).filter((r) => !guard || guard(r.trip_id, 'lesen'))
+        return send(res, 200, { shares: rows.map(toShare) })
       }
       if (sub === '' && req.method === 'POST') {
         const body = await readJson(req)
         if (typeof body.tripId !== 'string' || !body.tripId) throw new HttpError(400, 'tripId fehlt.')
+        need(body.tripId, 'bearbeiten')
         if (!store.record(group.space, 'trips', body.tripId)) throw new HttpError(400, 'Reise ist noch nicht auf dem Server – erst abgleichen.')
         const token = newToken()
         const pw = typeof body.password === 'string' && body.password ? hashPassword(body.password.slice(0, 200)) : null
@@ -263,7 +272,8 @@ export function createShares(store, groups = null) {
       const m = sub.match(/^\/([A-Za-z0-9_-]{22})$/)
       if (!m) throw new HttpError(404, 'Unbekannte Adresse')
       const row = q.get.get(m[1])
-      if (!row || row.space !== group.space) throw new HttpError(404, 'Link nicht gefunden.')
+      if (!row || row.space !== group.space || (guard && !guard(row.trip_id, 'lesen'))) throw new HttpError(404, 'Link nicht gefunden.')
+      need(row.trip_id, 'bearbeiten')
       if (req.method === 'PATCH') {
         const body = await readJson(req)
         const opts = cleanOptions(body, JSON.parse(row.options))

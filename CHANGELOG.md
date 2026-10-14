@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## 1.32.1 – 2026-10-14
+
+### Korrigiert: Karten im Lese-Link
+- Die Seite hinter einem Lese-Link zeigt Routen jetzt wie die Reise-Webseite mit **Karte (OpenStreetMap)**, Start- und Zielpunkt und ab zwei Routen mit **Übersichtskarte** – bisher nur als Linie ohne Hintergrund
+- Die Karten lädt der Browser der Betrachter beim Öffnen. Klappt das nicht (keine Verbindung zu OpenStreetMap), erscheint wie bisher die Strecke als Linie
+
 ## 1.32.0 – 2026-10-14 (Server 1.17.0)
 
 ### Neu: Push-Benachrichtigungen

@@ -15,6 +15,7 @@ import {
   type StayInput,
   type TemplateId
 } from '@/modules/website/public'
+import { renderStaticMap } from '@/services/static-map'
 
 interface PublicPhoto {
   id: string
@@ -62,7 +63,45 @@ function askPassword(wrong: boolean) {
   })
 }
 
-function show(data: PublicData) {
+const blobToDataUrl = (b: Blob) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader()
+    r.onload = () => resolve(String(r.result))
+    r.onerror = () => reject(r.error)
+    r.readAsDataURL(b)
+  })
+
+/** Ein Kartenbild – oder undefined (offline, Kacheln nicht ladbar, zu langsam) */
+async function mapImage(lines: { points: [number, number, number | null][]; color: string }[], width: number, height: number, markers: boolean) {
+  try {
+    const blob = await renderStaticMap(lines, { width, height, stroke: markers ? 5 : 4, markers })
+    return blob ? await blobToDataUrl(blob) : undefined
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * Kartenbilder für die Routen (OpenStreetMap-Hintergrund mit Strecke) und – ab zwei Routen – eine Übersicht.
+ * Höchstens ein paar Sekunden warten; was bis dahin fehlt, wird als Linie ohne Karte gezeigt.
+ */
+async function addMaps(routes: RouteInput[]): Promise<{ routes: RouteInput[]; overview?: string }> {
+  const usable = routes.filter((r) => r.points.length > 1)
+  if (!usable.length) return { routes }
+  view.innerHTML = '<div class="spin" role="status" aria-label="Lädt"></div><p>Karten werden geladen …</p>'
+  const work = Promise.all([
+    Promise.all(routes.map((r) => (r.points.length > 1 ? mapImage([{ points: r.points, color: r.color }], 1000, 560, true) : Promise.resolve(undefined)))),
+    usable.length > 1 ? mapImage(usable.map((r) => ({ points: r.points, color: r.color })), 1200, 700, false) : Promise.resolve(undefined)
+  ])
+  const timeout = new Promise<null>((r) => setTimeout(() => r(null), 12_000))
+  const done = await Promise.race([work, timeout])
+  if (!done) return { routes }
+  const [maps, overview] = done
+  return { routes: routes.map((r, i) => (maps[i] ? { ...r, map: maps[i] } : r)), overview }
+}
+
+async function show(data: PublicData) {
+  const withMaps = await addMaps(data.routes ?? [])
   const photoUrl = (p: PublicPhoto) => api(`/photo/${encodeURIComponent(p.id)}${data.ticket ? `?t=${encodeURIComponent(data.ticket)}` : ''}`)
   const settings = {
     ...defaultSettings({ title: data.title, destination: data.trip.destination, startDate: data.trip.startDate, endDate: data.trip.endDate }),
@@ -84,9 +123,10 @@ function show(data: PublicData) {
     settings,
     data.entries.map((e) => ({ ...e, photos: e.photos.map((p) => ({ src: photoUrl(p), caption: p.caption, width: p.width, height: p.height })) })),
     undefined,
-    data.routes ?? [],
+    withMaps.routes,
     { stays: data.stays ?? [], activities: data.activities ?? [] }
   )
+  if (withMaps.overview) site.overviewMap = withMaps.overview
   const html = renderSite(site, settings, bootstrapCss, fontFaceCss(settings.font))
     // Lese-Links nicht in Suchmaschinen
     .replace('<meta name="generator"', '<meta name="robots" content="noindex, nofollow">\n<meta name="generator"')

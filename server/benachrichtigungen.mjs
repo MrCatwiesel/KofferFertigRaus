@@ -7,10 +7,11 @@
  *  - Abo je Gerät, Zeitplan je Person: Die App lädt die anstehenden Erinnerungen (Fristen, Termine) hoch,
  *    der Server schickt sie zur passenden Zeit an alle Geräte dieser Person mit eingeschalteten Erinnerungen.
  *  - Änderungen anderer: neue Tagebucheinträge, Fotos, Unternehmungen … gebündelt (höchstens alle 15 Minuten je Reise).
+ *  - Unwetterwarnungen: schickt unwetter.mjs über `subsOfOwner` und `deliver`.
  *
  *  GET    /api/benachrichtigungen            Schlüssel des Servers, Abo dieses Geräts, Anzahl geplanter Erinnerungen
  *  PUT    /api/benachrichtigungen/abo        { endpoint, keys: { p256dh, auth }, prefs? }   Abo dieses Geräts anlegen/ersetzen
- *  PATCH  /api/benachrichtigungen/abo        { prefs: { erinnerungen?, aenderungen? } }
+ *  PATCH  /api/benachrichtigungen/abo        { prefs: { erinnerungen?, aenderungen?, unwetter?, unwetterStufe? } }
  *  DELETE /api/benachrichtigungen/abo
  *  POST   /api/benachrichtigungen/test       Testnachricht an dieses Gerät
  *  PUT    /api/benachrichtigungen/zeitplan   { items: [{ id, at, title, body?, url? }] }  ersetzt den Zeitplan der Person
@@ -45,7 +46,8 @@ export const CHANGE_LABELS = {
   documents: ['ein', 'Dokument', 'Dokumente']
 }
 
-export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false }
+/** unwetterStufe: ab welcher Warnstufe (2 gelb, 3 orange, 4 rot) eine Unwetterwarnung kommt */
+export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3 }
 
 const b64u = (buf) => Buffer.from(buf).toString('base64url')
 const fromB64u = (s) => Buffer.from(String(s), 'base64url')
@@ -201,7 +203,9 @@ export function createBenachrichtigungen(store, members, opts = {}) {
   const prefsOf = (row) => ({ ...DEFAULT_PREFS, ...JSON.parse(row.prefs || '{}') })
   const cleanPrefs = (p, base = DEFAULT_PREFS) => ({
     erinnerungen: typeof p?.erinnerungen === 'boolean' ? p.erinnerungen : base.erinnerungen,
-    aenderungen: typeof p?.aenderungen === 'boolean' ? p.aenderungen : base.aenderungen
+    aenderungen: typeof p?.aenderungen === 'boolean' ? p.aenderungen : base.aenderungen,
+    unwetter: typeof p?.unwetter === 'boolean' ? p.unwetter : base.unwetter,
+    unwetterStufe: [2, 3, 4].includes(p?.unwetterStufe) ? p.unwetterStufe : base.unwetterStufe
   })
   /** Zeitplan gehört der Person – oder (Gerät ohne Person) der ganzen Gruppe */
   const ownerOf = (space, memberId) => (memberId ? `${space}:${memberId}` : space)
@@ -253,6 +257,14 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       const m = members.get(space, s.member)
       return !!m && !m.disabled
     })
+  }
+
+  /** Abos einer Person (`space:member`) bzw. der Gruppe (`space`, Geräte ohne Person) – mit ihren Einstellungen */
+  function subsOfOwner(owner, pref) {
+    const [space, memberId] = owner.split(':')
+    return subsOf(space, pref)
+      .filter((s) => (memberId ? s.member === memberId : !s.member))
+      .map((s) => ({ ...s, prefs: prefsOf(s) }))
   }
 
   // ---------------- Zeitplan
@@ -379,6 +391,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
     noteChanges,
     setSchedule,
     deliver,
+    subsOfOwner,
 
     start() {
       if (!timer) timer = setInterval(() => void tick(), TICK_MS)

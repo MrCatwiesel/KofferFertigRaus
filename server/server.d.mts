@@ -12,5 +12,6 @@ export function createSyncServer(opts: {
   routing?: { overpassUrl?: string; brouterUrl?: string; fetchImpl?: typeof fetch }
   reiseinfo?: { url?: string; fetchImpl?: typeof fetch }
   push?: { fetchImpl?: typeof fetch; subject?: string; hosts?: (RegExp | string)[]; timer?: boolean }
+  unwetter?: { url?: string; fetchImpl?: typeof fetch }
   maps?: { bin?: string; source?: string; fetchImpl?: typeof fetch }
 }): Server

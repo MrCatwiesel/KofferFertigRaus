@@ -14,6 +14,7 @@
  *  - Kalender-Abo: Termine und Fristen für Kalender-Apps                          → kalender.mjs
  *  - Offline-Karten: Ausschnitte der Protomaps-Weltkarte (optional, Programm pmtiles) → maps.mjs
  *  - Push-Benachrichtigungen (Web Push): Erinnerungen und Änderungen anderer          → benachrichtigungen.mjs
+ *  - Unwetterwarnungen von MeteoAlarm, auch als Push-Benachrichtigung                → unwetter.mjs
  *  - Regel: pro Datensatz gewinnt die neuere Änderung (Zeitstempel), Löschungen werden mit übertragen
  *
  * Start:  NWW_KEYS=<schlüssel> node server.mjs
@@ -37,9 +38,10 @@ import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
 import { createKalender } from './kalender.mjs'
 import { createBenachrichtigungen } from './benachrichtigungen.mjs'
+import { createUnwetter } from './unwetter.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.18.0'
+export const VERSION = '1.19.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -47,7 +49,7 @@ const MAX_JSON = 30 * 1024 * 1024
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
  *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
- *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, reiseinfo?: { url?: string, fetchImpl?: typeof fetch }, push?: { fetchImpl?: typeof fetch, subject?: string, hosts?: (RegExp|string)[], timer?: boolean }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
+ *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, reiseinfo?: { url?: string, fetchImpl?: typeof fetch }, push?: { fetchImpl?: typeof fetch, subject?: string, hosts?: (RegExp|string)[], timer?: boolean }, unwetter?: { url?: string, fetchImpl?: typeof fetch }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
   const store = createStore(resolve(opts.dataDir))
@@ -66,7 +68,11 @@ export function createSyncServer(opts) {
   const reiseinfo = createReiseinfo({ ...(opts.reiseinfo ?? {}), version: VERSION })
   const kalender = createKalender(resolve(opts.dataDir), groups)
   const push = createBenachrichtigungen(store, members, opts.push ?? {})
-  if (opts.push?.timer !== false) push.start()
+  const unwetter = createUnwetter(store, push, { ...(opts.unwetter ?? {}), version: VERSION })
+  if (opts.push?.timer !== false) {
+    push.start()
+    unwetter.start()
+  }
   const app = opts.appDir ? createStatic(opts.appDir) : null
   const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
@@ -83,7 +89,7 @@ export function createSyncServer(opts) {
     const path = url.pathname.replace(/\/+$/, '')
 
     if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
-      return send(res, 200, { ok: true, app: 'koffer-fertig-raus-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true })
+      return send(res, 200, { ok: true, app: 'koffer-fertig-raus-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true, unwetter: true })
     }
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
@@ -195,6 +201,8 @@ export function createSyncServer(opts) {
     if (path.startsWith('/api/routing/')) return routing.handle(req, res, url, path)
 
     if (path.startsWith('/api/reiseinfo/')) return reiseinfo.handle(req, res, path)
+
+    if (path === '/api/unwetter' || path.startsWith('/api/unwetter/')) return unwetter.handle(req, res, path, auth)
 
     // Kalender-Abo: je Person eigenes (zeigt nur, was die Person sehen darf)
     if (path === '/api/kalender' || path === '/api/kalender/link') return kalender.handle(req, res, path, member ? `${space}:${member.id}` : space)
@@ -341,6 +349,7 @@ export function createSyncServer(opts) {
       devices.removeSpace(m[1])
       kalender.removeSpace(m[1])
       push.removeSpace(m[1])
+      unwetter.removeSpace(m[1])
       return send(res, 200, { ok: true })
     }
     throw new HttpError(405, 'Nicht erlaubt')
@@ -409,9 +418,11 @@ export function createSyncServer(opts) {
   })
   server.on('close', () => {
     push.stop()
+    unwetter.stop()
     store.close()
   })
   server.benachrichtigungen = push
+  server.unwetter = unwetter
   return server
 }
 
@@ -434,6 +445,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     routing: { overpassUrl: process.env.NWW_OVERPASS_URL || undefined, brouterUrl: process.env.NWW_BROUTER_URL || undefined },
     reiseinfo: { url: process.env.NWW_AA_URL || undefined },
     push: { subject: process.env.NWW_PUSH_KONTAKT || undefined },
+    unwetter: { url: process.env.NWW_METEOALARM_URL || undefined },
     deviceIdleDays: process.env.NWW_DEVICE_IDLE_DAYS ? Number(process.env.NWW_DEVICE_IDLE_DAYS) : undefined,
     maps: { bin: process.env.NWW_PMTILES || undefined, source: process.env.NWW_MAPS_SOURCE || undefined }
   })

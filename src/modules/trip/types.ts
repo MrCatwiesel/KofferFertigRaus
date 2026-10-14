@@ -30,6 +30,12 @@ export interface Trip {
    * Packliste, Medikamente, Impfungen und Dokumente.
    */
   memberLinks?: Record<string, string>
+  /** Unwetterwarnungen: für die Orte der Reise, das ganze Land oder aus; dazu von Hand beobachtete Regionen */
+  weatherAlerts?: {
+    scope: 'orte' | 'land' | 'aus'
+    regions: string[]
+    regionNames?: Record<string, string>
+  }
   createdAt: string
   updatedAt: string
 }

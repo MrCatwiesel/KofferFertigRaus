@@ -20,7 +20,8 @@ onMounted(async () => {
   if (!props.id) return
   const trip = await tripRepository.get(props.id)
   if (!trip) return router.replace('/trip')
-  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = trip
+  // weatherAlerts pflegt das Modul „Unwetter“ selbst – bleibt beim Speichern unberührt (update ändert nur Mitgegebenes)
+  const { id: _id, createdAt: _c, updatedAt: _u, weatherAlerts: _w, ...rest } = trip
   Object.assign(draft, { ...rest, participants: [...(rest.participants ?? [])], countries: [...(rest.countries ?? [])] })
   originalLinks.value = { ...(rest.memberLinks ?? {}) }
   links.value = { ...(rest.memberLinks ?? {}) }

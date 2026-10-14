@@ -142,6 +142,17 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
   Ausgehend braucht er dafür Internet (https, Port 443) – hinter einem Proxy wie bisher für Routenplaner und Reisehinweise.
 - Abgemeldete Geräte bekommen nichts mehr; meldet der Push-Dienst ein Abo als ungültig, vergisst der Server es.
 
+## Unwetterwarnungen (ab Server 1.19)
+
+- Quelle: [MeteoAlarm](https://meteoalarm.org) (EUMETNET) – die amtlichen Warnungen der Wetterdienste aus 38 Ländern Europas.
+  Der Server holt je Land die aktuelle Liste (10 Minuten zwischengespeichert, bei Ausfall bis 6 Stunden alte).
+- Die App schickt für die Anzeige Orte, Ortsnamen und gewählte Regionen der Reise mit (`/api/unwetter/pruefen`) und lädt
+  bei jedem Abgleich ihre Beobachtungsliste hoch (laufende und kommende Reisen, je Person).
+- Alle 15 Minuten prüft der Server die Reisen vom Vortag bis zum Tag nach der Reise und schickt neue Warnungen als
+  Push-Benachrichtigung – ab der am Gerät gewählten Stufe (Standard: orange). Gleiche Warnart, Stufe und Tag kommen je
+  Gerät nur einmal (auch wenn der Wetterdienst die Warnung verlängert oder neu fasst).
+- Ausgehend braucht der Server dafür Zugriff auf `feeds.meteoalarm.org` (https).
+
 ## Offline-Karten
 
 Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.
@@ -187,6 +198,7 @@ docker compose up -d --build
 | `NWW_DEVICE_IDLE_DAYS` | Geräte, die so viele Tage nicht abgeglichen haben, werden abgemeldet (Standard 180, `0` = nie) |
 | `NWW_OVERPASS_URL` / `NWW_BROUTER_URL` | Eigene Instanzen für Wanderwege-Suche bzw. Routenplaner (Standard: overpass-api.de, brouter.de) |
 | `NWW_AA_URL` | OpenData-Adresse des Auswärtigen Amts (Standard: `https://www.auswaertiges-amt.de/opendata`) |
+| `NWW_METEOALARM_URL` | Adresse der Unwetterwarnungen von MeteoAlarm (Standard: `https://feeds.meteoalarm.org/api/v1/warnings`) |
 | `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
 | `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
 | `NWW_PUSH_KONTAKT` | Kontakt für die Push-Dienste (`mailto:…` oder `https://…`, Standard: Projektseite auf GitHub) |
@@ -230,9 +242,11 @@ docker compose up -d --build
 | GET/PUT | `/api/kalender` | Kalender-Abo: Stand abfragen bzw. Kalenderdatei hochladen (macht die App selbst) |
 | POST/DELETE | `/api/kalender/link` | geheime Abo-Adresse anlegen/erneuern bzw. Abo beenden |
 | GET | `/api/benachrichtigungen` | öffentlicher VAPID-Schlüssel, Abo dieses Geräts, Zahl der geplanten Erinnerungen |
-| PUT/PATCH/DELETE | `/api/benachrichtigungen/abo` | Abo dieses Geräts anlegen `{ endpoint, keys: { p256dh, auth }, prefs }`, Einstellungen ändern `{ prefs: { erinnerungen, aenderungen } }`, löschen (nur mit Gerätezugang) |
+| PUT/PATCH/DELETE | `/api/benachrichtigungen/abo` | Abo dieses Geräts anlegen `{ endpoint, keys: { p256dh, auth }, prefs }`, Einstellungen ändern `{ prefs: { erinnerungen, aenderungen, unwetter, unwetterStufe } }`, löschen (nur mit Gerätezugang) |
 | POST | `/api/benachrichtigungen/test` | Testnachricht an dieses Gerät |
 | PUT | `/api/benachrichtigungen/zeitplan` | Erinnerungen der Person ersetzen `{ items: [{ id, at, title, body, url }] }` (höchstens 500; schon geschickte kommen nicht noch einmal) |
+| POST | `/api/unwetter/pruefen` | aktuelle Unwetterwarnungen eines Landes `{ country, scope: orte\|land, points: [[lat, lon]], names, regions }`; passende mit `match: { how: region\|ort\|name\|land, area }` |
+| PUT | `/api/unwetter/beobachten` | Beobachtungsliste der Person ersetzen `{ items: [{ trip, title, countries, from, to, scope, points, names, regions }] }` (höchstens 50) |
 | GET | `/api/kalender/<geheim>.ics` | **öffentlich**: die Kalenderdatei für Kalender-Apps (nur mit der geheimen Adresse) |
 | GET | `/api/reiseinfo/<CC>/vertretungen` | Deutsche Botschaft, Konsulate und Honorarkonsuln im Land (24 h zwischengespeichert) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |

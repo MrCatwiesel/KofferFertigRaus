@@ -34,7 +34,7 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
   }, fake)
 
   // Eine Reise in 10 Tagen → Erinnerung am Vorabend
-  await seed(page, { trips: [trip({ id: 'push1', title: 'Gardasee', startDate: localDate(10), endDate: localDate(14) })] })
+  await seed(page, { trips: [trip({ id: 'push1', title: 'Gardasee', countries: ['IT'], startDate: localDate(10), endDate: localDate(14) })] })
   await connect(page, KEY3, 'Klicktest Push')
 
   await page.locator('[data-push-link]').getByRole('link').click()
@@ -42,6 +42,7 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
   await expect(page.locator('[data-push-card]')).toContainText('Ausgeschaltet')
   // Nach dem Einschalten lädt die App den Zeitplan (wenige Sekunden später) hoch
   const zeitplan = page.waitForResponse((r) => r.url().endsWith('/api/benachrichtigungen/zeitplan') && r.request().method() === 'PUT', { timeout: 20_000 })
+  const beobachten = page.waitForResponse((r) => r.url().endsWith('/api/unwetter/beobachten') && r.request().method() === 'PUT', { timeout: 20_000 })
   await page.locator('[data-push-on]').click()
   await expect(page.getByText('Benachrichtigungen sind eingeschaltet')).toBeVisible()
   await expect(page.locator('[data-push-card]')).toContainText('Eingeschaltet')
@@ -54,7 +55,15 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
   await page.locator('#push-aenderungen').check()
   await expect(page.locator('#push-aenderungen')).toBeEnabled()
 
+  // Unwetterwarnungen: Standard an, ab Orange; Reise mit Zielland wird zum Beobachten hochgeladen
+  await expect(page.locator('#push-unwetter')).toBeChecked()
+  await expect(page.locator('#push-unwetter-stufe')).toHaveValue('3')
+  await page.locator('#push-unwetter-stufe').selectOption('2')
+  await expect(page.locator('#push-unwetter-stufe')).toBeEnabled()
+  await expect(page.locator('#push-unwetter-stufe')).toHaveValue('2')
+
   expect(await (await zeitplan).json()).toMatchObject({ ok: true, geplant: 1 })
+  expect(await (await beobachten).json()).toMatchObject({ ok: true, beobachtet: 1 })
   await page.reload()
   await expect(page.locator('[data-push-card]')).toContainText('1 Erinnerung geplant')
   await expect(page.locator('#push-aenderungen')).toBeChecked()

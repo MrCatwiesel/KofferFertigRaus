@@ -48,6 +48,7 @@ function turnOn() {
 const turnOff = () => run(disablePush, 'Benachrichtigungen sind auf diesem Gerät ausgeschaltet.')
 const test = () => run(sendTestPush, 'Testnachricht ist unterwegs – sie sollte in ein paar Sekunden erscheinen.')
 const toggle = (key: keyof PushPrefs, on: boolean) => run(() => setPushPrefs({ [key]: on }))
+const setLevel = (v: string) => run(() => setPushPrefs({ unwetterStufe: Number(v) as 2 | 3 | 4 }))
 
 const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '')
 </script>
@@ -56,7 +57,7 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
   <div class="mb-3">
     <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Geräte-Abgleich</RouterLink>
     <h1 class="h3 mb-0 mt-1">Benachrichtigungen</h1>
-    <p class="text-body-secondary small mb-0 on-bg">Erinnerungen an Fristen und Termine – auch wenn die App geschlossen ist. Gilt für dieses Gerät.</p>
+    <p class="text-body-secondary small mb-0 on-bg">Erinnerungen an Fristen und Termine, Neues von den Mitreisenden und Unwetterwarnungen – auch wenn die App geschlossen ist. Gilt für dieses Gerät.</p>
   </div>
 
   <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
@@ -129,6 +130,24 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
               Neues von den Mitreisenden
               <span class="d-block small text-body-secondary">z. B. „Dolomiten: Birgit – Neu: ein Tagebucheintrag, 5 Fotos“ – gebündelt, höchstens alle 15 Minuten je Reise</span>
             </label>
+          </div>
+          <!-- Ältere Server (vor 1.19) kennen keine Unwetterwarnungen – dann fehlt die Einstellung -->
+          <div v-if="abo.prefs.unwetter !== undefined" class="mb-3" data-push-unwetter>
+            <div class="form-check form-switch mb-1">
+              <input id="push-unwetter" class="form-check-input" type="checkbox" :checked="abo.prefs.unwetter" :disabled="busy" @change="toggle('unwetter', ($event.target as HTMLInputElement).checked)" />
+              <label class="form-check-label" for="push-unwetter">
+                Unwetterwarnungen
+                <span class="d-block small text-body-secondary">Amtliche Warnungen (MeteoAlarm) für die Orte laufender und kommender Reisen – ab dem Vortag der Reise</span>
+              </label>
+            </div>
+            <div v-if="abo.prefs.unwetter" class="ms-5 d-flex align-items-center gap-2 small">
+              <label for="push-unwetter-stufe">ab Stufe</label>
+              <select id="push-unwetter-stufe" class="form-select form-select-sm w-auto" :value="abo.prefs.unwetterStufe ?? 3" :disabled="busy" @change="setLevel(($event.target as HTMLSelectElement).value)">
+                <option value="2">Gelb (Achtung)</option>
+                <option value="3">Orange (Gefährlich)</option>
+                <option value="4">Rot (Sehr gefährlich)</option>
+              </select>
+            </div>
           </div>
           <button type="button" class="btn btn-outline-primary btn-sm" :disabled="busy" data-push-test @click="test"><i class="bi bi-send me-1" aria-hidden="true"></i>Testnachricht senden</button>
           <div v-if="abo.lastError" class="small text-danger mt-2"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Zuletzt: {{ abo.lastError }}</div>

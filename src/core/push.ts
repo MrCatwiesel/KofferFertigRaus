@@ -11,6 +11,10 @@ import { ServerClient } from './sync/client'
 export interface PushPrefs {
   erinnerungen: boolean
   aenderungen: boolean
+  /** Unwetterwarnungen (ab Server 1.19) */
+  unwetter?: boolean
+  /** ab Stufe 2 gelb, 3 orange, 4 rot */
+  unwetterStufe?: 2 | 3 | 4
 }
 
 /** Antwort von GET /api/benachrichtigungen */

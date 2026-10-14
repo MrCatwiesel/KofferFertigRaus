@@ -28,6 +28,11 @@ export const tripRepository = {
     await db.trips.update(id, { cover, coverY, updatedAt: now() })
   },
 
+  /** Einstellung der Unwetterwarnungen (Modul „Unwetter“) */
+  async setWeatherAlerts(id: string, weatherAlerts: NonNullable<Trip['weatherAlerts']>): Promise<void> {
+    await db.trips.update(id, { weatherAlerts: JSON.parse(JSON.stringify(weatherAlerts)), updatedAt: now() })
+  },
+
   async setArchived(id: string, archived: boolean): Promise<void> {
     await db.trips.update(id, { archived, updatedAt: now() })
   },

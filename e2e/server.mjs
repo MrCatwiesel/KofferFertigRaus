@@ -1,5 +1,5 @@
 // Startet den Abgleich-Server für die Klicktests: App aus dist/, Daten in einem frischen Temp-Ordner.
-// Die freien Kartendienste (Overpass, BRouter) und das Auswärtige Amt werden nachgebaut – die Tests brauchen kein Internet.
+// Die freien Kartendienste (Overpass, BRouter), das Auswärtige Amt und MeteoAlarm werden nachgebaut – die Tests brauchen kein Internet.
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -51,6 +51,33 @@ async function fakeAuswaertigesAmt(url) {
   return new Response('nicht da', { status: 404 })
 }
 
+/**
+ * Nachgebautes MeteoAlarm (Zeiten relativ zu jetzt): Österreich mit Gewitter (orange, Umriss um Fusch),
+ * Sturm (gelb, Gebiet „Zell am See“ nur als Name) und Schnee in Tirol; andere Länder ohne Warnungen.
+ */
+async function fakeMeteoAlarm(url) {
+  if (!String(url).endsWith('/feeds-austria')) return json({ warnings: [] })
+  const iso = (h) => new Date(Date.now() + h * 3600_000).toISOString()
+  const alert = (id, level, type, area, code, polygon) => ({
+    alert: {
+      identifier: id, msgType: 'Alert', status: 'Actual', sent: iso(0),
+      info: [{
+        language: 'de-DE', event: type, headline: `Warnung: ${area}`, description: 'Gefahr durch Unwetter.', instruction: 'Im Haus bleiben.',
+        senderName: 'GeoSphere Austria', onset: iso(-1), expires: iso(30),
+        parameter: [{ valueName: 'awareness_level', value: level }, { valueName: 'awareness_type', value: type }],
+        area: [{ areaDesc: area, geocode: [{ valueName: 'EMMA_ID', value: code }], ...(polygon ? { polygon: [polygon] } : {}) }]
+      }]
+    }
+  })
+  return json({
+    warnings: [
+      alert('e2e-gewitter', '3; orange; Severe', '3; Thunderstorm', 'Pinzgau', 'AT005', '47.0,12.5 47.5,12.5 47.5,13.0 47.0,13.0'),
+      alert('e2e-sturm', '2; yellow; Moderate', '1; Wind', 'Zell am See', 'AT006'),
+      alert('e2e-schnee', '2; yellow; Moderate', '2; snow-ice', 'Tirol Oberland', 'AT007')
+    ]
+  })
+}
+
 /** Nachgebauter Push-Dienst: nimmt jede Nachricht an (echte Dienste prüfen Abo und Schlüssel) */
 const fakePushDienst = async () => new Response(null, { status: 201 })
 
@@ -60,6 +87,7 @@ const server = createSyncServer({
   appDir: join(import.meta.dirname, '..', 'dist'),
   routing: { fetchImpl: fakeKartendienste },
   reiseinfo: { fetchImpl: fakeAuswaertigesAmt },
-  push: { fetchImpl: fakePushDienst, hosts: ['push.example'] }
+  push: { fetchImpl: fakePushDienst, hosts: ['push.example'] },
+  unwetter: { fetchImpl: fakeMeteoAlarm }
 })
 server.listen(port, () => console.log(`Klicktest-Server auf ${port}`))

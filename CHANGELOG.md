@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.34.0 – 2026-10-14 (Server 1.19.0)
+
+### Neu: Unwetterwarnungen
+- Neuer Bereich **Unwetterwarnungen** auf der Reiseseite (Planung und Unterwegs): amtliche Warnungen der Wetterdienste aus 38 Ländern Europas über [MeteoAlarm](https://meteoalarm.org) – Sturm, Gewitter, Starkregen, Schnee und Glätte, Hitze, Waldbrandgefahr, Lawinen …
+- **Für eure Orte:** Die App erkennt passende Warnungen an den Orten auf der Karte (Unterkünfte, Unternehmungen), am Wetter-Ort des Tagesplaners, am Reiseziel und an den Adressen der Unterkünfte. Wahlweise **ganzes Land** oder **aus** (je Reise)
+- **Region beobachten:** Weitere Warnungen im Land stehen eingeklappt darunter; mit „beobachten“ zählt eine Region künftig immer
+- Je Warnung Stufe (gelb, orange, rot), Gebiet, Zeitraum, „läuft gerade“ sowie Beschreibung und Empfehlung des Wetterdienstes
+- **Im Tagesplaner** erscheint ein Hinweis, wenn für den gewählten Tag eine Warnung gilt
+- **Als Push-Benachrichtigung** (wenn eingeschaltet): Der Server prüft alle 15 Minuten die laufenden und kommenden Reisen (ab dem Vortag) und meldet neue Warnungen, z. B. „Dolomiten: Orange – Gewitter · Bozen · Do 15.10. 14:00 – 22:00“. Unter *Benachrichtigungen* ein- und ausschaltbar, ab Stufe Gelb, Orange (Standard) oder Rot
+- Braucht den eigenen Server ab Version 1.19 (`update.sh`); der Server braucht Zugriff auf `feeds.meteoalarm.org`
+
 ## 1.33.1 – 2026-10-14 (Server 1.18.0)
 
 ### Neuer Name auch auf dem Server

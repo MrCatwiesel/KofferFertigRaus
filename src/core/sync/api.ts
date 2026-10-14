@@ -59,8 +59,17 @@ export async function loginDevice(
   return (await postLogin(server, { name: opts.name }, opts.key)) as unknown as LoginResult
 }
 
-/** Einladung prüfen, ohne sie zu verbrauchen: Für wen ist sie, muss ein Passwort festgelegt werden? */
-export async function checkInvite(server: string, invite: string): Promise<{ group: string; person: string | null; needsPassword: boolean }> {
+/**
+ * Einladung prüfen, ohne sie zu verbrauchen: Für wen ist sie, muss ein Passwort festgelegt werden?
+ * Ältere Server (vor 1.16) kennen das nicht – sie würden die Einladung dabei verbrauchen → vorher fragen, null = nicht unterstützt.
+ */
+export async function checkInvite(server: string, invite: string): Promise<{ group: string; person: string | null; needsPassword: boolean } | null> {
+  try {
+    const h = await fetch(`${server}/api/health`, { cache: 'no-store' })
+    if (!(await h.json()).people) return null
+  } catch {
+    return null
+  }
   return (await postLogin(server, { invite, check: true })) as unknown as { group: string; person: string | null; needsPassword: boolean }
 }
 

@@ -79,7 +79,7 @@ export function createSyncServer(opts) {
     const path = url.pathname.replace(/\/+$/, '')
 
     if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
-      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true })
+      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true, people: true })
     }
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)

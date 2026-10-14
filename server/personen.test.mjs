@@ -49,6 +49,10 @@ after(async () => {
   rmSync(dir, { recursive: true, force: true })
 })
 
+test('Lebenszeichen nennt die Personen-Funktion (App fragt Einladungen nur dann vorab)', async () => {
+  assert.equal((await call('GET', '/api/health')).body.people, true)
+})
+
 test('Passwort-Hilfen', () => {
   const h = hashPassword('geheim-123')
   assert.ok(checkPassword('geheim-123', h))

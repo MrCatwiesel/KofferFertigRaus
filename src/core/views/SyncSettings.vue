@@ -102,8 +102,8 @@ async function connect() {
       // Einladung für eine Person: erst fragen, ob ein Passwort festgelegt werden muss
       if (isCode.value && !invitePerson.value) {
         const c = await checkInvite(normalized.value, key.value.trim().toUpperCase().replace(/[\s-]/g, ''))
-        if (c.person) invitePerson.value = { person: c.person, needsPassword: c.needsPassword }
-        if (c.needsPassword) {
+        if (c?.person) invitePerson.value = { person: c.person, needsPassword: c.needsPassword }
+        if (c?.needsPassword) {
           message.value = { type: 'info', text: `Einladung für ${c.person} (${c.group}). Leg jetzt dein Passwort fest – damit meldest du später weitere Geräte an.` }
           return
         }

@@ -4,6 +4,7 @@ import { useLiveQuery } from '@/core/composables'
 import { todayIso } from '@/core/dates'
 import { KIND_LABEL, groupOf, type Reminder, type ReminderGroup } from '@/core/reminders'
 import { syncState } from '@/core/sync/engine'
+import { pushState } from '@/core/push'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { aboStatus, aboUrls, disableAbo, enableAbo, remindersOfTrip, shareIcs, tripIcs, type AboStatus } from '../calendar'
 
@@ -156,6 +157,16 @@ const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { da
             <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Kalender-Abo einrichten
           </button>
         </template>
+      </div>
+
+      <div v-if="syncState.configured" class="mb-3" data-push-hint>
+        <div class="fw-semibold">Als Benachrichtigung</div>
+        <p class="small text-body-secondary mb-2">
+          Ohne Kalender: Die App selbst meldet sich zur selben Zeit auf dem Gerät – auch wenn sie geschlossen ist.
+        </p>
+        <RouterLink to="/benachrichtigungen" class="btn btn-outline-primary btn-sm">
+          <i class="bi me-1" :class="pushState.active ? 'bi-bell-fill' : 'bi-bell'" aria-hidden="true"></i>{{ pushState.active ? 'Benachrichtigungen sind an' : 'Benachrichtigungen einrichten' }}
+        </RouterLink>
       </div>
 
       <div>

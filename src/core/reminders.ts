@@ -3,6 +3,7 @@
  * hier werden sie gesammelt, sortiert und als Kalenderdatei (iCalendar, RFC 5545) ausgegeben.
  * Reine Logik ohne Datenbank (testbar).
  */
+import { diffDays } from './dates'
 
 export type ReminderKind = 'frist' | 'termin' | 'reise' | 'pruefen'
 
@@ -150,4 +151,48 @@ export function buildIcs(reminders: Reminder[], opts: { name: string; appUrl?: s
   }
   lines.push('END:VCALENDAR')
   return lines.map(foldLine).join('\r\n') + '\r\n'
+}
+
+// ---------------------------------------------------------------- Push-Benachrichtigungen
+
+/** Eine Erinnerung für den Server (Zeitpunkt absolut, UTC) */
+export interface PushItem {
+  id: string
+  /** Zeitpunkt der Benachrichtigung (ISO, UTC) */
+  at: string
+  title: string
+  body: string
+  /** Link in der App (#/…) */
+  url: string
+}
+
+const pad = (n: number) => String(n).padStart(2, '0')
+const localIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
+
+/** „heute 14:30“, „morgen“, „in 3 Tagen (Fr., 24.10.)“ – vom Zeitpunkt der Benachrichtigung aus gesehen */
+export function whenLabel(r: Reminder, at: Date): string {
+  const days = diffDays(localIso(at), r.date)
+  const day = days === 0 ? 'heute' : days === 1 ? 'morgen' : days === 2 ? 'übermorgen' : `in ${days} Tagen (${new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }).format(new Date(`${r.date}T12:00:00Z`))})`
+  return r.time ? `${day} ${r.time} Uhr` : day
+}
+
+/**
+ * Zeitplan für Push-Benachrichtigungen: je Termin ein Zeitpunkt (Beginn minus Vorwarnung, in der Zeitzone
+ * des Geräts – wie im Kalender). Nur, was noch kommt und in `days` Tagen fällig wird.
+ */
+export function pushItems(reminders: Reminder[], now: Date = new Date(), days = 60): PushItem[] {
+  const until = now.getTime() + days * 86400_000
+  const out: PushItem[] = []
+  for (const r of sortReminders(reminders)) {
+    const alarm = defaultAlarm(r)
+    if (alarm < 0) continue
+    const [y, m, d] = r.date.split('-').map(Number)
+    const [hh, mm] = (r.time ?? '00:00').split(':').map(Number)
+    const at = new Date(y, m - 1, d, hh, mm - alarm)
+    if (at.getTime() <= now.getTime() || at.getTime() > until) continue
+    const detail = (r.detail ?? '').split('\n').map((s) => s.trim()).filter(Boolean)
+    const body = [whenLabel(r, at), ...detail, r.location].filter(Boolean).join(' · ')
+    out.push({ id: r.id, at: at.toISOString(), title: r.title, body: body.slice(0, 300), url: r.to ? `#${r.to}` : '' })
+  }
+  return out.slice(0, 500)
 }

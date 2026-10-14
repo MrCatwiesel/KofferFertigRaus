@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.32.0 – 2026-10-14 (Server 1.17.0)
+
+### Neu: Push-Benachrichtigungen
+- **Benachrichtigungen aufs Gerät** (*Geräte-Abgleich → Benachrichtigungen*): einmal einschalten, das Gerät fragt nach der Erlaubnis. Gilt je Gerät; „Testnachricht senden“ zeigt, ob alles ankommt
+- **Erinnerungen an Termine und Fristen** – Stornofrist, Check-in, Abfahrt, Impftermin, Reisebeginn – mit derselben Vorwarnung wie im Kalender (Fristen 2 Tage, Termine 2 Stunden, Reisebeginn am Vorabend 18 Uhr). Sie kommen pünktlich, auch wenn die App geschlossen ist; geplant wird bei jedem Abgleich
+- **Neues von den Mitreisenden** (wahlweise): z. B. „Dolomiten: Birgit – Neu: ein Tagebucheintrag, 5 Fotos“. Gebündelt, höchstens alle 15 Minuten je Reise, nur was du auch sehen darfst – private Einträge anderer nie
+- Antippen öffnet die passende Stelle in der App
+- **iPad/iPhone:** nur für die App auf dem Home-Bildschirm (Safari → Teilen → „Zum Home-Bildschirm“, ab iOS 16.4). Die App erklärt das, wenn sie im Browser läuft
+- Die Nachrichten sind verschlüsselt – der Push-Dienst von Apple bzw. Google kann sie nicht lesen. Der Server braucht dafür keine Einrichtung, nur das Update auf 1.17
+- Bei *Termine & Fristen* steht der Weg zu den Benachrichtigungen neben dem Kalender-Abo
+
 ## 1.31.1 – 2026-10-14
 
 ### Korrigiert: Karten auf der Reise-Webseite

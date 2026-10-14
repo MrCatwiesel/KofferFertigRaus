@@ -166,6 +166,7 @@ test('Abo nur mit Geräte-Anmeldung und nur für Push-Dienste', async () => {
   assert.deepEqual(r.body.prefs, { erinnerungen: true, aenderungen: false })
   const st = (await call('GET', '/api/benachrichtigungen', s.marco)).body
   assert.equal(st.abo.endpointHost, 'push.example')
+  assert.equal(st.geraete, 1)
 })
 
 test('Testnachricht kommt verschlüsselt beim Gerät an', async () => {
@@ -238,9 +239,9 @@ test('Änderungen anderer: gebündelt, nicht an sich selbst, nur Sichtbares', as
   const ch = (tbl, id, data) => ({ tbl, id, stamp, deleted: false, data })
   // Marco legt die Reise an – Birgit sieht sie
   await call('POST', '/api/push', s.marco, { changes: [ch('trips', 't1', { id: 't1', title: 'Dolomiten', memberLinks: { Marco: (await call('GET', '/api/info', s.marco)).body.member.id } })] })
-  // Birgit schreibt Tagebuch und lädt Fotos; dazu ein privater Packlisten-Eintrag von Marco
+  // Birgit schreibt Tagebuch und lädt Fotos; dazu ein privates Dokument von Marco
   await call('POST', '/api/push', s.birgit, { changes: [ch('journalEntries', 'j1', { id: 'j1', tripId: 't1' }), ch('photos', 'p1', { id: 'p1', tripId: 't1' }), ch('photos', 'p2', { id: 'p2', tripId: 't1' })] })
-  await call('POST', '/api/push', s.marco, { changes: [ch('packingItems', 'k1', { id: 'k1', tripId: 't1', person: 'Marco', name: 'Zahnbürste' })] })
+  await call('POST', '/api/push', s.marco, { changes: [ch('documents', 'd1', { id: 'd1', tripId: 't1', person: 'Marco', title: 'Allergiepass' })] })
 
   outbox.length = 0
   const t = Date.now()
@@ -249,9 +250,9 @@ test('Änderungen anderer: gebündelt, nicht an sich selbst, nur Sichtbares', as
   const toMarco = sentTo(s.ipad)
   assert.equal(toMarco.length, 1)
   assert.deepEqual(toMarco[0], { title: 'Dolomiten: Birgit', body: 'Neu: ein Tagebucheintrag, 2 Fotos', url: '#/trip/t1', tag: 'trip:t1' })
-  // Birgit: Marcos Reise ja (Anlegen), der private Packlisten-Eintrag nicht
+  // Birgit: Anlegen der Reise zählt nicht, Marcos privates Dokument sieht sie nicht
   const toBirgit = sentTo(s.handy)
-  assert.equal(toBirgit.length, 0, 'Reise selbst zählt nicht, Packliste ist privat')
+  assert.equal(toBirgit.length, 0, 'Reise selbst zählt nicht, Dokument ist privat')
 
   // Gleich danach noch ein Foto → wartet die 15 Minuten ab
   await call('POST', '/api/push', s.birgit, { changes: [ch('photos', 'p3', { id: 'p3', tripId: 't1' })] })

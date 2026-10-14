@@ -7,6 +7,7 @@ import { configureSync, currentKey, disconnectSync, logoutThisDevice, suggestedD
 import { ServerClient, type ServerInfo } from '../sync/client'
 import { LoginError, checkInvite } from '../sync/api'
 import { ROLE_LABEL, people } from '../people'
+import { pushState } from '../push'
 import DevicesCard from './DevicesCard.vue'
 
 const route = useRoute()
@@ -263,6 +264,18 @@ async function copyKey() {
           <div class="col-12 col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100" :disabled="pwChange.pw.length < 8 || pwChange.pw !== pwChange.pw2">Ändern</button></div>
         </form>
       </div>
+    </div>
+  </div>
+
+  <!-- Benachrichtigungen (Server 1.17) -->
+  <div v-if="syncState.configured && !syncState.revoked" class="card mb-3" data-push-link>
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi fs-3 text-primary" :class="pushState.active ? 'bi-bell-fill' : 'bi-bell'" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="fw-semibold">Benachrichtigungen</div>
+        <div class="small text-body-secondary">{{ pushState.active ? 'Auf diesem Gerät eingeschaltet' : 'Erinnerungen an Fristen und Termine aufs Gerät' }}</div>
+      </div>
+      <RouterLink to="/benachrichtigungen" class="btn btn-outline-primary stretched-link">{{ pushState.active ? 'Ändern' : 'Einrichten' }}</RouterLink>
     </div>
   </div>
 

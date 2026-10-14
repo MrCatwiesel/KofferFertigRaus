@@ -9,6 +9,8 @@ const port = Number(process.argv[2] ?? 8791)
 export const KEY = 'klicktest-schluessel-1234567890'
 /** Eigene Reisegruppe für den Personen-Test (stört die anderen Tests nicht) */
 export const KEY2 = 'klicktest-personen-0987654321'
+/** Eigene Reisegruppe für den Benachrichtigungs-Test */
+export const KEY3 = 'klicktest-push-1122334455'
 
 const json = (body) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
 async function fakeKartendienste(url, init = {}) {
@@ -49,11 +51,15 @@ async function fakeAuswaertigesAmt(url) {
   return new Response('nicht da', { status: 404 })
 }
 
+/** Nachgebauter Push-Dienst: nimmt jede Nachricht an (echte Dienste prüfen Abo und Schlüssel) */
+const fakePushDienst = async () => new Response(null, { status: 201 })
+
 const server = createSyncServer({
-  keys: [KEY, KEY2],
+  keys: [KEY, KEY2, KEY3],
   dataDir: mkdtempSync(join(tmpdir(), 'nww-e2e-')),
   appDir: join(import.meta.dirname, '..', 'dist'),
   routing: { fetchImpl: fakeKartendienste },
-  reiseinfo: { fetchImpl: fakeAuswaertigesAmt }
+  reiseinfo: { fetchImpl: fakeAuswaertigesAmt },
+  push: { fetchImpl: fakePushDienst, hosts: ['push.example'] }
 })
 server.listen(port, () => console.log(`Klicktest-Server auf ${port}`))

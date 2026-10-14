@@ -31,7 +31,7 @@ const TICK_MS = 60_000
 const COLLECT_MS = 3 * 60_000
 const COOLDOWN_MS = 15 * 60_000
 
-/** Was bei „Änderungen anderer“ zählt (Tabelle → Artikel, Einzahl, Mehrzahl) */
+/** Was bei „Änderungen anderer“ zählt (Tabelle → Artikel, Einzahl, Mehrzahl) – Packliste nicht (wird ständig abgehakt) */
 export const CHANGE_LABELS = {
   journalEntries: ['ein', 'Tagebucheintrag', 'Tagebucheinträge'],
   photos: ['ein', 'Foto', 'Fotos'],
@@ -42,8 +42,7 @@ export const CHANGE_LABELS = {
   travelLegs: ['ein', 'Reiseabschnitt', 'Reiseabschnitte'],
   expenses: ['eine', 'Ausgabe', 'Ausgaben'],
   places: ['ein', 'Ort', 'Orte'],
-  documents: ['ein', 'Dokument', 'Dokumente'],
-  packingItems: ['ein', 'Packlisten-Eintrag', 'Packlisten-Einträge']
+  documents: ['ein', 'Dokument', 'Dokumente']
 }
 
 export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false }
@@ -413,7 +412,9 @@ export function createBenachrichtigungen(store, members, opts = {}) {
           publicKey: vapid.publicKey,
           abo: row ? { endpointHost: new URL(row.endpoint).hostname, prefs: prefsOf(row), created: row.created, lastOk: row.last_ok, lastError: row.last_error } : null,
           geplant: open.n,
-          naechste: open.next ?? null
+          naechste: open.next ?? null,
+          // Geräte dieser Person mit Erinnerungen – dann hält jedes ihrer Geräte den Zeitplan aktuell
+          geraete: subsOf(space, 'erinnerungen').filter((s) => (member ? s.member === member.id : !s.member)).length
         })
       }
       if (!device) throw new HttpError(400, 'Benachrichtigungen brauchen eine Geräte-Anmeldung (Geräte-Abgleich → Verbindung).')

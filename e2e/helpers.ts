@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 
 export const KEY = 'klicktest-schluessel-1234567890'
 export const KEY2 = 'klicktest-personen-0987654321'
+export const KEY3 = 'klicktest-push-1122334455'
 export const NOW = '2026-07-01T10:00:00.000Z'
 
 /** Heutiges Datum (+ Tage) so, wie die App im Testbrowser es sieht – dort gilt Europe/Berlin (playwright.config.ts),

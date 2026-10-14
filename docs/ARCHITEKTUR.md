@@ -67,6 +67,14 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - Gespeichert werden vereinfachte Punkte (`points` ≤ 2000, `preview` ≤ 400) plus Kennzahlen aus **allen** Punkten; die Originaldatei als Anhang (wird wie Fotos abgeglichen).
 - Lese-Links bekommen nur `preview` (≤ 600 Punkte), Name, Farbe, Tag und Kennzahlen – keine Notizen, keine Originaldatei.
 
+## Push-Benachrichtigungen (Web Push)
+
+- **Server** (`server/benachrichtigungen.mjs`, ohne Pakete): VAPID-Schlüssel (RFC 8292) einmal erzeugt in `settings`, Verschlüsselung `aes128gcm` (RFC 8291) mit `node:crypto`, geprüft gegen das Beispiel aus dem RFC. Tabellen `push_subs` (Abo je Gerät, Einstellungen `erinnerungen`/`aenderungen`) und `push_schedule` (Zeitplan je Person `space:member`, gesendete bleiben 3 Tage stehen → nichts doppelt). Takt jede Minute. Nur an bekannte Push-Dienste (`PUSH_HOSTS`), kein Weiterleiten ins Heimnetz.
+- **Erinnerungen:** Der Server kennt die Termine nicht (Module rechnen sie in der App aus). `pushItems` (`core/reminders.ts`) macht aus den Terminen Zeitpunkte – Beginn minus `defaultAlarm`, in der Zeitzone des Geräts; das Modul Termine (`push-zeitplan.ts`) lädt sie nach jedem Abgleich hoch, wenn die Person irgendwo Erinnerungen eingeschaltet hat (`geraete` > 0).
+- **Neues von Mitreisenden:** `/api/push` meldet übernommene Änderungen an `noteChanges`; je Gerät und Reise gesammelt (3 min), höchstens alle 15 min, nur Sichtbares (`accessFor`), nie an die Person, die geändert hat. Bündel liegen nur im Speicher.
+- **App:** `core/push.ts` (Abo beim Browser, Anmelden beim Server, `startPush` hält es aktuell), `core/views/PushSettings.vue` (`/benachrichtigungen`). Der Service Worker bleibt von Workbox erzeugt; `public/push-sw.js` kommt per `importScripts` dazu (Anzeigen, Antippen → `postMessage` an die offene App bzw. App öffnen).
+- iOS: nur als installierte App (Home-Bildschirm, ab 16.4), `requestPermission` direkt im Klick.
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.
@@ -91,4 +99,5 @@ Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugeh
 | 2026-10-12 | Mitgelieferte Schriften (@fontsource, OFL) | sehen auf allen Geräten gleich aus, offline nutzbar, im Export eingebettet |
 | 2026-10-11 | Piwigo über den Abgleich-Server statt direkt aus der App | Safari blockiert Cookies fremder Seiten; Schlüssel bleibt auf dem Server; Piwigo muss nicht öffentlich sein |
 | 2026-10-11 | Tagebuch behält verkleinerte Kopie (2048 px), Original nach Piwigo | offline nutzbar, volle Qualität in der Galerie; Wunsch des Nutzers |
+| 2026-10-14 | Push-Benachrichtigungen über den eigenen Server (Web Push, VAPID ohne Pakete), Zeitplan von der App | Erinnerungen auch bei geschlossener App; Termine entstehen in den Modulen, der Server bleibt dumm; keine Fremddienste außer dem Push-Dienst des Geräts |
 | 2026-10-03 | Teilnehmer als Namensliste an der Reise (`participants`), Module speichern den Namen im Feld `person` | einfach, offline, ohne eigene Personen-Tabelle; `PersonSelect` aus `trip/public` für alle Formulare |

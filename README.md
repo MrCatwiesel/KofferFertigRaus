@@ -110,6 +110,7 @@ docs/
 Damit Handys, Tablet und PC automatisch dieselben Daten haben: Server nach [server/README.md](server/README.md) einrichten
 (Proxmox zu Hause: [server/proxmox/README.md](server/proxmox/README.md)),
 dann in der App *Einstellungen → Geräte-Abgleich*.
+Dort lassen sich auch **Push-Benachrichtigungen** einschalten (Erinnerungen an Fristen und Termine, Neues von den Mitreisenden).
 
 ## Spenden einrichten
 

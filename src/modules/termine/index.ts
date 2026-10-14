@@ -5,6 +5,7 @@ import { todayIso } from '@/core/dates'
 import { formatDate } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { asReminderTrip, startCalendarSync } from './calendar'
+import { startPushSchedule } from './push-zeitplan'
 
 /** Modul „Termine & Fristen“: sammelt, was die anderen Bereiche an Daten kennen – und gibt es an den Kalender. */
 export const termineModule: AppModule = {
@@ -35,5 +36,8 @@ export const termineModule: AppModule = {
       return parts.join(' · ') || 'Keine offenen Termine – Kalender-Abo möglich'
     }
   },
-  onStart: startCalendarSync
+  onStart: () => {
+    startCalendarSync()
+    startPushSchedule()
+  }
 }

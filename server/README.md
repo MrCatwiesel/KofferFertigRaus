@@ -127,6 +127,21 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
   *Geräte ohne Person* einer Person zuordnen. Den Gruppenschlüssel daher gut aufbewahren und nicht weitergeben.
 - Personen sperren oder entfernen meldet alle ihre Geräte ab.
 
+## Push-Benachrichtigungen (ab Server 1.17)
+
+- In der App unter *Geräte-Abgleich → Benachrichtigungen* je Gerät einschalten. Nichts einzurichten: Der Server erzeugt beim
+  ersten Start eigene VAPID-Schlüssel (in der Datenbank, Tabelle `settings`) und verschlüsselt jede Nachricht für das Gerät
+  (RFC 8291) – der Push-Dienst von Apple, Google oder Mozilla kann sie nicht lesen.
+- **Erinnerungen:** Die App lädt bei jedem Abgleich die Termine und Fristen der nächsten 60 Tage hoch (je Person, mit Zeitpunkt).
+  Der Server prüft jede Minute und schickt Fälliges an alle Geräte dieser Person. Bis 6 Stunden Verspätung (z. B. Server-Neustart)
+  geht eine Erinnerung noch raus, danach nicht mehr.
+- **Neues von den Mitreisenden** (wählbar): neue Tagebucheinträge, Fotos, Unternehmungen … anderer Personen, gebündelt je Reise
+  (höchstens alle 15 Minuten). Nur, was die Person auch sehen darf; eigene Änderungen nie.
+- **iPad/iPhone:** nur für die App auf dem Home-Bildschirm (ab iOS 16.4). Die App muss über **https** laufen.
+- Der Server schickt nur an die Push-Dienste von Apple, Google, Mozilla und Microsoft (nicht an beliebige Adressen).
+  Ausgehend braucht er dafür Internet (https, Port 443) – hinter einem Proxy wie bisher für Routenplaner und Reisehinweise.
+- Abgemeldete Geräte bekommen nichts mehr; meldet der Push-Dienst ein Abo als ungültig, vergisst der Server es.
+
 ## Offline-Karten
 
 Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.
@@ -174,6 +189,7 @@ docker compose up -d --build
 | `NWW_AA_URL` | OpenData-Adresse des Auswärtigen Amts (Standard: `https://www.auswaertiges-amt.de/opendata`) |
 | `NWW_PMTILES` | Pfad zum Programm `pmtiles` für Offline-Karten (Standard: `pmtiles` im Suchpfad; `update.sh` und das Docker-Image installieren es) |
 | `NWW_MAPS_SOURCE` | Quelle für Kartenausschnitte (Standard: neueste Weltkarte von build.protomaps.com) |
+| `NWW_PUSH_KONTAKT` | Kontakt für die Push-Dienste (`mailto:…` oder `https://…`, Standard: Projektseite auf GitHub) |
 | `NWW_BACKUP_DIR` / `NWW_BACKUP_KEEP` | Nur Proxmox: Zielordner und Anzahl der täglichen Sicherungen (`backup.sh`) |
 
 ## Schnittstelle (für Entwickler)
@@ -213,6 +229,10 @@ docker compose up -d --build
 | GET | `/api/reiseinfo/<CC>` | Reise- und Sicherheitshinweise des Auswärtigen Amts für ein Land (ISO-Code, z. B. `AT`; Liste 6 h, Länderseite 1 h zwischengespeichert) |
 | GET/PUT | `/api/kalender` | Kalender-Abo: Stand abfragen bzw. Kalenderdatei hochladen (macht die App selbst) |
 | POST/DELETE | `/api/kalender/link` | geheime Abo-Adresse anlegen/erneuern bzw. Abo beenden |
+| GET | `/api/benachrichtigungen` | öffentlicher VAPID-Schlüssel, Abo dieses Geräts, Zahl der geplanten Erinnerungen |
+| PUT/PATCH/DELETE | `/api/benachrichtigungen/abo` | Abo dieses Geräts anlegen `{ endpoint, keys: { p256dh, auth }, prefs }`, Einstellungen ändern `{ prefs: { erinnerungen, aenderungen } }`, löschen (nur mit Gerätezugang) |
+| POST | `/api/benachrichtigungen/test` | Testnachricht an dieses Gerät |
+| PUT | `/api/benachrichtigungen/zeitplan` | Erinnerungen der Person ersetzen `{ items: [{ id, at, title, body, url }] }` (höchstens 500; schon geschickte kommen nicht noch einmal) |
 | GET | `/api/kalender/<geheim>.ics` | **öffentlich**: die Kalenderdatei für Kalender-Apps (nur mit der geheimen Adresse) |
 | GET | `/api/reiseinfo/<CC>/vertretungen` | Deutsche Botschaft, Konsulate und Honorarkonsuln im Land (24 h zwischengespeichert) |
 | GET/POST | `/api/maps` | Offline-Karten der Gruppe auflisten / Ausschnitt bestellen `{ name, tripId, bbox: [W,S,O,N], maxzoom: 12–15 }` (höchstens 3° × 3°, eine Bestellung gleichzeitig) |

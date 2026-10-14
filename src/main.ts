@@ -11,6 +11,7 @@ import { startAutoSync } from './core/sync/engine'
 import { startModules } from './core/registry'
 import { startAppearance } from './ui/appearance'
 import { startLock } from './core/lock'
+import { startPush } from './core/push'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
@@ -25,6 +26,8 @@ createApp(App).use(buildRouter()).mount('#app')
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)
 startAutoSync()
 startModules()
+// Push-Benachrichtigungen: Abo dieses Geräts beim Server aktuell halten
+void startPush()
 
 // Alter Kachel-Zwischenspeicher (vor 1.27.1 ohne CORS gespeichert, fürs Kartenbild im Reisebericht unbrauchbar)
 setTimeout(() => void globalThis.caches?.delete('osm-kacheln').catch(() => false), 10_000)

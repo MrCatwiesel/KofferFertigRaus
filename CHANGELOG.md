@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.28.0 – 2026-10-14
+
+### Neu: Fotos auf der Karte
+- **Aufnahmeort aus dem Foto:** Beim Hinzufügen zum Tagebuch liest die App GPS-Position und Aufnahmezeit aus der Originaldatei (EXIF, auch HEIC) – bevor das Foto verkleinert wird, denn danach sind diese Angaben weg. Die Aufnahmezeit ist dadurch auch genauer als bisher
+- **Ohne GPS: Ort aus der Tour:** Fotos ohne Position werden auf die aufgezeichnete Tour gesetzt, die zur Aufnahmezeit lief (bis 15 Minuten vor Start und nach Ende). Das gilt auch für alle schon vorhandenen Fotos – im Foto steht dann „Ort aus der Tour geschätzt“
+- **Karte der Reise:** Fotos als runde Vorschaubilder; nahe beieinander werden sie zu einer Gruppe mit Zahl zusammengefasst. Antippen zeigt die Fotos, ein Tipp auf ein Foto öffnet den Tagebuch-Eintrag. Knopf „Fotos (n)“ blendet sie aus und ein; der Tagesfilter gilt auch für Fotos
+- **Fotos ohne Ort** stehen unter der Karte und lassen sich mit einem Tipp auf die Karte (oder auf eine Route) setzen; „Ort ändern“ bzw. „Ort entfernen“ im Foto
+- Der Aufnahmeort bleibt in der App (und beim Abgleich auf deinem Server) – Lese-Links und Reise-Webseite geben ihn nicht weiter; die gespeicherten, verkleinerten Fotos enthalten keine EXIF-Daten
+- Hinweis iPad: Je nach Einstellung entfernt iOS beim Auswählen den Ort aus dem Foto. Dann hilft die Tour-Zuordnung oder das Setzen von Hand
+
 ## 1.27.1 – 2026-10-14
 
 - **Fehler behoben: Touren im Reisebericht und in der PDF-Datei ohne Karte** – es war nur die Linie zu sehen. Jetzt liegt jede Tour und die Übersicht aller Touren auf einer OpenStreetMap-Karte (mit Start- und Zielpunkt), in der Vorschau, beim Drucken und in der PDF-Datei. Die Karte ist über die ganze Breite, das Höhenprofil darunter

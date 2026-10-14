@@ -263,9 +263,12 @@ watch(dayFilter, () => {
   fitted = false
   draw()
 })
-watch(visiblePhotos, () => {
+// Fotos kommen meist nach den Routen an – dann einmal so zoomen, dass auch sie zu sehen sind
+let photosFitted = false
+watch(visiblePhotos, (list) => {
   drawPhotos()
-  if (!fitted) fitAll()
+  if (!fitted || (!photosFitted && list.length)) fitAll()
+  if (list.length) photosFitted = true
 })
 
 // ---- Kartengrundlage: online (OpenStreetMap) oder gespeicherte Offline-Karte ----

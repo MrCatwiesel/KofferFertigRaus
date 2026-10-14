@@ -43,7 +43,8 @@ export const CHANGE_LABELS = {
   travelLegs: ['ein', 'Reiseabschnitt', 'Reiseabschnitte'],
   expenses: ['eine', 'Ausgabe', 'Ausgaben'],
   places: ['ein', 'Ort', 'Orte'],
-  documents: ['ein', 'Dokument', 'Dokumente']
+  documents: ['ein', 'Dokument', 'Dokumente'],
+  polls: ['eine', 'Abstimmung', 'Abstimmungen']
 }
 
 /** unwetterStufe: ab welcher Warnstufe (2 gelb, 3 orange, 4 rot) eine Unwetterwarnung kommt */

@@ -18,6 +18,7 @@ import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
 import type { Route } from '@/modules/routes/types'
 import type { OfflineMap } from '@/modules/map/offline'
 import type { CountryInfo } from '@/modules/reiseinfo/types'
+import type { Poll, PollVote } from '@/modules/abstimmung/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -49,6 +50,8 @@ export class NixDb extends Dexie {
   piwigoAlbums!: Table<PiwigoAlbumLink, string>
   routes!: Table<Route, string>
   countryInfos!: Table<CountryInfo, string>
+  polls!: Table<Poll, string>
+  pollVotes!: Table<PollVote, string>
   /** Nur auf diesem Gerät: gespeicherte Offline-Karten (große Dateien, werden nicht abgeglichen) */
   offlineMaps!: Table<OfflineMap, string>
   /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
@@ -170,7 +173,13 @@ export class NixDb extends Dexie {
       voiceNotes: 'id, tripId, entryId'
     })
 
-    // Nächste Änderung: this.version(20).stores({ … })
+    // v20: Abstimmungen (Stimmen je Teilnehmer als eigener Datensatz)
+    this.version(20).stores({
+      polls: 'id, tripId',
+      pollVotes: 'id, tripId, pollId'
+    })
+
+    // Nächste Änderung: this.version(21).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

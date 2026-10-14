@@ -41,7 +41,7 @@ import { createBenachrichtigungen } from './benachrichtigungen.mjs'
 import { createUnwetter } from './unwetter.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.19.0'
+export const VERSION = '1.20.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 

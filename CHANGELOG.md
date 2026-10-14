@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.35.0 – 2026-10-14 (Server 1.20.0)
+
+### Neu: Abstimmungen
+- Neuer Bereich **Abstimmungen** auf der Reiseseite: Frage stellen, alle stimmen auf ihrem eigenen Gerät ab – der Abgleich bringt die Stimmen zusammen
+- Drei Arten: **freie Antworten** (Restaurant, Ausflugsziel …), **Tag finden** (die Reisetage stehen schon drin, mehrere Antworten möglich) und **Unternehmung wählen** (aus den Ideen der Reise)
+- Balken mit Stimmen und Namen, „noch offen: …“ zeigt, wer noch fehlt; Stimme ändern oder zurückziehen geht jederzeit, solange die Abstimmung läuft
+- Optional **„Abstimmen bis“** – erscheint unter Termine & Fristen (und damit im Kalender-Abo und als Erinnerung)
+- **Ergebnis übernehmen:** Beim Tag für eine Unternehmung trägt ein Tipp den gewählten Tag dort ein; bei „Unternehmung wählen“ wird die Gewinnerin als geplant markiert
+- Mit **Personen & Rechte:** Wer mit einem Teilnehmer verknüpft ist, stimmt nur für sich selbst ab – auch mit „nur lesen“. Für andere verknüpfte Personen kann niemand abstimmen
+- Neue Abstimmungen erscheinen bei „Neues von den Mitreisenden“ in den Benachrichtigungen
+- Server-Update auf 1.20 nötig, damit Personen mit „nur lesen“ abstimmen können; sonst läuft alles auch mit dem bisherigen Server
+
 ## 1.34.0 – 2026-10-14 (Server 1.19.0)
 
 ### Neu: Unwetterwarnungen

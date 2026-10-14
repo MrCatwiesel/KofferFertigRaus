@@ -22,7 +22,17 @@ export default defineConfig({
     trace: 'retain-on-failure',
     serviceWorkers: 'block'
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'], viewport: { width: 1000, height: 1200 } } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1000, height: 1200 },
+        // Nachgebautes Mikrofon (Piepton) für die Sprachnotizen
+        launchOptions: { args: ['--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream'] }
+      }
+    }
+  ],
   webServer: {
     command: `node e2e/server.mjs ${PORT}`,
     url: `http://localhost:${PORT}/api/health`,

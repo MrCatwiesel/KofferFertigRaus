@@ -22,5 +22,6 @@ export const DATA_TABLES = [
   'routes',
   'countryInfos',
   'appearance',
-  'photos'
+  'photos',
+  'voiceNotes'
 ] as const

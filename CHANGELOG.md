@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.30.0 – 2026-10-14
+
+### Neu: Sprachnotizen im Tagebuch
+- **„Sprachnotiz aufnehmen“** im Tagebuch-Eintrag – unterwegs schnell etwas aufsprechen statt tippen. Laufzeit und Pegel werden angezeigt, „Fertig“ beendet; nach 15 Minuten endet die Aufnahme von selbst
+- Jede Notiz lässt sich anhören, benennen (z. B. „Murmeltiere am Pass“) und löschen; gespeichert wird zusammen mit dem Eintrag
+- In der Tagebuch-Liste stehen die Notizen mit Abspielknopf beim Eintrag
+- Notizen werden wie Fotos zwischen den Geräten abgeglichen und mit „Fotos mitsichern“ in die Sicherung bzw. die geteilte Reise übernommen. Sie bleiben privat – Lese-Links und Reise-Webseite zeigen sie nicht
+- iPad: Beim ersten Mal fragt Safari nach dem Mikrofon. Wurde das abgelehnt: Einstellungen → Safari → Mikrofon
+- Zum Diktieren von Text bleibt die Diktierfunktion der iPad-Tastatur (Mikrofon-Taste) der einfachste Weg
+
 ## 1.29.0 – 2026-10-14
 
 ### Neu: Tagebuch-Entwurf aus dem Tag

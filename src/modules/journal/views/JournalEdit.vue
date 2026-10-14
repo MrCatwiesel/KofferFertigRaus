@@ -10,7 +10,8 @@ import { applyDayDraft, composeDayDraft } from '../draft'
 import { processImage } from '@/services/images'
 import { readExif, type ExifInfo } from '@/services/exif'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
-import { journalRepository, photoRepository, type NewPhoto } from '../repository'
+import { journalRepository, photoRepository, voiceNoteRepository, type NewPhoto } from '../repository'
+import VoiceNotesEditor, { type VoiceItem } from '../components/VoiceNotesEditor.vue'
 import { defaultEntryDate, emptyEntryDraft, moveItem, orderPhotos, takenAtFromFile, validateEntry } from '../logic'
 import { MOODS, type JournalEntryDraft, type Photo } from '../types'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
@@ -40,6 +41,13 @@ interface PhotoItem {
 }
 const items = ref<PhotoItem[]>([])
 const removed: string[] = []
+// Sprachnotizen
+const voices = ref<VoiceItem[]>([])
+const removedVoices: string[] = []
+function onVoiceRemoved(v: VoiceItem) {
+  if (v.existingId) removedVoices.push(v.existingId)
+  URL.revokeObjectURL(v.url)
+}
 
 onMounted(async () => {
   trip.value = await tripRepository.get(props.tripId)
@@ -56,9 +64,15 @@ onMounted(async () => {
   Object.assign(draft, rest)
   const photos = orderPhotos(photoIds, await photoRepository.listByEntry(props.id))
   items.value = photos.map((p) => ({ key: p.id, url: URL.createObjectURL(p.thumb), full: p.full, caption: p.caption, existing: p }))
+  voices.value = (await voiceNoteRepository.listByEntry(props.id)).map((v) => ({
+    key: v.id, url: URL.createObjectURL(v.audio), title: v.title, savedTitle: v.title, duration: v.duration, recordedAt: v.recordedAt, audio: v.audio, existingId: v.id
+  }))
 })
 
-onUnmounted(() => items.value.forEach((i) => URL.revokeObjectURL(i.url)))
+onUnmounted(() => {
+  items.value.forEach((i) => URL.revokeObjectURL(i.url))
+  voices.value.forEach((v) => URL.revokeObjectURL(v.url))
+})
 
 // Entwurf aus dem, was an diesem Tag gespeichert ist (Touren, Unternehmungen, Wetter …)
 const draftNote = ref<{ ok: boolean; text: string } | null>(null)
@@ -178,7 +192,12 @@ async function save() {
       }
     }
     const plain: JournalEntryDraft = { ...draft, title: draft.title.trim(), location: draft.location.trim() }
-    const { entryId, newPhotoIds } = await journalRepository.save(props.tripId, props.id, plain, fresh, order, removed)
+    const voice = {
+      added: voices.value.filter((v) => !v.existingId).map((v) => ({ audio: v.audio, duration: v.duration, title: v.title.trim(), recordedAt: v.recordedAt })),
+      removed: removedVoices,
+      titles: voices.value.filter((v) => v.existingId && v.title.trim() !== v.savedTitle).map((v) => ({ id: v.existingId!, title: v.title.trim() }))
+    }
+    const { entryId, newPhotoIds } = await journalRepository.save(props.tripId, props.id, plain, fresh, order, removed, voice)
     // Neue eigene Fotos anderen Modulen melden (z. B. Hochladen nach Piwigo) – im Hintergrund
     const added: AddedPhoto[] = []
     newPhotoIds.forEach((photoId, i) => {
@@ -241,6 +260,12 @@ async function remove() {
       <div v-if="draftNote" class="small mb-2" :class="draftNote.ok ? 'text-success' : 'text-body-secondary'" role="status" data-draft-note>{{ draftNote.text }}</div>
       <textarea id="text" v-model="draft.text" rows="7" class="form-control"
                 placeholder="Was habt ihr gemacht? Was war besonders, lustig, lecker?"></textarea>
+    </div>
+
+    <!-- Sprachnotizen -->
+    <div class="col-12">
+      <label class="form-label d-block">Sprachnotizen</label>
+      <VoiceNotesEditor v-model="voices" @removed="onVoiceRemoved" />
     </div>
 
     <!-- Fotos -->

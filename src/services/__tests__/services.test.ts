@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { formatRanges, openOn, parseOpeningHours, weekdayOf } from '../openingHours'
 import { describeCode, parseDaily, parsePlaces } from '../weather'
+import { formatSeconds, pickMime } from '../recorder'
 
 describe('Öffnungszeiten', () => {
   // 2026-10-05 ist ein Montag
@@ -70,5 +71,18 @@ describe('Wetter', () => {
     expect(describeCode(81).kind).toBe('regen')
     expect(describeCode(73).kind).toBe('schnee')
     expect(describeCode(96).kind).toBe('gewitter')
+  })
+})
+
+describe('Sprachnotizen – Aufnahme', () => {
+  it('nimmt die erste unterstützte Tonart (Safari mp4, sonst webm)', () => {
+    expect(pickMime((t) => t.startsWith('audio/mp4'))).toBe('audio/mp4')
+    expect(pickMime((t) => t.startsWith('audio/webm'))).toBe('audio/webm;codecs=opus')
+    expect(pickMime(() => false)).toBe('')
+  })
+  it('Zeit als m:ss', () => {
+    expect(formatSeconds(0)).toBe('0:00')
+    expect(formatSeconds(65.4)).toBe('1:05')
+    expect(formatSeconds(900)).toBe('15:00')
   })
 })

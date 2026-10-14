@@ -46,6 +46,22 @@ export interface Photo {
   placeSource?: 'exif' | 'karte'
 }
 
+/** Sprachnotiz zu einem Tagebuch-Eintrag (unterwegs schnell aufgesprochen) */
+export interface VoiceNote {
+  id: string
+  tripId: string
+  entryId: string
+  audio: Blob
+  /** Länge in Sekunden */
+  duration: number
+  /** Kurzer Titel, z. B. „Am Gipfel“; leer = Uhrzeit */
+  title: string
+  /** Aufnahmezeit (ISO) */
+  recordedAt: string
+  createdAt: string
+  updatedAt: string
+}
+
 export const MOODS: { value: number; emoji: string; label: string }[] = [
   { value: 5, emoji: '😍', label: 'Traumhaft' },
   { value: 4, emoji: '😊', label: 'Schön' },

@@ -1,7 +1,15 @@
 import { db, newId, now } from '@/core/db'
-import type { JournalEntry, JournalEntryDraft, Photo } from './types'
+import type { JournalEntry, JournalEntryDraft, Photo, VoiceNote } from './types'
 
 export type NewPhoto = Omit<Photo, 'id' | 'tripId' | 'entryId' | 'createdAt'>
+export type NewVoiceNote = Pick<VoiceNote, 'audio' | 'duration' | 'title' | 'recordedAt'>
+/** Änderungen an den Sprachnotizen beim Speichern eines Eintrags */
+export interface VoiceChanges {
+  added: NewVoiceNote[]
+  removed: string[]
+  /** geänderte Titel vorhandener Notizen */
+  titles: { id: string; title: string }[]
+}
 
 export const journalRepository = {
   listByTrip(tripId: string): Promise<JournalEntry[]> {
@@ -24,7 +32,8 @@ export const journalRepository = {
     draft: JournalEntryDraft,
     newPhotos: NewPhoto[],
     order: string[],
-    removedPhotoIds: string[]
+    removedPhotoIds: string[],
+    voice: VoiceChanges = { added: [], removed: [], titles: [] }
   ): Promise<{ entryId: string; newPhotoIds: string[] }> {
     const ts = now()
     const entryId = id ?? newId()
@@ -33,9 +42,14 @@ export const journalRepository = {
       .map((key) => (key.startsWith('new:') ? created[Number(key.slice(4))]?.id : key))
       .filter((x): x is string => !!x)
 
-    await db.transaction('rw', db.journalEntries, db.photos, async () => {
+    const notes: VoiceNote[] = voice.added.map((v) => ({ ...v, id: newId(), tripId, entryId, createdAt: ts, updatedAt: ts }))
+
+    await db.transaction('rw', db.journalEntries, db.photos, db.voiceNotes, async () => {
       if (created.length) await db.photos.bulkAdd(created)
       if (removedPhotoIds.length) await db.photos.bulkDelete(removedPhotoIds)
+      if (notes.length) await db.voiceNotes.bulkAdd(notes)
+      if (voice.removed.length) await db.voiceNotes.bulkDelete(voice.removed)
+      for (const t of voice.titles) await db.voiceNotes.update(t.id, { title: t.title, updatedAt: ts })
       if (id) {
         await db.journalEntries.update(id, { ...draft, photoIds, updatedAt: ts })
       } else {
@@ -50,15 +64,17 @@ export const journalRepository = {
   },
 
   async remove(id: string): Promise<void> {
-    await db.transaction('rw', db.journalEntries, db.photos, async () => {
+    await db.transaction('rw', db.journalEntries, db.photos, db.voiceNotes, async () => {
       await db.photos.where('entryId').equals(id).delete()
+      await db.voiceNotes.where('entryId').equals(id).delete()
       await db.journalEntries.delete(id)
     })
   },
 
   async removeByTrip(tripId: string): Promise<void> {
-    await db.transaction('rw', db.journalEntries, db.photos, async () => {
+    await db.transaction('rw', db.journalEntries, db.photos, db.voiceNotes, async () => {
       await db.photos.where('tripId').equals(tripId).delete()
+      await db.voiceNotes.where('tripId').equals(tripId).delete()
       await db.journalEntries.where('tripId').equals(tripId).delete()
     })
   }
@@ -90,5 +106,14 @@ export const photoRepository = {
       ? { lat: Math.round(pos.lat * 1e6) / 1e6, lon: Math.round(pos.lon * 1e6) / 1e6, placeSource: 'karte' as const, updatedAt: now() }
       : { lat: undefined, lon: undefined, placeSource: undefined, updatedAt: now() }
     return (await db.photos.update(id, changes)) > 0
+  }
+}
+
+export const voiceNoteRepository = {
+  listByTrip(tripId: string): Promise<VoiceNote[]> {
+    return db.voiceNotes.where('tripId').equals(tripId).toArray()
+  },
+  async listByEntry(entryId: string): Promise<VoiceNote[]> {
+    return (await db.voiceNotes.where('entryId').equals(entryId).toArray()).sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
   }
 }

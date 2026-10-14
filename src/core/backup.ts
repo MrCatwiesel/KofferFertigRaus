@@ -10,7 +10,7 @@ export { dataUrlToBlob, type BackupFile, type BackupMeta } from './backup-format
 export const BACKUP_TABLES = DATA_TABLES
 
 /** Tabellen mit großen Binärdaten – im Backup optional. */
-export const LARGE_TABLES: readonly string[] = ['photos', 'appearance']
+export const LARGE_TABLES: readonly string[] = ['photos', 'voiceNotes', 'appearance']
 
 /** Datensätze stückweise lesen (erst nur die Schlüssel, dann je 50) – hält den Speicherbedarf klein */
 async function* rowsOf(name: string, tripId?: string): AsyncIterable<Record<string, unknown>[]> {

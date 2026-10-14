@@ -5,10 +5,11 @@ import { getDayLinks, type DayLink } from '@/core/registry'
 import { todayIso } from '@/core/dates'
 import { formatDayShort } from '@/core/format'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
-import { journalRepository, photoRepository } from '../repository'
+import { journalRepository, photoRepository, voiceNoteRepository } from '../repository'
 import { entriesByDay, excerpt, journalStats, moodOf, orderPhotos } from '../logic'
 import { useObjectUrls } from '../composables'
-import type { JournalEntry, Photo } from '../types'
+import type { JournalEntry, Photo, VoiceNote } from '../types'
+import { formatSeconds } from '@/services/recorder'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
 
 const props = defineProps<{ tripId: string }>()
@@ -17,6 +18,15 @@ const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as T
 const entries = useLiveQuery(() => journalRepository.listByTrip(props.tripId), [] as JournalEntry[])
 const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[], { shallow: true })
 const thumbs = useObjectUrls(photos, (p) => p.id, (p) => p.thumb)
+const voiceNotes = useLiveQuery(() => voiceNoteRepository.listByTrip(props.tripId), [] as VoiceNote[], { shallow: true })
+const voiceUrls = useObjectUrls(voiceNotes, (v) => v.id, (v) => v.audio)
+const voicesByEntry = computed(() => {
+  const m = new Map<string, VoiceNote[]>()
+  for (const v of [...voiceNotes.value].sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))) m.set(v.entryId, [...(m.get(v.entryId) ?? []), v])
+  return m
+})
+const voiceLabel = (v: VoiceNote) =>
+  v.title || `Sprachnotiz ${new Date(v.recordedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
 // Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
 const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])
 const linksByDay = computed(() => {
@@ -139,6 +149,10 @@ async function removeEntry(e: JournalEntry) {
           </div>
           <div v-if="e.location" class="small text-body-secondary"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ e.location }}</div>
           <p v-if="e.text" class="small mb-0 mt-1">{{ excerpt(e.text) }}</p>
+          <div v-for="v in voicesByEntry.get(e.id) ?? []" :key="v.id" class="voice-row mt-1" data-voice-row>
+            <span class="small text-body-secondary text-truncate"><i class="bi bi-mic-fill me-1" aria-hidden="true"></i>{{ voiceLabel(v) }} · {{ formatSeconds(v.duration) }}</span>
+            <audio :src="voiceUrls.get(v.id)" controls preload="none"></audio>
+          </div>
         </div>
       </article>
     </section>
@@ -190,5 +204,16 @@ async function removeEntry(e: JournalEntry) {
 }
 .flex-none {
   flex: none;
+}
+.voice-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+}
+.voice-row audio {
+  height: 32px;
+  flex: 1 1 220px;
+  max-width: 100%;
 }
 </style>

@@ -9,7 +9,7 @@ import type { PackingItem } from '@/modules/packing/types'
 import type { Medication, Vaccination } from '@/modules/meds/types'
 import type { EmergencyContact, TravelDocument } from '@/modules/documents/types'
 import type { WeatherCache } from '@/modules/dayplanner/types'
-import type { JournalEntry, Photo } from '@/modules/journal/types'
+import type { JournalEntry, Photo, VoiceNote } from '@/modules/journal/types'
 import type { AppearanceRow } from '@/ui/appearance'
 import type { WebsiteSettings } from '@/modules/website/types'
 import type { Expense } from '@/modules/expenses/types'
@@ -41,6 +41,7 @@ export class NixDb extends Dexie {
   weather!: Table<WeatherCache, string>
   journalEntries!: Table<JournalEntry, string>
   photos!: Table<Photo, string>
+  voiceNotes!: Table<VoiceNote, string>
   appearance!: Table<AppearanceRow, string>
   websites!: Table<WebsiteSettings, string>
   expenses!: Table<Expense, string>
@@ -163,7 +164,12 @@ export class NixDb extends Dexie {
       appearance: 'id'
     })
 
-    // Nächste Änderung: this.version(19).stores({ … })
+    // v19: Sprachnotizen im Tagebuch (abgeglichen, Ton als Blob)
+    this.version(19).stores({
+      voiceNotes: 'id, tripId, entryId'
+    })
+
+    // Nächste Änderung: this.version(20).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

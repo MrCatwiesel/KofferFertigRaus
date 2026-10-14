@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test'
 import { route, seed, trip } from './helpers'
 
 test('Reisebericht: Seiten, Optionen, Drucken', async ({ page }) => {
+  // ohne Kartenkacheln (wie offline): Touren nur als Linie, mit Hinweis
+  await page.route('https://tile.openstreetmap.org/**', (r) => r.abort())
   await seed(page, {
     trips: [trip({ countries: ['AT'] })],
     journalEntries: [
@@ -18,6 +20,7 @@ test('Reisebericht: Seiten, Optionen, Drucken', async ({ page }) => {
   await expect(report).toContainText('Abends Kaiserschmarrn.')
   await expect(report).toContainText('Testrunde')
   await expect(report.locator('.r-map svg path')).not.toHaveCount(0)
+  await expect(page.locator('[data-maps-offline]')).toBeVisible()
   await expect(report).toContainText('Ruhetag')
   await page.getByLabel('nur Höhepunkte').check()
   await expect(report).not.toContainText('Ruhetag')

@@ -14,6 +14,7 @@ import { profileSvg, routeRepository, statsLine, trackSvg, type Route } from '@/
 import { accommodationRepository, type Accommodation } from '@/modules/accommodation/public'
 import { EXPENSE_CATEGORY, expenseRepository, summarize, type Expense } from '@/modules/expenses/public'
 import { routesSvg } from '@/services/tracks'
+import { renderStaticMap } from '@/services/static-map'
 import { DEFAULT_OPTIONS, buildDays, photoColumns, pickCover, reportStats, type ReportOptions } from '../logic'
 import { DEFAULT_PDF_OPTIONS, type PdfInput, type PdfOptions } from '../pdf-doc'
 import { PAGE_FORMATS, type PageFormat } from '../pdf-layout'
@@ -59,7 +60,43 @@ async function load() {
   ])
   loading.value = false
 }
-void load()
+void load().then(() => void loadMaps())
+
+// ——— Kartenbilder (OpenStreetMap + Strecken) für Vorschau, Druck und PDF ———
+const OVERVIEW = { id: 'map:overview', width: 1200, height: 700 }
+const ROUTE_MAP = { width: 1000, height: 560 }
+const mapBlobs = new Map<string, Blob>()
+const mapUrls = shallowRef(new Map<string, string>())
+const mapsState = ref<'' | 'laden' | 'fertig' | 'offline'>('')
+let mapsDone: Promise<void> | null = null
+function loadMaps(): Promise<void> {
+  if (mapsDone) return mapsDone
+  mapsDone = (async () => {
+    if (!routes.value.length) return
+    mapsState.value = 'laden'
+    const jobs: [string, () => Promise<Blob | null>][] = []
+    const lines = routes.value.map((r) => ({ points: r.preview, color: r.color }))
+    jobs.push([OVERVIEW.id, () => renderStaticMap(lines, { width: OVERVIEW.width, height: OVERVIEW.height, stroke: 4 })])
+    for (const r of routes.value) jobs.push([`map:${r.id}`, () => renderStaticMap([{ points: r.points, color: r.color }], { ...ROUTE_MAP, stroke: 5, markers: true })])
+    const next = new Map<string, string>()
+    let missing = 0
+    // nacheinander – so bleiben es wenige Kachel-Anfragen gleichzeitig
+    for (const [id, job] of jobs) {
+      const blob = await job().catch(() => null)
+      if (!blob) {
+        missing++
+        continue
+      }
+      mapBlobs.set(id, blob)
+      const u = URL.createObjectURL(blob)
+      urls.set(id, u)
+      next.set(id, u)
+    }
+    mapUrls.value = next
+    mapsState.value = missing ? 'offline' : 'fertig'
+  })()
+  return mapsDone
+}
 onUnmounted(() => urls.forEach((u) => URL.revokeObjectURL(u)))
 
 /** Objekt-Adresse für ein Bild (einmal erzeugt, beim Verlassen freigegeben) */
@@ -95,6 +132,12 @@ const routeSvg = (r: Route) => trackSvg(r.preview, { width: 420, height: 260, co
 const profile = (r: Route) => profileSvg(r.points, { width: 520, height: 120, color: r.color })
 
 // ——— PDF-Datei (direkt erzeugt, ohne Druckdialog) ———
+function retryMaps() {
+  mapsDone = null
+  pdfFile.value = null
+  void loadMaps()
+}
+
 const PDF_KEY = 'nww-bericht-pdf'
 const po = reactive<Omit<PdfOptions, 'layout'>>({ format: DEFAULT_PDF_OPTIONS.format, bleed: false, perPage: 4, quality: 'teilen' })
 try {
@@ -127,7 +170,8 @@ function accentColor(): string {
 function pdfInput(t: Trip): PdfInput {
   const st = stats.value
   const coverPhoto = t.cover ? null : pickCover(entries.value, photos.value)
-  const r2 = (r: Route) => ({ id: r.id, name: r.name, color: r.color, statsText: statsLine(r.stats), trackSvg: trackSvg(r.preview, { width: 600, height: 380, color: r.color, stroke: 3.5 }), profileSvg: profileSvg(r.points, { width: 600, height: 150, color: r.color }) })
+  const routeMap = (r: Route) => (mapBlobs.has(`map:${r.id}`) ? { map: { id: `map:${r.id}`, ...ROUTE_MAP } } : {})
+  const r2 = (r: Route) => ({ ...routeMap(r), id: r.id, name: r.name, color: r.color, statsText: statsLine(r.stats), trackSvg: trackSvg(r.preview, { width: 600, height: 380, color: r.color, stroke: 3.5 }), profileSvg: profileSvg(r.points, { width: 600, height: 150, color: r.color }) })
   return {
     options: { ...po, layout: o.layout },
     accent: accentColor(),
@@ -143,6 +187,7 @@ function pdfInput(t: Trip): PdfInput {
         ]
       : [],
     overviewSvg: overview.value,
+    overviewMap: o.routes && mapBlobs.has(OVERVIEW.id) ? OVERVIEW : undefined,
     legend: o.routes ? routes.value.map((r) => ({ name: r.name, color: r.color })) : [],
     stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, `${nights(s)} ${nights(s) === 1 ? 'Nacht' : 'Nächte'}`].filter(Boolean).join(' · ')) : [],
     money: o.expenses && money.value
@@ -175,7 +220,12 @@ async function makePdf() {
   try {
     const { createPdf } = await import('../pdf')
     const byId = new Map(photos.value.map((p) => [p.id, p]))
-    const blob = await createPdf(pdfInput(t), (id) => (id === 'cover' ? t.cover : (byId.get(id)?.full ?? byId.get(id)?.thumb)), (p) => (pdfBusy.value = p))
+    await loadMaps()
+    const blob = await createPdf(
+      pdfInput(t),
+      (id) => (id === 'cover' ? t.cover : id.startsWith('map:') ? mapBlobs.get(id) : (byId.get(id)?.full ?? byId.get(id)?.thumb)),
+      (p) => (pdfBusy.value = p)
+    )
     pdfFile.value = new File([blob], `${fileSlug(t.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
   } catch (e) {
     pdfError.value = `PDF konnte nicht erstellt werden: ${(e as Error).message}`
@@ -263,6 +313,10 @@ async function print() {
             <option value="teilen">kleine Datei (zum Teilen)</option>
             <option value="druck">Druckqualität (300 dpi)</option>
           </select>
+          <div v-if="mapsState === 'offline'" class="small text-body-secondary mt-2" data-maps-offline>
+            <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Kartenhintergrund nicht geladen (kein Internet?) – Touren erscheinen nur als Linie.
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="retryMaps">Noch einmal versuchen</button>
+          </div>
           <div v-if="pdfBusy" class="small text-body-secondary mt-2" data-pdf-progress>
             {{ pdfBusy.step === 'fotos' ? `Fotos vorbereiten … ${pdfBusy.done} / ${pdfBusy.total}` : 'PDF wird zusammengesetzt …' }}
             <div class="progress mt-1" style="height: 6px" role="progressbar" aria-label="Fortschritt">
@@ -314,7 +368,8 @@ async function print() {
         <div v-if="stats.ascent"><b>{{ stats.ascent.toLocaleString('de-DE') }} m</b><span>bergauf</span></div>
       </div>
       <figure v-if="overview" class="r-map">
-        <div v-html="overview"></div>
+        <img v-if="mapUrls.get(OVERVIEW.id)" :src="mapUrls.get(OVERVIEW.id)" alt="Karte aller Touren" class="r-mapimg" />
+        <div v-else v-html="overview"></div>
         <figcaption>
           <span v-for="r in routes" :key="r.id" class="r-legend"><i :style="{ background: r.color }"></i>{{ r.name }}</span>
         </figcaption>
@@ -355,7 +410,8 @@ async function print() {
         <h3 class="r-h3"><i class="bi bi-signpost-2" aria-hidden="true"></i> {{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <div class="r-track" v-html="routeSvg(r)"></div>
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>
       </div>
@@ -367,7 +423,8 @@ async function print() {
         <h3 class="r-h3">{{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <div class="r-track" v-html="routeSvg(r)"></div>
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>
       </div>
@@ -480,6 +537,15 @@ async function print() {
   padding: 0.6rem;
   background: #f6f6f3;
   border-radius: 6px;
+}
+.r-mapimg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+}
+.r-route-figs:has(.r-track-map) {
+  grid-template-columns: 1fr;
 }
 .r-map :deep(svg) {
   width: 100%;

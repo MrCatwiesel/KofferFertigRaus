@@ -44,6 +44,13 @@ function inspect(path: string) {
 
 test('Reisebericht und Fotobuch als PDF-Datei', async ({ page }) => {
   test.setTimeout(120_000)
+  // Kartenkacheln nachgebaut (mit CORS wie bei OpenStreetMap)
+  let tiles = 0
+  const tile = readFileSync('e2e/fixtures/kachel.png')
+  await page.route('https://tile.openstreetmap.org/**', (r) => {
+    tiles++
+    return r.fulfill({ body: tile, contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' } })
+  })
   const ids = Array.from({ length: 6 }, (_, i) => `e1-f${i}`)
   await seed(page, {
     trips: [trip({ countries: ['AT'] })],
@@ -57,6 +64,10 @@ test('Reisebericht und Fotobuch als PDF-Datei', async ({ page }) => {
 
   await page.goto('/#/trip/t1/bericht')
   await expect(page.locator('article.report .r-title')).toHaveText('Großglockner')
+  // Karten mit Hintergrund: Übersicht + eine Tour
+  await expect(page.locator('article.report img.r-mapimg')).toHaveCount(2)
+  expect(tiles).toBeGreaterThan(0)
+  expect(tiles).toBeLessThan(60)
 
   // 1. Bericht (A4 hoch)
   const [d1] = await Promise.all([
@@ -72,7 +83,7 @@ test('Reisebericht und Fotobuch als PDF-Datei', async ({ page }) => {
   expect(r1.head).toBe('%PDF-')
   expect(r1.boxes.length).toBeGreaterThanOrEqual(3)
   expect(r1.boxes.every(([w, h]) => w === 595 && h === 842)).toBe(true)
-  expect(r1.images).toBeGreaterThanOrEqual(6)
+  expect(r1.images).toBeGreaterThanOrEqual(6 + 2) // Fotos + Übersichtskarte + Tourenkarte
 
   // 2. Fotobuch: Quadrat 21 cm mit Beschnitt, Druckqualität
   await page.getByRole('button', { name: 'Fotobuch', exact: true }).click()

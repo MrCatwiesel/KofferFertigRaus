@@ -15,8 +15,17 @@ export interface PdfPhoto {
   height: number
 }
 
+/** Fertiges Kartenbild (OpenStreetMap mit Strecken), über `img()` als Bild mit dieser Kennung angefordert */
+export interface PdfMap {
+  id: string
+  width: number
+  height: number
+}
+
 export interface PdfRoute {
   id: string
+  /** Karte mit Hintergrund; ohne (offline) wird nur die Strecke gezeichnet */
+  map?: PdfMap
   name: string
   color: string
   statsText: string
@@ -63,6 +72,8 @@ export interface PdfInput {
   cover: { id: string; width: number; height: number; focusY: number } | null
   stats: { value: string; label: string }[]
   overviewSvg: string
+  /** Übersichtskarte aller Touren mit Hintergrund */
+  overviewMap?: PdfMap
   legend: { name: string; color: string }[]
   stays: string[]
   money: string[]
@@ -132,9 +143,9 @@ function styles(accent: string) {
   }
 }
 
-function overview(input: PdfInput, width: number, height: number): Content[] {
+function overview(input: PdfInput, width: number, height: number, img: ImageSource): Content[] {
   const out: Content[] = []
-  if (!input.stats.length && !input.overviewSvg && !input.stays.length && !input.money.length) return out
+  if (!input.stats.length && !input.overviewSvg && !input.overviewMap && !input.stays.length && !input.money.length) return out
   out.push({ text: 'Überblick', style: 'h2' })
   if (input.stats.length)
     out.push({
@@ -142,8 +153,12 @@ function overview(input: PdfInput, width: number, height: number): Content[] {
       columnGap: 10,
       margin: [0, 4, 0, 12]
     })
-  if (input.overviewSvg) {
-    out.push({ svg: pdfSvg(input.overviewSvg), fit: [Math.min(width, 480), height * 0.45], alignment: 'center', margin: [0, 0, 0, 4] })
+  if (input.overviewMap || input.overviewSvg) {
+    out.push(
+      input.overviewMap
+        ? { ...mapImage(input.overviewMap, width, height * 0.5, img), alignment: 'center', margin: [0, 0, 0, 4] }
+        : { svg: pdfSvg(input.overviewSvg), fit: [Math.min(width, 480), height * 0.45], alignment: 'center', margin: [0, 0, 0, 4] }
+    )
     if (input.legend.length)
       out.push({
         text: input.legend.flatMap((l, i) => [{ text: `${i ? '    ' : ''}■ `, color: l.color }, { text: l.name }]),
@@ -158,8 +173,26 @@ function overview(input: PdfInput, width: number, height: number): Content[] {
 }
 
 /** Tour mit Strecke und Höhenprofil; `big` = eine Tour allein auf der Seite (Fotobuch), `height` = Höhe des Inhaltsbereichs */
-function routeBlock(r: PdfRoute, width: number, height: number, big = false): Content {
+/** Kartenbild in einen Rahmen einpassen (Seitenverhältnis bleibt) */
+function mapImage(m: PdfMap, maxW: number, maxH: number, img: ImageSource): { image: string; width: number; height: number } {
+  const k = Math.min(maxW / m.width, maxH / m.height)
+  const w = m.width * k
+  const h = m.height * k
+  return { image: img(request(m.id, w, h, false, m)), width: w, height: h }
+}
+
+function routeBlock(r: PdfRoute, width: number, height: number, img: ImageSource, big = false): Content {
   const figs: Content[] = []
+  if (r.map) {
+    // Karte über die ganze Breite, Höhenprofil darunter
+    figs.push({ ...mapImage(r.map, width, height * (big ? 0.55 : 0.36), img), alignment: 'center', margin: [0, 0, 0, 4] })
+    if (r.profileSvg) figs.push({ svg: pdfSvg(r.profileSvg), fit: [width, height * (big ? 0.22 : 0.14)] })
+    return {
+      unbreakable: true,
+      stack: [{ text: [{ text: '■ ', color: r.color }, r.name], style: 'h3' }, { text: r.statsText, style: 'meta', margin: [0, 0, 0, 4] }, ...figs],
+      margin: [0, 4, 0, 10]
+    }
+  }
   if (r.trackSvg) figs.push(big ? { svg: pdfSvg(r.trackSvg), fit: [width, height * 0.55], alignment: 'center' } : { svg: pdfSvg(r.trackSvg), fit: [width * 0.42, height * 0.3] })
   if (r.profileSvg) figs.push(big ? { svg: pdfSvg(r.profileSvg), fit: [width, height * 0.22], margin: [0, 8, 0, 0] } : { svg: pdfSvg(r.profileSvg), fit: [width * 0.55, height * 0.2] })
   return {
@@ -194,7 +227,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   }
   content.push(...titleBlock(input))
 
-  const ov = overview(input, W, g.box.h)
+  const ov = overview(input, W, g.box.h, img)
   if (ov.length) content.push({ stack: ov, pageBreak: 'before' })
 
   let first = true
@@ -211,11 +244,11 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
       content.push(...paras(e.text).map((p) => ({ text: p, style: 'text' })))
       if (e.photos.length) content.push(...photoGrid(e.photos, W, g.gutter, img))
     }
-    for (const r of d.routes) content.push(routeBlock(r, W, g.box.h))
+    for (const r of d.routes) content.push(routeBlock(r, W, g.box.h, img))
   }
   if (input.otherRoutes.length) {
     content.push({ text: 'Weitere Touren', style: 'h2', margin: [0, 14, 0, 4], headlineLevel: 1, pageBreak: first ? 'before' : undefined })
-    for (const r of input.otherRoutes) content.push(routeBlock(r, W, g.box.h))
+    for (const r of input.otherRoutes) content.push(routeBlock(r, W, g.box.h, img))
   }
 
   return {
@@ -300,7 +333,7 @@ function photobook(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   }
   content.push({ stack: titleBlock(input), absolutePosition: { x: g.margin, y: g.height - band - g.bleed + 16 }, width: g.box.w } as Content)
 
-  const ov = overview(input, g.box.w, g.box.h)
+  const ov = overview(input, g.box.w, g.box.h, img)
   if (ov.length) content.push({ stack: ov, pageBreak: 'before' })
 
   for (const d of input.days) {
@@ -331,12 +364,12 @@ function photobook(input: PdfInput, img: ImageSource): TDocumentDefinitions {
     }
     if (d.routes.length) {
       content.push({ text: firstOfDay ? dayLine : 'TOUREN', style: 'day', pageBreak: 'before' })
-      for (const r of d.routes) content.push(routeBlock(r, g.box.w, g.box.h, d.routes.length === 1))
+      for (const r of d.routes) content.push(routeBlock(r, g.box.w, g.box.h, img, d.routes.length === 1))
     }
   }
   if (input.otherRoutes.length) {
     content.push({ text: 'Weitere Touren', style: 'h2', pageBreak: 'before' })
-    for (const r of input.otherRoutes) content.push(routeBlock(r, g.box.w, g.box.h))
+    for (const r of input.otherRoutes) content.push(routeBlock(r, g.box.w, g.box.h, img))
   }
 
   return {

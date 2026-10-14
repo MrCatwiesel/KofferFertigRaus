@@ -1,5 +1,11 @@
 # Änderungsprotokoll
 
+## 1.27.1 – 2026-10-14
+
+- **Fehler behoben: Touren im Reisebericht und in der PDF-Datei ohne Karte** – es war nur die Linie zu sehen. Jetzt liegt jede Tour und die Übersicht aller Touren auf einer OpenStreetMap-Karte (mit Start- und Zielpunkt), in der Vorschau, beim Drucken und in der PDF-Datei. Die Karte ist über die ganze Breite, das Höhenprofil darunter
+- Ohne Internet erscheinen die Touren wie bisher als Linie, mit Hinweis und „Noch einmal versuchen“. Schon angesehene Kartenausschnitte kommen aus dem Zwischenspeicher
+- Kartenkacheln werden jetzt mit CORS geladen (nötig, um sie ins Bild zu übernehmen); der alte Kachel-Zwischenspeicher wird einmal geleert
+
 ## 1.27.0 – 2026-10-14
 
 ### Neu: Reisebericht und Fotobuch als PDF-Datei (Reise → Danach/Teilen → „Reisebericht & Fotobuch“)

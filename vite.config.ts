@@ -75,7 +75,7 @@ export default defineConfig(({ command }) => ({
             urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'osm-kacheln',
+              cacheName: 'osm-kacheln-cors',
               expiration: { maxEntries: 800, maxAgeSeconds: 60 * 60 * 24 * 30 },
               cacheableResponse: { statuses: [0, 200] }
             }

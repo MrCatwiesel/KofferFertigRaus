@@ -25,3 +25,6 @@ createApp(App).use(buildRouter()).mount('#app')
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)
 startAutoSync()
 startModules()
+
+// Alter Kachel-Zwischenspeicher (vor 1.27.1 ohne CORS gespeichert, fürs Kartenbild im Reisebericht unbrauchbar)
+setTimeout(() => void globalThis.caches?.delete('osm-kacheln').catch(() => false), 10_000)

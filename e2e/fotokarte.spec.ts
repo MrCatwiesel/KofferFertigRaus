@@ -64,8 +64,10 @@ test('Fotos auf der Karte: GPS aus der Datei, aus der Tour geschätzt, von Hand 
   const popups: string[] = []
   for (let i = 0; i < markers; i++) {
     await page.locator('.nww-photo').nth(i).click()
+    await expect(page.locator('.nww-photo-popup')).toHaveCount(1)
     popups.push((await page.locator('.nww-photo-popup').textContent()) ?? '')
     await page.locator('.leaflet-popup-close-button').click()
+    await expect(page.locator('.nww-photo-popup')).toHaveCount(0) // Leaflet blendet langsam aus
   }
   expect(popups.join(' ')).toContain('aus der Tour zur Aufnahmezeit geschätzt')
 

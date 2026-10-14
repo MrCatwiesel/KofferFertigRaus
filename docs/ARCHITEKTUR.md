@@ -86,6 +86,11 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - `modules/abstimmung`: `polls` (Frage, Antworten, Frist) und `pollVotes` – **eine Stimme je Person und Abstimmung als eigener Datensatz** (`${pollId}:${Name}`), damit gleichzeitiges Abstimmen auf mehreren Geräten nichts überschreibt (neuere Änderung gewinnt je Datensatz).
 - Stimme mit `memberId` gehört dieser Person: Der Server (`members.mjs`, `denyWrite`) lässt sie nur von ihr ändern – auch mit „Nur lesen“ –, Fremdes wird mit `fremde-stimme` abgelehnt. Löschen fremder Stimmen (Abstimmung gelöscht, „Neu abstimmen“) braucht Bearbeiten-Recht.
 
+## Hilfe und Einführung
+
+- Inhalt als Daten in `src/core/hilfe/inhalt.ts` (`HELP_TOPICS`, `INTRO_SLIDES`) – Text mit `**fett**` und `*kursiv*`, angezeigt über `RichText.vue` ohne `v-html`.
+- **Neues Modul oder neue Seite:** ein Thema ergänzen (oder ein bestehendes erweitern) und unter `routes` die Namen der Seiten eintragen – Anfang genügt (`journal` passt zu `journal-list`, `journal-edit` …). Das „?“ im Kopf öffnet `/hilfe?von=<Routenname>` und damit dieses Thema (`topicForRoute`).
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.

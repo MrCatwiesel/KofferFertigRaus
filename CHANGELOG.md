@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.35.0 – 2026-10-14
+
+### Neu: Hilfe & Einführung
+- **Hilfe** (*Einstellungen → Hilfe & Einführung*): alle Bereiche kurz erklärt – von „Reise anlegen“ über Packliste, Tagesplan und Unwetter bis zu Server, Personen, Benachrichtigungen und Datensicherung – mit **Suche** (Umlaute egal) und Links direkt an die richtige Stelle
+- **„?“ oben rechts** auf jeder Seite öffnet die Hilfe genau zum Thema der Seite, auf der du gerade bist
+- **Einführung** in fünf kurzen Seiten zum Durchtippen: was die App kann, „alles auf deinem Gerät“, die drei Reiter Planung · Unterwegs · Danach, Zusammen reisen, installieren und sichern. Beim ersten Start auf der leeren Reiseliste angeboten, jederzeit aus der Hilfe erneut aufrufbar
+- „Als App installieren“ erklärt den Weg für iPad/iPhone, Android und PC
+- Unter *Über* steht jetzt auch MeteoAlarm bei den genutzten Diensten
+
 ## 1.34.0 – 2026-10-14 (Server 1.19.0)
 
 ### Neu: Abstimmungen

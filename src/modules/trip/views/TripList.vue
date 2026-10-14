@@ -40,7 +40,11 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
   <div v-if="trips.length === 0" class="card text-center py-5 px-3">
     <i class="bi bi-globe-europe-africa display-4 d-block mb-3 text-primary" aria-hidden="true"></i>
     <p class="mb-3">Noch keine Reise angelegt.</p>
-    <div><RouterLink to="/trip/neu" class="btn btn-outline-primary">Erste Reise planen</RouterLink></div>
+    <div class="d-flex flex-wrap gap-2 justify-content-center">
+      <RouterLink to="/einfuehrung" class="btn btn-primary" data-intro-link><i class="bi bi-play-circle me-1" aria-hidden="true"></i>Kurze Einführung (1 Minute)</RouterLink>
+      <RouterLink to="/trip/neu" class="btn btn-outline-primary">Erste Reise planen</RouterLink>
+    </div>
+    <p class="small text-body-secondary mt-3 mb-0">Fragen? Das <RouterLink to="/hilfe">?</RouterLink> oben rechts öffnet jederzeit die Hilfe zur Seite, auf der du gerade bist.</p>
   </div>
 
   <section v-for="g in groups" :key="g.id" class="mb-4">

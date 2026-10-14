@@ -10,6 +10,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 - **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei, Anbindung an die eigene **Piwigo**-Galerie
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 - **Mit Freunden teilen:** Lese-Links je Reise (nur Highlights oder ganzes Tagebuch), eigene Reisegruppen für Freunde
+- **Hilfe eingebaut:** „?“ auf jeder Seite, Suche, kurze Einführung beim ersten Start
 
 **App online:** https://mrcatwiesel.github.io/nix-wie-weg-/
 
@@ -59,7 +60,7 @@ Wichtig:
 
 ```
 src/
-  core/            Kern: Datenbank, Modul-Registry, Router, Backup, Einstellungen
+  core/            Kern: Datenbank, Modul-Registry, Router, Backup, Einstellungen, Hilfe (hilfe/inhalt.ts)
   ui/              gemeinsames Theme und (später) gemeinsame Komponenten
   modules/
     index.ts       Liste der aktiven Module

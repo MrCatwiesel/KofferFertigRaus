@@ -100,6 +100,17 @@ async function persist() {
     </div>
   </RouterLink>
 
+  <RouterLink to="/hilfe" class="card mb-3 text-decoration-none text-body" data-settings-help>
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi bi-question-circle fs-3 text-primary" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="h5 mb-0">Hilfe & Einführung</div>
+        <div class="small text-body-secondary">Alles kurz erklärt, mit Suche – und die Einführung zum Durchtippen</div>
+      </div>
+      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+    </div>
+  </RouterLink>
+
   <RouterLink to="/abgleich" class="card mb-3 text-decoration-none text-body">
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary" aria-hidden="true"></i>
@@ -181,7 +192,7 @@ async function persist() {
       </div>
       <p class="small text-body-secondary mt-3 mb-0">
         Dienste: Wetter und Höhen von Open-Meteo.com (CC BY 4.0) · Karten, Adresssuche und Wanderwege © OpenStreetMap-Mitwirkende (ODbL) ·
-        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData) ·
+        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData) · Unwetterwarnungen MeteoAlarm (EUMETNET) ·
         Wechselkurse: EZB-Referenzkurse über Frankfurter.
       </p>
     </div>

@@ -90,3 +90,8 @@ registerModule(packingModule)
 - [ ] funktioniert im Flugmodus
 - [ ] Daten erscheinen im Backup-Export
 - [ ] Eintrag in `CHANGELOG.md`
+
+## Hilfe nicht vergessen
+
+Für jedes neue Modul ein Thema in `src/core/hilfe/inhalt.ts` ergänzen und unter `routes` die Namen seiner Seiten eintragen –
+dann öffnet das „?“ oben rechts auf diesen Seiten die passende Hilfe.

@@ -13,6 +13,8 @@ export function buildRouter() {
     { path: '/personen', name: 'people', component: () => import('./views/PeopleAdmin.vue') },
     { path: '/benachrichtigungen', name: 'push', component: () => import('./views/PushSettings.vue') },
     { path: '/sicherung', name: 'backup-targets', component: () => import('./views/BackupTargets.vue') },
+    { path: '/hilfe', name: 'help', component: () => import('./views/HelpView.vue') },
+    { path: '/einfuehrung', name: 'intro', component: () => import('./views/IntroView.vue') },
     { path: '/trip/:tripId/teilen', name: 'share-trip', component: () => import('./views/ShareTrip.vue'), props: true },
     ...getModules().flatMap((m) => m.routes),
     { path: '/:pathMatch(.*)*', redirect: '/' }

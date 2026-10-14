@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { weatherDayFacts } from './day-facts'
 import { todayIso } from '@/core/dates'
 import { tripRepository } from '@/modules/trip/public'
 import { activityRepository } from '@/modules/activity/public'
@@ -39,5 +40,6 @@ export const dayplannerModule: AppModule = {
       return parts.join(' · ')
     }
   },
+  dayFacts: async (tripId, date) => weatherDayFacts((await weatherRepository.get(tripId))?.days, date),
   onTripDelete: (tripId) => weatherRepository.remove(tripId)
 }

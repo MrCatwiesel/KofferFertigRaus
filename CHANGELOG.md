@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.29.0 – 2026-10-14
+
+### Neu: Tagebuch-Entwurf aus dem Tag
+- **„Entwurf aus dem Tag“** im Tagebuch-Eintrag (und direkt bei jedem leeren Tag in der Tagebuch-Liste): Die App schreibt ein Gerüst aus dem, was an diesem Tag gespeichert ist:
+  - An- oder Heimreise mit Etappen und Uhrzeiten
+  - Wetter (sofern der Tag in der geladenen Vorhersage steht)
+  - erledigte (sonst geplante) Unternehmungen
+  - Touren mit Strecke, Höhenmetern, Zeit und höchstem Punkt
+  - Unterkunft (Ankunft, Übernachtung, Umzug, Abschied) und die Ausgaben des Tages
+- Titel (z. B. die Tour des Tages) und Ort werden nur vorgeschlagen, wenn sie noch leer sind. Eigener Text bleibt stehen, der Entwurf kommt darunter – und zweimal antippen fügt nichts doppelt ein
+- Alles auf dem Gerät, ohne Internet. Gedacht zum Weiterschreiben: Was war besonders, lustig, lecker?
+
 ## 1.28.0 – 2026-10-14
 
 ### Neu: Fotos auf der Karte

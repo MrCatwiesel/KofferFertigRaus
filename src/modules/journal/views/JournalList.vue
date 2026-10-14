@@ -98,10 +98,14 @@ async function removeEntry(e: JournalEntry) {
         </RouterLink>
       </div>
 
-      <RouterLink v-if="d.entries.length === 0" :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date } }"
-                  class="d-block border border-dashed rounded p-2 small text-body-secondary text-decoration-none">
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Eintrag schreiben
-      </RouterLink>
+      <div v-if="d.entries.length === 0" class="d-flex border border-dashed rounded small">
+        <RouterLink :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date } }" class="flex-grow-1 p-2 text-body-secondary text-decoration-none">
+          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Eintrag schreiben
+        </RouterLink>
+        <RouterLink :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date, entwurf: '1' } }" class="p-2 text-decoration-none border-start" data-draft-link>
+          <i class="bi bi-magic me-1" aria-hidden="true"></i>Entwurf aus dem Tag
+        </RouterLink>
+      </div>
 
       <article v-for="e in d.entries" :key="e.id" class="card mb-2">
         <div v-if="photosByEntry.get(e.id)?.length" class="photo-strip">

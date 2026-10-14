@@ -27,3 +27,9 @@ export function safeUrl(url: string | undefined | null): string | null {
     return null
   }
 }
+
+/** „A, B und C“ */
+export function joinList(items: readonly string[]): string {
+  const list = items.filter(Boolean)
+  return list.length <= 1 ? (list[0] ?? '') : `${list.slice(0, -1).join(', ')} und ${list[list.length - 1]}`
+}

@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { routeDayFacts } from './day-facts'
 import { statsLine } from './logic'
 import { routeRepository } from './repository'
 
@@ -52,5 +53,6 @@ export const routesModule: AppModule = {
   onStart: () => {
     setTimeout(() => void routeRepository.maintain(navigator.onLine).catch(() => 0), 8000) // nach dem ersten Abgleich, damit auch Routen der anderen Geräte dabei sind
   },
+  dayFacts: async (tripId, date) => routeDayFacts(await routeRepository.listByTrip(tripId), date),
   onTripDelete: (tripId) => routeRepository.removeByTrip(tripId)
 }

@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { activityDayFacts } from './day-facts'
 import { tripRepository } from '@/modules/trip/public'
 import { activityRepository } from './repository'
 import { countByStatus, totalEstimatedCost } from './logic'
@@ -34,5 +35,6 @@ export const activityModule: AppModule = {
       return trip ? totalEstimatedCost(list, trip.travelers, trip.currency) : 0
     }
   },
+  dayFacts: async (tripId, date) => activityDayFacts(await activityRepository.listByTrip(tripId), date),
   onTripDelete: (tripId) => activityRepository.removeByTrip(tripId)
 }

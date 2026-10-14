@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { stayDayFacts } from './day-facts'
 import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
@@ -32,5 +33,6 @@ export const accommodationModule: AppModule = {
       return trip ? totalCost(list, trip.currency) : 0
     }
   },
+  dayFacts: async (tripId, date) => stayDayFacts(await accommodationRepository.listByTrip(tripId), date),
   onTripDelete: (tripId) => accommodationRepository.removeByTrip(tripId)
 }

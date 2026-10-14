@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { expenseDayFacts } from './day-facts'
 import { formatMoney } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { expenseRepository } from './repository'
@@ -28,6 +29,10 @@ export const expensesModule: AppModule = {
       if (trip.budget) parts.push(`${Math.round((s.total / trip.budget) * 100)} % vom Budget`)
       return parts.join(' · ')
     }
+  },
+  async dayFacts(tripId, date) {
+    const [trip, list] = await Promise.all([tripRepository.get(tripId), expenseRepository.listByTrip(tripId)])
+    return trip ? expenseDayFacts(list, date, trip.currency) : []
   },
   onTripDelete: (tripId) => expenseRepository.removeByTrip(tripId)
 }

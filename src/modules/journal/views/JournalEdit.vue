@@ -3,7 +3,10 @@ import { computed, defineAsyncComponent, onMounted, onUnmounted, reactive, ref, 
 import { useRoute, useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { requestPersistentStorage } from '@/core/storage'
-import { getPhotoSources, notifyPhotosAdded, type AddedPhoto, type PhotoSource, type PickedPhoto } from '@/core/registry'
+import { getDayFacts, getPhotoSources, notifyPhotosAdded, type AddedPhoto, type PhotoSource, type PickedPhoto } from '@/core/registry'
+import { formatDate } from '@/core/format'
+import { diffDays } from '@/core/dates'
+import { applyDayDraft, composeDayDraft } from '../draft'
 import { processImage } from '@/services/images'
 import { readExif, type ExifInfo } from '@/services/exif'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
@@ -44,6 +47,7 @@ onMounted(async () => {
   if (!props.id) {
     const q = typeof route.query.tag === 'string' ? route.query.tag : ''
     draft.date = q || defaultEntryDate(trip.value.startDate, trip.value.endDate)
+    if (route.query.entwurf) await fillFromDay()
     return
   }
   const entry = await journalRepository.get(props.id)
@@ -55,6 +59,26 @@ onMounted(async () => {
 })
 
 onUnmounted(() => items.value.forEach((i) => URL.revokeObjectURL(i.url)))
+
+// Entwurf aus dem, was an diesem Tag gespeichert ist (Touren, Unternehmungen, Wetter …)
+const draftNote = ref<{ ok: boolean; text: string } | null>(null)
+const drafting = ref(false)
+async function fillFromDay() {
+  if (!trip.value || !draft.date) return
+  drafting.value = true
+  try {
+    const facts = await getDayFacts(props.tripId, draft.date)
+    const d = composeDayDraft(facts, { dayNo: diffDays(trip.value.startDate, draft.date) + 1, destination: trip.value.destination })
+    if (!d.facts) {
+      draftNote.value = { ok: false, text: `Für den ${formatDate(draft.date)} ist noch nichts gespeichert – keine Tour, Unternehmung, Anreise oder Wettervorhersage.` }
+      return
+    }
+    Object.assign(draft, applyDayDraft(draft, d))
+    draftNote.value = { ok: true, text: 'Entwurf eingefügt – jetzt mit eigenen Worten ergänzen: Was war besonders, lustig, lecker?' }
+  } finally {
+    drafting.value = false
+  }
+}
 
 // Weitere Fotoquellen (z. B. Piwigo), von anderen Modulen angemeldet
 const sources = ref<PhotoSource[]>([])
@@ -207,7 +231,14 @@ async function remove() {
     </div>
 
     <div class="col-12">
-      <label for="text" class="form-label">Erlebt</label>
+      <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-2">
+        <label for="text" class="form-label mb-0">Erlebt</label>
+        <button type="button" class="btn btn-sm btn-outline-primary" :disabled="drafting || !draft.date" data-day-draft @click="fillFromDay">
+          <span v-if="drafting" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+          <i v-else class="bi bi-magic me-1" aria-hidden="true"></i>Entwurf aus dem Tag
+        </button>
+      </div>
+      <div v-if="draftNote" class="small mb-2" :class="draftNote.ok ? 'text-success' : 'text-body-secondary'" role="status" data-draft-note>{{ draftNote.text }}</div>
       <textarea id="text" v-model="draft.text" rows="7" class="form-control"
                 placeholder="Was habt ihr gemacht? Was war besonders, lustig, lecker?"></textarea>
     </div>

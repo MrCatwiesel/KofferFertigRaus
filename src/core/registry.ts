@@ -116,6 +116,23 @@ export interface MapOverlay {
 }
 
 /** Verweis, der im Tagebuch unter einem Tag erscheint (z. B. die Wanderung des Tages). */
+/**
+ * Was an einem Tag der Reise passiert ist – Bausteine für den Tagebuch-Entwurf.
+ * Jedes Modul liefert fertige Sätze; das Tagebuch setzt sie zusammen.
+ */
+export interface DayFact {
+  /** Reihenfolge im Text: 10 Anreise · 20 Wetter · 30 Unternehmungen · 40 Touren · 50 Unterkunft · 60 Ausgaben */
+  order: number
+  /** Ein fertiger Satz (mit Punkt) */
+  text: string
+  /** Vorschlag für den Titel; der mit dem kleinsten Rang gewinnt */
+  title?: string
+  titleRank?: number
+  /** Vorschlag für den Ort; wie beim Titel entscheidet der Rang */
+  location?: string
+  locationRank?: number
+}
+
 export interface DayLink {
   date: string
   label: string
@@ -166,6 +183,8 @@ export interface AppModule {
   coverPhotos?: (tripId: string) => Promise<CoverPhoto[]>
   /** Verweise unter den Tagen im Tagebuch */
   dayLinks?: (tripId: string) => Promise<DayLink[]>
+  /** Bausteine für den Tagebuch-Entwurf eines Tages (YYYY-MM-DD) */
+  dayFacts?: (tripId: string, date: string) => Promise<DayFact[]>
 }
 
 const modules: AppModule[] = []
@@ -253,6 +272,12 @@ export async function getMapPhotos(tripId: string): Promise<MapPhoto[]> {
 export async function placePhoto(photoId: string, pos: { lat: number; lon: number } | null): Promise<boolean> {
   for (const m of getModules()) if (await m.placePhoto?.(photoId, pos)) return true
   return false
+}
+
+/** Bausteine aller Module für den Tagebuch-Entwurf eines Tages. */
+export async function getDayFacts(tripId: string, date: string): Promise<DayFact[]> {
+  const lists = await Promise.all(getModules().map((m) => (m.dayFacts?.(tripId, date) ?? Promise.resolve([])).catch(() => [] as DayFact[])))
+  return lists.flat().sort((a, b) => a.order - b.order)
 }
 
 /** Verweise aller Module unter den Tagen im Tagebuch. */

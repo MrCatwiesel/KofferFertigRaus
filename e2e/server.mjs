@@ -7,6 +7,8 @@ import { createSyncServer } from '../server/server.mjs'
 
 const port = Number(process.argv[2] ?? 8791)
 export const KEY = 'klicktest-schluessel-1234567890'
+/** Eigene Reisegruppe für den Personen-Test (stört die anderen Tests nicht) */
+export const KEY2 = 'klicktest-personen-0987654321'
 
 const json = (body) => new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } })
 async function fakeKartendienste(url, init = {}) {
@@ -48,7 +50,7 @@ async function fakeAuswaertigesAmt(url) {
 }
 
 const server = createSyncServer({
-  keys: [KEY],
+  keys: [KEY, KEY2],
   dataDir: mkdtempSync(join(tmpdir(), 'nww-e2e-')),
   appDir: join(import.meta.dirname, '..', 'dist'),
   routing: { fetchImpl: fakeKartendienste },

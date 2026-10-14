@@ -59,7 +59,7 @@ async function remove() {
     </div>
     <div class="col-12 col-md-6">
       <label for="person" class="form-label">Für wen?</label>
-      <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" />
+      <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
     </div>
     <div class="col-12 d-flex flex-wrap gap-4">
       <div class="form-check form-switch">

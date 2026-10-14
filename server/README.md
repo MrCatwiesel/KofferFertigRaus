@@ -110,6 +110,23 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
   Netz (Nginx Proxy Manager) zählt die echte Adresse aus `X-Forwarded-For`.
 - Geräte, die lange nicht da waren (`NWW_DEVICE_IDLE_DAYS`, Standard 180 Tage), werden automatisch abgemeldet.
 
+## Personen und Rechte (ab Server 1.16)
+
+- In der App unter *Geräte-Abgleich → Personen & Rechte*. Das erste Gerät (mit dem Gruppenschlüssel verbunden) trägt sich
+  mit Name und Passwort als erste Person ein und wird **Verwalter**.
+- **Rollen:** Verwalter (Personen einladen, Rollen und Rechte vergeben), Mitglied (alles bearbeiten), Nur lesen.
+  Je Reise abweichend: *Bearbeiten*, *Nur lesen*, *Kein Zugriff* (die Reise kommt dann gar nicht erst auf die Geräte der Person).
+- **Einladung für eine Person:** Code/QR wie bei Geräten, beim ersten Verbinden legt die Person ihr Passwort fest.
+  Weitere Geräte meldet sie danach mit **Name + Passwort** an. Passwort vergessen → Verwalter: *Passwort zurücksetzen* (neue Einladung).
+- **Privat:** Packliste, Medikamente, Impfungen und Dokumente eines Teilnehmers, der an der Reise mit einem Konto verknüpft ist,
+  sieht nur diese Person – auch Verwalter nicht. Dokumente und Medikamente kann sie freigeben (alle oder ausgewählte Personen).
+  Nicht verknüpfte Teilnehmer und Einträge „für alle“ sieht die ganze Gruppe.
+- Der Server setzt das durch: Nicht Sichtbares kommt als Löschung beim Gerät an, unerlaubte Änderungen werden abgelehnt
+  (die App nimmt sie zurück), Fotos gibt es nur, wenn ein sichtbarer Eintrag darauf verweist, Lese-Links nur mit Bearbeiten-Recht.
+- Geräte **ohne Person** (Gruppenschlüssel, ältere Geräte) haben wie bisher vollen Zugriff. Der Verwalter kann sie unter
+  *Geräte ohne Person* einer Person zuordnen. Den Gruppenschlüssel daher gut aufbewahren und nicht weitergeben.
+- Personen sperren oder entfernen meldet alle ihre Geräte ab.
+
 ## Offline-Karten
 
 Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.
@@ -166,7 +183,7 @@ docker compose up -d --build
 | GET | `/` und alle Nicht-`/api`-Pfade | die App (nur mit `NWW_APP_DIR`) |
 | GET | `/api/health` | Lebenszeichen (ohne Schlüssel) |
 | GET | `/api/info` | Anzahl Datensätze, aktueller Stand |
-| POST | `/api/push` | Änderungen hochladen `{ changes: [{ tbl, id, stamp, deleted, data }] }` – neuere gewinnt |
+| POST | `/api/push` | Änderungen hochladen `{ changes: [{ tbl, id, stamp, deleted, data }] }` – neuere gewinnt; ohne Recht → `rejected: [{ tbl, id, reason, current }]` |
 | GET | `/api/pull?since=N` | Änderungen seit Stand N abholen |
 | HEAD/GET/PUT | `/api/blob/<sha256>` | Fotos (Inhalt wird per Prüfsumme kontrolliert) |
 | GET/POST | `/api/shares` (`?tripId=`) | Lese-Links auflisten / anlegen `{ tripId, mode, photos, title, note, password, expiresDays, look }` |
@@ -179,9 +196,15 @@ docker compose up -d --build
 | GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
 | GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |
 | GET | `/api/piwigo/images/<id>?size=small\|xxlarge\|original` | Bilddatei |
-| POST | `/api/anmelden` | Gerät anmelden → eigener Gerätezugang `nwd_…` – mit `{ invite: "ABCD-EFGH-JKLM", name }` (ohne Schlüssel) oder Gruppenschlüssel im Kopf und `{ name }` |
+| POST | `/api/anmelden` | Gerät anmelden → eigener Gerätezugang `nwd_…` – mit `{ invite: "ABCD-EFGH-JKLM", name, password? }` (ohne Schlüssel; `check: true` prüft nur), `{ login, password, name }` (Person) oder Gruppenschlüssel im Kopf und `{ name }` |
+| GET/POST | `/api/personen` | Personen der Gruppe / Person anlegen `{ name, role }` → mit Einladung; `{ name, self: true, password }`: dieses Gerät wird zur ersten Person (Verwalter) |
+| PATCH/DELETE | `/api/personen/<id>` | Name, Rolle (`verwalter`, `mitglied`, `leser`), `disabled` ändern / Person entfernen (nur Verwalter) |
+| POST | `/api/personen/<id>/einladung` | neue Einladung bzw. Passwort zurücksetzen |
+| GET | `/api/personen/<id>/zugriff` | abweichende Rechte der Person je Reise |
+| PATCH | `/api/personen/ich` | eigenes Passwort ändern `{ oldPassword, password }` |
+| GET/PUT | `/api/zugriff/<reise-id>` | abweichende Rechte einer Reise / setzen `{ member, role: bearbeiten\|lesen\|kein\|null }` (nur Verwalter) |
 | GET | `/api/geraete` | angemeldete Geräte der Gruppe |
-| PATCH/DELETE | `/api/geraete/<id>` (oder `ich`) | Gerät umbenennen `{ name }` / abmelden |
+| PATCH/DELETE | `/api/geraete/<id>` (oder `ich`) | Gerät umbenennen `{ name }`, einer Person zuordnen `{ member }` (Verwalter) / abmelden |
 | POST | `/api/geraete/andere-abmelden` | alle anderen Geräte der Gruppe abmelden |
 | POST | `/api/einladungen` | Einladungscode für ein weiteres Gerät (einmal gültig, 24 Stunden) |
 | GET | `/api/routing/wanderwege?bbox=W,S,O,N&typ=hiking\|bicycle\|mtb&name=` | ausgeschilderte Routen im Ausschnitt (Overpass, höchstens 0,8°) |

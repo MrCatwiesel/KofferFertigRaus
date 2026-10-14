@@ -25,6 +25,8 @@ export interface Medication {
   cooling: boolean
   packed: boolean
   notes: string
+  /** Freigabe, wenn der Eintrag privat ist (Teilnehmer mit Konto verknüpft): Personen-IDs, '*' = alle */
+  sharedWith?: string[]
   createdAt: string
   updatedAt: string
 }

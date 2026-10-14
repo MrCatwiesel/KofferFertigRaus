@@ -10,6 +10,7 @@ export function buildRouter() {
     { path: '/einstellungen/aussehen', name: 'appearance', component: () => import('@/ui/AppearanceView.vue') },
     { path: '/abgleich', name: 'sync', component: () => import('./views/SyncSettings.vue') },
     { path: '/gruppen', name: 'groups', component: () => import('./views/GroupsAdmin.vue') },
+    { path: '/personen', name: 'people', component: () => import('./views/PeopleAdmin.vue') },
     { path: '/sicherung', name: 'backup-targets', component: () => import('./views/BackupTargets.vue') },
     { path: '/trip/:tripId/teilen', name: 'share-trip', component: () => import('./views/ShareTrip.vue'), props: true },
     ...getModules().flatMap((m) => m.routes),

@@ -1,4 +1,5 @@
 import type { RemoteChange } from './logic'
+import type { PersonInfo, TripRole } from '../people'
 
 /** Der Server kennt dieses Gerät nicht mehr (abgemeldet) oder die Gruppe ist gesperrt. */
 export class DeviceRevokedError extends Error {
@@ -10,24 +11,80 @@ export class DeviceRevokedError extends Error {
   }
 }
 
-/** Gerät beim Server anmelden → eigener Gerätezugang. Mit Einladungscode (ohne Schlüssel) oder Gruppenschlüssel. */
-export async function loginDevice(
-  server: string,
-  opts: { invite?: string; key?: string; name: string }
-): Promise<{ token: string; device: { id: string; name: string }; group: string }> {
+/** Fehler beim Anmelden – `code: 'passwort'`: Passwort fehlt oder ist zu kurz. */
+export class LoginError extends Error {
+  constructor(
+    message: string,
+    readonly code = ''
+  ) {
+    super(message)
+  }
+}
+
+async function postLogin(server: string, body: unknown, key?: string): Promise<Record<string, unknown>> {
   let res: Response
   try {
     res = await fetch(`${server}/api/anmelden`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(opts.key ? { Authorization: `Bearer ${opts.key}` } : {}) },
-      body: JSON.stringify(opts.invite ? { invite: opts.invite, name: opts.name } : { name: opts.name })
+      headers: { 'Content-Type': 'application/json', ...(key ? { Authorization: `Bearer ${key}` } : {}) },
+      body: JSON.stringify(body)
     })
   } catch {
     throw new Error(navigator.onLine ? 'Server nicht erreichbar – Adresse prüfen.' : 'Offline.')
   }
-  const body = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(body.error ?? `Anmelden fehlgeschlagen (${res.status}).`)
-  return body
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) throw new LoginError(json.error ?? `Anmelden fehlgeschlagen (${res.status}).`, json.code ?? '')
+  return json
+}
+
+export interface LoginResult {
+  token: string
+  device: { id: string; name: string }
+  group: string
+  member?: PersonInfo | null
+}
+
+/**
+ * Gerät beim Server anmelden → eigener Gerätezugang.
+ *  - Einladungscode (für eine Person: mit dem neuen Passwort, falls verlangt)
+ *  - Name + Passwort einer Person
+ *  - Gruppenschlüssel (Gerät ohne Person)
+ */
+export async function loginDevice(
+  server: string,
+  opts: { invite?: string; key?: string; login?: string; password?: string; name: string }
+): Promise<LoginResult> {
+  if (opts.invite) return (await postLogin(server, { invite: opts.invite, name: opts.name, ...(opts.password ? { password: opts.password } : {}) })) as unknown as LoginResult
+  if (opts.login !== undefined) return (await postLogin(server, { login: opts.login, password: opts.password ?? '', name: opts.name })) as unknown as LoginResult
+  return (await postLogin(server, { name: opts.name }, opts.key)) as unknown as LoginResult
+}
+
+/** Einladung prüfen, ohne sie zu verbrauchen: Für wen ist sie, muss ein Passwort festgelegt werden? */
+export async function checkInvite(server: string, invite: string): Promise<{ group: string; person: string | null; needsPassword: boolean }> {
+  return (await postLogin(server, { invite, check: true })) as unknown as { group: string; person: string | null; needsPassword: boolean }
+}
+
+/** Vom Server abgelehnte Änderung (fehlendes Recht) samt der gültigen Fassung. */
+export interface RejectedChange {
+  tbl: string
+  id: string
+  reason: 'nur-lesen' | 'privat' | 'verknuepfung' | string
+  current: RemoteChange
+}
+
+/** Antwort von GET /api/info (Abgleich) */
+export interface SyncInfo {
+  version: string
+  records: number
+  seq: number
+  epoch?: string
+  devices?: boolean
+  device?: { id: string; name: string } | null
+  people?: boolean
+  member?: PersonInfo | null
+  manager?: boolean
+  members?: PersonInfo[]
+  tripAccess?: Record<string, TripRole>
 }
 
 /** Netzwerkzugriff auf den Abgleich-Server. */
@@ -73,13 +130,13 @@ export class SyncApi {
     return res
   }
 
-  async info(): Promise<{ version: string; records: number; seq: number; epoch?: string; devices?: boolean; device?: { id: string; name: string } | null }> {
+  async info(): Promise<SyncInfo> {
     const res = await this.request('/api/info')
     if (!res.ok) throw new Error(`Server antwortet mit Fehler ${res.status}.`)
     return res.json()
   }
 
-  async push(changes: RemoteChange[]): Promise<{ accepted: number; ignored: number; seq: number }> {
+  async push(changes: RemoteChange[]): Promise<{ accepted: number; ignored: number; seq: number; rejected?: RejectedChange[] }> {
     const res = await this.request('/api/push', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

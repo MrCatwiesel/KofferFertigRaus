@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.31.0 – 2026-10-14 (Server 1.16.0)
+
+### Neu: Personen & Rechte
+- **Personen in der Reisegruppe** (*Geräte-Abgleich → Personen & Rechte*): Wer bisher mit dem Gruppenschlüssel verbunden ist, trägt sich mit „Das bin ich“ als erste Person ein und wird Verwalter. Weitere Personen lädt der Verwalter per Code/QR ein – beim ersten Verbinden legen sie ihr Passwort fest
+- **Anmelden mit Name und Passwort** auf weiteren Geräten (iPad, Handy, Laptop). Passwort ändern unter *Geräte-Abgleich*; vergessen → der Verwalter setzt es zurück
+- **Rollen:** Verwalter, Mitglied (bearbeitet alles), Nur lesen. **Je Reise abweichend:** Bearbeiten, Nur lesen oder Kein Zugriff – dann kommt die Reise gar nicht erst auf die Geräte dieser Person
+- **Private Bereiche:** Teilnehmer an der Reise mit einem Konto verknüpfen (*Reise bearbeiten → Wer reist mit? → Mit Konto verknüpfen*). Packliste, Medikamente, Impfungen und Dokumente einer verknüpften Person sieht nur sie selbst – auch der Verwalter nicht. Nicht verknüpfte Teilnehmer (z. B. Kinder) und „für alle“ bleiben für die Gruppe sichtbar
+- **Freigeben:** Bei eigenen Dokumenten und Medikamenten „Wer darf das sehen?“ – nur ich, alle oder ausgewählte Personen. Z. B. Allergiepass oder INR-Ausweis für die Mitreisenden, damit sie im Notfall Bescheid wissen
+- Der Server setzt die Rechte durch: Änderungen ohne Recht werden zurückgenommen (mit Hinweis), Reisen mit „Nur lesen“ zeigen einen Hinweis, Fotos und Lese-Links gibt es nur mit passendem Recht. Das Kalender-Abo ist je Person getrennt
+- Geräte ohne Person (Gruppenschlüssel, ältere App-Versionen) haben weiterhin vollen Zugriff; der Verwalter kann sie einer Person zuordnen. Nichts ändert sich, solange niemand Personen anlegt
+
 ## 1.30.0 – 2026-10-14
 
 ### Neu: Sprachnotizen im Tagebuch

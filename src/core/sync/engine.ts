@@ -2,7 +2,8 @@ import { reactive } from 'vue'
 import { db, onLocalChange, type OutboxEntry } from '../db'
 import { deleteMeta, getMeta, setMeta } from '../meta'
 import { DATA_TABLES } from '../tables'
-import { DeviceRevokedError, SyncApi, SyncHttpError, hashBlob, loginDevice } from './api'
+import { DeviceRevokedError, SyncApi, SyncHttpError, hashBlob, loginDevice, type RejectedChange } from './api'
+import { emptyPeople, peopleFromInfo, setPeople, type PeopleState } from '../people'
 import { safeBlobType } from '../blob-types'
 import { asRemote, markRemote } from './tracking'
 import { applyAction, defaultDeviceName, isBlobRef, isInviteCode, normalizeInviteCode, uploadStamp, type RemoteChange } from './logic'
@@ -41,7 +42,8 @@ const META = {
   initialized: 'sync.initialized',
   epoch: 'sync.epoch',
   device: 'sync.device',
-  revoked: 'sync.revoked'
+  revoked: 'sync.revoked',
+  people: 'sync.people'
 } as const
 
 /** Vorschlag für den Namen dieses Geräts */
@@ -69,6 +71,7 @@ export async function loadSyncConfig(): Promise<void> {
   syncState.device = await getMeta<{ id: string; name: string } | null>(META.device, null)
   syncState.revoked = await getMeta(META.revoked, '')
   if (syncState.revoked) syncState.lastError = syncState.revoked
+  setPeople(c ? await getMeta<PeopleState>(META.people, emptyPeople()) : emptyPeople())
   await refreshPending()
 }
 
@@ -92,11 +95,21 @@ export async function testConnection(server: string, key: string) {
  * bekommt dieses Gerät seinen eigenen (der Gruppenschlüssel wird dann nicht gespeichert).
  * Danach werden alle vorhandenen Daten einmal hochgeladen und alles vom Server geholt.
  */
-export async function configureSync(server: string, secret: string, deviceName = suggestedDeviceName()): Promise<void> {
+export async function configureSync(
+  server: string,
+  secret: string,
+  deviceName = suggestedDeviceName(),
+  opts: { password?: string; login?: string } = {}
+): Promise<void> {
   let key = secret
   let device: { id: string; name: string } | null = null
-  if (isInviteCode(secret)) {
-    const r = await loginDevice(server, { invite: normalizeInviteCode(secret), name: deviceName })
+  if (opts.login !== undefined) {
+    // Anmelden als Person mit Name + Passwort
+    const r = await loginDevice(server, { login: opts.login, password: opts.password ?? '', name: deviceName })
+    key = r.token
+    device = { id: r.device.id, name: r.device.name }
+  } else if (isInviteCode(secret)) {
+    const r = await loginDevice(server, { invite: normalizeInviteCode(secret), password: opts.password, name: deviceName })
     key = r.token
     device = { id: r.device.id, name: r.device.name }
   } else {
@@ -113,6 +126,7 @@ export async function configureSync(server: string, secret: string, deviceName =
   await setMeta(META.revoked, '')
   await setMeta(META.lastSeq, 0)
   await setMeta(META.initialized, false)
+  await deleteMeta(META.people, META.epoch)
   syncState.lastError = ''
   await loadSyncConfig()
   await syncNow()
@@ -139,6 +153,7 @@ export async function disconnectSync(): Promise<void> {
   syncState.lastError = ''
   syncState.revoked = ''
   syncState.device = null
+  setPeople(emptyPeople())
 }
 
 /** Beim ersten Abgleich: alle vorhandenen Datensätze vormerken. */
@@ -198,6 +213,36 @@ async function decodeFromServer(api: SyncApi, tbl: string, data: Record<string, 
   return out
 }
 
+/**
+ * Vom Server abgelehnte Änderungen (fehlendes Recht) zurücknehmen: die Server-Fassung gilt – unabhängig vom Zeitstempel.
+ * Nicht sichtbare Einträge (fremde private, gesperrte Reisen) verschwinden still von diesem Gerät.
+ */
+async function applyRejected(api: SyncApi, rejected: RejectedChange[]): Promise<void> {
+  const list = rejected.filter((r) => syncTables.has(r.tbl) && r.current)
+  if (!list.length) return
+  const plan: { r: RejectedChange; data: Record<string, unknown> | null }[] = []
+  for (const r of list) {
+    const local = (await db.table(r.tbl).get(r.id)) as Record<string, unknown> | undefined
+    const data = r.current.deleted || !r.current.data ? null : await decodeFromServer(api, r.tbl, r.current.data, local)
+    if (data && r.reason === 'nur-lesen') warn(`„${label(r.tbl, data)}“: nur Leserecht – Änderung zurückgenommen.`)
+    else if (data && r.reason === 'privat') warn(`„${label(r.tbl, data)}“ gehört einer anderen Person – Änderung zurückgenommen.`)
+    else if (data && r.reason === 'verknuepfung') warn('Die Verknüpfung eines Teilnehmers kann nur die Person selbst lösen – zurückgenommen.')
+    else if (!data && local && r.reason === 'nur-lesen' && r.current.stamp === '') warn(`„${label(r.tbl, local)}“: nur Leserecht – nicht gespeichert.`)
+    plan.push({ r, data })
+  }
+  const tables = [...new Set(plan.map((p) => p.r.tbl))].map((t) => db.table(t))
+  await asRemote(() =>
+    db.transaction('rw', tables, async () => {
+      markRemote(Dexie.currentTransaction?.idbtrans)
+      for (const p of plan) {
+        const t = db.table(p.r.tbl)
+        if (p.data) await t.put(p.data)
+        else await t.delete(p.r.id)
+      }
+    })
+  )
+}
+
 async function pushOutbox(api: SyncApi): Promise<void> {
   const uploaded = new Set<string>()
   for (;;) {
@@ -215,15 +260,16 @@ async function pushOutbox(api: SyncApi): Promise<void> {
         changes.push({ tbl: e.tbl, id: e.id, stamp: e.at, deleted: true, data: null })
       }
     }
+    const rejected: RejectedChange[] = []
     if (changes.length) {
       try {
-        await api.push(changes)
+        rejected.push(...((await api.push(changes)).rejected ?? []))
       } catch (err) {
         if (!(err instanceof SyncHttpError && err.permanent)) throw err
         // Ein ungültiger Eintrag darf nicht alle anderen aufhalten: einzeln senden, Abgelehnte auslassen
         for (const c of changes) {
           try {
-            await api.push([c])
+            rejected.push(...((await api.push([c])).rejected ?? []))
           } catch (e1) {
             if (!(e1 instanceof SyncHttpError && e1.permanent)) throw e1
             warn(`Eintrag in „${c.tbl}“ vom Server abgelehnt – bleibt nur auf diesem Gerät.`)
@@ -239,6 +285,11 @@ async function pushOutbox(api: SyncApi): Promise<void> {
       // Sicherheitsnetz gegen Endlosschleife: wurde nichts erledigt, abbrechen
       if (!done.length) throw new Error('Änderungen während des Hochladens – wird beim nächsten Abgleich fortgesetzt.')
     })
+    // Nur zurücknehmen, was seither nicht erneut geändert wurde (das versucht der nächste Abgleich)
+    if (rejected.length) {
+      const waiting = new Set((await db.outbox.bulkGet(rejected.map((r) => `${r.tbl}\u0001${r.id}`))).filter(Boolean).map((e) => e!.key))
+      await applyRejected(api, rejected.filter((r) => !waiting.has(`${r.tbl}\u0001${r.id}`)))
+    }
     await refreshPending()
   }
 }
@@ -308,6 +359,10 @@ async function checkServerReset(api: SyncApi): Promise<SyncApi> {
     syncState.device = info.device
     await setMeta(META.device, info.device)
   }
+  // Personen und Rechte (für die Anzeige) – Server ohne Personen: alles erlaubt
+  const ppl = peopleFromInfo(info)
+  setPeople(ppl)
+  await setMeta(META.people, ppl)
   const known = await getMeta(META.epoch, '')
   const lastSeq = await getMeta<number>(META.lastSeq, 0)
   const newEpoch = !!info.epoch && !!known && info.epoch !== known

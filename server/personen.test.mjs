@@ -101,15 +101,23 @@ test('Einladung für eine Person: Passwort festlegen, danach Name + Passwort', a
   s.lea = (await call('POST', '/api/anmelden', null, { invite: lea.body.invite.code, name: 'Tablet', password: 'lea-passwort-1' })).body.token
 })
 
+test('Eigenes Passwort ändern', async () => {
+  assert.equal((await call('PATCH', '/api/personen/ich', s.birgit, { oldPassword: 'falsch', password: 'neues-passwort' })).status, 400)
+  assert.equal((await call('PATCH', '/api/personen/ich', s.birgit, { oldPassword: 'birgit-passwort', password: 'neu' })).status, 400)
+  assert.equal((await call('PATCH', '/api/personen/ich', s.birgit, { oldPassword: 'birgit-passwort', password: 'birgit-neu-123' })).status, 200)
+  assert.equal((await call('POST', '/api/anmelden', null, { login: 'Birgit', password: 'birgit-neu-123', name: 'X' })).status, 201)
+  assert.equal((await call('PATCH', '/api/personen/ich', KEY, { oldPassword: 'x', password: 'yyyyyyyyy' })).status, 400)
+})
+
 test('Mitglieder sehen nur sich: keine Personen-Verwaltung, nur eigene Geräte', async () => {
   assert.equal((await call('POST', '/api/personen', s.birgit, { name: 'Fremd' })).status, 403)
   const list = await call('GET', '/api/personen', s.birgit)
   assert.equal(list.status, 200)
   assert.ok(list.body.members.every((m) => !('hasPassword' in m)))
   const devs = (await call('GET', '/api/geraete', s.birgit)).body.devices
-  assert.equal(devs.length, 2)
+  assert.equal(devs.length, 3)
   assert.ok(devs.every((d) => d.member === s.birgitId))
-  assert.equal((await call('GET', '/api/geraete', s.marco)).body.devices.length, 4)
+  assert.equal((await call('GET', '/api/geraete', s.marco)).body.devices.length, 5)
   // Eigene Einladung: neues Gerät gehört wieder Birgit, ohne Passwort
   const inv = (await call('POST', '/api/einladungen', s.birgit, { member: s.marcoId })).body
   assert.equal(inv.member, s.birgitId, 'nicht für andere Personen')
@@ -211,6 +219,8 @@ test('Zugriff je Reise: kein Zugriff, nur lesen, bearbeiten', async () => {
   assert.ok(visible(l, 'trips/T2'))
   assert.equal((await call('GET', '/api/zugriff/T1', s.lea)).status, 404)
   assert.deepEqual((await call('GET', '/api/info', s.lea)).body.tripAccess, { T1: 'kein' })
+  assert.deepEqual((await call('GET', `/api/personen/${s.leaId}/zugriff`, s.marco)).body.access, { T1: 'kein' })
+  assert.equal((await call('GET', `/api/personen/${s.leaId}/zugriff`, s.birgit)).status, 403)
 
   // Leserin darf Rom bearbeiten
   await call('PUT', '/api/zugriff/T2', s.marco, { member: s.leaId, role: 'bearbeiten' })

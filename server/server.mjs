@@ -30,7 +30,7 @@ import { createStatic } from './static.mjs'
 import { createPiwigoClient } from './piwigo.mjs'
 import { createMaps } from './maps.mjs'
 import { createDevices } from './devices.mjs'
-import { createMembers } from './members.mjs'
+import { checkPassword, createMembers } from './members.mjs'
 import { createBackupAdmin } from './backup-targets.mjs'
 import { createRouting } from './routing.mjs'
 import { createReiseinfo } from './reiseinfo.mjs'
@@ -243,6 +243,14 @@ export function createSyncServer(opts) {
       if (!admin) return send(res, 200, { members: members.list(space).filter((m) => !m.disabled).map((m) => ({ id: m.id, name: m.name, role: m.role })) })
       return send(res, 200, { members: members.list(space) })
     }
+    // Eigenes Passwort ändern
+    if (sub === '/ich' && req.method === 'PATCH') {
+      if (!member) throw new HttpError(400, 'Dieses Gerät gehört keiner Person.')
+      const body = await readJson(req)
+      if (!checkPassword(String(body.oldPassword ?? ''), member.pw_hash)) throw new HttpError(400, 'Das bisherige Passwort stimmt nicht.')
+      members.setPassword(member.id, body.password)
+      return send(res, 200, { ok: true })
+    }
     if (!admin) throw new HttpError(403, 'Nur Verwalter dürfen Personen verwalten.')
     if (sub === '' && req.method === 'POST') {
       const body = await readJson(req)
@@ -258,8 +266,13 @@ export function createSyncServer(opts) {
       }
       return send(res, 201, { member: created, invite: devices.invite(space, device?.id ?? null, created.id) })
     }
-    const m = sub.match(/^\/([a-f0-9]{16})(\/einladung)?$/)
+    const m = sub.match(/^\/([a-f0-9]{16})(\/einladung|\/zugriff)?$/)
     if (!m) throw new HttpError(404, 'Unbekannte Adresse')
+    if (m[2] === '/zugriff' && req.method === 'GET') {
+      if (!members.get(space, m[1])) throw new HttpError(404, 'Person nicht gefunden.')
+      return send(res, 200, { access: members.memberAccess(space, m[1]) })
+    }
+    if (m[2] === '/zugriff') throw new HttpError(405, 'Nicht erlaubt')
     if (m[2] && req.method === 'POST') {
       const target = members.get(space, m[1])
       if (!target) throw new HttpError(404, 'Person nicht gefunden.')

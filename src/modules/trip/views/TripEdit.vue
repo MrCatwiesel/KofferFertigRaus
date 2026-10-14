@@ -6,6 +6,7 @@ import { notifyTripSaved } from '@/core/registry'
 import { allCountries, countryName, flag, guessCountries } from '@/core/countries'
 import { budgetPerPersonDay, cleanParticipants, formatMoney, tripDays, validateTrip } from '../logic'
 import { TRANSPORT_LABELS, type TripDraft } from '../types'
+import { linkedMember, mergeLinks, people, type MemberLinks } from '@/core/people'
 
 const props = defineProps<{ id?: string }>()
 const router = useRouter()
@@ -21,7 +22,26 @@ onMounted(async () => {
   if (!trip) return router.replace('/trip')
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = trip
   Object.assign(draft, { ...rest, participants: [...(rest.participants ?? [])], countries: [...(rest.countries ?? [])] })
+  originalLinks.value = { ...(rest.memberLinks ?? {}) }
+  links.value = { ...(rest.memberLinks ?? {}) }
 })
+
+// Teilnehmer mit Personen verknüpfen (Personen & Rechte) → deren Einträge werden privat
+const originalLinks = ref<MemberLinks>({})
+const links = ref<MemberLinks>({})
+const showLinks = computed(() => people.enabled && people.members.length > 0 && draft.participants.length > 0)
+/** Verknüpfung gehört einer anderen Person – nur sie selbst kann sie lösen */
+function lockedFor(name: string) {
+  const m = linkedMember(people, originalLinks.value, name)
+  return !!people.me && !!m && m.id !== people.me.id ? m : null
+}
+function setLink(name: string, id: string) {
+  const next = { ...links.value }
+  for (const k of Object.keys(next)) if (id && next[k] === id) delete next[k]
+  if (id) next[name] = id
+  else delete next[name]
+  links.value = next
+}
 
 // Zielländer (für Reise- und Sicherheitshinweise des Auswärtigen Amts)
 const countryList = allCountries()
@@ -82,7 +102,9 @@ async function save() {
     const budget = typeof draft.budget === 'number' && !Number.isNaN(draft.budget) ? draft.budget : null
     const participants = cleanParticipants(draft.participants)
     const travelers = participants.length || draft.travelers
+    const memberLinks = mergeLinks(people, originalLinks.value, links.value, participants)
     const plain: TripDraft = { ...draft, budget, participants, travelers, countries: [...(draft.countries ?? [])], title: draft.title.trim(), destination: draft.destination.trim() }
+    if (Object.keys(memberLinks).length || Object.keys(originalLinks.value).length) plain.memberLinks = memberLinks
     if (props.id) {
       await tripRepository.update(props.id, plain)
       void notifyTripSaved(props.id) // z. B. Reisehinweise für neue Zielländer holen
@@ -170,6 +192,18 @@ function invalid(field: keyof TripDraft) {
         </button>
       </div>
       <div class="form-text">Optional. Damit lassen sich Packliste, Medikamente und Dokumente pro Person trennen.</div>
+      <div v-if="showLinks" class="border rounded p-2 mt-2" data-member-links>
+        <div class="small fw-semibold mb-1"><i class="bi bi-person-lock me-1" aria-hidden="true"></i>Mit Konto verknüpfen</div>
+        <div v-for="p in draft.participants" :key="p" class="d-flex align-items-center gap-2 py-1">
+          <span class="flex-grow-1 small">{{ p }}</span>
+          <span v-if="lockedFor(p)" class="small text-body-secondary"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ lockedFor(p)!.name }}</span>
+          <select v-else class="form-select form-select-sm w-auto" :value="links[p] ?? ''" :aria-label="`Konto für ${p}`" @change="setLink(p, ($event.target as HTMLSelectElement).value)">
+            <option value="">– nicht verknüpft –</option>
+            <option v-for="m in people.members" :key="m.id" :value="m.id">{{ m.name }}{{ m.id === people.me?.id ? ' (ich)' : '' }}</option>
+          </select>
+        </div>
+        <div class="form-text mt-1">Verknüpfte Personen sehen ihre Packliste, Medikamente und Dokumente privat – nur für sich. Nicht verknüpfte (z. B. Kinder) sieht die ganze Gruppe.</div>
+      </div>
       <div v-if="invalid('participants')" class="text-danger small">{{ errors.participants }}</div>
     </div>
 

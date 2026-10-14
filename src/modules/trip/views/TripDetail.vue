@@ -11,6 +11,8 @@ import { budgetPerPersonDay, defaultTripTab, formatDate, formatMoney, tripDays, 
 import { TRANSPORT_LABELS, type Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
 import SectionTiles from '../components/SectionTiles.vue'
+import ReadOnlyNote from '../components/ReadOnlyNote.vue'
+import { canEdit } from '@/core/people'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -117,12 +119,12 @@ async function remove() {
               <i class="bi bi-three-dots" aria-hidden="true"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
+              <li v-if="canEdit(trip.id)"><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
               <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">Titelbild ändern</RouterLink></li>
               <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">Mit Mitreisenden teilen</RouterLink></li>
               <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
               <li><hr class="dropdown-divider" /></li>
-              <li><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
+              <li v-if="canEdit(trip.id)"><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
             </ul>
           </div>
         </div>
@@ -147,15 +149,17 @@ async function remove() {
       <div class="dropdown">
         <button class="btn btn-outline-secondary btn-sm" data-bs-toggle="dropdown" aria-label="Aktionen"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
         <ul class="dropdown-menu dropdown-menu-end">
-          <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
+          <li v-if="canEdit(trip.id)"><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">Bearbeiten</RouterLink></li>
           <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">Titelbild ändern</RouterLink></li>
           <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">Mit Mitreisenden teilen</RouterLink></li>
           <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
           <li><hr class="dropdown-divider" /></li>
-          <li><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
+          <li v-if="canEdit(trip.id)"><button class="dropdown-item text-danger" @click="remove">Löschen</button></li>
         </ul>
       </div>
     </div>
+
+    <ReadOnlyNote :trip-id="trip.id" />
 
     <div v-if="layout.facts" class="d-flex flex-wrap gap-2 mb-3">
       <span v-for="f in facts" :key="f.icon" class="fact"><i :class="`bi bi-${f.icon} me-1`" aria-hidden="true"></i>{{ f.value }}</span>

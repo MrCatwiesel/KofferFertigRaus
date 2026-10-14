@@ -25,6 +25,11 @@ export interface Trip {
   coverY?: number
   /** Abgeschlossen und ins Archiv gelegt (in der Reiseliste eingeklappt) */
   archived?: boolean
+  /**
+   * Teilnehmer-Name → Person beim Abgleich-Server (Personen & Rechte). Verknüpfte Teilnehmer haben private
+   * Packliste, Medikamente, Impfungen und Dokumente.
+   */
+  memberLinks?: Record<string, string>
   createdAt: string
   updatedAt: string
 }

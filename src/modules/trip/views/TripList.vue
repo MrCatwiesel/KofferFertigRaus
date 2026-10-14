@@ -6,6 +6,7 @@ import { tripRepository } from '../repository'
 import { formatDate, tripPhase, tripStatusText } from '../logic'
 import type { Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
+import { canCreateTrips } from '@/core/people'
 
 const trips = useLiveQuery(() => tripRepository.listAll(), [] as Trip[])
 const showArchive = ref(false)
@@ -30,7 +31,7 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
       <RouterLink v-if="trips.length" to="/statistik" class="btn btn-outline-primary" aria-label="Statistik">
         <i class="bi bi-bar-chart" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Statistik</span>
       </RouterLink>
-      <RouterLink to="/trip/neu" class="btn btn-primary">
+      <RouterLink v-if="canCreateTrips()" to="/trip/neu" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Reise
       </RouterLink>
     </div>

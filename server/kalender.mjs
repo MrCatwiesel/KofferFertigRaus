@@ -44,7 +44,8 @@ export function createKalender(dataDir, groups = null) {
       const m = path.match(/^\/api\/kalender\/([^/]+)\.ics$/)
       if (!m || !TOKEN_RE.test(m[1]) || !Object.hasOwn(tokens, m[1])) throw new HttpError(404, 'Kalender nicht gefunden.')
       // Gesperrte oder gelöschte Reisegruppe: Abo liefert nichts mehr
-      const grp = groups?.get(tokens[m[1]])
+      // Abo einer Person: „<gruppe>:<person>“
+      const grp = groups?.get(tokens[m[1]].split(':')[0])
       if (groups && (!grp || grp.disabled)) throw new HttpError(404, 'Kalender nicht gefunden.')
       const f = fileOf(tokens[m[1]])
       const body = existsSync(f)

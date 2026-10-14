@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useOnline } from '../composables'
 import { ago, generateKey, isInviteCode, mixedContentProblem, normalizeServerUrl, pairingLink } from '../sync/logic'
 import { configureSync, currentKey, disconnectSync, logoutThisDevice, suggestedDeviceName, syncNow, syncState, testConnection } from '../sync/engine'
 import { ServerClient, type ServerInfo } from '../sync/client'
+import { LoginError, checkInvite } from '../sync/api'
+import { ROLE_LABEL, people } from '../people'
 import DevicesCard from './DevicesCard.vue'
 
 const route = useRoute()
@@ -21,6 +23,15 @@ const linkCopied = ref(false)
 const hostedHere = ref(false)
 const serverInfo = ref<ServerInfo | null>(null)
 const deviceName = ref(suggestedDeviceName())
+/** Anmelden: mit Einladung/Schlüssel oder als Person mit Name + Passwort */
+const mode = ref<'code' | 'passwort'>('code')
+const login = ref('')
+const password = ref('')
+const password2 = ref('')
+/** Einladung für eine Person, die ein Passwort festlegen muss */
+const invitePerson = ref<{ person: string; needsPassword: boolean } | null>(null)
+const pwChange = ref({ open: false, old: '', pw: '', pw2: '' })
+watch(key, () => (invitePerson.value = null))
 /** Mit eigenem Gerätezugang angemeldet (und nicht abgemeldet) → Schlüsselfeld nicht nötig */
 const deviceLogin = computed(() => syncState.configured && !!syncState.device && !syncState.revoked)
 
@@ -58,6 +69,13 @@ const normalized = computed(() => normalizeServerUrl(server.value))
 const mixed = computed(() => mixedContentProblem(normalized.value, location.protocol))
 const isCode = computed(() => isInviteCode(key.value))
 const keyOk = computed(() => isCode.value || key.value.trim().length >= 16)
+const pwMismatch = computed(() => !!password2.value && password.value !== password2.value)
+const canConnect = computed(() => {
+  if (!normalized.value || mixed.value || !online.value) return false
+  if (mode.value === 'passwort') return !!login.value.trim() && !!password.value
+  if (invitePerson.value?.needsPassword) return password.value.length >= 8 && password.value === password2.value
+  return keyOk.value
+})
 
 async function test() {
   busy.value = true
@@ -76,8 +94,24 @@ async function connect() {
   busy.value = true
   message.value = null
   try {
-    if (!isCode.value) await testConnection(normalized.value, key.value.trim())
-    await configureSync(normalized.value, key.value.trim(), deviceName.value.trim() || suggestedDeviceName())
+    const name = deviceName.value.trim() || suggestedDeviceName()
+    if (mode.value === 'passwort') {
+      await configureSync(normalized.value, '', name, { login: login.value.trim(), password: password.value })
+    } else {
+      if (!isCode.value) await testConnection(normalized.value, key.value.trim())
+      // Einladung für eine Person: erst fragen, ob ein Passwort festgelegt werden muss
+      if (isCode.value && !invitePerson.value) {
+        const c = await checkInvite(normalized.value, key.value.trim().toUpperCase().replace(/[\s-]/g, ''))
+        if (c.person) invitePerson.value = { person: c.person, needsPassword: c.needsPassword }
+        if (c.needsPassword) {
+          message.value = { type: 'info', text: `Einladung für ${c.person} (${c.group}). Leg jetzt dein Passwort fest – damit meldest du später weitere Geräte an.` }
+          return
+        }
+      }
+      await configureSync(normalized.value, key.value.trim(), name, { password: invitePerson.value?.needsPassword ? password.value : undefined })
+    }
+    password.value = password2.value = ''
+    invitePerson.value = null
     fromLink.value = false
     key.value = syncState.device ? '' : key.value
     serverInfo.value = (await (await ServerClient.fromSync())?.info()) ?? null
@@ -86,8 +120,21 @@ async function connect() {
       : { type: 'success', text: 'Eingerichtet und abgeglichen. Ab jetzt geht es automatisch.' }
   } catch (e) {
     message.value = { type: 'danger', text: (e as Error).message }
+    if (e instanceof LoginError && e.code === 'passwort' && invitePerson.value) invitePerson.value.needsPassword = true
   } finally {
     busy.value = false
+  }
+}
+
+async function changePassword() {
+  const c = await ServerClient.fromSync()
+  if (!c) return
+  try {
+    await c.json('/api/personen/ich', 'PATCH', { oldPassword: pwChange.value.old, password: pwChange.value.pw })
+    pwChange.value = { open: false, old: '', pw: '', pw2: '' }
+    message.value = { type: 'success', text: 'Passwort geändert.' }
+  } catch (e) {
+    message.value = { type: 'danger', text: (e as Error).message }
   }
 }
 
@@ -190,6 +237,35 @@ async function copyKey() {
     </div>
   </div>
 
+  <!-- Personen & Rechte (Server 1.16) -->
+  <div v-if="syncState.configured && !syncState.revoked && people.enabled" class="card mb-3" data-people-card>
+    <div class="card-body">
+      <div class="d-flex align-items-center gap-3">
+        <i class="bi bi-person-lock fs-3 text-primary" aria-hidden="true"></i>
+        <div class="flex-grow-1">
+          <div class="fw-semibold">
+            <template v-if="people.me">Angemeldet als {{ people.me.name }} <span class="badge text-bg-secondary fw-normal">{{ ROLE_LABEL[people.me.role] }}</span></template>
+            <template v-else>Personen &amp; Rechte</template>
+          </div>
+          <div class="small text-body-secondary">
+            <template v-if="people.manager">Personen einladen, Rollen und Zugriff je Reise festlegen</template>
+            <template v-else>Deine privaten Einträge (Packliste, Medikamente, Dokumente) sieht nur du.</template>
+          </div>
+        </div>
+        <RouterLink v-if="people.manager" to="/personen" class="btn btn-outline-primary">Verwalten</RouterLink>
+      </div>
+      <div v-if="people.me" class="mt-2">
+        <button v-if="!pwChange.open" type="button" class="btn btn-link btn-sm p-0" @click="pwChange.open = true">Passwort ändern</button>
+        <form v-else class="row g-2 mt-1" @submit.prevent="changePassword">
+          <div class="col-12 col-md-4"><input v-model="pwChange.old" type="password" class="form-control form-control-sm" placeholder="Bisheriges Passwort" autocomplete="current-password" aria-label="Bisheriges Passwort" /></div>
+          <div class="col-6 col-md-3"><input v-model="pwChange.pw" type="password" class="form-control form-control-sm" placeholder="Neues Passwort" autocomplete="new-password" aria-label="Neues Passwort" /></div>
+          <div class="col-6 col-md-3"><input v-model="pwChange.pw2" type="password" class="form-control form-control-sm" placeholder="Wiederholen" autocomplete="new-password" aria-label="Neues Passwort wiederholen" /></div>
+          <div class="col-12 col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100" :disabled="pwChange.pw.length < 8 || pwChange.pw !== pwChange.pw2">Ändern</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Reisegruppen (nur Besitzer des Servers) -->
   <div v-if="syncState.configured && serverInfo?.admin" class="card mb-3">
     <div class="card-body d-flex align-items-center gap-3">
@@ -230,6 +306,13 @@ async function copyKey() {
       </template>
       <template v-else>
 
+      <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Anmelden mit">
+        <input id="mode-code" v-model="mode" type="radio" class="btn-check" value="code" />
+        <label class="btn btn-outline-primary" for="mode-code">Einladung oder Schlüssel</label>
+        <input id="mode-pw" v-model="mode" type="radio" class="btn-check" value="passwort" />
+        <label class="btn btn-outline-primary" for="mode-pw">Name und Passwort</label>
+      </div>
+
       <div class="mb-2">
         <label for="server" class="form-label">Server-Adresse</label>
         <input id="server" v-model="server" class="form-control" placeholder="https://reise.example.de" autocomplete="off" autocapitalize="off" spellcheck="false" />
@@ -240,7 +323,18 @@ async function copyKey() {
           <i class="bi bi-house-check me-1" aria-hidden="true"></i>Die App kommt von deinem eigenen Server – Adresse ist schon eingetragen, nur noch den Schlüssel einfügen.
         </div>
       </div>
-      <div class="mb-3">
+      <div v-if="mode === 'passwort'" class="row g-2 mb-3">
+        <div class="col-12 col-md-6">
+          <label for="login" class="form-label">Dein Name</label>
+          <input id="login" v-model="login" class="form-control" autocomplete="username" autocapitalize="words" />
+        </div>
+        <div class="col-12 col-md-6">
+          <label for="login-pw" class="form-label">Passwort</label>
+          <input id="login-pw" v-model="password" type="password" class="form-control" autocomplete="current-password" />
+        </div>
+        <div class="col-12 form-text mt-1">Für Personen, die schon eingeladen wurden und ein Passwort festgelegt haben.</div>
+      </div>
+      <div v-else class="mb-3">
         <label for="key" class="form-label">Einladungscode oder Schlüssel der Reisegruppe</label>
         <div class="input-group">
           <input id="key" v-model="key" :type="showKey ? 'text' : 'password'" class="form-control font-monospace" autocomplete="off" autocapitalize="off" spellcheck="false" />
@@ -255,6 +349,16 @@ async function copyKey() {
           <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">Schlüssel erzeugen</button>
           und beim Server als <code>NWW_KEYS</code> eintragen.
         </div>
+        <div v-if="invitePerson?.needsPassword" class="row g-2 mt-2" data-new-password>
+          <div class="col-12 small fw-semibold">Passwort für {{ invitePerson.person }} festlegen</div>
+          <div class="col-6">
+            <input v-model="password" type="password" class="form-control" placeholder="Passwort" autocomplete="new-password" aria-label="Neues Passwort" />
+          </div>
+          <div class="col-6">
+            <input v-model="password2" type="password" class="form-control" placeholder="Wiederholen" autocomplete="new-password" aria-label="Passwort wiederholen" />
+          </div>
+          <div class="col-12 form-text mt-0">Mindestens 8 Zeichen.<span v-if="pwMismatch" class="text-danger"> Die Passwörter stimmen nicht überein.</span></div>
+        </div>
       </div>
       <div class="mb-3">
         <label for="devname" class="form-label">Name dieses Geräts</label>
@@ -262,11 +366,11 @@ async function copyKey() {
         <div class="form-text">So erscheint das Gerät in der Geräteliste – dort kannst du es auch wieder abmelden.</div>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-primary" :disabled="busy || !normalized || !keyOk || mixed || !online" @click="connect">
+        <button type="button" class="btn btn-primary" :disabled="busy || !canConnect" @click="connect">
           <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
           {{ syncState.configured ? 'Speichern' : 'Verbinden' }}
         </button>
-        <button type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || isCode || !online" @click="test">Verbindung testen</button>
+        <button v-if="mode === 'code'" type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || isCode || !online" @click="test">Verbindung testen</button>
         <button v-if="syncState.configured" type="button" class="btn btn-outline-danger ms-auto" @click="disconnect">Abgleich beenden</button>
       </div>
       <p v-if="!online" class="small text-body-secondary mt-2 mb-0">Zum Einrichten wird Internet benötigt.</p>

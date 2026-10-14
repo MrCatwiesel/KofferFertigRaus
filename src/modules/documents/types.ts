@@ -32,6 +32,8 @@ export interface TravelDocument {
   notes: string
   /** Automatisch angelegt, z. B. „aa:AT:einreise“ (Reisehinweise) – wird dann bei Änderungen aktualisiert */
   source?: string
+  /** Freigabe, wenn der Eintrag privat ist (Teilnehmer mit Konto verknüpft): Personen-IDs, '*' = alle */
+  sharedWith?: string[]
   createdAt: string
   updatedAt: string
 }

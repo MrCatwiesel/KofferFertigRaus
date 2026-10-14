@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { diffDays } from '@/core/dates'
-import { PersonSelect, TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
+import { PersonSelect, TripContextHeader, VisibilitySelect, tripRepository, type Trip } from '@/modules/trip/public'
 import { medicationRepository } from '../repository'
 import { DEFAULT_RESERVE_DAYS, emptyMedicationDraft, normalizeTimes, stockStatus, unitsNeeded, validateMedication } from '../logic'
 import { KIND, type MedicationDraft } from '../types'
@@ -51,6 +51,7 @@ async function save() {
     ...cleaned.value,
     name: draft.name.trim(),
     person: draft.person.trim(),
+    sharedWith: [...(draft.sharedWith ?? [])],
     times: normalizeTimes(cleaned.value.times)
   }
   if (props.id) await medicationRepository.update(props.id, plain)
@@ -76,7 +77,10 @@ async function remove() {
     </div>
     <div class="col-12 col-md-4">
       <label for="person" class="form-label">Für wen?</label>
-      <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" />
+      <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
+    </div>
+    <div class="col-12">
+      <VisibilitySelect v-model="draft.sharedWith" :trip-id="tripId" :person="draft.person" />
     </div>
 
     <div class="col-12">

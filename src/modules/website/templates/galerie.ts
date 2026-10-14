@@ -1,6 +1,6 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
-import { activitiesBlock, footer, routesBlock, staysBlock, statsLine } from './parts'
+import { activitiesBlock, footer, overviewBlock, routesBlock, staysBlock, statsLine } from './parts'
 
 /** Galerie: Fotos im Vordergrund (Mauerwerk-Raster), Texte kurz darunter. */
 export const galerie: SiteTemplate = {
@@ -28,6 +28,7 @@ export const galerie: SiteTemplate = {
       ${s.intro ? `<div class="mt-3 gal-text">${paragraphs(s.intro)}</div>` : ''}
     </header>
     ${statsLine(s)}
+    ${overviewBlock(s)}
     ${routesBlock(s.routes)}
     ${staysBlock(s.stays)}
     ${s.days

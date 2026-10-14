@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.31.1 – 2026-10-14
+
+### Korrigiert: Karten auf der Reise-Webseite
+- Routen auf der Webseite zeigen jetzt eine **Karte (OpenStreetMap) mit der Strecke** statt nur einer Linie auf grauem Grund – mit Start- und Zielpunkt, darunter wie bisher das Höhenprofil
+- Ab zwei Routen steht oben eine **Übersichtskarte** mit allen Routen der Reise
+- Die Kartenbilder werden in die Datei eingebettet – die fertige Seite braucht kein Internet. Nur zum Erstellen wird Internet benötigt; ohne bleibt es bei der Linie (mit Hinweis und „Noch einmal versuchen“)
+- Hinweis, wenn Routen nicht für die Webseite freigegeben sind – „Alle zeigen“ gibt sie mit einem Tipp frei
+
 ## 1.31.0 – 2026-10-14 (Server 1.16.0)
 
 ### Neu: Personen & Rechte

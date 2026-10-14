@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import bootstrapCssRaw from 'bootstrap/dist/css/bootstrap.min.css?raw'
 import { useLiveQuery } from '@/core/composables'
 import { formatBytes } from '@/core/storage'
 import DonationHint from '@/ui/DonationHint.vue'
 import { blobToDataUrl, resizeBlob } from '@/services/images'
+import { renderStaticMap } from '@/services/static-map'
+import { useOnline } from '@/core/composables'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { journalRepository, orderPhotos, photoRepository, useObjectUrls, type JournalEntry, type Photo } from '@/modules/journal/public'
 import { routeRepository, type Route } from '@/modules/routes/public'
@@ -29,11 +31,66 @@ const entries = useLiveQuery(() => journalRepository.listByTrip(props.tripId), [
 const photos = useLiveQuery(() => photoRepository.listByTrip(props.tripId), [] as Photo[])
 const routes = useLiveQuery(() => routeRepository.listByTrip(props.tripId), [] as Route[])
 // Nur Routen, die für Webseite/Lese-Links freigegeben sind
-const routeInputs = computed<RouteInput[]>(() =>
-  routes.value
-    .filter((r) => r.showInShare)
-    .map((r) => ({ name: r.name, color: r.color, kind: r.kind, stats: r.stats, points: r.preview, date: r.date }))
-)
+const shared = computed(() => routes.value.filter((r) => r.showInShare))
+const hiddenRoutes = computed(() => routes.value.filter((r) => !r.showInShare))
+
+// Kartenbilder (OpenStreetMap-Hintergrund mit Strecke) – einmal erzeugt, dann für Vorschau und Datei verwendet
+const ROUTE_MAP = { width: 1000, height: 560 }
+const OVERVIEW_MAP = { width: 1200, height: 700 }
+const online = useOnline()
+const mapBlobs = shallowRef(new Map<string, Blob>())
+const mapUrls = shallowRef(new Map<string, string>())
+const mapState = ref<'' | 'laden' | 'fertig' | 'fehlt'>('')
+const mapKey = (r: Route) => `${r.id}|${r.color}|${r.updatedAt}`
+const overviewKey = computed(() => (shared.value.length > 1 ? `overview|${shared.value.map(mapKey).join(',')}` : ''))
+let mapRun = 0
+
+async function loadMaps() {
+  const run = ++mapRun
+  const jobs: [string, () => Promise<Blob | null>][] = []
+  for (const r of shared.value) {
+    const k = mapKey(r)
+    if (!mapBlobs.value.has(k) && r.preview.length > 1) jobs.push([k, () => renderStaticMap([{ points: r.preview, color: r.color }], { ...ROUTE_MAP, stroke: 5, markers: true })])
+  }
+  if (overviewKey.value && !mapBlobs.value.has(overviewKey.value)) {
+    const lines = shared.value.map((r) => ({ points: r.preview, color: r.color }))
+    jobs.push([overviewKey.value, () => renderStaticMap(lines, { ...OVERVIEW_MAP, stroke: 4 })])
+  }
+  if (!jobs.length) {
+    if (mapState.value === 'laden') mapState.value = 'fertig'
+    return
+  }
+  mapState.value = 'laden'
+  let missing = 0
+  for (const [k, job] of jobs) {
+    const blob = await job().catch(() => null)
+    if (run !== mapRun) return
+    if (!blob) {
+      missing++
+      continue
+    }
+    mapBlobs.value = new Map(mapBlobs.value).set(k, blob)
+    mapUrls.value = new Map(mapUrls.value).set(k, URL.createObjectURL(blob))
+  }
+  mapState.value = missing ? 'fehlt' : 'fertig'
+}
+watch(online, (on) => {
+  if (on && mapState.value === 'fehlt') void loadMaps()
+})
+onUnmounted(() => {
+  mapRun++
+  for (const u of mapUrls.value.values()) URL.revokeObjectURL(u)
+})
+
+/** Routen für die Vorlage; `src` liefert das Kartenbild (Vorschau: blob-Adresse, Datei: eingebettet) */
+function routeInputsWith(src: (key: string) => string | undefined): RouteInput[] {
+  return shared.value.map((r) => ({ name: r.name, color: r.color, kind: r.kind, stats: r.stats, points: r.preview, date: r.date, map: src(mapKey(r)) }))
+}
+const routeInputs = computed<RouteInput[]>(() => routeInputsWith((k) => mapUrls.value.get(k)))
+
+async function showAllRoutes() {
+  for (const r of hiddenRoutes.value) await routeRepository.update(r.id, { showInShare: true })
+}
 const accs = useLiveQuery(() => accommodationRepository.listByTrip(props.tripId), [] as Accommodation[])
 const acts = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] as Activity[])
 // Unterkünfte und Unternehmungen: nur unverfängliche Felder (kein Preis, keine Buchungsnummer, keine Notizen)
@@ -62,6 +119,15 @@ const previewUrls = useObjectUrls(photos, (p) => p.id, (p) => p.full)
 
 const settings = reactive<WebsiteSettingsDraft>(defaultSettings({ title: '', destination: '', startDate: '2000-01-01', endDate: '2000-01-01' }))
 const loaded = ref(false)
+
+// Kartenbilder erzeugen, sobald Routen da sind bzw. sich ändern
+watch(
+  () => [settings.showRoutes, overviewKey.value, shared.value.map(mapKey).join(',')],
+  () => {
+    if (settings.showRoutes && shared.value.length) void loadMaps()
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   trip.value = await tripRepository.get(props.tripId)
@@ -100,7 +166,7 @@ function entryInputs(src: (p: Photo) => SitePhoto): EntryInput[] {
 
 const site = computed(() => {
   if (!trip.value) return null
-  return buildSiteData(
+  const data = buildSiteData(
     trip.value,
     settings,
     entryInputs((p) => ({ src: previewUrls.value.get(p.id) ?? '', caption: p.caption, width: p.width, height: p.height })),
@@ -108,6 +174,8 @@ const site = computed(() => {
     routeInputs.value,
     extra.value
   )
+  const overview = settings.showRoutes && overviewKey.value ? mapUrls.value.get(overviewKey.value) : undefined
+  return overview ? { ...data, overviewMap: overview } : data
 })
 
 // Vorschau (verzögert neu zeichnen, damit Tippen flüssig bleibt)
@@ -148,14 +216,20 @@ async function buildFile() {
       sources.set(p.id, { src: await blobToDataUrl(r.blob), caption: p.caption, width: r.width, height: r.height })
       progress.value = { done: progress.value.done + 1, total: needed.length }
     }
+    // Kartenbilder einbetten (noch fehlende jetzt versuchen)
+    if (settings.showRoutes && shared.value.length) await loadMaps()
+    const embedded = new Map<string, string>()
+    for (const [k, b] of mapBlobs.value) embedded.set(k, await blobToDataUrl(b))
     const data = buildSiteData(
       trip.value,
       settings,
       entryInputs((p) => sources.get(p.id) ?? { src: '', caption: p.caption, width: p.width, height: p.height }),
       undefined,
-      routeInputs.value,
+      routeInputsWith((k) => embedded.get(k)),
       extra.value
     )
+    const overview = settings.showRoutes && overviewKey.value ? embedded.get(overviewKey.value) : undefined
+    if (overview) data.overviewMap = overview
     const html = renderSite(data, { ...settings }, bootstrapCss, await embeddedFontCss(settings.font))
     const file = new File([html], fileNameFor(settings.title || trip.value.title), { type: 'text/html' })
     exported.value = { file, url: URL.createObjectURL(file) }
@@ -280,6 +354,17 @@ function resetTexts() {
             <i :class="`bi bi-${b.icon} me-1`" aria-hidden="true"></i>{{ b.label }}<span v-if="b.count !== undefined" class="opacity-75"> ({{ b.count }})</span>
           </label>
         </template>
+      </div>
+      <div v-if="settings.showRoutes && hiddenRoutes.length" class="alert alert-light border small py-2 mb-2" data-hidden-routes>
+        <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>
+        {{ hiddenRoutes.length === 1 ? '1 Route ist' : `${hiddenRoutes.length} Routen sind` }} nicht für die Webseite freigegeben
+        <template v-if="hiddenRoutes.length <= 3">({{ hiddenRoutes.map((r) => r.name).join(', ') }})</template>.
+        <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="showAllRoutes">Alle zeigen</button>
+      </div>
+      <div v-if="settings.showRoutes && shared.length" class="small mb-2" :class="mapState === 'fehlt' ? 'text-warning-emphasis' : 'text-body-secondary'" data-map-state>
+        <template v-if="mapState === 'laden'"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade Kartenbilder …</template>
+        <template v-else-if="mapState === 'fehlt'"><i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Kartenbilder brauchen Internet – ohne sie zeigt die Seite nur die Strecke. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="loadMaps">Noch einmal versuchen</button></template>
+        <template v-else-if="mapState === 'fertig'"><i class="bi bi-map me-1" aria-hidden="true"></i>Routen mit Karte (© OpenStreetMap-Mitwirkende){{ shared.length > 1 ? ' und Übersichtskarte' : '' }}.</template>
       </div>
       <div v-if="settings.showStays" class="form-check form-switch">
         <input id="stay-details" v-model="settings.showStayDetails" class="form-check-input" type="checkbox" role="switch" />

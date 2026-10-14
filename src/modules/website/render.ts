@@ -31,6 +31,7 @@ img { max-width: 100%; }
 .route-dot { display: inline-block; width: .8rem; height: .8rem; border-radius: 50%; margin-right: .4rem; vertical-align: -.05rem; }
 .route-track { background: var(--bs-tertiary-bg); border-radius: .5rem; }
 .route svg { display: block; width: 100%; height: auto; }
+.route-map { display: block; width: 100%; height: auto; border-radius: .5rem; background: var(--bs-tertiary-bg); }
 .route-profile { margin-top: .5rem; color: var(--bs-body-color); }
 .section-title { color: var(--accent); }
 .stay-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .75rem; }

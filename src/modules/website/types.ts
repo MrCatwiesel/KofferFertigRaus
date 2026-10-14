@@ -66,6 +66,8 @@ export interface SiteRoute {
   kind: 'track' | 'route'
   stats: { distance: number; ascent: number; descent: number; duration: number | null }
   points: [number, number, number | null][]
+  /** Kartenbild mit der Strecke (OpenStreetMap-Hintergrund) – fehlt es (offline), wird nur die Linie gezeichnet */
+  map?: string
 }
 
 /** Unterkunft auf der Webseite (ohne Preis, Buchungsnummer, Notizen). */
@@ -110,6 +112,8 @@ export interface SiteData {
   days: SiteDay[]
   /** Routen ohne Tag */
   routes: SiteRoute[]
+  /** Übersichtskarte aller Routen (ab zwei Routen) */
+  overviewMap?: string
   stays: SiteStay[]
   activities: SiteActivity[]
   stats: { days: number; entries: number; photos: number }

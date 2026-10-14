@@ -1,6 +1,6 @@
 import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteTemplate } from './types'
-import { activitiesBlock, footer, routesBlock, staysBlock, statsLine } from './parts'
+import { activitiesBlock, footer, overviewBlock, routesBlock, staysBlock, statsLine } from './parts'
 
 /** Magazin: große Bilder, Text abwechselnd links/rechts, Serif-Überschriften. */
 export const magazin: SiteTemplate = {
@@ -55,6 +55,7 @@ export const magazin: SiteTemplate = {
   <main class="container py-4" style="max-width: 1100px">
     ${s.intro ? `<div class="lead my-4 mx-auto" style="max-width: 720px">${paragraphs(s.intro)}</div>` : ''}
     ${statsLine(s)}
+    ${overviewBlock(s)}
     ${routesBlock(s.routes)}
     ${staysBlock(s.stays)}
     ${stories.join('')}

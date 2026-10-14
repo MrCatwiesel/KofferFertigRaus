@@ -25,14 +25,23 @@ export function footer(s: SiteData): string {
   </footer>`
 }
 
-/** Routen eines Tages: Strecke (ohne Kartenhintergrund, funktioniert offline) und Höhenprofil. */
+/** Übersichtskarte aller Routen (nur, wenn es sie gibt). */
+export function overviewBlock(s: SiteData): string {
+  if (!s.overviewMap) return ''
+  return `
+  <figure class="route route-overview">
+    <img class="route-map" src="${s.overviewMap}" alt="Karte mit allen Routen der Reise" loading="lazy">
+  </figure>`
+}
+
+/** Routen eines Tages: Karte mit Strecke (ohne Internet beim Erstellen: nur die Linie) und Höhenprofil. */
 export function routesBlock(routes: SiteRoute[]): string {
   return routes
     .map(
       (r) => `
   <figure class="route">
     <figcaption class="route-head"><span class="route-dot" style="background:${esc(r.color)}"></span><strong>${esc(r.name)}</strong> <span class="text-body-secondary small">${esc(routeStats(r.stats))}</span></figcaption>
-    <div class="route-track">${trackSvg(r.points, { color: r.color })}</div>
+    ${r.map ? `<img class="route-map" src="${r.map}" alt="Karte: ${esc(r.name)}" loading="lazy">` : `<div class="route-track">${trackSvg(r.points, { color: r.color })}</div>`}
     ${r.points.some((p) => p[2] !== null) ? `<div class="route-profile">${profileSvg(r.points, { color: r.color })}</div>` : ''}
   </figure>`
     )

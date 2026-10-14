@@ -142,7 +142,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
   </div>
 
   <div v-else-if="state === 'old-server'" class="alert alert-warning">
-    Dein Server kennt noch keine Lese-Links. Bitte dort aktualisieren: <code>/opt/nix-wie-weg/server/proxmox/update.sh</code>
+    Dein Server kennt noch keine Lese-Links. Bitte dort aktualisieren: <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code>
   </div>
 
   <div v-else-if="state === 'error'" class="alert alert-warning d-flex align-items-start gap-2">

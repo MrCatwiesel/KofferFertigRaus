@@ -171,7 +171,7 @@ const kmLabel = (b: Bbox) => {
       <div v-else-if="!online" class="small text-body-secondary">Neue Ausschnitte kannst du speichern, sobald wieder Internet da ist.</div>
       <div v-else-if="serverReady === false" class="alert alert-secondary small mb-0">
         Dein Server kann noch keine Offline-Karten erstellen. Im Container einmal
-        <code>/opt/nix-wie-weg/server/proxmox/update.sh</code> ausführen – danach geht es.
+        <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> ausführen – danach geht es.
       </div>
       <template v-else>
         <div class="row g-2 align-items-end mb-2">

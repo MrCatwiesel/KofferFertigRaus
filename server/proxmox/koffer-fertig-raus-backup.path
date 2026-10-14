@@ -3,8 +3,8 @@
 Description=KofferFertigRaus – Sicherung auf Anforderung
 
 [Path]
-PathExists=/var/lib/nix-wie-weg/sicherung/jetzt
-Unit=nix-wie-weg-backup.service
+PathExists=/var/lib/koffer-fertig-raus/sicherung/jetzt
+Unit=koffer-fertig-raus-backup.service
 
 [Install]
 WantedBy=multi-user.target

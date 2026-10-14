@@ -190,7 +190,7 @@ const form = reactive({ showPw: false })
   <div v-if="info" class="alert alert-info small py-2" role="status">{{ info }}</div>
   <div v-if="!installed && !loading" class="alert alert-warning small">
     Auf dem Server ist die Sicherung noch nicht vollständig eingerichtet. Im Container einmal
-    <code>/opt/nix-wie-weg/server/proxmox/update.sh</code> ausführen.
+    <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> ausführen.
   </div>
 
   <!-- Sicherung im Container -->
@@ -367,7 +367,7 @@ const form = reactive({ showPw: false })
         <textarea class="form-control form-control-sm font-monospace mb-2" rows="3" readonly :value="sshKey" @focus="($event.target as HTMLTextAreaElement).select()"></textarea>
         <button type="button" class="btn btn-sm btn-outline-secondary" @click="copyKey"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Kopieren</button>
       </template>
-      <p v-else class="small mb-0">Noch kein Schlüssel – im Container einmal <code>/opt/nix-wie-weg/server/proxmox/update.sh</code> ausführen.</p>
+      <p v-else class="small mb-0">Noch kein Schlüssel – im Container einmal <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> ausführen.</p>
     </div>
   </div>
 
@@ -375,9 +375,9 @@ const form = reactive({ showPw: false })
     <summary>Wie wird gesichert – und wie hole ich es zurück?</summary>
     <ul class="mt-2">
       <li>Jede Nacht entsteht im Container eine Sicherung (Datenbank, Fotos, Einstellungen mit Schlüsseln). Danach wird sie an alle eingeschalteten Ziele übertragen.</li>
-      <li><strong>Ordner, SSH:</strong> je Stand ein Ordner <code>nix-wie-weg/&lt;datum_uhrzeit&gt;</code>; Fotos liegen trotzdem nur einmal da.</li>
-      <li><strong>SMB, WebDAV:</strong> je Stand Datenbank und Einstellungen in <code>nix-wie-weg/&lt;datum_uhrzeit&gt;</code>, alle Fotos gemeinsam in <code>nix-wie-weg/fotos</code> (nur neue werden hochgeladen).</li>
-      <li>Zurückholen: Stand in den Container nach <code>/var/backups/nix-wie-weg/&lt;datum_uhrzeit&gt;</code> kopieren (bei SMB/WebDAV den Ordner <code>fotos</code> als <code>blobs</code> dazu), dann <code>restore.sh &lt;datum_uhrzeit&gt;</code>.</li>
+      <li><strong>Ordner, SSH:</strong> je Stand ein Ordner <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>; Fotos liegen trotzdem nur einmal da.</li>
+      <li><strong>SMB, WebDAV:</strong> je Stand Datenbank und Einstellungen in <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>, alle Fotos gemeinsam in <code>nix-wie-weg/fotos</code> (nur neue werden hochgeladen).</li>
+      <li>Zurückholen: Stand in den Container nach <code>/var/backups/koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code> kopieren (bei SMB/WebDAV den Ordner <code>fotos</code> als <code>blobs</code> dazu), dann <code>restore.sh &lt;datum_uhrzeit&gt;</code>.</li>
       <li>Die Sicherung enthält deine Schlüssel – Ziel nur dort, wo niemand Fremdes Zugriff hat.</li>
     </ul>
   </details>

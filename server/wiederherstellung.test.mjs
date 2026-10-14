@@ -48,7 +48,7 @@ test('Sicherung und Wiederherstellung (backup.sh / restore.sh)', { skip: !isRoot
     const out = execFileSync('bash', [join(here, 'proxmox/backup.sh')], { env, encoding: 'utf8' })
     const name = readdirSync(backups).find((n) => /^20/.test(n))
     assert.ok(name, `Sicherung angelegt (${out.trim().split('\n').pop()})`)
-    assert.ok(existsSync(join(backups, name, 'nix-wie-weg.sqlite')))
+    assert.ok(existsSync(join(backups, name, 'koffer-fertig-raus.sqlite')))
 
     // 3. Unglück: Reise gelöscht, Foto-Datei weg
     s = await start(data)

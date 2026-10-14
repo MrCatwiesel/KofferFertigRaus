@@ -1,35 +1,35 @@
 #!/usr/bin/env bash
 # KofferFertigRaus – Datensicherung des Abgleich-Servers (im Container, als root).
-# Läuft täglich automatisch (nix-wie-weg-backup.timer) und kann jederzeit von Hand gestartet werden:
-#   /opt/nix-wie-weg/server/proxmox/backup.sh
+# Läuft täglich automatisch (koffer-fertig-raus-backup.timer) und kann jederzeit von Hand gestartet werden:
+#   /opt/koffer-fertig-raus/server/proxmox/backup.sh
 #
 # Zusätzlich überträgt es die Sicherung an die Ziele, die du in der App einträgst
 # (Einstellungen → Geräte-Abgleich → Server-Sicherung): Ordner/Platte, SMB-Freigabe, SSH/rsync, WebDAV.
-# Die App kann eine Sicherung oder einen Test anstoßen (Datei <daten>/sicherung/jetzt → nix-wie-weg-backup.path).
+# Die App kann eine Sicherung oder einen Test anstoßen (Datei <daten>/sicherung/jetzt → koffer-fertig-raus-backup.path).
 #
 # Gesichert werden:
 #   - die Datenbank (Reisen, Tagebuch, Gruppen, Lese-Links …) – sauber im laufenden Betrieb (VACUUM INTO)
 #   - alle Fotos/Dateien (als harte Verknüpfungen: jede Datei liegt nur einmal auf der Platte,
 #     auch wenn sie in 14 Sicherungen vorkommt)
-#   - die Einstellungen /etc/nix-wie-weg/sync.env (enthält die Schlüssel – Ordner nur für root lesbar)
+#   - die Einstellungen /etc/koffer-fertig-raus/sync.env (enthält die Schlüssel – Ordner nur für root lesbar)
 #
-# Einstellungen (in /etc/nix-wie-weg/sync.env, optional):
-#   NWW_BACKUP_DIR=/var/backups/nix-wie-weg   Zielordner – am besten eine andere Platte/NAS (siehe README)
+# Einstellungen (in /etc/koffer-fertig-raus/sync.env, optional):
+#   NWW_BACKUP_DIR=/var/backups/koffer-fertig-raus   Zielordner – am besten eine andere Platte/NAS (siehe README)
 #   NWW_BACKUP_KEEP=14                        so viele Sicherungen bleiben erhalten
 set -euo pipefail
 
-ENVFILE=/etc/nix-wie-weg/sync.env
-DATA=${NWW_DATA:-/var/lib/nix-wie-weg}
+ENVFILE=/etc/koffer-fertig-raus/sync.env
+DATA=${NWW_DATA:-/var/lib/koffer-fertig-raus}
 # shellcheck disable=SC1090
 [[ -f $ENVFILE ]] && source <(grep -E '^NWW_BACKUP_(DIR|KEEP)=' "$ENVFILE" || true)
-DEST=${NWW_BACKUP_DIR:-/var/backups/nix-wie-weg}
+DEST=${NWW_BACKUP_DIR:-/var/backups/koffer-fertig-raus}
 KEEP=${NWW_BACKUP_KEEP:-14}
 
 HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 RUNNER="$HERE/../backup-run.mjs"
 
 [[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
-[[ -f $DATA/nix-wie-weg.sqlite ]] || { echo "Keine Daten in $DATA – nichts zu sichern."; exit 0; }
+[[ -f $DATA/koffer-fertig-raus.sqlite ]] || { echo "Keine Daten in $DATA – nichts zu sichern."; exit 0; }
 
 # Auftrag aus der App? (Sicherung jetzt / Ziel testen)
 SB="$DATA/sicherung"
@@ -61,11 +61,11 @@ node --no-warnings -e '
   new DatabaseSync(src).exec("VACUUM INTO \x27" + dst.replace(/\x27/g, "\x27\x27") + "\x27")
   const res = new DatabaseSync(dst).prepare("PRAGMA integrity_check").get()
   if (Object.values(res)[0] !== "ok") { console.error("Prüfung der Sicherung fehlgeschlagen"); process.exit(1) }
-' "$DATA/nix-wie-weg.sqlite" "$work/nix-wie-weg.sqlite"
+' "$DATA/koffer-fertig-raus.sqlite" "$work/koffer-fertig-raus.sqlite"
 
 # Falls dabei Hilfsdateien der Datenbank neu entstanden sind: dem Dienst zurückgeben
-for f in "$DATA/nix-wie-weg.sqlite-wal" "$DATA/nix-wie-weg.sqlite-shm"; do
-  if [[ -e $f ]]; then chown --reference="$DATA/nix-wie-weg.sqlite" "$f"; fi
+for f in "$DATA/koffer-fertig-raus.sqlite-wal" "$DATA/koffer-fertig-raus.sqlite-shm"; do
+  if [[ -e $f ]]; then chown --reference="$DATA/koffer-fertig-raus.sqlite" "$f"; fi
 done
 
 # 2. Fotos/Dateien: ändern sich nie (Name = Prüfsumme) → harte Verknüpfungen sparen Platz

@@ -9,9 +9,9 @@
 set -euo pipefail
 
 REPO="https://github.com/MrCatwiesel/KofferFertigRaus.git"
-SRC=/opt/nix-wie-weg
-ENVFILE=/etc/nix-wie-weg/sync.env
-WEBROOT=/var/www/nix-wie-weg
+SRC=/opt/koffer-fertig-raus
+ENVFILE=/etc/koffer-fertig-raus/sync.env
+WEBROOT=/var/www/koffer-fertig-raus
 DOMAIN=""
 [[ "${1:-}" == "--web" ]] && DOMAIN="${2:?Domain fehlt, z. B. --web reise.example.de}"
 
@@ -33,6 +33,14 @@ if (( need_node )); then
   apt-get install -y -qq nodejs >/dev/null
 fi
 echo "Node.js $(node -v)"
+
+# Ältere Einrichtung unter dem alten Namen „nix-wie-weg“? Erst umziehen (Daten und Schlüssel bleiben).
+if [[ -d /opt/nix-wie-weg/.git && ! -e $SRC ]]; then
+  say "Umzug vom alten Namen nix-wie-weg"
+  git -C /opt/nix-wie-weg remote set-url origin "$REPO"
+  git -C /opt/nix-wie-weg pull --ff-only -q
+  bash /opt/nix-wie-weg/server/proxmox/umzug.sh
+fi
 
 say "Programm holen nach $SRC"
 if [[ -d $SRC/.git ]]; then git -C "$SRC" pull --ff-only -q; else git clone -q "$REPO" "$SRC"; fi
@@ -67,19 +75,19 @@ fi
 
 # Die App selbst vom Server ausliefern (gleiche Adresse wie der Abgleich)
 if ! grep -q '^NWW_APP_DIR=' "$ENVFILE"; then
-  printf '\n# Gebaute App, die der Server unter seiner Adresse ausliefert (leer = nur Abgleich)\nNWW_APP_DIR=/opt/nix-wie-weg-app\n' >> "$ENVFILE"
+  printf '\n# Gebaute App, die der Server unter seiner Adresse ausliefert (leer = nur Abgleich)\nNWW_APP_DIR=/opt/koffer-fertig-raus-app\n' >> "$ENVFILE"
 fi
 
 say "App herunterladen"
 bash "$SRC/server/proxmox/update.sh" || true
 
 say "Dienst einrichten"
-install -m 644 "$SRC/server/proxmox/nix-wie-weg-sync.service" "$SRC/server/proxmox/nix-wie-weg-update.service" "$SRC/server/proxmox/nix-wie-weg-update.timer" \
-  "$SRC/server/proxmox/nix-wie-weg-backup.service" "$SRC/server/proxmox/nix-wie-weg-backup.timer" "$SRC/server/proxmox/nix-wie-weg-backup.path" /etc/systemd/system/
+install -m 644 "$SRC/server/proxmox/koffer-fertig-raus-sync.service" "$SRC/server/proxmox/koffer-fertig-raus-update.service" "$SRC/server/proxmox/koffer-fertig-raus-update.timer" \
+  "$SRC/server/proxmox/koffer-fertig-raus-backup.service" "$SRC/server/proxmox/koffer-fertig-raus-backup.timer" "$SRC/server/proxmox/koffer-fertig-raus-backup.path" /etc/systemd/system/
 systemctl daemon-reload
-systemctl enable -q nix-wie-weg-sync
-systemctl enable -q --now nix-wie-weg-update.timer nix-wie-weg-backup.timer nix-wie-weg-backup.path
-systemctl restart nix-wie-weg-sync
+systemctl enable -q koffer-fertig-raus-sync
+systemctl enable -q --now koffer-fertig-raus-update.timer koffer-fertig-raus-backup.timer koffer-fertig-raus-backup.path
+systemctl restart koffer-fertig-raus-sync
 sleep 2
 curl -fsS http://127.0.0.1:8787/api/health && echo
 
@@ -94,9 +102,9 @@ if [[ -n $DOMAIN ]]; then
 
   say "nginx einrichten für $DOMAIN"
   apt-get install -y -qq nginx certbot python3-certbot-nginx >/dev/null
-  if [[ ! -f /etc/nginx/sites-available/nix-wie-weg ]]; then
-    sed "s/DOMAIN/$DOMAIN/" "$SRC/server/proxmox/nginx-nix-wie-weg.conf" > /etc/nginx/sites-available/nix-wie-weg
-    ln -sf /etc/nginx/sites-available/nix-wie-weg /etc/nginx/sites-enabled/nix-wie-weg
+  if [[ ! -f /etc/nginx/sites-available/koffer-fertig-raus ]]; then
+    sed "s/DOMAIN/$DOMAIN/" "$SRC/server/proxmox/nginx-koffer-fertig-raus.conf" > /etc/nginx/sites-available/koffer-fertig-raus
+    ln -sf /etc/nginx/sites-available/koffer-fertig-raus /etc/nginx/sites-enabled/koffer-fertig-raus
     rm -f /etc/nginx/sites-enabled/default
   fi
   nginx -t -q && systemctl reload nginx
@@ -118,4 +126,4 @@ else
   echo "→ Im Reverse-Proxy https://<deine-domain> auf http://$IP:8787 weiterleiten – dann ist dort App und Abgleich."
 fi
 [[ -n ${NEWKEY:-} ]] && echo "Schlüssel:  $NEWKEY   (steht auch in $ENVFILE)"
-echo "Status:     systemctl status nix-wie-weg-sync   ·   Protokoll: journalctl -u nix-wie-weg-sync -f"
+echo "Status:     systemctl status koffer-fertig-raus-sync   ·   Protokoll: journalctl -u koffer-fertig-raus-sync -f"

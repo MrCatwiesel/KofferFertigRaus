@@ -4,12 +4,13 @@
  * können also keine Befehle einschleusen.
  *
  * Aufbau am Ziel:
- *   ordner, ssh:   <ziel>/nix-wie-weg/<datum_uhrzeit>/{nix-wie-weg.sqlite, sync.env, blobs/…}
+ *   ordner, ssh:   <ziel>/koffer-fertig-raus/<datum_uhrzeit>/{koffer-fertig-raus.sqlite, sync.env, blobs/…}
  *                  (Fotos als harte Verknüpfungen bzw. rsync --link-dest: jedes Foto liegt nur einmal da)
- *   smb, webdav:   <ziel>/nix-wie-weg/<datum_uhrzeit>/{nix-wie-weg.sqlite, sync.env}
- *                  <ziel>/nix-wie-weg/fotos/<gruppe>/<prüfsumme>   (gemeinsamer Fotobestand, nur Neues wird hochgeladen)
+ *   smb, webdav:   <ziel>/koffer-fertig-raus/<datum_uhrzeit>/{koffer-fertig-raus.sqlite, sync.env}
+ *                  <ziel>/koffer-fertig-raus/fotos/<gruppe>/<prüfsumme>   (gemeinsamer Fotobestand, nur Neues wird hochgeladen)
+ *   Ziele, die vor der Umbenennung angelegt wurden, nutzen weiter den Ordner „nix-wie-weg“ (sonst würden alle Fotos neu hochgeladen).
  *
- * Aufruf: node backup-run.mjs --daten /var/lib/nix-wie-weg [--snapshot <ordner>] [--auftrag <datei>]
+ * Aufruf: node backup-run.mjs --daten /var/lib/koffer-fertig-raus [--snapshot <ordner>] [--auftrag <datei>]
  */
 import { spawn } from 'node:child_process'
 import { chownSync, copyFileSync, existsSync, linkSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
@@ -19,7 +20,7 @@ import { pathToFileURL } from 'node:url'
 import { backupDir, readStatus, readTargets } from './backup-targets.mjs'
 
 const STAMP_RE = /^20\d\d-\d\d-\d\d_\d{4}$/
-const ROOT = 'nix-wie-weg'
+import { targetFolder as rootOf } from './backup-targets.mjs'
 
 /** Programm ohne Shell starten; liefert stdout, wirft mit stderr bei Fehler. */
 function run(cmd, args, { allowFail = false, timeout = 30 * 60_000, env } = {}) {
@@ -60,7 +61,7 @@ const toPrune = (stamps, keep) => (stamps.length > keep ? stamps.slice(0, stamps
 // ───────────────────────────── Ordner ─────────────────────────────
 async function toFolder(t, snap) {
   if (!existsSync(t.path)) throw new Error(`Ordner ${t.path} gibt es nicht – ist die Platte/Freigabe eingehängt?`)
-  const base = join(t.path, ROOT)
+  const base = join(t.path, rootOf(t))
   mkdirSync(base, { recursive: true })
   const name = basename(snap)
   const prev = stampsIn(readdirSync(base)).filter((s) => s !== name).at(-1)
@@ -90,7 +91,7 @@ async function toFolder(t, snap) {
 
 async function testFolder(t) {
   if (!existsSync(t.path)) throw new Error(`Ordner ${t.path} gibt es nicht – ist die Platte/Freigabe eingehängt?`)
-  const f = join(t.path, '.nix-wie-weg-test')
+  const f = join(t.path, '.koffer-fertig-raus-test')
   writeFileSync(f, 'test')
   rmSync(f)
   return 'Ordner ist beschreibbar.'
@@ -105,7 +106,7 @@ function smbSession(t, bin) {
   const service = `//${t.host}/${t.share}`
   const q = (s) => `"${s.replace(/"/g, '')}"`
   const exec = (cmds, opts) => run(bin, [service, '-A', auth, '-m', 'SMB3', '-c', cmds.join('; ')], opts)
-  const remote = (...parts) => [t.path, ROOT, ...parts].filter(Boolean).join('/')
+  const remote = (...parts) => [t.path, rootOf(t), ...parts].filter(Boolean).join('/')
   return {
     q,
     remote,
@@ -147,7 +148,7 @@ async function toSmb(t, snap, bins) {
     // 2. Datenbank und Einstellungen
     const name = basename(snap)
     await s.mkdirs(s.remote(name))
-    const files = ['nix-wie-weg.sqlite', 'sync.env'].filter((f) => existsSync(join(snap, f)))
+    const files = ['koffer-fertig-raus.sqlite', 'nix-wie-weg.sqlite', 'sync.env'].filter((f) => existsSync(join(snap, f)))
     await s.exec([`lcd ${s.q(snap)}`, `cd ${s.q(s.remote(name))}`, ...files.map((f) => `put ${s.q(f)}`)])
     // 3. Alte Stände entfernen
     for (const old of toPrune(stampsIn(await s.list(s.remote())), t.keep)) {
@@ -164,8 +165,8 @@ async function testSmb(t, bins) {
   try {
     await s.mkdirs(s.remote())
     const local = mkdtempSync(join(tmpdir(), 'nww-smbt-'))
-    writeFileSync(join(local, 'nix-wie-weg-test.txt'), 'test')
-    await s.exec([`lcd ${s.q(local)}`, `cd ${s.q(s.remote())}`, 'put "nix-wie-weg-test.txt"', 'del "nix-wie-weg-test.txt"'])
+    writeFileSync(join(local, 'koffer-fertig-raus-test.txt'), 'test')
+    await s.exec([`lcd ${s.q(local)}`, `cd ${s.q(s.remote())}`, 'put "koffer-fertig-raus-test.txt"', 'del "koffer-fertig-raus-test.txt"'])
     rmSync(local, { recursive: true, force: true })
     return `Freigabe //${t.host}/${t.share} ist erreichbar und beschreibbar.`
   } finally {
@@ -180,7 +181,7 @@ function sshArgs(t, keys) {
 const sq = (s) => `'${s.replace(/'/g, '')}'`
 
 async function toSsh(t, snap, bins, keys) {
-  const target = `${t.path.replace(/\/+$/, '')}/${ROOT}`
+  const target = `${t.path.replace(/\/+$/, '')}/${rootOf(t)}`
   const ssh = (cmd) => run(bins.ssh, [...sshArgs(t, keys), `${t.user}@${t.host}`, cmd])
   await ssh(`mkdir -p ${sq(target)}`)
   const name = basename(snap)
@@ -195,7 +196,7 @@ async function toSsh(t, snap, bins, keys) {
 }
 
 async function testSsh(t, bins, keys) {
-  const target = `${t.path.replace(/\/+$/, '')}/${ROOT}`
+  const target = `${t.path.replace(/\/+$/, '')}/${rootOf(t)}`
   await run(bins.ssh, [...sshArgs(t, keys), `${t.user}@${t.host}`, `mkdir -p ${sq(target)} && touch ${sq(`${target}/.test`)} && rm ${sq(`${target}/.test`)} && command -v rsync >/dev/null`])
   return `Anmeldung bei ${t.user}@${t.host} klappt, Ordner ist beschreibbar, rsync ist vorhanden.`
 }
@@ -236,32 +237,32 @@ function dav(t, fetchImpl) {
 
 async function toWebdav(t, snap, fetchImpl) {
   const d = dav(t, fetchImpl)
-  await d.mkcol(d.url(ROOT))
-  await d.mkcol(d.url(ROOT, 'fotos'))
+  await d.mkcol(d.url(rootOf(t)))
+  await d.mkcol(d.url(rootOf(t), 'fotos'))
   let uploaded = 0
   const blobs = join(snap, 'blobs')
   for (const space of existsSync(blobs) ? readdirSync(blobs) : []) {
-    await d.mkcol(d.url(ROOT, 'fotos', space))
-    const have = new Set(await d.list(d.url(ROOT, 'fotos', space)))
+    await d.mkcol(d.url(rootOf(t), 'fotos', space))
+    const have = new Set(await d.list(d.url(rootOf(t), 'fotos', space)))
     for (const n of readdirSync(join(blobs, space)).filter((x) => !have.has(x))) {
-      await d.put(d.url(ROOT, 'fotos', space, n), join(blobs, space, n))
+      await d.put(d.url(rootOf(t), 'fotos', space, n), join(blobs, space, n))
       uploaded++
     }
   }
   const name = basename(snap)
-  await d.mkcol(d.url(ROOT, name))
-  for (const f of ['nix-wie-weg.sqlite', 'sync.env']) if (existsSync(join(snap, f))) await d.put(d.url(ROOT, name, f), join(snap, f))
-  for (const old of toPrune(stampsIn(await d.list(d.url(ROOT))), t.keep)) await d.del(`${d.url(ROOT, old)}/`)
+  await d.mkcol(d.url(rootOf(t), name))
+  for (const f of ['koffer-fertig-raus.sqlite', 'nix-wie-weg.sqlite', 'sync.env']) if (existsSync(join(snap, f))) await d.put(d.url(rootOf(t), name, f), join(snap, f))
+  for (const old of toPrune(stampsIn(await d.list(d.url(rootOf(t)))), t.keep)) await d.del(`${d.url(rootOf(t), old)}/`)
   return `${name} gespeichert (${uploaded} neue Fotos)`
 }
 
 async function testWebdav(t, fetchImpl) {
   const d = dav(t, fetchImpl)
-  await d.mkcol(d.url(ROOT))
+  await d.mkcol(d.url(rootOf(t)))
   const tmp = mkdtempSync(join(tmpdir(), 'nww-dav-'))
   writeFileSync(join(tmp, 't.txt'), 'test')
-  await d.put(d.url(ROOT, 'nix-wie-weg-test.txt'), join(tmp, 't.txt'))
-  await d.del(d.url(ROOT, 'nix-wie-weg-test.txt'))
+  await d.put(d.url(rootOf(t), 'koffer-fertig-raus-test.txt'), join(tmp, 't.txt'))
+  await d.del(d.url(rootOf(t), 'koffer-fertig-raus-test.txt'))
   rmSync(tmp, { recursive: true, force: true })
   return 'WebDAV ist erreichbar und beschreibbar.'
 }
@@ -290,7 +291,7 @@ function writeStatus(dataDir, status) {
 export async function runBackup(opts) {
   const { dataDir } = opts
   const bins = { smbclient: 'smbclient', rsync: 'rsync', ssh: 'ssh', ...(opts.bins ?? {}) }
-  const keys = { key: '/etc/nix-wie-weg/backup_ed25519', knownHosts: '/etc/nix-wie-weg/known_hosts', ...(opts.keys ?? {}) }
+  const keys = { key: '/etc/koffer-fertig-raus/backup_ed25519', knownHosts: '/etc/koffer-fertig-raus/known_hosts', ...(opts.keys ?? {}) }
   const fetchImpl = opts.fetchImpl ?? fetch
   const now = opts.now ?? (() => new Date().toISOString())
   const order = opts.order ?? { mode: 'alle', target: null }
@@ -342,7 +343,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
     const i = process.argv.indexOf(name)
     return i > 0 ? process.argv[i + 1] : null
   }
-  const dataDir = arg('--daten') ?? '/var/lib/nix-wie-weg'
+  const dataDir = arg('--daten') ?? '/var/lib/koffer-fertig-raus'
   const orderFile = arg('--auftrag')
   let order = null
   if (orderFile) {

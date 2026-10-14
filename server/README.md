@@ -75,14 +75,14 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 1. In Piwigo als **Administrator** anmelden → oben *Profil* → **API-Schlüssel** → neuen Schlüssel anlegen (z. B. „KofferFertigRaus“, Laufzeit 1 Jahr).
    Die **ID** (`pkid-…`) und das **Geheimnis** notieren. Das Geheimnis wird nur einmal angezeigt.
    (Die Profilseite gibt es nur mit dem Standard-Design der Galerie, nicht mit jedem Theme.)
-2. In den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/nix-wie-weg/sync.env`:
+2. In den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/koffer-fertig-raus/sync.env`:
    ```
    NWW_PIWIGO_URL=http://192.168.5.40          # Piwigo im Heimnetz (mit Unterordner, falls vorhanden)
    NWW_PIWIGO_KEY_ID=pkid-20261011-…
    NWW_PIWIGO_SECRET=…
    NWW_PIWIGO_PUBLIC_URL=https://fotos.example.de   # für Links „In Piwigo öffnen“
    ```
-3. Den Server neu starten: `systemctl restart nix-wie-weg-sync` bzw. `docker compose up -d`.
+3. Den Server neu starten: `systemctl restart koffer-fertig-raus-sync` bzw. `docker compose up -d`.
 4. In der App unter Reise → **Fotos in Piwigo** prüfen. Dort steht „Angemeldet in Piwigo als …“.
 
 **Wichtig:**

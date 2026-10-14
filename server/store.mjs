@@ -19,7 +19,11 @@ export const spaceOf = (key) => sha256(`nix-wie-weg:${key}`).slice(0, 24)
 
 export function createStore(dataDir) {
   mkdirSync(join(dataDir, 'blobs'), { recursive: true })
-  const db = new DatabaseSync(join(dataDir, 'nix-wie-weg.sqlite'))
+  // Datei hieß früher nix-wie-weg.sqlite → einmalig umbenennen (samt -wal/-shm, gehören dazu)
+  const file = join(dataDir, 'koffer-fertig-raus.sqlite')
+  const legacy = join(dataDir, 'nix-wie-weg.sqlite')
+  if (!existsSync(file) && existsSync(legacy)) for (const x of ['', '-wal', '-shm']) if (existsSync(legacy + x)) renameSync(legacy + x, file + x)
+  const db = new DatabaseSync(file)
   db.exec(`
     PRAGMA journal_mode = WAL;
     CREATE TABLE IF NOT EXISTS records (

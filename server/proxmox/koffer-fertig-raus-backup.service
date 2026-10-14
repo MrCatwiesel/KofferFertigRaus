@@ -4,6 +4,6 @@ Description=KofferFertigRaus – Datensicherung
 
 [Service]
 Type=oneshot
-ExecStart=/opt/nix-wie-weg/server/proxmox/backup.sh
+ExecStart=/opt/koffer-fertig-raus/server/proxmox/backup.sh
 Nice=10
 IOSchedulingClass=idle

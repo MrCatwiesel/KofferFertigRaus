@@ -1,22 +1,22 @@
 # systemd-Dienst für den Abgleich-Server (ohne Docker)
-# Ablage: /etc/systemd/system/nix-wie-weg-sync.service
-# Einstellungen: /etc/nix-wie-weg/sync.env
+# Ablage: /etc/systemd/system/koffer-fertig-raus-sync.service
+# Einstellungen: /etc/koffer-fertig-raus/sync.env
 [Unit]
 Description=KofferFertigRaus – Abgleich-Server
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-EnvironmentFile=/etc/nix-wie-weg/sync.env
-Environment=NWW_DATA=/var/lib/nix-wie-weg
-WorkingDirectory=/opt/nix-wie-weg/server
+EnvironmentFile=/etc/koffer-fertig-raus/sync.env
+Environment=NWW_DATA=/var/lib/koffer-fertig-raus
+WorkingDirectory=/opt/koffer-fertig-raus/server
 ExecStart=/usr/bin/node server.mjs
 Restart=always
 RestartSec=5
 
-# Eigener, unprivilegierter Benutzer; Daten in /var/lib/nix-wie-weg
+# Eigener, unprivilegierter Benutzer; Daten in /var/lib/koffer-fertig-raus
 DynamicUser=yes
-StateDirectory=nix-wie-weg
+StateDirectory=koffer-fertig-raus
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes

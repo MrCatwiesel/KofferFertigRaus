@@ -1,25 +1,34 @@
 #!/usr/bin/env bash
 # KofferFertigRaus – Abgleich-Server und App aktualisieren (im Container, als root).
-# Läuft täglich automatisch (nix-wie-weg-update.timer) und kann jederzeit von Hand gestartet werden:
-#   /opt/nix-wie-weg/server/proxmox/update.sh            aktualisieren
-#   /opt/nix-wie-weg/server/proxmox/update.sh zurueck    zur vorigen Version von App und Server zurück
+# Läuft täglich automatisch (koffer-fertig-raus-update.timer) und kann jederzeit von Hand gestartet werden:
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh            aktualisieren
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh zurueck    zur vorigen Version von App und Server zurück
 #
 # Sicherheitsnetz:
 #   - vor jedem Server-Update wird eine Datensicherung angelegt (backup.sh)
 #   - startet der Server nach dem Update nicht sauber, geht er automatisch auf die vorige Version zurück
-#   - die vorige App bleibt in /opt/nix-wie-weg-app.vorher liegen (für "zurueck")
+#   - die vorige App bleibt in /opt/koffer-fertig-raus-app.vorher liegen (für "zurueck")
 set -euo pipefail
 
-SRC=/opt/nix-wie-weg
-APP=/opt/nix-wie-weg-app
+SRC=/opt/koffer-fertig-raus
+APP=/opt/koffer-fertig-raus-app
 PREV_APP=$APP.vorher
-STATE=/var/lib/nix-wie-weg-update
+STATE=/var/lib/koffer-fertig-raus-update
 APP_URL="https://github.com/MrCatwiesel/KofferFertigRaus/releases/download/app/koffer-fertig-raus-app.zip"
 HEALTH=http://127.0.0.1:8787/api/health
 HERE="$SRC/server/proxmox"
 
 [[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
+
+# Einmaliger Umzug vom alten Namen (bis 1.33 hieß alles „nix-wie-weg“), danach mit dieser Fassung am neuen Ort weiter
+if [[ -d /opt/nix-wie-weg/.git && ! -e $SRC ]]; then
+  bash /opt/nix-wie-weg/server/proxmox/umzug.sh
+  exec bash "$HERE/update.sh" "$@"
+fi
 install -d -m 700 "$STATE"
+
+# Stände von vor der Umbenennung erwarten die alten Ordner und Dienste → dorthin nicht zurück
+after_rename() { git -C "$SRC" cat-file -e "$1:server/proxmox/umzug.sh" 2>/dev/null; }
 
 healthy() {
   local i
@@ -33,19 +42,19 @@ healthy() {
 # systemd-Einheiten auf den Stand im Repository bringen (jedes Mal, ist harmlos)
 install_units() {
   local units=() u
-  for u in nix-wie-weg-sync.service nix-wie-weg-update.service nix-wie-weg-update.timer \
-    nix-wie-weg-backup.service nix-wie-weg-backup.timer nix-wie-weg-backup.path; do
+  for u in koffer-fertig-raus-sync.service koffer-fertig-raus-update.service koffer-fertig-raus-update.timer \
+    koffer-fertig-raus-backup.service koffer-fertig-raus-backup.timer koffer-fertig-raus-backup.path; do
     [[ -f $HERE/$u ]] && units+=("$HERE/$u") # ältere Versionen (nach Rückweg) haben nicht alle
   done
   install -m 644 "${units[@]}" /etc/systemd/system/
   systemctl daemon-reload
-  for u in nix-wie-weg-update.timer nix-wie-weg-backup.timer nix-wie-weg-backup.path; do
+  for u in koffer-fertig-raus-update.timer koffer-fertig-raus-backup.timer koffer-fertig-raus-backup.path; do
     if [[ -f /etc/systemd/system/$u ]]; then systemctl enable -q --now "$u"; fi
   done
 }
 
 restart_server() {
-  systemctl restart nix-wie-weg-sync
+  systemctl restart koffer-fertig-raus-sync
   healthy
 }
 
@@ -60,10 +69,14 @@ if [[ ${1:-} == zurueck ]]; then
   fi
   if [[ -f $STATE/server-vorher ]]; then
     prev=$(cat "$STATE/server-vorher")
+    if ! after_rename "$prev"; then
+      echo "Server bleibt auf dem aktuellen Stand: ${prev:0:7} ist von vor der Umbenennung und passt nicht mehr zu Ordnern und Diensten."
+      exit 0
+    fi
     git -C "$SRC" checkout -q --detach "$prev"
-    restart_server && echo "Server zurück auf ${prev:0:7}." || echo "!! Server startet auch mit ${prev:0:7} nicht – bitte: journalctl -u nix-wie-weg-sync -n 50"
+    restart_server && echo "Server zurück auf ${prev:0:7}." || echo "!! Server startet auch mit ${prev:0:7} nicht – bitte: journalctl -u koffer-fertig-raus-sync -n 50"
     echo "Hinweis: Das nächste automatische Update holt wieder den neuesten Stand."
-    echo "         Um das zu verhindern: systemctl disable --now nix-wie-weg-update.timer"
+    echo "         Um das zu verhindern: systemctl disable --now koffer-fertig-raus-update.timer"
   fi
   exit 0
 fi
@@ -111,19 +124,19 @@ if ((${#missing[@]})); then
     echo "!! Konnte ${missing[*]} nicht installieren – SMB/SSH-Ziele gehen erst danach." >&2
   fi
 fi
-if [[ ! -f /etc/nix-wie-weg/backup_ed25519 ]] && command -v ssh-keygen >/dev/null; then
-  install -d -m 700 /etc/nix-wie-weg
-  ssh-keygen -q -t ed25519 -N '' -C "nix-wie-weg-sicherung@$(hostname)" -f /etc/nix-wie-weg/backup_ed25519
+if [[ ! -f /etc/koffer-fertig-raus/backup_ed25519 ]] && command -v ssh-keygen >/dev/null; then
+  install -d -m 700 /etc/koffer-fertig-raus
+  ssh-keygen -q -t ed25519 -N '' -C "koffer-fertig-raus-sicherung@$(hostname)" -f /etc/koffer-fertig-raus/backup_ed25519
   echo "SSH-Schlüssel für Sicherungen erzeugt (öffentlicher Teil: in der App unter Server-Sicherung)."
 fi
-if [[ -f /etc/nix-wie-weg/backup_ed25519.pub && -d /var/lib/nix-wie-weg ]]; then
-  install -d -m 700 /var/lib/nix-wie-weg/sicherung
-  cp /etc/nix-wie-weg/backup_ed25519.pub /var/lib/nix-wie-weg/sicherung/ssh.pub
-  chown --reference=/var/lib/nix-wie-weg /var/lib/nix-wie-weg/sicherung /var/lib/nix-wie-weg/sicherung/ssh.pub
+if [[ -f /etc/koffer-fertig-raus/backup_ed25519.pub && -d /var/lib/koffer-fertig-raus ]]; then
+  install -d -m 700 /var/lib/koffer-fertig-raus/sicherung
+  cp /etc/koffer-fertig-raus/backup_ed25519.pub /var/lib/koffer-fertig-raus/sicherung/ssh.pub
+  chown --reference=/var/lib/koffer-fertig-raus /var/lib/koffer-fertig-raus/sicherung /var/lib/koffer-fertig-raus/sicherung/ssh.pub
 fi
-if [[ -d /var/lib/nix-wie-weg/sicherung ]]; then
-  touch /var/lib/nix-wie-weg/sicherung/eingerichtet # zeigt der App: Sicherung auf Anforderung ist eingerichtet
-  chown --reference=/var/lib/nix-wie-weg /var/lib/nix-wie-weg/sicherung/eingerichtet
+if [[ -d /var/lib/koffer-fertig-raus/sicherung ]]; then
+  touch /var/lib/koffer-fertig-raus/sicherung/eingerichtet # zeigt der App: Sicherung auf Anforderung ist eingerichtet
+  chown --reference=/var/lib/koffer-fertig-raus /var/lib/koffer-fertig-raus/sicherung/eingerichtet
 fi
 
 # ---------- Werkzeug für Offline-Karten (pmtiles) ----------
@@ -138,7 +151,7 @@ if ! /usr/local/bin/pmtiles version 2>/dev/null | grep -q "pmtiles $PMTILES_VERS
   if [[ -n $arch ]] && curl -fsSL "$url" -o "$tmp/pmtiles.tgz" && tar -xzf "$tmp/pmtiles.tgz" -C "$tmp" pmtiles; then
     install -m 755 "$tmp/pmtiles" /usr/local/bin/pmtiles
     echo "Werkzeug für Offline-Karten installiert (pmtiles $PMTILES_VERSION)."
-    if [[ $old == "$new" ]]; then systemctl restart nix-wie-weg-sync; fi # damit der Server es erkennt
+    if [[ $old == "$new" ]]; then systemctl restart koffer-fertig-raus-sync; fi # damit der Server es erkennt
   else
     echo "!! pmtiles konnte nicht installiert werden – Offline-Karten bleiben aus." >&2
   fi
@@ -154,13 +167,17 @@ if [[ $old != "$new" ]]; then
   if restart_server; then
     echo "Abgleich-Server aktualisiert (${old:0:7} → ${new:0:7}) und läuft."
   else
+    if ! after_rename "$old"; then
+      echo "!! Server startet mit ${new:0:7} nicht. Zurück auf ${old:0:7} geht nicht (Stand von vor der Umbenennung) – bitte: journalctl -u koffer-fertig-raus-sync -n 50" >&2
+      exit 1
+    fi
     echo "!! Server startet mit ${new:0:7} nicht – gehe zurück auf ${old:0:7}." >&2
     git -C "$SRC" checkout -q --detach "$old"
     install_units
     if restart_server; then
-      echo "Server läuft wieder mit ${old:0:7}. Fehlerbericht: journalctl -u nix-wie-weg-sync -n 50" >&2
+      echo "Server läuft wieder mit ${old:0:7}. Fehlerbericht: journalctl -u koffer-fertig-raus-sync -n 50" >&2
     else
-      echo "!! Server startet auch mit ${old:0:7} nicht – bitte: journalctl -u nix-wie-weg-sync -n 50" >&2
+      echo "!! Server startet auch mit ${old:0:7} nicht – bitte: journalctl -u koffer-fertig-raus-sync -n 50" >&2
     fi
     exit 1
   fi

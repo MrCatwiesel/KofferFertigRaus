@@ -23,7 +23,7 @@ const call = async (method, path, key, body) => {
 function snapshot(root, name, photos) {
   const s = join(root, name)
   mkdirSync(join(s, 'blobs', 'abc123'), { recursive: true })
-  writeFileSync(join(s, 'nix-wie-weg.sqlite'), `DB ${name}`)
+  writeFileSync(join(s, 'koffer-fertig-raus.sqlite'), `DB ${name}`)
   writeFileSync(join(s, 'sync.env'), 'NWW_KEYS=geheim')
   for (const p of photos) writeFileSync(join(s, 'blobs', 'abc123', p), `Foto ${p}`)
   return s
@@ -93,11 +93,11 @@ test('Ordner: Fotos als harte Verknüpfungen, alte Stände werden entfernt, fehl
   assert.match(weg.message, /eingehängt/)
   await runBackup({ dataDir: data, snapshotDir: snapshot(snaps, '2026-10-13_0330', ['a1', 'b2', 'c3']), log: () => {} })
   st = await runBackup({ dataDir: data, snapshotDir: snapshot(snaps, '2026-10-14_0330', ['a1', 'b2', 'c3']), log: () => {} })
-  const root = join(target, 'nix-wie-weg')
+  const root = join(target, 'koffer-fertig-raus')
   assert.deepEqual(readdirSync(root).sort(), ['2026-10-13_0330', '2026-10-14_0330'], 'nur die neuesten 2')
   const ino = (s) => statSync(join(root, s, 'blobs', 'abc123', 'a1')).ino
   assert.equal(ino('2026-10-13_0330'), ino('2026-10-14_0330'), 'gleiches Foto, eine Datei')
-  assert.equal(readFileSync(join(root, '2026-10-14_0330', 'nix-wie-weg.sqlite'), 'utf8'), 'DB 2026-10-14_0330')
+  assert.equal(readFileSync(join(root, '2026-10-14_0330', 'koffer-fertig-raus.sqlite'), 'utf8'), 'DB 2026-10-14_0330')
   assert.match(Object.values(st.targets)[0].message, /verknüpft/)
 })
 
@@ -144,10 +144,10 @@ for (const c of cmds) {
   assert.match(st.targets[t.id].message, /2 neue Fotos/)
   st = await runBackup({ dataDir: data, snapshotDir: snapshot(snaps, '2026-10-13_0330', ['a1', 'b2', 'c3']), bins: { smbclient: fake }, log: () => {} })
   assert.match(st.targets[t.id].message, /1 neue Fotos/)
-  const root = join(share, 'Reise', 'nix-wie-weg')
+  const root = join(share, 'Reise', 'koffer-fertig-raus')
   assert.deepEqual(readdirSync(root).sort(), ['2026-10-13_0330', 'fotos'], 'alter Stand entfernt, Fotobestand bleibt')
   assert.deepEqual(readdirSync(join(root, 'fotos', 'abc123')).sort(), ['a1', 'b2', 'c3'])
-  assert.equal(readFileSync(join(root, '2026-10-13_0330', 'nix-wie-weg.sqlite'), 'utf8'), 'DB 2026-10-13_0330')
+  assert.equal(readFileSync(join(root, '2026-10-13_0330', 'koffer-fertig-raus.sqlite'), 'utf8'), 'DB 2026-10-13_0330')
   assert.ok(!readFileSync(log, 'utf8').includes('pw1'), 'Passwort nie auf der Befehlszeile')
 
   st = await runBackup({ dataDir: data, order: { mode: 'test', target: t.id }, bins: { smbclient: fake }, log: () => {} })
@@ -185,8 +185,8 @@ test('SSH: rsync mit --link-dest auf den vorigen Stand, Aufräumen per ssh', asy
   assert.match(l, /--link-dest=\.\.\/2026-10-12_0330/)
   assert.match(l, /-p 2222/)
   assert.match(l, /backup@nas:/)
-  assert.deepEqual(readdirSync(join(remote, 'nix-wie-weg')), ['2026-10-13_0330'])
-  assert.ok(existsSync(join(remote, 'nix-wie-weg', '2026-10-13_0330', 'blobs', 'abc123', 'b2')))
+  assert.deepEqual(readdirSync(join(remote, 'koffer-fertig-raus')), ['2026-10-13_0330'])
+  assert.ok(existsSync(join(remote, 'koffer-fertig-raus', '2026-10-13_0330', 'blobs', 'abc123', 'b2')))
 })
 
 test('WebDAV: Ordner anlegen, nur neue Fotos, aufräumen, Anmeldung prüfen', async () => {
@@ -235,7 +235,7 @@ test('WebDAV: Ordner anlegen, nur neue Fotos, aufräumen, Anmeldung prüfen', as
     st = await runBackup({ dataDir: data, snapshotDir: snapshot(snaps, '2026-10-13_0330', ['a1', 'b2', 'c3']), log: () => {} })
     assert.match(st.targets[t.id].message, /1 neue Fotos/)
     assert.equal(puts.length - before, 3, '1 Foto + Datenbank + Einstellungen')
-    assert.deepEqual(readdirSync(join(root, 'nix-wie-weg')).sort(), ['2026-10-13_0330', 'fotos'])
+    assert.deepEqual(readdirSync(join(root, 'koffer-fertig-raus')).sort(), ['2026-10-13_0330', 'fotos'])
     writeFileSync(join(data, 'sicherung', 'ziele.json'), JSON.stringify({ targets: [{ ...t, password: 'falsch' }] }))
     st = await runBackup({ dataDir: data, order: { mode: 'test', target: t.id }, log: () => {} })
     assert.match(st.targets[t.id].lastTest.message, /Passwort falsch/)

@@ -20,13 +20,13 @@ Der Abgleich-Server liefert auch die **App selbst** aus. Dann ist unter einer Ad
 - `https://reise.deine-dyndns.de` → die App (zum Installieren auf Handy/iPad/PC)
 - `https://reise.deine-dyndns.de/api/…` → der Abgleich
 
-Das Installationsskript richtet das automatisch ein: Es setzt `NWW_APP_DIR=/opt/nix-wie-weg-app`, lädt die fertig gebaute App von GitHub und sieht **täglich gegen 4 Uhr** nach Updates (`nix-wie-weg-update.timer`). Bauen muss der Container nichts.
+Das Installationsskript richtet das automatisch ein: Es setzt `NWW_APP_DIR=/opt/koffer-fertig-raus-app`, lädt die fertig gebaute App von GitHub und sieht **täglich gegen 4 Uhr** nach Updates (`koffer-fertig-raus-update.timer`). Bauen muss der Container nichts.
 
 Schon installiert? Einmal im Container:
 ```bash
-cd /opt/nix-wie-weg && git pull && bash server/proxmox/install.sh
+cd /opt/koffer-fertig-raus && git pull && bash server/proxmox/install.sh
 ```
-Von Hand aktualisieren: `/opt/nix-wie-weg/server/proxmox/update.sh`
+Von Hand aktualisieren: `/opt/koffer-fertig-raus/server/proxmox/update.sh`
 
 > Die Daten der App gehören zur Adresse. Auf jedem Gerät die App von der neuen Adresse installieren und mit demselben Schlüssel verbinden – alles kommt vom Server zurück. Die alte Version (GitHub) danach vom Startbildschirm löschen.
 
@@ -105,28 +105,36 @@ muss `{"ok":true,…}` zeigen.
 
 | Aufgabe | Befehl im Container |
 | --- | --- |
-| Aktualisieren | automatisch täglich gegen 4 Uhr; von Hand `/opt/nix-wie-weg/server/proxmox/update.sh` |
-| Zur vorigen Version | `/opt/nix-wie-weg/server/proxmox/update.sh zurueck` |
-| Sichern | automatisch täglich gegen 3:30 Uhr; von Hand `/opt/nix-wie-weg/server/proxmox/backup.sh` |
-| Sicherung zurückspielen | `/opt/nix-wie-weg/server/proxmox/restore.sh` (zeigt die Liste), dann `restore.sh <name>` |
-| Status | `systemctl status nix-wie-weg-sync` · Zeitpläne: `systemctl list-timers 'nix-wie-weg*'` |
-| Protokoll | `journalctl -u nix-wie-weg-sync -f` · Sicherung: `journalctl -u nix-wie-weg-backup` |
-| Einstellungen | `nano /etc/nix-wie-weg/sync.env`, danach `systemctl restart nix-wie-weg-sync` |
-| Daten | `/var/lib/nix-wie-weg` (Datenbank + Fotos) |
+| Aktualisieren | automatisch täglich gegen 4 Uhr; von Hand `/opt/koffer-fertig-raus/server/proxmox/update.sh` |
+| Zur vorigen Version | `/opt/koffer-fertig-raus/server/proxmox/update.sh zurueck` |
+| Sichern | automatisch täglich gegen 3:30 Uhr; von Hand `/opt/koffer-fertig-raus/server/proxmox/backup.sh` |
+| Sicherung zurückspielen | `/opt/koffer-fertig-raus/server/proxmox/restore.sh` (zeigt die Liste), dann `restore.sh <name>` |
+| Status | `systemctl status koffer-fertig-raus-sync` · Zeitpläne: `systemctl list-timers 'koffer-fertig-raus*'` |
+| Protokoll | `journalctl -u koffer-fertig-raus-sync -f` · Sicherung: `journalctl -u koffer-fertig-raus-backup` |
+| Einstellungen | `nano /etc/koffer-fertig-raus/sync.env`, danach `systemctl restart koffer-fertig-raus-sync` |
+| Daten | `/var/lib/koffer-fertig-raus` (Datenbank + Fotos) |
 
 ### Updates mit Sicherheitsnetz
 - Vor jedem Update des Server-Programms wird automatisch gesichert.
-- Startet der Server nach einem Update nicht sauber, geht `update.sh` von selbst auf die vorige Version zurück (und meldet das im Protokoll `journalctl -u nix-wie-weg-update`).
-- Die vorige App-Version bleibt in `/opt/nix-wie-weg-app.vorher`; `update.sh zurueck` tauscht App und Server zurück.
+- Startet der Server nach einem Update nicht sauber, geht `update.sh` von selbst auf die vorige Version zurück (und meldet das im Protokoll `journalctl -u koffer-fertig-raus-update`).
+- Die vorige App-Version bleibt in `/opt/koffer-fertig-raus-app.vorher`; `update.sh zurueck` tauscht App und Server zurück.
+
+### Umzug vom alten Namen „nix-wie-weg“
+Bis Version 1.33 hießen Ordner und Dienste `nix-wie-weg`. Das nächste `update.sh` (auch das automatische um 4 Uhr) zieht
+einmalig um – mit `umzug.sh`: `/opt`, `/etc`, `/var/lib`, `/var/backups`, `/var/www`, nginx-Seite, systemd-Dienste und
+die Datenbankdatei bekommen den Namen `koffer-fertig-raus`. Daten, Schlüssel, Einstellungen und Geräte bleiben, wie sie sind;
+eigene Pfade in `sync.env` (z. B. eine NAS) werden nicht verändert. Sicherungsziele, die es schon gab, schreiben weiter in
+ihren Ordner `nix-wie-weg` (sonst würden alle Fotos neu hochgeladen), neue Ziele in `koffer-fertig-raus`.
+Alte Sicherungen lassen sich mit `restore.sh` weiter zurückspielen. `update.sh zurueck` geht nicht hinter den Umzug zurück.
 
 ### Datensicherung
 `backup.sh` sichert Datenbank (sauber im laufenden Betrieb), alle Fotos und die Einstellungen (mit Schlüsseln!)
-nach `/var/backups/nix-wie-weg/<datum_uhrzeit>/`. Fotos werden als harte Verknüpfungen abgelegt – 14 Sicherungen
+nach `/var/backups/koffer-fertig-raus/<datum_uhrzeit>/`. Fotos werden als harte Verknüpfungen abgelegt – 14 Sicherungen
 brauchen kaum mehr Platz als eine. Die neuesten 14 bleiben, ältere werden gelöscht.
 
-Einstellbar in `/etc/nix-wie-weg/sync.env`:
+Einstellbar in `/etc/koffer-fertig-raus/sync.env`:
 ```
-NWW_BACKUP_DIR=/mnt/sicherung/nix-wie-weg   # Zielordner
+NWW_BACKUP_DIR=/mnt/sicherung/koffer-fertig-raus   # Zielordner
 NWW_BACKUP_KEEP=14                         # Anzahl Sicherungen
 ```
 
@@ -134,9 +142,9 @@ NWW_BACKUP_KEEP=14                         # Anzahl Sicherungen
 nicht gegen einen Plattenschaden. In Proxmox einen Ordner einer anderen Platte/NAS in den Container einhängen
 (auf dem Proxmox-Host, Container-ID anpassen):
 ```
-pct set <CTID> -mp0 /mnt/pve/<speicher>/nix-wie-weg-sicherung,mp=/mnt/sicherung
+pct set <CTID> -mp0 /mnt/pve/<speicher>/koffer-fertig-raus-sicherung,mp=/mnt/sicherung
 ```
-und dann `NWW_BACKUP_DIR=/mnt/sicherung/nix-wie-weg` setzen. Zusätzlich den Container in die geplante
+und dann `NWW_BACKUP_DIR=/mnt/sicherung/koffer-fertig-raus` setzen. Zusätzlich den Container in die geplante
 Proxmox-Sicherung aufnehmen (*Datacenter → Backup*, Modus „Snapshot“) – doppelt hält besser.
 
 **Weitere Ziele in der App:** *Einstellungen → Geräte-Abgleich → Server-Sicherung* (nur Besitzer). Nach jeder
@@ -149,8 +157,8 @@ nächtlichen Sicherung wird an alle eingeschalteten Ziele übertragen, jedes mit
 | SSH / rsync | NAS oder Linux-Rechner mit SSH | Schlüssel zeigt die App; nur Änderungen werden übertragen |
 | WebDAV | Nextcloud, Synology WebDAV, Hetzner Storage Box | Fotos gemeinsam, nur neue werden hochgeladen |
 
-„Testen“ und „Jetzt sichern“ stößt die App über die Datei `/var/lib/nix-wie-weg/sicherung/jetzt` an
-(`nix-wie-weg-backup.path`). Passwörter liegen nur auf dem Server (`/var/lib/nix-wie-weg/sicherung/ziele.json`,
+„Testen“ und „Jetzt sichern“ stößt die App über die Datei `/var/lib/koffer-fertig-raus/sicherung/jetzt` an
+(`koffer-fertig-raus-backup.path`). Passwörter liegen nur auf dem Server (`/var/lib/koffer-fertig-raus/sicherung/ziele.json`,
 nur für den Dienst und root lesbar). NFS direkt im Container geht nicht (unprivilegiert) – dafür in Proxmox einbinden
 und als „Ordner“ eintragen.
 

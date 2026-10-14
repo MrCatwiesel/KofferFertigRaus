@@ -8,7 +8,7 @@
  * Die Ziele verwaltet der Besitzer in der App. Gespeichert werden sie in <daten>/sicherung/ziele.json
  * (Passwörter inklusive – die Datei ist nur für den Dienst und root lesbar; die App bekommt sie nie zurück).
  * Ausgeführt wird die Sicherung von backup.sh (root) → backup-run.mjs. Die App stößt sie über die Datei
- * <daten>/sicherung/jetzt an (systemd-Pfad-Einheit nix-wie-weg-backup.path).
+ * <daten>/sicherung/jetzt an (systemd-Pfad-Einheit koffer-fertig-raus-backup.path).
  */
 import { randomBytes } from 'node:crypto'
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs'
@@ -16,6 +16,11 @@ import { join } from 'node:path'
 import { HttpError, readJson, send } from './http.mjs'
 
 export const TYPES = ['ordner', 'smb', 'ssh', 'webdav']
+
+/** Ordner auf dem Ziel. Ziele von vor der Umbenennung (ohne Angabe) behalten „nix-wie-weg“ – dort liegen ihre Sicherungen und Fotos. */
+export const FOLDER = 'koffer-fertig-raus'
+export const LEGACY_FOLDER = 'nix-wie-weg'
+export const targetFolder = (t) => (t.folder === FOLDER ? FOLDER : LEGACY_FOLDER)
 const SECRET_FIELDS = ['password']
 const MAX_TARGETS = 8
 
@@ -37,7 +42,9 @@ export function cleanTarget(input, old = null) {
     name: str(input.name, 60) || type.toUpperCase(),
     type,
     enabled: input.enabled !== false,
-    keep: Math.min(60, Math.max(1, Number.parseInt(input.keep, 10) || 7))
+    keep: Math.min(60, Math.max(1, Number.parseInt(input.keep, 10) || 7)),
+    // Ordner bleibt beim Bearbeiten erhalten; neue Ziele bekommen den neuen Namen
+    folder: old ? targetFolder(old) : FOLDER
   }
   if (type === 'ordner') {
     t.path = str(input.path, 300)
@@ -62,7 +69,7 @@ export function cleanTarget(input, old = null) {
     t.path = str(input.path, 300)
     need(SAFE.test(t.host), 'SSH: Server-Name oder IP fehlt.')
     need(SAFE.test(t.user), 'SSH: Benutzername fehlt.')
-    need(t.path && SAFE_PATH.test(t.path) && !t.path.includes('..'), 'SSH: Zielordner fehlt, z. B. /volume1/backup/nix-wie-weg.')
+    need(t.path && SAFE_PATH.test(t.path) && !t.path.includes('..'), 'SSH: Zielordner fehlt, z. B. /volume1/backup/koffer-fertig-raus.')
   }
   if (type === 'webdav') {
     t.url = str(input.url, 300).replace(/\/+$/, '')

@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.33.1 – 2026-10-14 (Server 1.18.0)
+
+### Neuer Name auch auf dem Server
+- Ordner und Dienste auf dem eigenen Server heißen jetzt `koffer-fertig-raus` (`/opt/koffer-fertig-raus`, `/etc/koffer-fertig-raus`, Dienst `koffer-fertig-raus-sync` …)
+- **Der Umzug passiert von selbst** beim nächsten `update.sh` (auch beim automatischen um 4 Uhr) – Daten, Schlüssel, Einstellungen und angemeldete Geräte bleiben
+- Sicherungsziele (NAS, SMB, SSH, WebDAV), die es schon gab, schreiben weiter in ihren Ordner `nix-wie-weg`, damit nicht alle Fotos neu hochgeladen werden; neue Ziele nutzen `koffer-fertig-raus`
+- Alte Sicherungen lassen sich weiter zurückspielen; `install.sh` erkennt eine alte Einrichtung und zieht sie ebenfalls um
+
 ## 1.33.0 – 2026-10-14 (Server 1.17.1)
 
 ### Neuer Name: KofferFertigRaus

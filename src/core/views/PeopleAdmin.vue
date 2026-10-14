@@ -66,6 +66,8 @@ async function load() {
   }
   try {
     members.value = (await client.value.json<{ members: Member[] }>('/api/personen')).members
+    // Personenliste der App sofort aktualisieren (z. B. für „Mit Konto verknüpfen“) – nicht erst beim nächsten Abgleich
+    people.members = members.value.filter((m) => !m.disabled).map((m) => ({ id: m.id, name: m.name, role: m.role }))
     devices.value = (await client.value.json<{ devices: Device[] }>('/api/geraete')).devices
   } catch (e) {
     error.value = (e as Error).message

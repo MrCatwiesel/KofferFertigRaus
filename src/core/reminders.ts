@@ -112,12 +112,12 @@ const stamp = (d: Date) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}
  * Kalenderdatei. `name` erscheint als Kalendername beim Abonnieren.
  * Zeiten sind „schwebend“ (ohne Zeitzone) – sie gelten in der Zeitzone des Geräts, wie auf dem Ticket.
  */
-export function buildIcs(reminders: Reminder[], opts: { name: string; appUrl?: string; now?: Date } = { name: 'Nix wie weg' }): string {
+export function buildIcs(reminders: Reminder[], opts: { name: string; appUrl?: string; now?: Date } = { name: 'KofferFertigRaus' }): string {
   const now = stamp(opts.now ?? new Date())
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Nix wie weg//Reiseplaner//DE',
+    'PRODID:-//KofferFertigRaus//Reiseplaner//DE',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${esc(opts.name)}`,
@@ -125,7 +125,7 @@ export function buildIcs(reminders: Reminder[], opts: { name: string; appUrl?: s
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H'
   ]
   for (const r of sortReminders(reminders)) {
-    lines.push('BEGIN:VEVENT', `UID:${r.id.replace(/[^\w:.-]/g, '-')}@nix-wie-weg`, `DTSTAMP:${now}`)
+    lines.push('BEGIN:VEVENT', `UID:${r.id.replace(/[^\w:.-]/g, '-')}@koffer-fertig-raus`, `DTSTAMP:${now}`)
     if (r.time) {
       lines.push(`DTSTART:${ymd(r.date)}T${hm(r.time)}`)
       if (r.endTime && r.endTime > r.time) lines.push(`DTEND:${ymd(r.date)}T${hm(r.endTime)}`)

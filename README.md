@@ -1,4 +1,4 @@
-# Nix wie weg
+# KofferFertigRaus
 
 Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als installierbare Web-App (PWA) für Handy, Tablet und PC.
 
@@ -11,7 +11,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 - **Mit Freunden teilen:** Lese-Links je Reise (nur Highlights oder ganzes Tagebuch), eigene Reisegruppen für Freunde
 
-**App online:** https://mrcatwiesel.github.io/nix-wie-weg-/
+**App online:** https://mrcatwiesel.github.io/KofferFertigRaus/
 
 ## Starten
 
@@ -36,7 +36,7 @@ Die App braucht **keinen Datenbank-Server**: alle Daten liegen im Browser (Index
 2. Settings → Pages → Source: **GitHub Actions** wählen.
 3. Unter „Actions“ baut GitHub die App automatisch. Danach:
    - online nutzbar unter `https://<name>.github.io/<repository>/`, oder
-   - im Lauf unter „Artifacts“ **nix-wie-weg-app** herunterladen, entpacken und den Inhalt in den Ordner des Tiny-Servers kopieren.
+   - im Lauf unter „Artifacts“ **koffer-fertig-raus-app** herunterladen, entpacken und den Inhalt in den Ordner des Tiny-Servers kopieren.
 
 **Weg B – mit einem Computer:** `npm install && npm run build`, dann den Inhalt von `dist/` auf das iPad in den Server-Ordner kopieren.
 
@@ -126,6 +126,6 @@ Die App ist eine PWA und lässt sich über „Teilen → Zum Home-Bildschirm“ 
 
 **GNU Affero General Public License v3.0** (AGPL-3.0, siehe [LICENSE](LICENSE)).
 
-Kurz gesagt: Jeder darf „Nix wie weg“ kostenlos nutzen, verändern und weitergeben – auch selbst betreiben.
+Kurz gesagt: Jeder darf „KofferFertigRaus“ kostenlos nutzen, verändern und weitergeben – auch selbst betreiben.
 Wer eine **veränderte** Version weitergibt oder für andere als Dienst im Netz betreibt, muss deren Quellcode
 ebenfalls unter der AGPL offenlegen. So bleibt die App frei und niemand kann daraus ein geschlossenes Produkt machen.

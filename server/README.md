@@ -1,4 +1,4 @@
-# Abgleich-Server für „Nix wie weg“
+# Abgleich-Server für „KofferFertigRaus“
 
 Damit alle Geräte (Handys, Tablet, PC) dieselben Daten haben, braucht es einen kleinen Server im Internet.
 Er speichert die Reisedaten und Fotos eurer Reisegruppe und verteilt Änderungen an alle Geräte.
@@ -25,8 +25,8 @@ Er speichert die Reisedaten und Fotos eurer Reisegruppe und verteilt Änderungen
 
 ```bash
 # 1. Dateien auf den Server holen
-git clone https://github.com/MrCatwiesel/nix-wie-weg-.git
-cd nix-wie-weg-/server
+git clone https://github.com/MrCatwiesel/KofferFertigRaus.git
+cd KofferFertigRaus/server
 
 # 2. Einstellungen anlegen
 cp .env.example .env
@@ -72,7 +72,7 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 
 **Einrichten:**
 
-1. In Piwigo als **Administrator** anmelden → oben *Profil* → **API-Schlüssel** → neuen Schlüssel anlegen (z. B. „Nix wie weg“, Laufzeit 1 Jahr).
+1. In Piwigo als **Administrator** anmelden → oben *Profil* → **API-Schlüssel** → neuen Schlüssel anlegen (z. B. „KofferFertigRaus“, Laufzeit 1 Jahr).
    Die **ID** (`pkid-…`) und das **Geheimnis** notieren. Das Geheimnis wird nur einmal angezeigt.
    (Die Profilseite gibt es nur mit dem Standard-Design der Galerie, nicht mit jedem Theme.)
 2. In den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/nix-wie-weg/sync.env`:
@@ -166,7 +166,7 @@ Zusätzlich hat jedes Gerät alle Daten lokal – fällt der Server aus, geht ni
 ## Aktualisieren
 
 ```bash
-cd nix-wie-weg-/server
+cd KofferFertigRaus/server
 git pull
 docker compose up -d --build
 ```
@@ -180,7 +180,7 @@ docker compose up -d --build
 | `NWW_ORIGINS` | Erlaubte App-Adresse(n), z. B. `https://mrcatwiesel.github.io` (Standard `*`) |
 | `NWW_MAX_BLOB_MB` | Maximale Größe eines Fotos in MB (Standard 30) |
 | `NWW_HOST` | Nur an diese Adresse binden, z. B. `127.0.0.1` (Standard: alle) |
-| `NWW_APP_DIR` | Ordner mit der gebauten App (Inhalt von `nix-wie-weg-app.zip`); der Server liefert sie dann unter seiner Adresse aus |
+| `NWW_APP_DIR` | Ordner mit der gebauten App (Inhalt von `koffer-fertig-raus-app.zip`); der Server liefert sie dann unter seiner Adresse aus |
 | `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |

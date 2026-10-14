@@ -1,4 +1,4 @@
-/* Nix wie weg – Push-Benachrichtigungen im Service Worker (per importScripts in den Workbox-Service-Worker geladen).
+/* KofferFertigRaus – Push-Benachrichtigungen im Service Worker (per importScripts in den Workbox-Service-Worker geladen).
  * Der Server schickt verschlüsselt { title, body, url, tag }; der Browser entschlüsselt, hier wird nur angezeigt. */
 
 self.addEventListener('push', (event) => {
@@ -10,7 +10,7 @@ self.addEventListener('push', (event) => {
   }
   const scope = self.registration.scope
   event.waitUntil(
-    self.registration.showNotification(msg.title || 'Nix wie weg', {
+    self.registration.showNotification(msg.title || 'KofferFertigRaus', {
       body: msg.body || '',
       tag: msg.tag || undefined,
       icon: `${scope}icon.svg`,

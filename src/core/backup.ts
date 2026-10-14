@@ -50,7 +50,7 @@ async function progressCounter(tables: string[], onProgress?: (fraction: number)
 
 /** Sicherung aller Daten als Datei (Gerätewechsel, Ernstfall). Fotos nur auf Wunsch. */
 export async function exportBackup(options: ExportOptions = {}): Promise<BackupResult> {
-  const meta: BackupMeta = { app: 'nix-wie-weg', format: 1, exportedAt: new Date().toISOString() }
+  const meta: BackupMeta = { app: 'koffer-fertig-raus', format: 1, exportedAt: new Date().toISOString() }
   const tables = BACKUP_TABLES.filter((n) => options.includeLarge || !LARGE_TABLES.includes(n))
   async function* source(): BackupSource {
     for (const name of tables) yield { table: name, rows: rowsOf(name) }
@@ -65,7 +65,7 @@ export async function exportBackup(options: ExportOptions = {}): Promise<BackupR
 export async function exportTrip(tripId: string, options: ExportOptions = {}): Promise<BackupResult> {
   const trip = (await db.trips.get(tripId)) as unknown as Record<string, unknown> | undefined
   if (!trip) throw new Error('Reise nicht gefunden.')
-  const meta: BackupMeta = { app: 'nix-wie-weg', format: 1, exportedAt: new Date().toISOString(), scope: { tripId, title: String(trip.title ?? '') } }
+  const meta: BackupMeta = { app: 'koffer-fertig-raus', format: 1, exportedAt: new Date().toISOString(), scope: { tripId, title: String(trip.title ?? '') } }
   async function* source(): BackupSource {
     yield { table: 'trips', rows: [[trip!]] }
     for (const name of BACKUP_TABLES) {

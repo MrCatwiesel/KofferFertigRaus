@@ -2,7 +2,7 @@
 # Ablage: /etc/systemd/system/nix-wie-weg-sync.service
 # Einstellungen: /etc/nix-wie-weg/sync.env
 [Unit]
-Description=Nix wie weg – Abgleich-Server
+Description=KofferFertigRaus – Abgleich-Server
 After=network-online.target
 Wants=network-online.target
 

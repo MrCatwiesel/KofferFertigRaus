@@ -1,8 +1,8 @@
 {
-  "name": "nix-wie-weg-sync-server",
-  "version": "1.17.0",
+  "name": "koffer-fertig-raus-sync-server",
+  "version": "1.17.1",
   "private": true,
-  "description": "Abgleich-Server für die Reise-App „Nix wie weg“ – ohne Fremdpakete",
+  "description": "Abgleich-Server für die Reise-App „KofferFertigRaus“ – ohne Fremdpakete",
   "type": "module",
   "engines": {
     "node": ">=22.13"

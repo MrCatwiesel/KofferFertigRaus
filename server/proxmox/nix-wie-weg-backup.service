@@ -1,6 +1,6 @@
 # Tägliche Datensicherung des Abgleich-Servers (siehe backup.sh)
 [Unit]
-Description=Nix wie weg – Datensicherung
+Description=KofferFertigRaus – Datensicherung
 
 [Service]
 Type=oneshot

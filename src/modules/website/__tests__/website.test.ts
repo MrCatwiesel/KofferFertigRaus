@@ -77,7 +77,7 @@ describe('renderSite', () => {
       expect(html).toContain('Unser &lt;Sommer&gt;')
       expect(html).toContain('Tag am See')
       expect(html).toContain('data-bs-theme="dark"')
-      expect(html).toContain('Erstellt mit „Nix wie weg“')
+      expect(html).toContain('Erstellt mit „KofferFertigRaus“')
     }
   })
 

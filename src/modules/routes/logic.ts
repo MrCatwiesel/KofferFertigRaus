@@ -143,7 +143,7 @@ export function toGpx(name: string, points: TrackPoint[], kind: 'track' | 'route
     kind === 'route'
       ? `<rte><name>${xmlEsc(name)}</name>${points.map((p) => pt('rtept', p)).join('')}</rte>`
       : `<trk><name>${xmlEsc(name)}</name><trkseg>${points.map((p) => pt('trkpt', p)).join('')}</trkseg></trk>`
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Nix wie weg" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${xmlEsc(name)}</name></metadata>${body}</gpx>\n`
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="KofferFertigRaus" xmlns="http://www.topografix.com/GPX/1/1"><metadata><name>${xmlEsc(name)}</name></metadata>${body}</gpx>\n`
 }
 
 /** Dateiname für den Export, z. B. "monte-baldo.gpx" */

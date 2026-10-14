@@ -1,6 +1,6 @@
 # Täglich gegen 4 Uhr nach Updates sehen
 [Unit]
-Description=Nix wie weg – tägliche Aktualisierung
+Description=KofferFertigRaus – tägliche Aktualisierung
 
 [Timer]
 OnCalendar=*-*-* 04:00

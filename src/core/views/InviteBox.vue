@@ -33,12 +33,12 @@ onMounted(async () => {
 async function share() {
   const intro = props.person
     ? props.reset
-      ? `${props.person}, hier kannst du ein neues Passwort für „Nix wie weg“ festlegen (gilt einmal, 24 Stunden):`
-      : `${props.person}, du bist zu „Nix wie weg“ eingeladen (gilt einmal, 24 Stunden):`
-    : 'Einladung zu „Nix wie weg“ (gilt einmal, 24 Stunden):'
+      ? `${props.person}, hier kannst du ein neues Passwort für „KofferFertigRaus“ festlegen (gilt einmal, 24 Stunden):`
+      : `${props.person}, du bist zu „KofferFertigRaus“ eingeladen (gilt einmal, 24 Stunden):`
+    : 'Einladung zu „KofferFertigRaus“ (gilt einmal, 24 Stunden):'
   const text = `${intro}\n${link.value}\nOder in der App unter „Geräte-Abgleich“ eingeben: ${props.code}`
   try {
-    if (navigator.share) await navigator.share({ title: 'Nix wie weg – Einladung', text })
+    if (navigator.share) await navigator.share({ title: 'KofferFertigRaus – Einladung', text })
     else {
       await navigator.clipboard.writeText(text)
       copied.value = true

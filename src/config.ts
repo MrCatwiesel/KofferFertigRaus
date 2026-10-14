@@ -2,9 +2,9 @@
  * Zentrale Einstellungen der App – hier anpassen, nicht im Code verteilt.
  */
 export const APP_CONFIG = {
-  name: 'Nix wie weg',
+  name: 'KofferFertigRaus',
   /** Quellcode (öffentlich) */
-  repositoryUrl: 'https://github.com/MrCatwiesel/nix-wie-weg-',
+  repositoryUrl: 'https://github.com/MrCatwiesel/KofferFertigRaus',
   /**
    * Spendenlink, z. B. https://paypal.me/<name>.
    * Leer lassen = Spenden-Hinweise werden nicht angezeigt.

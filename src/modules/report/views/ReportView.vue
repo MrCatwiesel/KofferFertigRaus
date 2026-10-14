@@ -430,7 +430,7 @@ async function print() {
       </div>
     </section>
 
-    <footer class="r-footer">Erstellt mit „Nix wie weg“</footer>
+    <footer class="r-footer">Erstellt mit „KofferFertigRaus“</footer>
   </article>
 </template>
 

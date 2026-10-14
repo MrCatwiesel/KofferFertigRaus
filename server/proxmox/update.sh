@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nix wie weg – Abgleich-Server und App aktualisieren (im Container, als root).
+# KofferFertigRaus – Abgleich-Server und App aktualisieren (im Container, als root).
 # Läuft täglich automatisch (nix-wie-weg-update.timer) und kann jederzeit von Hand gestartet werden:
 #   /opt/nix-wie-weg/server/proxmox/update.sh            aktualisieren
 #   /opt/nix-wie-weg/server/proxmox/update.sh zurueck    zur vorigen Version von App und Server zurück
@@ -14,7 +14,7 @@ SRC=/opt/nix-wie-weg
 APP=/opt/nix-wie-weg-app
 PREV_APP=$APP.vorher
 STATE=/var/lib/nix-wie-weg-update
-APP_URL="https://github.com/MrCatwiesel/nix-wie-weg-/releases/download/app/nix-wie-weg-app.zip"
+APP_URL="https://github.com/MrCatwiesel/KofferFertigRaus/releases/download/app/koffer-fertig-raus-app.zip"
 HEALTH=http://127.0.0.1:8787/api/health
 HERE="$SRC/server/proxmox"
 

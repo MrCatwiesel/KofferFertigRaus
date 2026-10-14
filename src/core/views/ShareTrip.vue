@@ -25,7 +25,7 @@ onMounted(async () => {
 })
 
 const fileName = computed(() => {
-  return `nix-wie-weg-${fileSlug(title.value)}-${new Date().toISOString().slice(0, 10)}.json`
+  return `koffer-fertig-raus-${fileSlug(title.value)}-${new Date().toISOString().slice(0, 10)}.json`
 })
 
 async function create() {

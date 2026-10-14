@@ -152,7 +152,7 @@ export function changeSummary(counts) {
 export function createBenachrichtigungen(store, members, opts = {}) {
   const { db } = store
   const fetchImpl = opts.fetchImpl ?? globalThis.fetch
-  const subject = opts.subject || 'https://github.com/MrCatwiesel/nix-wie-weg-'
+  const subject = opts.subject || 'https://github.com/MrCatwiesel/KofferFertigRaus'
   const hosts = opts.hosts ?? PUSH_HOSTS
   const log = opts.log ?? ((m) => console.log(m))
   db.exec(`
@@ -445,7 +445,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       if (sub === '/test' && req.method === 'POST') {
         const row = q.sub.get(device.id)
         if (!row) throw new HttpError(404, 'Auf diesem Gerät sind Benachrichtigungen nicht eingeschaltet.')
-        const r = await deliver(row, { title: 'Nix wie weg', body: 'Benachrichtigungen funktionieren 👍', url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
+        const r = await deliver(row, { title: 'KofferFertigRaus', body: 'Benachrichtigungen funktionieren 👍', url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
         if (r.gone) throw new HttpError(410, 'Der Push-Dienst kennt dieses Gerät nicht mehr – bitte Benachrichtigungen neu einschalten.')
         if (!r.ok) throw new HttpError(502, q.sub.get(device.id)?.last_error ?? 'Senden ging nicht.')
         return send(res, 200, { ok: true })

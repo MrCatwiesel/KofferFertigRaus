@@ -120,7 +120,7 @@ async function copyInvite() {
 async function shareInvite() {
   if (!invite.value) return
   try {
-    await navigator.share({ title: `Nix wie weg – ${invite.value.name}`, text: 'Einladung zu deiner eigenen Reisegruppe:', url: invite.value.link })
+    await navigator.share({ title: `KofferFertigRaus – ${invite.value.name}`, text: 'Einladung zu deiner eigenen Reisegruppe:', url: invite.value.link })
   } catch {
     /* abgebrochen */
   }

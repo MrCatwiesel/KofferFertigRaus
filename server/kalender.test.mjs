@@ -8,7 +8,7 @@ import { createSyncServer } from './server.mjs'
 const KEY = 'kalender-test-schluessel-1'
 const OTHER = 'kalender-andere-gruppe-2'
 let server, base, dir
-const ICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:a@nix-wie-weg\r\nSUMMARY:Storno Hotel\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
+const ICS = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:a@koffer-fertig-raus\r\nSUMMARY:Storno Hotel\r\nEND:VEVENT\r\nEND:VCALENDAR\r\n'
 
 const call = async (path, { method = 'GET', key = KEY, body } = {}) => {
   const r = await fetch(`${base}${path}`, { method, headers: key ? { Authorization: `Bearer ${key}` } : {}, body })

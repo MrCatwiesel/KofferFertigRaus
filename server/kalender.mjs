@@ -50,10 +50,10 @@ export function createKalender(dataDir, groups = null) {
       const f = fileOf(tokens[m[1]])
       const body = existsSync(f)
         ? readFileSync(f)
-        : Buffer.from('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Nix wie weg//Reiseplaner//DE\r\nX-WR-CALNAME:Nix wie weg\r\nEND:VCALENDAR\r\n')
+        : Buffer.from('BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//KofferFertigRaus//Reiseplaner//DE\r\nX-WR-CALNAME:KofferFertigRaus\r\nEND:VCALENDAR\r\n')
       res.writeHead(200, {
         'Content-Type': 'text/calendar; charset=utf-8',
-        'Content-Disposition': 'inline; filename="nix-wie-weg.ics"',
+        'Content-Disposition': 'inline; filename="koffer-fertig-raus.ics"',
         'Cache-Control': 'no-cache',
         'X-Content-Type-Options': 'nosniff'
       })

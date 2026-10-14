@@ -27,7 +27,7 @@ async function doExport() {
     progress.value = { label: 'Sicherung wird erstellt', value: 0 }
     const { blob, exportedAt } = await exportBackup({ includeLarge: includePhotos.value, onProgress: (v) => (progress.value = { label: 'Sicherung wird erstellt', value: v }) })
     const suffix = includePhotos.value ? '-mit-fotos' : ''
-    downloadBlob(blob, `nix-wie-weg-backup-${exportedAt.slice(0, 10)}${suffix}.json`)
+    downloadBlob(blob, `koffer-fertig-raus-backup-${exportedAt.slice(0, 10)}${suffix}.json`)
     message.value = { type: 'success', text: `Backup wurde heruntergeladen (${formatBytes(blob.size)}).` }
   } catch (err) {
     message.value = { type: 'danger', text: `Export fehlgeschlagen: ${(err as Error).message}` }

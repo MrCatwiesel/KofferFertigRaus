@@ -1,5 +1,5 @@
 /**
- * Nix wie weg – Abgleich-Server
+ * KofferFertigRaus – Abgleich-Server
  *
  * Ein kleiner Server ohne Fremdpakete (nur Node.js ≥ 22.13), der die Daten mehrerer Geräte abgleicht.
  *  - Daten: SQLite-Datei (eingebaut in Node.js), Fotos als einzelne Dateien        → store.mjs
@@ -39,7 +39,7 @@ import { createKalender } from './kalender.mjs'
 import { createBenachrichtigungen } from './benachrichtigungen.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.17.0'
+export const VERSION = '1.17.1'
 
 const MAX_JSON = 30 * 1024 * 1024
 
@@ -83,7 +83,7 @@ export function createSyncServer(opts) {
     const path = url.pathname.replace(/\/+$/, '')
 
     if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
-      return send(res, 200, { ok: true, app: 'nix-wie-weg-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true })
+      return send(res, 200, { ok: true, app: 'koffer-fertig-raus-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true })
     }
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
@@ -439,7 +439,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
   })
   const port = Number(process.env.PORT ?? 8787)
   const host = process.env.NWW_HOST || undefined // z. B. 127.0.0.1, wenn nginx im selben Container läuft
-  server.listen(port, host, () => console.log(`Nix wie weg – Abgleich-Server ${VERSION} läuft auf ${host ?? '*'}:${port}`))
+  server.listen(port, host, () => console.log(`KofferFertigRaus – Abgleich-Server ${VERSION} läuft auf ${host ?? '*'}:${port}`))
   const stop = () => server.close(() => process.exit(0))
   process.on('SIGTERM', stop)
   process.on('SIGINT', stop)

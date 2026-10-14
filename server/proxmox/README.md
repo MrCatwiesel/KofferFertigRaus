@@ -7,7 +7,7 @@ Ein kleiner **Debian-LXC-Container** reicht. Einen Datenbank-Server braucht es *
 In der Proxmox-Oberfläche den Knoten auswählen → **Shell**:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox/create-ct.sh -o create-ct.sh
+curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/KofferFertigRaus/main/server/proxmox/create-ct.sh -o create-ct.sh
 bash create-ct.sh
 ```
 
@@ -48,13 +48,13 @@ Container starten, *Console* öffnen, als root anmelden.
 
 ### A) Du hast schon einen Reverse-Proxy (Nginx Proxy Manager, nginx, Traefik, Caddy …)
 
-> Noch keinen? Das Projekt [Heim-Proxy](https://github.com/MrCatwiesel/heim-proxy) richtet einen zentralen Reverse-Proxy (Nginx Proxy Manager) für alle Server zu Hause ein. Der Eintrag für Nix wie weg steht dort in `docs/NIX-WIE-WEG.md`.
+> Noch keinen? Das Projekt [Heim-Proxy](https://github.com/MrCatwiesel/heim-proxy) richtet einen zentralen Reverse-Proxy (Nginx Proxy Manager) für alle Server zu Hause ein. Der Eintrag für KofferFertigRaus steht dort in `docs/NIX-WIE-WEG.md`.
 
 Ports 80/443 bleiben, wie sie sind. Im Container:
 
 ```bash
 apt update && apt install -y curl
-curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/KofferFertigRaus/main/server/proxmox/install.sh | bash
 ```
 
 Dann im Reverse-Proxy einen neuen Host anlegen:
@@ -72,7 +72,7 @@ Im Router **80 und 443** auf den Container weiterleiten, dann:
 
 ```bash
 apt update && apt install -y curl
-curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox/install.sh -o install.sh
+curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/KofferFertigRaus/main/server/proxmox/install.sh -o install.sh
 bash install.sh --web reise.deine-dyndns.de
 ```
 

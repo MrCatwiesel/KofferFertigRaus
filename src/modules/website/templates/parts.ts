@@ -20,7 +20,7 @@ export function footer(s: SiteData): string {
   <footer class="border-top py-4 mt-4">
     <div class="container small text-body-secondary text-center">
       ${by}${esc(s.destination)}, ${formatDate(s.startDate)} – ${formatDate(s.endDate)}<br>
-      Erstellt mit „Nix wie weg“ am ${formatDate(s.generatedAt.slice(0, 10))}
+      Erstellt mit „KofferFertigRaus“ am ${formatDate(s.generatedAt.slice(0, 10))}
     </div>
   </footer>`
 }

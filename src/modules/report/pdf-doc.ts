@@ -252,7 +252,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   }
 
   return {
-    info: { title: input.trip.title, author: 'Nix wie weg', creator: 'Nix wie weg' },
+    info: { title: input.trip.title, author: 'KofferFertigRaus', creator: 'KofferFertigRaus' },
     pageSize: { width: g.width, height: g.height },
     pageMargins: [g.margin, g.margin, g.margin, g.margin + 6],
     defaultStyle: { font: 'Roboto', fontSize: 10.5, color: '#222222' },
@@ -261,7 +261,7 @@ function report(input: PdfInput, img: ImageSource): TDocumentDefinitions {
     footer: (page, pages) =>
       page === 1
         ? ''
-        : { columns: [{ text: `${input.trip.title} · Erstellt mit „Nix wie weg“`, style: 'meta' }, { text: `${page} / ${pages}`, style: 'meta', alignment: 'right' }], margin: [g.margin, 6, g.margin, 0] },
+        : { columns: [{ text: `${input.trip.title} · Erstellt mit „KofferFertigRaus“`, style: 'meta' }, { text: `${page} / ${pages}`, style: 'meta', alignment: 'right' }], margin: [g.margin, 6, g.margin, 0] },
     // Tagesüberschrift nie allein unten auf der Seite
     pageBreakBefore: (node, following) => node.headlineLevel === 1 && following.length === 0
   }
@@ -373,7 +373,7 @@ function photobook(input: PdfInput, img: ImageSource): TDocumentDefinitions {
   }
 
   return {
-    info: { title: `${input.trip.title} – Fotobuch`, author: 'Nix wie weg', creator: 'Nix wie weg' },
+    info: { title: `${input.trip.title} – Fotobuch`, author: 'KofferFertigRaus', creator: 'KofferFertigRaus' },
     pageSize: { width: g.width, height: g.height },
     pageMargins: g.margin,
     defaultStyle: { font: 'Roboto', fontSize: 10.5, color: '#222222' },

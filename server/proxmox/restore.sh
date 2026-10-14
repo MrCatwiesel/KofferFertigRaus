@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nix wie weg – Datensicherung zurückspielen (im Container, als root).
+# KofferFertigRaus – Datensicherung zurückspielen (im Container, als root).
 #   /opt/nix-wie-weg/server/proxmox/restore.sh             zeigt die vorhandenen Sicherungen
 #   /opt/nix-wie-weg/server/proxmox/restore.sh 2026-10-12_0415   spielt diese Sicherung zurück
 #

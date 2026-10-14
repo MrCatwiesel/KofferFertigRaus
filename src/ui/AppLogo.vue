@@ -1,5 +1,5 @@
 <script setup lang="ts">
-/** Logo „Nix wie weg“ – Form je Design (Berg, Ortsmarke, Stempel, Kompass), Farben aus den CSS-Variablen. */
+/** Logo „KofferFertigRaus“ – Form je Design (Berg, Ortsmarke, Stempel, Kompass), Farben aus den CSS-Variablen. */
 import { computed } from 'vue'
 import { appearance } from './appearance'
 import { getTheme, type LogoKind } from './themes'

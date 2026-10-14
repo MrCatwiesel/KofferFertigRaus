@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nix wie weg – Einrichtung in einem Debian-LXC-Container (Proxmox), ohne Docker.
+# KofferFertigRaus – Einrichtung in einem Debian-LXC-Container (Proxmox), ohne Docker.
 #
 #   bash install.sh                     nur Abgleich-Server (Port 8787, für vorhandenen Reverse-Proxy)
 #   bash install.sh --web reise.example.de
@@ -8,7 +8,7 @@
 # Erneut ausführen = aktualisieren (Einstellungen und Daten bleiben erhalten).
 set -euo pipefail
 
-REPO="https://github.com/MrCatwiesel/nix-wie-weg-.git"
+REPO="https://github.com/MrCatwiesel/KofferFertigRaus.git"
 SRC=/opt/nix-wie-weg
 ENVFILE=/etc/nix-wie-weg/sync.env
 WEBROOT=/var/www/nix-wie-weg

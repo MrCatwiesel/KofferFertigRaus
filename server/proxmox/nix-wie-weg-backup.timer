@@ -1,6 +1,6 @@
 # Täglich gegen 3:30 Uhr sichern (vor dem Update um 4 Uhr)
 [Unit]
-Description=Nix wie weg – tägliche Datensicherung
+Description=KofferFertigRaus – tägliche Datensicherung
 
 [Timer]
 OnCalendar=*-*-* 03:30

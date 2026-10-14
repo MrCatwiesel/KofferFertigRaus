@@ -175,7 +175,7 @@ test('Testnachricht kommt verschlüsselt beim Gerät an', async () => {
   const msg = outbox.at(-1)
   assert.equal(msg.headers['Content-Encoding'], 'aes128gcm')
   assert.match(msg.headers.Authorization, /^vapid t=.+, k=/)
-  assert.equal(s.ipad.read(msg).title, 'Nix wie weg')
+  assert.equal(s.ipad.read(msg).title, 'KofferFertigRaus')
   assert.ok((await call('GET', '/api/benachrichtigungen', s.marco)).body.abo.lastOk)
 })
 

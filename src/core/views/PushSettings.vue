@@ -110,7 +110,7 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
         </div>
 
         <div v-if="denied" class="alert alert-warning small py-2 mt-3 mb-0">
-          Benachrichtigungen sind für die App nicht erlaubt. Auf dem iPad: <em>Einstellungen → Mitteilungen → Nix wie weg</em> → „Mitteilungen erlauben“.
+          Benachrichtigungen sind für die App nicht erlaubt. Auf dem iPad: <em>Einstellungen → Mitteilungen → KofferFertigRaus</em> → „Mitteilungen erlauben“.
           Im Browser: Schloss-Symbol neben der Adresse → Benachrichtigungen erlauben. Danach die Seite neu laden.
         </div>
 

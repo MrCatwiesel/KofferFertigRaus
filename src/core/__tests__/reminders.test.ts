@@ -32,7 +32,7 @@ describe('Kalenderdatei (iCalendar)', () => {
       r({ id: 'leg:2', date: '2026-11-20', time: '07:30', endTime: '12:15', title: 'Auto: Sulzbach → Maria Alm', location: 'Sulzbach-Rosenberg' }),
       r({ id: 'trip:t1', kind: 'reise', date: '2026-11-20', endDate: '2026-11-26', title: 'Reise: Großglockner' })
     ],
-    { name: 'Nix wie weg', appUrl: 'https://reise.example/', now: new Date('2026-10-13T10:00:00Z') }
+    { name: 'KofferFertigRaus', appUrl: 'https://reise.example/', now: new Date('2026-10-13T10:00:00Z') }
   )
   const lines = ics.split('\r\n')
   it('Grundgerüst, CRLF, Abo-Intervall', () => {
@@ -53,7 +53,7 @@ describe('Kalenderdatei (iCalendar)', () => {
     expect(ics).toContain('TRIGGER:-P2D')
     expect(ics).toContain('TRIGGER:-PT2H')
     expect(ics).toContain('TRIGGER:-PT6H')
-    expect(ics).toContain('UID:acc:1:storno@nix-wie-weg')
+    expect(ics).toContain('UID:acc:1:storno@koffer-fertig-raus')
   })
   it('lange Zeilen werden gefaltet (max. 75 Bytes, auch mit Umlauten)', () => {
     const long = foldLine(`SUMMARY:${'Großglockner-Hochalpenstraße '.repeat(6)}`)

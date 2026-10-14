@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.33.0 – 2026-10-14 (Server 1.17.1)
+
+### Neuer Name: KofferFertigRaus
+- Die App heißt jetzt **KofferFertigRaus** (vorher „Nix wie weg“) – in der App, auf Reise-Webseiten, im Bericht/PDF, in Kalendern, Einladungen und Benachrichtigungen
+- Das GitHub-Projekt heißt jetzt **MrCatwiesel/KofferFertigRaus**; alte Links werden von GitHub weitergeleitet
+- **Deine Daten bleiben unverändert:** Sicherungen und geteilte Reisen aus „Nix wie weg“ lassen sich weiter einlesen, Geräte-Abgleich und Server laufen wie bisher
+- Ordner und Dienste auf dem eigenen Server behalten vorerst ihre Namen (`/opt/nix-wie-weg` …)
+
 ## 1.32.1 – 2026-10-14
 
 ### Korrigiert: Karten im Lese-Link

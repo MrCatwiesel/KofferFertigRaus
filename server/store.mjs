@@ -14,6 +14,7 @@ export const HASH_RE = /^[a-f0-9]{64}$/
 export const sha256 = (data) => createHash('sha256').update(data).digest('hex')
 
 /** Raum (Datenbereich) einer Reisegruppe: aus dem Schlüssel abgeleitet, der Schlüssel selbst wird nie gespeichert. */
+// Fester Wert aus der Zeit, als die App „Nix wie weg“ hieß – NICHT ändern, sonst fände keine Gruppe ihre Daten wieder
 export const spaceOf = (key) => sha256(`nix-wie-weg:${key}`).slice(0, 24)
 
 export function createStore(dataDir) {

@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
-# Nix wie weg – Container für den Abgleich-Server auf dem Proxmox-HOST anlegen und einrichten.
+# KofferFertigRaus – Container für den Abgleich-Server auf dem Proxmox-HOST anlegen und einrichten.
 #
 # In der Proxmox-Oberfläche: Knoten auswählen → "Shell", dann:
-#   curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox/create-ct.sh -o create-ct.sh
+#   curl -fsSL https://raw.githubusercontent.com/MrCatwiesel/KofferFertigRaus/main/server/proxmox/create-ct.sh -o create-ct.sh
 #   bash create-ct.sh
 #
 # Fragt nach Container-Nummer, IP usw. (Enter übernimmt den Vorschlag in Klammern).
 set -euo pipefail
 
-RAW="https://raw.githubusercontent.com/MrCatwiesel/nix-wie-weg-/main/server/proxmox"
+RAW="https://raw.githubusercontent.com/MrCatwiesel/KofferFertigRaus/main/server/proxmox"
 command -v pct >/dev/null || { echo "Dieses Skript läuft auf dem Proxmox-Host (pct fehlt)."; exit 1; }
 [[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 ask() { local v; read -r -p "$1 [$2]: " v; echo "${v:-$2}"; }
 
 CTID=$(ask "Container-Nummer" "$(pvesh get /cluster/nextid)")
-NAME=$(ask "Name" "nix-wie-weg")
+NAME=$(ask "Name" "koffer-fertig-raus")
 IP=""
 while [[ ! $IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; do
   IP=$(ask "Feste IP im Heimnetz (frei, außerhalb des DHCP-Bereichs)" "192.168.178.50")
@@ -69,7 +69,7 @@ pct create "$CTID" "$TSTORE:vztmpl/$TEMPLATE" \
   --features nesting=1 \
   --onboot 1 \
   --password "$PW" \
-  --description "Nix wie weg – Abgleich-Server – https://github.com/MrCatwiesel/nix-wie-weg-"
+  --description "KofferFertigRaus – Abgleich-Server – https://github.com/MrCatwiesel/KofferFertigRaus"
 pct start "$CTID"
 
 say "Warten auf Netzwerk im Container"

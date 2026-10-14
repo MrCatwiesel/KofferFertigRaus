@@ -15,7 +15,7 @@ before(async () => {
   dir = mkdtempSync(join(tmpdir(), 'nww-app-'))
   app = join(dir, 'app')
   mkdirSync(join(app, 'assets'), { recursive: true })
-  writeFileSync(join(app, 'index.html'), '<!doctype html><title>Nix wie weg</title>')
+  writeFileSync(join(app, 'index.html'), '<!doctype html><title>KofferFertigRaus</title>')
   writeFileSync(join(app, 'sw.js'), 'self.x=1')
   writeFileSync(join(app, 'share.html'), '<!doctype html><title>Ansehen</title>')
   writeFileSync(join(app, 'manifest.webmanifest'), '{}')
@@ -36,7 +36,7 @@ test('App: Startseite ohne Schlüssel, nicht im Cache festhalten', async () => {
   assert.equal(r.status, 200)
   assert.match(r.headers.get('content-type') ?? '', /text\/html/)
   assert.equal(r.headers.get('cache-control'), 'no-cache')
-  assert.match(await r.text(), /Nix wie weg/)
+  assert.match(await r.text(), /KofferFertigRaus/)
 })
 
 test('App: Dateien mit Prüfsummen-Namen lange im Cache', async () => {
@@ -57,7 +57,7 @@ test('App: fehlende Datei 404, unbekannte Seite → Startseite', async () => {
   assert.equal((await fetch(`${base}/gibts-nicht.js`)).status, 404)
   const r = await fetch(`${base}/irgendwo`)
   assert.equal(r.status, 200)
-  assert.match(await r.text(), /Nix wie weg/)
+  assert.match(await r.text(), /KofferFertigRaus/)
 })
 
 test('App: kein Zugriff außerhalb des App-Ordners', async () => {

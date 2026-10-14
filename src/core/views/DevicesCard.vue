@@ -138,9 +138,9 @@ async function newInvite() {
 
 async function shareInvite() {
   if (!invite.value) return
-  const text = `Einladung zu „Nix wie weg“ (gilt einmal, 24 Stunden):\n${invite.value.link}\nOder in der App eingeben: ${invite.value.code}`
+  const text = `Einladung zu „KofferFertigRaus“ (gilt einmal, 24 Stunden):\n${invite.value.link}\nOder in der App eingeben: ${invite.value.code}`
   try {
-    if (navigator.share) await navigator.share({ title: 'Nix wie weg – Einladung', text })
+    if (navigator.share) await navigator.share({ title: 'KofferFertigRaus – Einladung', text })
     else {
       await navigator.clipboard.writeText(text)
       info.value = 'Einladung kopiert.'

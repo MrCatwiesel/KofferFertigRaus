@@ -66,7 +66,7 @@ export function renderSite(site: SiteData, settings: WebsiteSettingsDraft, boots
 <meta name="description" content="${esc(description)}">
 <meta property="og:title" content="${esc(site.title)}">
 <meta property="og:description" content="${esc(description)}">
-<meta name="generator" content="Nix wie weg">
+<meta name="generator" content="KofferFertigRaus">
 <style>${bootstrapCss}</style>
 <style>${fontCss}${css}${tpl.css}</style>
 </head>

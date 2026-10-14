@@ -60,7 +60,7 @@ async function sameOriginServer(): Promise<boolean> {
   if (location.protocol !== 'https:' && location.hostname !== 'localhost') return false
   try {
     const r = await fetch(`${location.origin}/api/health`, { cache: 'no-store' })
-    return r.ok && (await r.json()).app === 'nix-wie-weg-sync'
+    return r.ok && ['koffer-fertig-raus-sync', 'nix-wie-weg-sync'].includes((await r.json()).app) // alter Name bei älteren Servern
   } catch {
     return false
   }
@@ -162,9 +162,9 @@ function newKey() {
 const link = computed(() => (syncState.configured ? pairingLink(location.href, syncState.server, key.value) : ''))
 
 async function shareLink() {
-  const text = `Kopplungs-Link für „Nix wie weg“ – nur auf eigenen Geräten öffnen:\n${link.value}`
+  const text = `Kopplungs-Link für „KofferFertigRaus“ – nur auf eigenen Geräten öffnen:\n${link.value}`
   try {
-    if (navigator.share) await navigator.share({ title: 'Nix wie weg koppeln', text, url: link.value })
+    if (navigator.share) await navigator.share({ title: 'KofferFertigRaus koppeln', text, url: link.value })
     else {
       await navigator.clipboard.writeText(link.value)
       linkCopied.value = true

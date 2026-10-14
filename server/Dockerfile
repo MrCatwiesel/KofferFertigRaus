@@ -1,4 +1,4 @@
-# Abgleich-Server für „Nix wie weg“ – keine Fremdpakete, nur Node.js
+# Abgleich-Server für „KofferFertigRaus“ – keine Fremdpakete, nur Node.js
 FROM node:22-alpine
 WORKDIR /app
 # Werkzeug für Offline-Karten (statisch gebaut, läuft auch auf Alpine)

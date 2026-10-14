@@ -33,7 +33,7 @@ jobs:
       # Fertige App zusätzlich als ZIP zum Herunterladen (z. B. für den Tiny-Server)
       - uses: actions/upload-artifact@v4
         with:
-          name: nix-wie-weg-app
+          name: koffer-fertig-raus-app
           path: dist
       - uses: actions/upload-pages-artifact@v3
         with:
@@ -63,7 +63,7 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - uses: actions/download-artifact@v4
         with:
-          name: nix-wie-weg-app
+          name: koffer-fertig-raus-app
           path: dist
       - run: npx playwright install --with-deps chromium
       - run: npm run e2e
@@ -97,16 +97,16 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: nix-wie-weg-app
+          name: koffer-fertig-raus-app
           path: dist
-      - run: cd dist && zip -qr ../nix-wie-weg-app.zip .
+      - run: cd dist && zip -qr ../koffer-fertig-raus-app.zip . && cp ../koffer-fertig-raus-app.zip ../nix-wie-weg-app.zip # alter Name: für Server, die noch das alte update.sh haben
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
           gh release view app >/dev/null 2>&1 || gh release create app --title "App – neuester Stand" \
             --notes "Automatisch gebaut bei jeder Änderung. Zum Selbst-Hosten: server/proxmox/update.sh lädt diese Datei." --latest=false
-          gh release upload app nix-wie-weg-app.zip --clobber
+          gh release upload app koffer-fertig-raus-app.zip nix-wie-weg-app.zip --clobber
 
   deploy:
     needs: [build, klicktest]

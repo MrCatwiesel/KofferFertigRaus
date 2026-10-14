@@ -59,6 +59,7 @@ export class NixDb extends Dexie {
   meta!: Table<MetaEntry, string>
 
   constructor() {
+    // Interner Name aus der Zeit, als die App „Nix wie weg“ hieß – NICHT ändern, sonst wären alle Daten im Browser weg
     super('nix-wie-weg')
 
     // v1: Modul "Reiseprojekt"

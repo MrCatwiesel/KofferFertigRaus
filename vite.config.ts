@@ -53,8 +53,8 @@ export default defineConfig(({ command }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Nix wie weg',
-        short_name: 'Nix wie weg',
+        name: 'KofferFertigRaus',
+        short_name: 'KofferFertigRaus',
         description: 'Reisen planen, erleben, festhalten und teilen – auch offline.',
         lang: 'de',
         theme_color: '#2f5d50',

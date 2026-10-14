@@ -22,7 +22,7 @@ const iconBg = computed(() =>
   <div class="tp" :style="{ background: `${patternCss(theme.pattern, p, 1.4, dark)}, ${p.bg}`.replace(/^none, /, ''), color: p.text, fontFamily: theme.body.font }">
     <div class="tp-bar" :style="{ background: p.surface, borderBottom: `${theme.border}px solid ${p.border}` }">
       <span class="tp-dot" :style="{ background: p.primary }"></span>
-      <span :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">Nix wie weg</span>
+      <span :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">KofferFertigRaus</span>
     </div>
     <div class="tp-hero" :style="{ borderRadius: r, background: `linear-gradient(${p.sky2}, ${p.sky1})` }">
       <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">

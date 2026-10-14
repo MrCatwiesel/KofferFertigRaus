@@ -6,7 +6,7 @@
  * lesen. Vorher entstand die ganze Datei als ein einziger Text: mit vielen Fotos (einige hundert MB)
  * scheiterte das an der Höchstlänge für Texte im Browser bzw. am Arbeitsspeicher des iPads.
  *
- *   {"app":"nix-wie-weg","format":1,"exportedAt":"…","tables":{
+ *   {"app":"koffer-fertig-raus","format":1,"exportedAt":"…","tables":{
  *   "trips":[
  *   {…}
  *   ,{…}
@@ -21,7 +21,8 @@
 import { safeBlobType } from './blob-types'
 
 export interface BackupMeta {
-  app: 'nix-wie-weg'
+  /** Früher hieß die App „Nix wie weg“ – solche Dateien werden weiter gelesen */
+  app: 'koffer-fertig-raus' | 'nix-wie-weg'
   format: 1
   exportedAt: string
   /** Gesetzt, wenn nur eine einzelne Reise geteilt wurde */
@@ -37,10 +38,10 @@ interface EncodedBlob {
   __blob: string
 }
 
-const NOT_OURS = 'Das ist keine Datei von „Nix wie weg“.'
+const NOT_OURS = 'Das ist keine Datei von „KofferFertigRaus“.'
 
 function checkMeta(m: Partial<BackupMeta> | null | undefined): asserts m is BackupMeta {
-  if (m?.app !== 'nix-wie-weg' || m.format !== 1) throw new Error(NOT_OURS)
+  if ((m?.app !== 'koffer-fertig-raus' && m?.app !== 'nix-wie-weg') || m.format !== 1) throw new Error(NOT_OURS)
 }
 
 /** Bytes → base64, in Stücken (ein großes Foto auf einmal sprengt sonst den Aufrufstapel) */

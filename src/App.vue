@@ -15,7 +15,7 @@ const online = useOnline()
   <header class="navbar navbar-expand app-header border-bottom sticky-top" :inert="lock.locked">
     <div class="container">
       <RouterLink to="/" class="navbar-brand fw-semibold d-flex align-items-center gap-2">
-        <AppLogo :size="30" />Nix wie weg
+        <AppLogo :size="30" />KofferFertigRaus
       </RouterLink>
       <!-- Abgleich-Status (nur wenn eingerichtet) -->
       <RouterLink v-if="syncState.configured" to="/abgleich" class="sync-badge ms-auto me-md-3 text-decoration-none"

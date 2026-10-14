@@ -138,8 +138,8 @@ export async function enableBiometric(): Promise<void> {
   if (!c) throw new Error('Zuerst einen Code festlegen.')
   const cred = (await navigator.credentials.create({
     publicKey: {
-      rp: { name: 'Nix wie weg', id: location.hostname },
-      user: { id: random(16), name: 'nix-wie-weg', displayName: 'Nix wie weg – App-Sperre' },
+      rp: { name: 'KofferFertigRaus', id: location.hostname },
+      user: { id: random(16), name: 'koffer-fertig-raus', displayName: 'KofferFertigRaus – App-Sperre' },
       challenge: random(32),
       pubKeyCredParams: [
         { type: 'public-key', alg: -7 },

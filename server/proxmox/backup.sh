@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Nix wie weg – Datensicherung des Abgleich-Servers (im Container, als root).
+# KofferFertigRaus – Datensicherung des Abgleich-Servers (im Container, als root).
 # Läuft täglich automatisch (nix-wie-weg-backup.timer) und kann jederzeit von Hand gestartet werden:
 #   /opt/nix-wie-weg/server/proxmox/backup.sh
 #

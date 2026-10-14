@@ -25,7 +25,7 @@ export async function remindersOfTrip(t: Trip, today = todayIso()): Promise<Remi
 }
 
 export async function tripIcs(t: Trip): Promise<string> {
-  return buildIcs(await remindersOfTrip(t), { name: `${t.title} – Nix wie weg`, appUrl: appUrl() })
+  return buildIcs(await remindersOfTrip(t), { name: `${t.title} – KofferFertigRaus`, appUrl: appUrl() })
 }
 
 /** Alle laufenden und kommenden Reisen (nicht archiviert, höchstens 30 Tage vorbei) */
@@ -35,7 +35,7 @@ export async function allIcs(): Promise<string> {
   const trips = (await tripRepository.listAll()).filter((t) => !t.archived && t.endDate >= cutoff)
   const all: Reminder[] = []
   for (const t of trips) all.push(...(await remindersOfTrip(t, today)))
-  return buildIcs(all, { name: 'Nix wie weg – Reisen', appUrl: appUrl() })
+  return buildIcs(all, { name: 'KofferFertigRaus – Reisen', appUrl: appUrl() })
 }
 
 /** Kalenderdatei teilen (iPad: „Zum Kalender hinzufügen“) oder herunterladen */

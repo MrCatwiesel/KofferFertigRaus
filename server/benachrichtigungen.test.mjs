@@ -163,7 +163,7 @@ test('Abo nur mit Geräte-Anmeldung und nur für Push-Dienste', async () => {
   assert.equal((await call('PUT', '/api/benachrichtigungen/abo', s.marco, { ...s.ipad, keys: { p256dh: 'AAAA', auth: 'AAAA' } })).status, 400)
   const r = await call('PUT', '/api/benachrichtigungen/abo', s.marco, s.ipad)
   assert.equal(r.status, 200)
-  assert.deepEqual(r.body.prefs, { erinnerungen: true, aenderungen: false })
+  assert.deepEqual(r.body.prefs, { erinnerungen: true, aenderungen: false, unwetter: true, unwetterGelb: false })
   const st = (await call('GET', '/api/benachrichtigungen', s.marco)).body
   assert.equal(st.abo.endpointHost, 'push.example')
   assert.equal(st.geraete, 1)

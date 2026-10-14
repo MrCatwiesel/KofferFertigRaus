@@ -11,6 +11,10 @@ import { ServerClient } from './sync/client'
 export interface PushPrefs {
   erinnerungen: boolean
   aenderungen: boolean
+  /** Unwetterwarnungen Orange und Rot an den Reiseorten (Server 1.18) */
+  unwetter?: boolean
+  /** … auch Gelb */
+  unwetterGelb?: boolean
 }
 
 /** Antwort von GET /api/benachrichtigungen */
@@ -21,6 +25,8 @@ export interface PushStatus {
   naechste: string | null
   /** Geräte dieser Person mit eingeschalteten Erinnerungen */
   geraete: number
+  /** Geräte dieser Person mit Unwetterwarnungen (Server 1.18) */
+  unwetter?: number
 }
 
 export type PushSupport = 'ok' | 'ios-installieren' | 'browser' | 'unsicher'

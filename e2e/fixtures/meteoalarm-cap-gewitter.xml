@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+	<identifier>2.49.0.0.40.0.AT.gewitter-tirol</identifier>
+	<sender>warnungen@geosphere.at</sender>
+	<sent>2030-07-14T08:00:00+02:00</sent>
+	<status>Actual</status>
+	<msgType>Alert</msgType>
+	<scope>Public</scope>
+	<info>
+		<language>en-GB</language>
+		<category>Met</category>
+		<event>Thunderstorm</event>
+		<severity>Severe</severity>
+		<onset>2030-07-14T14:00:00+02:00</onset>
+		<expires>2030-07-15T00:00:00+02:00</expires>
+		<senderName>GeoSphere Austria</senderName>
+		<headline>Severe thunderstorms</headline>
+		<description>Severe thunderstorms with large hail are expected.</description>
+		<parameter><valueName>awareness_level</valueName><value>3; orange; Severe</value></parameter>
+		<parameter><valueName>awareness_type</valueName><value>3; thunderstorm</value></parameter>
+		<area><areaDesc>Tirol</areaDesc><geocode><valueName>EMMA_ID</valueName><value>AT003</value></geocode></area>
+	</info>
+	<info>
+		<language>de-AT</language>
+		<category>Met</category>
+		<event>Gewitter</event>
+		<severity>Severe</severity>
+		<onset>2030-07-14T14:00:00+02:00</onset>
+		<expires>2030-07-15T00:00:00+02:00</expires>
+		<senderName>GeoSphere Austria</senderName>
+		<headline>Unwetterwarnung &amp; Hagel: schwere Gewitter</headline>
+		<description>Schwere Gewitter mit großem Hagel (bis 4 cm) und Sturmböen sind zu erwarten.</description>
+		<instruction>Bergtouren meiden, Schutz in Gebäuden suchen.</instruction>
+		<web>https://warnungen.zamg.at</web>
+		<parameter><valueName>awareness_level</valueName><value>3; orange; Severe</value></parameter>
+		<parameter><valueName>awareness_type</valueName><value>3; thunderstorm</value></parameter>
+		<area><areaDesc>Tirol</areaDesc><geocode><valueName>EMMA_ID</valueName><value>AT003</value></geocode></area>
+	</info>
+</alert>

@@ -6,7 +6,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 
 - **Planen:** Reiseprojekt mit Teilnehmern, An- und Rückreise, Unterkünfte, Unternehmungen, Budget
 - **Vorbereiten:** Packliste (Vorlagen, pro Person), Reiseapotheke, Dokumente & Notfallnummern
-- **Unterwegs:** Tagesplaner mit Wetter und Öffnungszeiten, Karte, Ausgaben mit Ausgleich, Routen & Touren (GPX, Garmin FIT, KML) mit Höhenprofil
+- **Unterwegs:** Tagesplaner mit Wetter, Unwetterwarnungen und Öffnungszeiten, Karte, Ausgaben mit Ausgleich, Routen & Touren (GPX, Garmin FIT, KML) mit Höhenprofil
 - **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei, Anbindung an die eigene **Piwigo**-Galerie
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 - **Mit Freunden teilen:** Lese-Links je Reise (nur Highlights oder ganzes Tagebuch), eigene Reisegruppen für Freunde
@@ -78,6 +78,7 @@ src/
     activity/      Modul "Unternehmungen"
     piwigo/        Modul "Piwigo" (Fotos hochladen und auswählen, über den Abgleich-Server)
     share/         Modul "Lese-Links" (Reisen für Freunde freigeben)
+    unwetter/      Modul "Unwetterwarnungen" (MeteoAlarm über den eigenen Server, auch als Push)
   share/           Betrachter-Seite für Lese-Links (share.html)
   services/        weather.ts (Open-Meteo), geocoding.ts (Nominatim), openingHours.ts, images.ts, tracks.ts (Strecken zeichnen)
   config.ts        App-Einstellungen (Spendenlink, Repository)
@@ -110,7 +111,8 @@ docs/
 Damit Handys, Tablet und PC automatisch dieselben Daten haben: Server nach [server/README.md](server/README.md) einrichten
 (Proxmox zu Hause: [server/proxmox/README.md](server/proxmox/README.md)),
 dann in der App *Einstellungen → Geräte-Abgleich*.
-Dort lassen sich auch **Push-Benachrichtigungen** einschalten (Erinnerungen an Fristen und Termine, Neues von den Mitreisenden).
+Dort lassen sich auch **Push-Benachrichtigungen** einschalten (Erinnerungen an Fristen und Termine, Neues von den Mitreisenden, Unwetterwarnungen).
+Über den Server kommen auch die **Unwetterwarnungen** (MeteoAlarm) für die Orte einer Reise.
 
 ## Spenden einrichten
 

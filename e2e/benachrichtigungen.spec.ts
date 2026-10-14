@@ -1,6 +1,6 @@
 import { createECDH, randomBytes } from 'node:crypto'
 import { expect, test } from '@playwright/test'
-import { KEY3, connect, localDate, seed, trip } from './helpers'
+import { KEY3, NOW, accommodation, connect, localDate, seed, trip } from './helpers'
 
 // Chromium im Test hat keinen echten Push-Dienst und meldet Benachrichtigungen ohne Fenster immer als „nicht erlaubt“:
 // Erlaubnis und Abo des Browsers werden nachgebaut (gültige Schlüssel), der Klicktest-Server nimmt Nachrichten an „push.example“ an.
@@ -33,8 +33,13 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
     PushManager.prototype.getSubscription = async () => current as PushSubscription | null
   }, fake)
 
-  // Eine Reise in 10 Tagen → Erinnerung am Vorabend
-  await seed(page, { trips: [trip({ id: 'push1', title: 'Gardasee', startDate: localDate(10), endDate: localDate(14) })] })
+  // Eine Reise in 10 Tagen → Erinnerungen am Vorabend und zum Check-in
+  // Unterkunft mit Ort → wird für Unwetterwarnungen beim Server gemeldet
+  await seed(page, {
+    trips: [trip({ id: 'push1', title: 'Gardasee', startDate: localDate(10), endDate: localDate(14) })],
+    accommodations: [accommodation({ id: 'pa1', tripId: 'push1', name: 'Hotel Riva', checkIn: localDate(10), checkOut: localDate(14) })],
+    places: [{ id: 'accommodation:pa1', tripId: 'push1', kind: 'accommodation', refId: 'pa1', lat: 45.885, lon: 10.84, label: 'Riva', updatedAt: NOW }]
+  })
   await connect(page, KEY3, 'Klicktest Push')
 
   await page.locator('[data-push-link]').getByRole('link').click()
@@ -42,11 +47,14 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
   await expect(page.locator('[data-push-card]')).toContainText('Ausgeschaltet')
   // Nach dem Einschalten lädt die App den Zeitplan (wenige Sekunden später) hoch
   const zeitplan = page.waitForResponse((r) => r.url().endsWith('/api/benachrichtigungen/zeitplan') && r.request().method() === 'PUT', { timeout: 20_000 })
+  const beobachten = page.waitForRequest((r) => r.url().endsWith('/api/unwetter/beobachten') && r.method() === 'PUT', { timeout: 20_000 })
   await page.locator('[data-push-on]').click()
   await expect(page.getByText('Benachrichtigungen sind eingeschaltet')).toBeVisible()
   await expect(page.locator('[data-push-card]')).toContainText('Eingeschaltet')
   await expect(page.locator('#push-erinnerungen')).toBeChecked()
   await expect(page.locator('#push-aenderungen')).not.toBeChecked()
+  await expect(page.locator('#push-unwetter')).toBeChecked()
+  await expect(page.locator('#push-unwetter-gelb')).not.toBeChecked()
 
   await page.locator('[data-push-test]').click()
   await expect(page.getByText('Testnachricht ist unterwegs')).toBeVisible()
@@ -54,9 +62,11 @@ test('Benachrichtigungen einschalten, Testnachricht, Erinnerungen planen, aussch
   await page.locator('#push-aenderungen').check()
   await expect(page.locator('#push-aenderungen')).toBeEnabled()
 
-  expect(await (await zeitplan).json()).toMatchObject({ ok: true, geplant: 1 })
+  expect(await (await zeitplan).json()).toMatchObject({ ok: true, geplant: 2 })
+  const orte = (await beobachten).postDataJSON().orte
+  expect(orte).toEqual([{ reise: 'push1', titel: 'Gardasee', name: 'Hotel Riva', lat: 45.885, lon: 10.84, von: localDate(10), bis: localDate(14) }])
   await page.reload()
-  await expect(page.locator('[data-push-card]')).toContainText('1 Erinnerung geplant')
+  await expect(page.locator('[data-push-card]')).toContainText('2 Erinnerungen geplant')
   await expect(page.locator('#push-aenderungen')).toBeChecked()
 
   // Hinweis bei Termine & Fristen

@@ -56,7 +56,7 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
   <div class="mb-3">
     <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Geräte-Abgleich</RouterLink>
     <h1 class="h3 mb-0 mt-1">Benachrichtigungen</h1>
-    <p class="text-body-secondary small mb-0 on-bg">Erinnerungen an Fristen und Termine – auch wenn die App geschlossen ist. Gilt für dieses Gerät.</p>
+    <p class="text-body-secondary small mb-0 on-bg">Erinnerungen an Fristen und Termine, Unwetterwarnungen – auch wenn die App geschlossen ist. Gilt für dieses Gerät.</p>
   </div>
 
   <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
@@ -130,6 +130,22 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
               <span class="d-block small text-body-secondary">z. B. „Dolomiten: Birgit – Neu: ein Tagebucheintrag, 5 Fotos“ – gebündelt, höchstens alle 15 Minuten je Reise</span>
             </label>
           </div>
+          <template v-if="abo.prefs.unwetter !== undefined">
+            <div class="form-check form-switch mb-1">
+              <input id="push-unwetter" class="form-check-input" type="checkbox" :checked="abo.prefs.unwetter" :disabled="busy" data-push-unwetter @change="toggle('unwetter', ($event.target as HTMLInputElement).checked)" />
+              <label class="form-check-label" for="push-unwetter">
+                Unwetterwarnungen an den Reiseorten
+                <span class="d-block small text-body-secondary">Amtliche Warnungen (MeteoAlarm) der Stufen Orange und Rot – ab dem Tag vor der Anreise bis zur Abreise, für Unterkünfte und Reiseziel</span>
+              </label>
+            </div>
+            <div class="form-check form-switch mb-3 ms-4">
+              <input id="push-unwetter-gelb" class="form-check-input" type="checkbox" :checked="abo.prefs.unwetterGelb" :disabled="busy || !abo.prefs.unwetter" @change="toggle('unwetterGelb', ($event.target as HTMLInputElement).checked)" />
+              <label class="form-check-label" for="push-unwetter-gelb">
+                Auch Gelb
+                <span class="d-block small text-body-secondary">z. B. Gewitter oder Hitze – im Sommer in den Bergen fast täglich</span>
+              </label>
+            </div>
+          </template>
           <button type="button" class="btn btn-outline-primary btn-sm" :disabled="busy" data-push-test @click="test"><i class="bi bi-send me-1" aria-hidden="true"></i>Testnachricht senden</button>
           <div v-if="abo.lastError" class="small text-danger mt-2"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Zuletzt: {{ abo.lastError }}</div>
         </template>

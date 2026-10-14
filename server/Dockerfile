@@ -8,6 +8,7 @@ RUN case "$TARGETARCH" in arm64) a=arm64 ;; *) a=x86_64 ;; esac \
  && wget -qO- "https://github.com/protomaps/go-pmtiles/releases/download/v${PMTILES_VERSION}/go-pmtiles_${PMTILES_VERSION}_Linux_${a}.tar.gz" \
   | tar -xz -C /usr/local/bin pmtiles
 COPY package.json *.mjs ./
+COPY daten ./daten
 RUN mkdir -p /data && chown node:node /data
 ENV NODE_ENV=production \
     NWW_DATA=/data \

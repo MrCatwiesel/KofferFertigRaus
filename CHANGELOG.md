@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.33.0 – 2026-10-14 (Server 1.18.0)
+
+### Neu: Unwetterwarnungen
+- **Amtliche Warnungen für die Orte der Reise** (*Reise → Unwetterwarnungen*): Gewitter, Sturm, Starkregen, Hitze, Schnee, Lawinen … der nationalen Wetterdienste Europas über MeteoAlarm – in den Stufen Gelb, Orange und Rot, mit Zeitraum, Text und Verhaltenstipps des Wetterdienstes (Deutsch, sonst Englisch)
+- Geprüft werden die **Unterkünfte** (mit Ort auf der Karte, für ihre Nächte), der **Wetter-Ort** im Tagesplan und – wenn beides fehlt – das **Reiseziel**. Der Server ordnet jeden Ort seiner Warnregion zu (z. B. „Tirol“ und „Innsbruck (Stadt)“)
+- Laufende Warnungen stehen auch **oben im Tagesplan**; die Reiseseite zeigt die wichtigste in der Kachel
+- **Push-Benachrichtigung bei Unwetter** (*Benachrichtigungen → Unwetterwarnungen*, Standard an): neue Warnungen der Stufen Orange und Rot – auf Wunsch auch Gelb – ab dem Tag vor der Anreise bis zur Abreise, je Warnung einmal, auch wenn die App geschlossen ist
+- Die App sieht ab 7 Tage vor der Reise von selbst nach; „Jetzt aktualisieren“ geht jederzeit
+- Länder ohne genaue Warnregionen (Schweiz, Großbritannien): Warnungen des ganzen Landes zum selbst Prüfen. Außerhalb Europas gibt es keine Warnungen über MeteoAlarm
+- Braucht den eigenen Server ab Version 1.18 (Geräte-Abgleich)
+
 ## 1.32.1 – 2026-10-14
 
 ### Korrigiert: Karten im Lese-Link

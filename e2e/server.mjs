@@ -1,5 +1,5 @@
 // Startet den Abgleich-Server für die Klicktests: App aus dist/, Daten in einem frischen Temp-Ordner.
-// Die freien Kartendienste (Overpass, BRouter) und das Auswärtige Amt werden nachgebaut – die Tests brauchen kein Internet.
+// Die freien Kartendienste (Overpass, BRouter), das Auswärtige Amt und MeteoAlarm werden nachgebaut – die Tests brauchen kein Internet.
 import { mkdtempSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -51,6 +51,19 @@ async function fakeAuswaertigesAmt(url) {
   return new Response('nicht da', { status: 404 })
 }
 
+/** MeteoAlarm: Feed Österreich (Gewitter in Tirol, Hitze in Wien) und die CAP-Nachricht zum Gewitter */
+// Die Beispiele spielen am 14.07.2030 um 9 Uhr (UTC) – alle Zeiten werden auf „jetzt“ verschoben
+const verschoben = (n) => {
+  const delta = Date.now() - Date.parse('2030-07-14T09:00:00Z')
+  const xml = readFileSync(join(import.meta.dirname, 'fixtures', n), 'utf8')
+  return new Response(xml.replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+-]\d{2}:\d{2})/g, (t) => new Date(Date.parse(t) + delta).toISOString()))
+}
+async function fakeMeteoalarm(url) {
+  if (String(url).endsWith('/meteoalarm-legacy-atom-austria')) return verschoben('meteoalarm-austria.xml')
+  if (String(url).endsWith('/feeds-austria/gewitter-tirol')) return verschoben('meteoalarm-cap-gewitter.xml')
+  return new Response('nicht da', { status: 404 })
+}
+
 /** Nachgebauter Push-Dienst: nimmt jede Nachricht an (echte Dienste prüfen Abo und Schlüssel) */
 const fakePushDienst = async () => new Response(null, { status: 201 })
 
@@ -60,6 +73,7 @@ const server = createSyncServer({
   appDir: join(import.meta.dirname, '..', 'dist'),
   routing: { fetchImpl: fakeKartendienste },
   reiseinfo: { fetchImpl: fakeAuswaertigesAmt },
+  unwetter: { url: 'https://ma.test/feeds', fetchImpl: fakeMeteoalarm },
   push: { fetchImpl: fakePushDienst, hosts: ['push.example'] }
 })
 server.listen(port, () => console.log(`Klicktest-Server auf ${port}`))

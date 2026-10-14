@@ -10,7 +10,7 @@
  *
  *  GET    /api/benachrichtigungen            Schlüssel des Servers, Abo dieses Geräts, Anzahl geplanter Erinnerungen
  *  PUT    /api/benachrichtigungen/abo        { endpoint, keys: { p256dh, auth }, prefs? }   Abo dieses Geräts anlegen/ersetzen
- *  PATCH  /api/benachrichtigungen/abo        { prefs: { erinnerungen?, aenderungen? } }
+ *  PATCH  /api/benachrichtigungen/abo        { prefs: { erinnerungen?, aenderungen?, unwetter?, unwetterGelb? } }
  *  DELETE /api/benachrichtigungen/abo
  *  POST   /api/benachrichtigungen/test       Testnachricht an dieses Gerät
  *  PUT    /api/benachrichtigungen/zeitplan   { items: [{ id, at, title, body?, url? }] }  ersetzt den Zeitplan der Person
@@ -45,7 +45,8 @@ export const CHANGE_LABELS = {
   documents: ['ein', 'Dokument', 'Dokumente']
 }
 
-export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false }
+/** unwetter: Warnstufe Orange und Rot an den Reiseorten (unwetter.mjs), unwetterGelb: auch Gelb */
+export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false, unwetter: true, unwetterGelb: false }
 
 const b64u = (buf) => Buffer.from(buf).toString('base64url')
 const fromB64u = (s) => Buffer.from(String(s), 'base64url')
@@ -199,10 +200,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
 
   const now = () => new Date().toISOString()
   const prefsOf = (row) => ({ ...DEFAULT_PREFS, ...JSON.parse(row.prefs || '{}') })
-  const cleanPrefs = (p, base = DEFAULT_PREFS) => ({
-    erinnerungen: typeof p?.erinnerungen === 'boolean' ? p.erinnerungen : base.erinnerungen,
-    aenderungen: typeof p?.aenderungen === 'boolean' ? p.aenderungen : base.aenderungen
-  })
+  const cleanPrefs = (p, base = DEFAULT_PREFS) => Object.fromEntries(Object.keys(DEFAULT_PREFS).map((k) => [k, typeof p?.[k] === 'boolean' ? p[k] : base[k]]))
   /** Zeitplan gehört der Person – oder (Gerät ohne Person) der ganzen Gruppe */
   const ownerOf = (space, memberId) => (memberId ? `${space}:${memberId}` : space)
 
@@ -389,6 +387,13 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       timer = null
     },
 
+    /** Abos einer Person (oder Geräte ohne Person) mit eingeschalteter Art `pref`, Einstellungen gelesen */
+    subsFor(space, memberId, pref) {
+      return subsOf(space, pref)
+        .filter((s) => (memberId ? s.member === memberId : !s.member))
+        .map((s) => ({ ...s, prefs: prefsOf(s) }))
+    },
+
     removeSpace(space) {
       q.removeSpace.run(space)
       q.removeSpaceSchedule.run(space, space)
@@ -414,7 +419,9 @@ export function createBenachrichtigungen(store, members, opts = {}) {
           geplant: open.n,
           naechste: open.next ?? null,
           // Geräte dieser Person mit Erinnerungen – dann hält jedes ihrer Geräte den Zeitplan aktuell
-          geraete: subsOf(space, 'erinnerungen').filter((s) => (member ? s.member === member.id : !s.member)).length
+          geraete: subsOf(space, 'erinnerungen').filter((s) => (member ? s.member === member.id : !s.member)).length,
+          // Geräte dieser Person mit Unwetterwarnungen – dann meldet jedes ihrer Geräte die Reiseorte
+          unwetter: subsOf(space, 'unwetter').filter((s) => (member ? s.member === member.id : !s.member)).length
         })
       }
       if (!device) throw new HttpError(400, 'Benachrichtigungen brauchen eine Geräte-Anmeldung (Geräte-Abgleich → Verbindung).')

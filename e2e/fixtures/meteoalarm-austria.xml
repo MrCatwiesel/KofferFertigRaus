@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:cap="urn:oasis:names:tc:emergency:cap:1.2">
+	<link href="https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-austria" rel="self" type="application/atom+xml"/>
+	<id>tag:meteoalarm.org,2021-02-19:AT</id>
+	<title>Meteoalarm - severe weather warnings for Europe</title>
+	<updated>2030-07-14T06:00:00Z</updated>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT003</value>
+		</cap:geocode>
+		<link href="https://meteoalarm.org?geocode=EMMA_ID:AT003" hreflang="en" title="Tirol"/>
+		<cap:areaDesc>Tirol</cap:areaDesc>
+		<cap:event>Thunderstorm</cap:event>
+		<cap:sent>2030-07-14T06:00:00+00:00</cap:sent>
+		<cap:expires>2030-07-14T22:00:00+00:00</cap:expires>
+		<cap:effective>2030-07-14T06:00:00+00:00</cap:effective>
+		<cap:onset>2030-07-14T12:00:00+00:00</cap:onset>
+		<cap:certainty>Likely</cap:certainty>
+		<cap:severity>Severe</cap:severity>
+		<cap:urgency>Future</cap:urgency>
+		<cap:scope>Public</cap:scope>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>2.49.0.0.40.0.AT.gewitter-tirol</cap:identifier>
+		<link href="https://ma.test/api/v1/warnings/feeds-austria/gewitter-tirol" type="application/cap+xml"/>
+		<published>2030-07-14T06:00:00Z</published>
+		<id>https://ma.test/api/v1/warnings/feeds-austria/gewitter-tirol?index_info=0&amp;index_area=0&amp;index_geocode=0</id>
+		<title>Orange Thunderstorm Warning issued for Austria - Tirol</title>
+		<updated>2030-07-14T06:00:00Z</updated>
+	</entry>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT003</value>
+		</cap:geocode>
+		<link href="https://meteoalarm.org?geocode=EMMA_ID:AT003" hreflang="en" title="Tirol"/>
+		<cap:areaDesc>Tirol</cap:areaDesc>
+		<cap:event>Thunderstorm</cap:event>
+		<cap:expires>2030-07-14T22:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T12:00:00+00:00</cap:onset>
+		<cap:severity>Severe</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>2.49.0.0.40.0.AT.gewitter-tirol</cap:identifier>
+		<link href="https://ma.test/api/v1/warnings/feeds-austria/gewitter-tirol" type="application/cap+xml"/>
+		<id>https://ma.test/api/v1/warnings/feeds-austria/gewitter-tirol?index_info=1&amp;index_area=0&amp;index_geocode=0</id>
+		<title>Orange Thunderstorm Warning issued for Austria - Tirol</title>
+	</entry>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT010</value>
+		</cap:geocode>
+		<link href="https://meteoalarm.org?geocode=EMMA_ID:AT010" hreflang="en" title="Wien"/>
+		<cap:areaDesc>Wien</cap:areaDesc>
+		<cap:event>High temperature</cap:event>
+		<cap:expires>2030-07-15T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T10:00:00+00:00</cap:onset>
+		<cap:severity>Moderate</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>2.49.0.0.40.0.AT.hitze-wien</cap:identifier>
+		<link href="https://ma.test/api/v1/warnings/feeds-austria/hitze-wien" type="application/cap+xml"/>
+		<title>Yellow High-Temperature Warning issued for Austria - Wien</title>
+	</entry>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT010</value>
+		</cap:geocode>
+		<cap:areaDesc>Wien</cap:areaDesc>
+		<cap:event>Wind</cap:event>
+		<cap:expires>2030-07-13T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-13T10:00:00+00:00</cap:onset>
+		<cap:severity>Severe</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>abgelaufen</cap:identifier>
+		<link href="https://ma.test/api/v1/warnings/feeds-austria/abgelaufen" type="application/cap+xml"/>
+		<title>Orange Wind Warning issued for Austria - Wien</title>
+	</entry>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT006</value>
+		</cap:geocode>
+		<cap:areaDesc>Kärnten</cap:areaDesc>
+		<cap:event>Rain</cap:event>
+		<cap:expires>2030-07-15T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T10:00:00+00:00</cap:onset>
+		<cap:severity>Minor</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>gruen</cap:identifier>
+		<title>Green Rain Warning issued for Austria - Kärnten</title>
+	</entry>
+	<entry>
+		<cap:geocode>
+			<valueName>EMMA_ID</valueName>
+			<value>AT999</value>
+		</cap:geocode>
+		<cap:areaDesc>Innsbruck (Stadt)</cap:areaDesc>
+		<cap:event>Rain</cap:event>
+		<cap:expires>2030-07-15T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T10:00:00+00:00</cap:onset>
+		<cap:severity>Moderate</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>neue-region</cap:identifier>
+		<link href="https://boese.example/cap" type="application/cap+xml"/>
+		<title>Yellow Rain Warning issued for Austria - Innsbruck (Stadt)</title>
+	</entry>
+</feed>

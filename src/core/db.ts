@@ -18,6 +18,7 @@ import type { PiwigoAlbumLink, PiwigoUpload } from '@/modules/piwigo/types'
 import type { Route } from '@/modules/routes/types'
 import type { OfflineMap } from '@/modules/map/offline'
 import type { CountryInfo } from '@/modules/reiseinfo/types'
+import type { UnwetterStand } from '@/modules/unwetter/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -39,6 +40,7 @@ export class NixDb extends Dexie {
   documents!: Table<TravelDocument, string>
   emergencyContacts!: Table<EmergencyContact, string>
   weather!: Table<WeatherCache, string>
+  unwetter!: Table<UnwetterStand, string>
   journalEntries!: Table<JournalEntry, string>
   photos!: Table<Photo, string>
   voiceNotes!: Table<VoiceNote, string>
@@ -169,7 +171,12 @@ export class NixDb extends Dexie {
       voiceNotes: 'id, tripId, entryId'
     })
 
-    // Nächste Änderung: this.version(20).stores({ … })
+    // v20: Unwetterwarnungen je Reise (nur Zwischenspeicher auf diesem Gerät, wie das Wetter)
+    this.version(20).stores({
+      unwetter: 'tripId'
+    })
+
+    // Nächste Änderung: this.version(21).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

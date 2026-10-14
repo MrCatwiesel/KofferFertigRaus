@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:cap="urn:oasis:names:tc:emergency:cap:1.2">
+	<entry>
+		<cap:geocode><valueName>WARNREGION</valueName><value>CH123</value></cap:geocode>
+		<cap:areaDesc>Mattertal</cap:areaDesc>
+		<cap:event>Snow</cap:event>
+		<cap:expires>2030-07-15T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T10:00:00+00:00</cap:onset>
+		<cap:severity>Moderate</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<cap:identifier>schnee-ch</cap:identifier>
+		<link href="https://ma.test/api/v1/warnings/feeds-switzerland/schnee" type="application/cap+xml"/>
+		<title>Yellow Snow-Ice Warning issued for Switzerland - Mattertal</title>
+	</entry>
+	<entry>
+		<cap:areaDesc>Saastal</cap:areaDesc>
+		<cap:event>Snow</cap:event>
+		<cap:expires>2030-07-15T18:00:00+00:00</cap:expires>
+		<cap:onset>2030-07-14T10:00:00+00:00</cap:onset>
+		<cap:severity>Moderate</cap:severity>
+		<cap:message_type>Alert</cap:message_type>
+		<cap:status>Actual</cap:status>
+		<link href="https://ma.test/api/v1/warnings/feeds-switzerland/schnee" type="application/cap+xml"/>
+		<title>Yellow Snow-Ice Warning issued for Switzerland - Saastal</title>
+	</entry>
+</feed>

@@ -142,6 +142,20 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
   Ausgehend braucht er dafür Internet (https, Port 443) – hinter einem Proxy wie bisher für Routenplaner und Reisehinweise.
 - Abgemeldete Geräte bekommen nichts mehr; meldet der Push-Dienst ein Abo als ungültig, vergisst der Server es.
 
+## Unwetterwarnungen (ab Server 1.18)
+
+- Amtliche Warnungen der nationalen Wetterdienste Europas über [MeteoAlarm](https://meteoalarm.org) (EUMETNET, Atom-Feeds je Land,
+  frei nutzbar). Der Server holt die Feeds (zwischengespeichert 10 Minuten) und ordnet die Orte der Reise den **Warnregionen** zu.
+  Die Umrisse der Regionen liegen vereinfacht in `daten/meteoalarm-regionen.json.gz` (~360 KB, erzeugt mit
+  `werkzeuge/meteoalarm-regionen.mjs` aus den EMMA_ID-Umrissen von MeteoAlarm). Für Länder ohne Umrisse (z. B. Schweiz,
+  Großbritannien) zeigt die App die Warnungen des ganzen Landes, ohne Ortszuordnung.
+- Den Text der Warnung (Deutsch, sonst Englisch) holt der Server aus der CAP-Nachricht des Wetterdienstes – nur von `feeds.meteoalarm.org`.
+- **Push** (Benachrichtigungen → „Unwetterwarnungen“): Die App meldet die Orte der laufenden und der in den nächsten 14 Tagen
+  beginnenden Reisen (Unterkünfte mit Ort, Wetter-Ort, sonst das Reiseziel) mit Zeitraum. Der Server prüft alle 10 Minuten
+  und schickt jede neue Warnung (Orange und Rot, auf Wunsch auch Gelb) einmal – ab dem Tag vor der Anreise bis zur Abreise,
+  für Warnungen, die in den nächsten 36 Stunden beginnen.
+- Ausgehend braucht der Server dafür `https://feeds.meteoalarm.org`.
+
 ## Offline-Karten
 
 Die App kann den Kartenausschnitt einer Reise auf dem Gerät speichern und zeigt die Karte dann ganz ohne Internet.

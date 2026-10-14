@@ -4,11 +4,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { travelRepository } from './repository'
 import { formatDuration, summarize, totalCost } from './logic'
 import { travelReminders } from './reminders'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Anreise" (Meilenstein M1). */
 export const travelModule: AppModule = {
   id: 'travel',
-  title: 'Anreise',
+  title: N_('Anreise'),
   icon: 'signpost-split',
   order: 15,
   routes: [
@@ -19,7 +20,7 @@ export const travelModule: AppModule = {
   reminders: async (trip) => travelReminders(await travelRepository.listByTrip(trip.id), trip),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'An- und Rückreise',
+    title: N_('An- und Rückreise'),
     icon: 'signpost-split',
     to: (tripId) => `/trip/${tripId}/anreise`,
     async summary(tripId) {

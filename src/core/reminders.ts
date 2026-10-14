@@ -4,6 +4,7 @@
  * Reine Logik ohne Datenbank (testbar).
  */
 import { diffDays } from './dates'
+import { N_, locale, t, translated } from '@/core/i18n'
 
 export type ReminderKind = 'frist' | 'termin' | 'reise' | 'pruefen'
 
@@ -37,12 +38,12 @@ export interface ReminderTrip {
   endDate: string
 }
 
-export const KIND_LABEL: Record<ReminderKind, { label: string; icon: string }> = {
-  frist: { label: 'Frist', icon: 'hourglass-split' },
-  termin: { label: 'Termin', icon: 'calendar-event' },
-  reise: { label: 'Reise', icon: 'suitcase' },
-  pruefen: { label: 'Zu erledigen', icon: 'check2-square' }
-}
+export const KIND_LABEL: Record<ReminderKind, { label: string; icon: string }> = translated({
+  frist: { label: N_('Frist'), icon: 'hourglass-split' },
+  termin: { label: N_('Termin'), icon: 'calendar-event' },
+  reise: { label: N_('Reise'), icon: 'suitcase' },
+  pruefen: { label: N_('Zu erledigen'), icon: 'check2-square' }
+})
 
 /** Standard-Vorwarnung: Fristen 2 Tage, Termine 2 Stunden, ganztägige Reisetage am Vorabend 18 Uhr */
 export function defaultAlarm(r: Reminder): number {
@@ -172,8 +173,8 @@ const localIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad
 /** „heute 14:30“, „morgen“, „in 3 Tagen (Fr., 24.10.)“ – vom Zeitpunkt der Benachrichtigung aus gesehen */
 export function whenLabel(r: Reminder, at: Date): string {
   const days = diffDays(localIso(at), r.date)
-  const day = days === 0 ? 'heute' : days === 1 ? 'morgen' : days === 2 ? 'übermorgen' : `in ${days} Tagen (${new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }).format(new Date(`${r.date}T12:00:00Z`))})`
-  return r.time ? `${day} ${r.time} Uhr` : day
+  const day = days === 0 ? t('heute') : days === 1 ? t('morgen') : days === 2 ? t('übermorgen') : t('in {0} Tagen ({1})', [days, new Intl.DateTimeFormat(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }).format(new Date(`${r.date}T12:00:00Z`))])
+  return r.time ? t('{0} {1} Uhr', [day, r.time]) : day
 }
 
 /**

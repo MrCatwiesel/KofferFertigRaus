@@ -1,5 +1,6 @@
 import type { RemoteChange } from './logic'
 import type { PersonInfo, TripRole } from '../people'
+import { t } from '@/core/i18n'
 
 /** Der Server kennt dieses Gerät nicht mehr (abgemeldet) oder die Gruppe ist gesperrt. */
 export class DeviceRevokedError extends Error {
@@ -30,10 +31,10 @@ async function postLogin(server: string, body: unknown, key?: string): Promise<R
       body: JSON.stringify(body)
     })
   } catch {
-    throw new Error(navigator.onLine ? 'Server nicht erreichbar – Adresse prüfen.' : 'Offline.')
+    throw new Error(navigator.onLine ? t('Server nicht erreichbar – Adresse prüfen.') : 'Offline.')
   }
   const json = await res.json().catch(() => ({}))
-  if (!res.ok) throw new LoginError(json.error ?? `Anmelden fehlgeschlagen (${res.status}).`, json.code ?? '')
+  if (!res.ok) throw new LoginError(json.error ? t(json.error) : t('Anmelden fehlgeschlagen ({0}).', [res.status]), json.code ?? '')
   return json
 }
 
@@ -128,20 +129,20 @@ export class SyncApi {
     try {
       res = await fetch(`${this.server}${path}`, { ...init, headers: { ...this.headers(), ...(init.headers as Record<string, string>) } })
     } catch {
-      throw new Error(navigator.onLine ? 'Server nicht erreichbar – Adresse prüfen.' : 'Offline.')
+      throw new Error(navigator.onLine ? t('Server nicht erreichbar – Adresse prüfen.') : 'Offline.')
     }
     if (res.status === 401) {
       const body = await res.json().catch(() => ({}))
-      if (body.code === 'abgemeldet' || body.code === 'gesperrt') throw new DeviceRevokedError(body.error, body.reason ?? '')
-      throw new Error('Schlüssel wurde vom Server abgelehnt.')
+      if (body.code === 'abgemeldet' || body.code === 'gesperrt') throw new DeviceRevokedError(t(body.error), body.reason ?? '')
+      throw new Error(t('Schlüssel wurde vom Server abgelehnt.'))
     }
-    if (res.status === 429) throw new Error('Zu viele Fehlversuche – bitte 15 Minuten warten.')
+    if (res.status === 429) throw new Error(t('Zu viele Fehlversuche – bitte 15 Minuten warten.'))
     return res
   }
 
   async info(): Promise<SyncInfo> {
     const res = await this.request('/api/info')
-    if (!res.ok) throw new Error(`Server antwortet mit Fehler ${res.status}.`)
+    if (!res.ok) throw new Error(t('Server antwortet mit Fehler {0}.', [res.status]))
     return res.json()
   }
 
@@ -151,13 +152,13 @@ export class SyncApi {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ changes })
     })
-    if (!res.ok) throw new SyncHttpError(`Hochladen fehlgeschlagen (${res.status}).`, res.status)
+    if (!res.ok) throw new SyncHttpError(t('Hochladen fehlgeschlagen ({0}).', [res.status]), res.status)
     return res.json()
   }
 
   async pull(since: number): Promise<{ changes: RemoteChange[]; more: boolean; seq: number }> {
     const res = await this.request(`/api/pull?since=${since}&limit=300`)
-    if (!res.ok) throw new Error(`Abholen fehlgeschlagen (${res.status}).`)
+    if (!res.ok) throw new Error(t('Abholen fehlgeschlagen ({0}).', [res.status]))
     return res.json()
   }
 
@@ -168,12 +169,12 @@ export class SyncApi {
 
   async putBlob(hash: string, blob: Blob): Promise<void> {
     const res = await this.request(`/api/blob/${hash}`, { method: 'PUT', headers: { 'Content-Type': blob.type || 'application/octet-stream' }, body: blob })
-    if (!res.ok) throw new SyncHttpError(res.status === 413 ? 'Datei zu groß für den Server.' : `Foto-Upload fehlgeschlagen (${res.status}).`, res.status)
+    if (!res.ok) throw new SyncHttpError(res.status === 413 ? t('Datei zu groß für den Server.') : t('Foto-Upload fehlgeschlagen ({0}).', [res.status]), res.status)
   }
 
   async getBlob(hash: string): Promise<Blob> {
     const res = await this.request(`/api/blob/${hash}`)
-    if (!res.ok) throw new SyncHttpError(`Foto konnte nicht geladen werden (${res.status}).`, res.status)
+    if (!res.ok) throw new SyncHttpError(t('Foto konnte nicht geladen werden ({0}).', [res.status]), res.status)
     return res.blob()
   }
 }

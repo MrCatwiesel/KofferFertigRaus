@@ -2,11 +2,12 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
 import { journalStats, photosForMap } from './logic'
 import { routeRepository } from '@/modules/routes/public'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
   id: 'journal',
-  title: 'Tagebuch',
+  title: N_('Tagebuch'),
   icon: 'journal-richtext',
   order: 60,
   routes: [
@@ -16,7 +17,7 @@ export const journalModule: AppModule = {
   ],
   tripSection: {
     phases: ['unterwegs', 'danach', 'teilen'],
-    title: 'Reisetagebuch',
+    title: N_('Reisetagebuch'),
     icon: 'journal-richtext',
     to: (tripId) => `/trip/${tripId}/tagebuch`,
     async summary(tripId) {

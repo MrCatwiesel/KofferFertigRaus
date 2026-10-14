@@ -4,17 +4,18 @@ import { tripRepository } from '@/modules/trip/public'
 import { countryInfoRepository } from './repository'
 import { refreshIfStale, refreshTripInfos } from './refresh'
 import { warningLabel } from './parse'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Reisehinweise": Auswärtiges Amt – Sicherheitslage, Einreise, Impfschutz je Zielland. */
 export const reiseinfoModule: AppModule = {
   id: 'reiseinfo',
-  title: 'Reisehinweise',
+  title: N_('Reisehinweise'),
   icon: 'shield-exclamation',
   order: 48,
   routes: [{ path: '/trip/:tripId/reisehinweise', name: 'reiseinfo', component: () => import('./views/ReiseinfoView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Reisehinweise',
+    title: N_('Reisehinweise'),
     icon: 'shield-exclamation',
     to: (tripId) => `/trip/${tripId}/reisehinweise`,
     async summary(tripId) {

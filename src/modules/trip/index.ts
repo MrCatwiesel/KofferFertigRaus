@@ -1,9 +1,10 @@
 import type { AppModule } from '@/core/registry'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Reiseprojekt" (Meilenstein M1). */
 export const tripModule: AppModule = {
   id: 'trip',
-  title: 'Reisen',
+  title: N_('Reisen'),
   icon: 'suitcase-lg',
   navTo: '/trip',
   order: 10,

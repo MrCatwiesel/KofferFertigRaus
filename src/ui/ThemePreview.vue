@@ -22,7 +22,7 @@ const iconBg = computed(() =>
   <div class="tp" :style="{ background: `${patternCss(theme.pattern, p, 1.4, dark)}, ${p.bg}`.replace(/^none, /, ''), color: p.text, fontFamily: theme.body.font }">
     <div class="tp-bar" :style="{ background: p.surface, borderBottom: `${theme.border}px solid ${p.border}` }">
       <span class="tp-dot" :style="{ background: p.primary }"></span>
-      <span :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">Nix wie weg</span>
+      <span :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">{{ $t('Nix wie weg') }}</span>
     </div>
     <div class="tp-hero" :style="{ borderRadius: r, background: `linear-gradient(${p.sky2}, ${p.sky1})` }">
       <svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
@@ -30,7 +30,7 @@ const iconBg = computed(() =>
         <path d="M0 40 L0 24 L14 14 L26 24 L40 10 L56 25 L70 16 L86 26 L100 18 L100 40 Z" :fill="p.far" />
         <path d="M0 40 L0 30 L20 22 L36 31 L54 21 L72 32 L100 26 L100 40 Z" :fill="p.near" />
       </svg>
-      <span class="tp-title" :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">Aa Reise</span>
+      <span class="tp-title" :style="{ fontFamily: theme.heading.font, fontWeight: theme.heading.weight, textTransform: theme.heading.upper ? 'uppercase' : 'none' }">{{ $t('Aa Reise') }}</span>
     </div>
     <div class="tp-tiles">
       <div v-for="i in 2" :key="i" class="tp-tile" :style="{ background: p.surface, borderRadius: r, border: `${theme.border}px solid ${p.border}`, boxShadow: shadow }">
@@ -38,7 +38,7 @@ const iconBg = computed(() =>
         <span class="tp-lines"><span :style="{ background: p.text }"></span><span :style="{ background: p.muted }"></span></span>
       </div>
     </div>
-    <div class="tp-btn" :style="{ background: p.primary, color: p.onPrimary, borderRadius: r }">Knopf</div>
+    <div class="tp-btn" :style="{ background: p.primary, color: p.onPrimary, borderRadius: r }">{{ $t('Knopf') }}</div>
   </div>
 </template>
 

@@ -8,6 +8,7 @@ import AppLogo from '@/ui/AppLogo.vue'
 import { appearance } from '@/ui/appearance'
 import { getTheme } from '@/ui/themes'
 import { lock } from '../lock'
+import { ENGLISH_COMPLETE, lang, langSetting, setLang, t, type LangSetting } from '@/core/i18n'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -24,13 +25,13 @@ onMounted(refreshStorage)
 async function doExport() {
   busy.value = true
   try {
-    progress.value = { label: 'Sicherung wird erstellt', value: 0 }
-    const { blob, exportedAt } = await exportBackup({ includeLarge: includePhotos.value, onProgress: (v) => (progress.value = { label: 'Sicherung wird erstellt', value: v }) })
+    progress.value = { label: t('Sicherung wird erstellt'), value: 0 }
+    const { blob, exportedAt } = await exportBackup({ includeLarge: includePhotos.value, onProgress: (v) => (progress.value = { label: t('Sicherung wird erstellt'), value: v }) })
     const suffix = includePhotos.value ? '-mit-fotos' : ''
     downloadBlob(blob, `nix-wie-weg-backup-${exportedAt.slice(0, 10)}${suffix}.json`)
-    message.value = { type: 'success', text: `Backup wurde heruntergeladen (${formatBytes(blob.size)}).` }
+    message.value = { type: 'success', text: t('Backup wurde heruntergeladen ({0}).', [formatBytes(blob.size)]) }
   } catch (err) {
-    message.value = { type: 'danger', text: `Export fehlgeschlagen: ${(err as Error).message}` }
+    message.value = { type: 'danger', text: t('Export fehlgeschlagen: {0}', [(err as Error).message]) }
   } finally {
     busy.value = false
     progress.value = null
@@ -43,15 +44,15 @@ async function doImport(event: Event) {
   if (!file) return
   busy.value = true
   try {
-    progress.value = { label: 'Wird eingelesen', value: 0 }
-    const result = await importBackup(file, undefined, (v) => (progress.value = { label: 'Wird eingelesen', value: v }))
+    progress.value = { label: t('Wird eingelesen'), value: 0 }
+    const result = await importBackup(file, undefined, (v) => (progress.value = { label: t('Wird eingelesen'), value: v }))
     if (result) {
-      const what = result.meta.scope ? `Reise „${result.meta.scope.title}“` : 'Backup'
-      message.value = { type: 'success', text: `${what} eingelesen: ${describeStats(result.stats)}.` }
+      const what = result.meta.scope ? t('Reise „{0}“', [result.meta.scope.title]) : t('Backup')
+      message.value = { type: 'success', text: t('{0} eingelesen: {1}.', [what, describeStats(result.stats)]) }
     }
     await refreshStorage()
   } catch (err) {
-    message.value = { type: 'danger', text: `Import fehlgeschlagen: ${(err as Error).message}` }
+    message.value = { type: 'danger', text: t('Import fehlgeschlagen: {0}', [(err as Error).message]) }
   } finally {
     input.value = ''
     busy.value = false
@@ -63,16 +64,20 @@ async function persist() {
   const ok = await requestPersistentStorage()
   await refreshStorage()
   message.value = ok
-    ? { type: 'success', text: 'Der Browser behält die Daten jetzt dauerhaft.' }
-    : { type: 'danger', text: 'Der Browser hat abgelehnt. Tipp: App über „Teilen → Zum Home-Bildschirm“ installieren und dort öffnen.' }
+    ? { type: 'success', text: t('Der Browser behält die Daten jetzt dauerhaft.') }
+    : { type: 'danger', text: t('Der Browser hat abgelehnt. Tipp: App über „Teilen → Zum Home-Bildschirm“ installieren und dort öffnen.') }
 }
+
+// Sprache (gilt für dieses Gerät)
+const langChoice = ref<LangSetting>(langSetting())
+const changeLang = () => void setLang(langChoice.value)
 </script>
 
 <template>
   <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-    <h1 class="h3 mb-0">Einstellungen</h1>
+    <h1 class="h3 mb-0">{{ $t('Einstellungen') }}</h1>
     <a v-if="APP_CONFIG.donationUrl" :href="APP_CONFIG.donationUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger" data-donate>
-      <i class="bi bi-heart-fill me-1" aria-hidden="true"></i>Unterstützen
+      <i class="bi bi-heart-fill me-1" aria-hidden="true"></i>{{ $t('Unterstützen') }}
     </a>
   </div>
 
@@ -82,8 +87,8 @@ async function persist() {
     <div class="card-body d-flex align-items-center gap-3">
       <AppLogo :size="40" />
       <div class="flex-grow-1">
-        <div class="h5 mb-0">Aussehen</div>
-        <div class="small text-body-secondary">Design „{{ getTheme(appearance.theme).label }}“ · Hintergrund · Schrift · Reiseseite anpassen</div>
+        <div class="h5 mb-0">{{ $t('Aussehen') }}</div>
+        <div class="small text-body-secondary">{{ $t('Design „{0}“ · Hintergrund · Schrift · Reiseseite anpassen', [getTheme(appearance.theme).label]) }}</div>
       </div>
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>
@@ -93,19 +98,34 @@ async function persist() {
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi fs-3" :class="lock.enabled ? 'bi-shield-lock-fill text-success' : 'bi-shield-lock text-primary'" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="h5 mb-0">App-Sperre</div>
-        <div class="small text-body-secondary">{{ lock.enabled ? `An${lock.biometric ? ' · mit Face ID / Touch ID' : ''}` : 'Aus – mit Code oder Face ID schützen' }}</div>
+        <div class="h5 mb-0">{{ $t('App-Sperre') }}</div>
+        <div class="small text-body-secondary">{{ lock.enabled ? `An${lock.biometric ? ' · mit Face ID / Touch ID' : ''}` : $t('Aus – mit Code oder Face ID schützen') }}</div>
       </div>
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>
   </RouterLink>
 
+  <section class="card mb-3" data-settings-lang>
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+      <i class="bi bi-translate fs-3 text-primary" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <label for="app-lang" class="h5 mb-1 d-block">{{ $t('Sprache') }} · Language</label>
+        <select id="app-lang" v-model="langChoice" class="form-select form-select-sm w-auto" @change="changeLang">
+          <option value="auto">{{ $t('Wie das Gerät') }}</option>
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
+        <div v-if="lang === 'en' && !ENGLISH_COMPLETE" class="small text-body-secondary mt-1">{{ $t('Englisch ist noch in Arbeit – einzelne Texte erscheinen noch auf Deutsch.') }}</div>
+      </div>
+    </div>
+  </section>
+
   <RouterLink to="/hilfe" class="card mb-3 text-decoration-none text-body" data-settings-help>
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi bi-question-circle fs-3 text-primary" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="h5 mb-0">Hilfe & Einführung</div>
-        <div class="small text-body-secondary">Alles kurz erklärt, mit Suche – und die Einführung zum Durchtippen</div>
+        <div class="h5 mb-0">{{ $t('Hilfe & Einführung') }}</div>
+        <div class="small text-body-secondary">{{ $t('Alles kurz erklärt, mit Suche – und die Einführung zum Durchtippen') }}</div>
       </div>
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>
@@ -115,8 +135,8 @@ async function persist() {
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="h5 mb-0">Geräte-Abgleich</div>
-        <div class="small text-body-secondary">Handys, Tablet und PC automatisch auf demselben Stand halten</div>
+        <div class="h5 mb-0">{{ $t('Geräte-Abgleich') }}</div>
+        <div class="small text-body-secondary">{{ $t('Handys, Tablet und PC automatisch auf demselben Stand halten') }}</div>
       </div>
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>
@@ -124,23 +144,21 @@ async function persist() {
 
   <section class="card mb-3">
     <div class="card-body">
-      <h2 class="h5">Datensicherung</h2>
+      <h2 class="h5">{{ $t('Datensicherung') }}</h2>
       <p class="text-body-secondary small">
-        Alle Daten liegen nur auf diesem Gerät. Sichere sie regelmäßig als Datei –
-        damit kannst du sie auch auf ein anderes Gerät übertragen. Beim Einlesen wird zusammengeführt:
-        Neues kommt dazu, bei Unterschieden gewinnt die neuere Änderung.
+        {{ $t('Alle Daten liegen nur auf diesem Gerät. Sichere sie regelmäßig als Datei – damit kannst du sie auch auf ein anderes Gerät übertragen. Beim Einlesen wird zusammengeführt: Neues kommt dazu, bei Unterschieden gewinnt die neuere Änderung.') }}
       </p>
       <div class="form-check form-switch mb-2">
         <input id="photos" v-model="includePhotos" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="photos">Fotos mitsichern (Datei wird deutlich größer)</label>
+        <label class="form-check-label" for="photos">{{ $t('Fotos mitsichern (Datei wird deutlich größer)') }}</label>
       </div>
       <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-primary" :disabled="busy" @click="doExport">
           <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-          <i v-else class="bi bi-download me-1" aria-hidden="true"></i>Backup exportieren
+          <i v-else class="bi bi-download me-1" aria-hidden="true"></i>{{ $t('Backup exportieren') }}
         </button>
         <label class="btn btn-outline-secondary mb-0" :class="{ disabled: busy }">
-          <i class="bi bi-upload me-1" aria-hidden="true"></i>Backup oder geteilte Reise einlesen
+          <i class="bi bi-upload me-1" aria-hidden="true"></i>{{ $t('Backup oder geteilte Reise einlesen') }}
           <input type="file" accept="application/json" class="d-none" @change="doImport" />
         </label>
       </div>
@@ -155,45 +173,42 @@ async function persist() {
 
   <section class="card mb-3">
     <div class="card-body">
-      <h2 class="h5">Speicher</h2>
+      <h2 class="h5">{{ $t('Speicher') }}</h2>
       <p v-if="storage?.usedBytes != null" class="small mb-1">
-        Belegt: <strong>{{ formatBytes(storage.usedBytes) }}</strong>
-        <template v-if="storage.quotaBytes"> von ca. {{ formatBytes(storage.quotaBytes) }} verfügbar</template>
+        {{ $t('Belegt:') }} <strong>{{ formatBytes(storage.usedBytes) }}</strong>
+        <template v-if="storage.quotaBytes"> {{ $t('von ca. {0} verfügbar', [formatBytes(storage.quotaBytes)]) }}</template>
       </p>
       <p class="small mb-2">
         <template v-if="storage?.persisted">
-          <i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i>Daten werden dauerhaft behalten.
+          <i class="bi bi-shield-check text-success me-1" aria-hidden="true"></i>{{ $t('Daten werden dauerhaft behalten.') }}
         </template>
         <template v-else>
           <i class="bi bi-exclamation-triangle text-warning me-1" aria-hidden="true"></i>
-          Der Browser darf die Daten bei Platzmangel löschen. Regelmäßig sichern!
+          {{ $t('Der Browser darf die Daten bei Platzmangel löschen. Regelmäßig sichern!') }}
         </template>
       </p>
       <button v-if="!storage?.persisted" type="button" class="btn btn-sm btn-outline-primary" @click="persist">
-        Dauerhaft speichern anfragen
+        {{ $t('Dauerhaft speichern anfragen') }}
       </button>
     </div>
   </section>
 
   <section class="card">
     <div class="card-body">
-      <h2 class="h5">Über „{{ APP_CONFIG.name }}“</h2>
+      <h2 class="h5">{{ $t('Über „{0}“', [APP_CONFIG.name]) }}</h2>
       <p class="small text-body-secondary">
-        Version {{ APP_VERSION }} · Freie Software unter der <a :href="APP_CONFIG.licenseUrl" target="_blank" rel="noopener">{{ APP_CONFIG.license }}</a>,
-        entwickelt in der Freizeit. Kostenlos, ohne Werbung, ohne Konto – deine Daten bleiben auf deinen Geräten bzw. deinem eigenen Server.
+        {{ $t('Version {0} · Freie Software unter der', [APP_VERSION]) }} <a :href="APP_CONFIG.licenseUrl" target="_blank" rel="noopener">{{ APP_CONFIG.license }}</a>{{ $t(', entwickelt in der Freizeit. Kostenlos, ohne Werbung, ohne Konto – deine Daten bleiben auf deinen Geräten bzw. deinem eigenen Server.') }}
       </p>
       <div class="d-flex flex-wrap gap-2">
         <a v-if="APP_CONFIG.donationUrl" :href="APP_CONFIG.donationUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-heart-fill me-1" aria-hidden="true"></i>Über {{ APP_CONFIG.donationLabel }} unterstützen
+          <i class="bi bi-heart-fill me-1" aria-hidden="true"></i>{{ $t('Über {0} unterstützen', [APP_CONFIG.donationLabel]) }}
         </a>
         <a :href="APP_CONFIG.repositoryUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary">
-          <i class="bi bi-github me-1" aria-hidden="true"></i>Quellcode
+          <i class="bi bi-github me-1" aria-hidden="true"></i>{{ $t('Quellcode') }}
         </a>
       </div>
       <p class="small text-body-secondary mt-3 mb-0">
-        Dienste: Wetter und Höhen von Open-Meteo.com (CC BY 4.0) · Karten, Adresssuche und Wanderwege © OpenStreetMap-Mitwirkende (ODbL) ·
-        Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData) · Unwetterwarnungen MeteoAlarm (EUMETNET) ·
-        Wechselkurse: EZB-Referenzkurse über Frankfurter.
+        {{ $t('Dienste: Wetter und Höhen von Open-Meteo.com (CC BY 4.0) · Karten, Adresssuche und Wanderwege © OpenStreetMap-Mitwirkende (ODbL) · Routenplanung BRouter · Offline-Karten Protomaps · Reise- und Sicherheitshinweise © Auswärtiges Amt (OpenData) · Unwetterwarnungen MeteoAlarm (EUMETNET) · Wechselkurse: EZB-Referenzkurse über Frankfurter.') }}
       </p>
     </div>
   </section>

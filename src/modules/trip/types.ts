@@ -1,4 +1,5 @@
 /** Ein Reiseprojekt – der Ausgangspunkt für alle weiteren Module. */
+import { N_, translated } from '@/core/i18n'
 export interface Trip {
   id: string
   title: string
@@ -36,10 +37,10 @@ export interface Trip {
 
 export type TripDraft = Omit<Trip, 'id' | 'createdAt' | 'updatedAt'>
 
-export const TRANSPORT_LABELS: Record<Trip['transport'], string> = {
-  auto: 'Auto',
-  bahn: 'Bahn',
-  flug: 'Flug',
-  bus: 'Bus',
-  sonstiges: 'Sonstiges'
-}
+export const TRANSPORT_LABELS: Record<Trip['transport'], string> = translated({
+  auto: N_('Auto'),
+  bahn: N_('Bahn'),
+  flug: N_('Flug'),
+  bus: N_('Bus'),
+  sonstiges: N_('Sonstiges')
+})

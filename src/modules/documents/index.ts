@@ -3,11 +3,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { contactRepository, documentRepository } from './repository'
 import { summarizeDocs } from './logic'
 import { documentReminders } from './reminders'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Dokumente & Notfall" (Meilenstein M2). */
 export const documentsModule: AppModule = {
   id: 'documents',
-  title: 'Dokumente',
+  title: N_('Dokumente'),
   icon: 'folder2-open',
   order: 50,
   routes: [
@@ -20,7 +21,7 @@ export const documentsModule: AppModule = {
   reminders: async (trip, today) => documentReminders(await documentRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Dokumente & Notfall',
+    title: N_('Dokumente & Notfall'),
     icon: 'folder2-open',
     to: (tripId) => `/trip/${tripId}/dokumente`,
     async summary(tripId) {

@@ -12,6 +12,7 @@ import { startModules } from './core/registry'
 import { startAppearance } from './ui/appearance'
 import { startLock } from './core/lock'
 import { startPush } from './core/push'
+import { startLang, t, tn } from './core/i18n'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
@@ -21,7 +22,15 @@ startAppearance()
 // App-Sperre (Code / Face ID), falls auf diesem Gerät eingerichtet
 startLock()
 
-createApp(App).use(buildRouter()).mount('#app')
+// Sprache zuerst (Englisch wird bei Bedarf nachgeladen), dann anzeigen
+void startLang()
+  .catch(() => undefined)
+  .finally(() => {
+    const app = createApp(App)
+    app.config.globalProperties.$t = t
+    app.config.globalProperties.$tn = tn
+    app.use(buildRouter()).mount('#app')
+  })
 
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)
 startAutoSync()

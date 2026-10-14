@@ -4,6 +4,7 @@ import { formatDate } from '../../core/format'
 import { MOODS } from '../journal/types'
 import { toSiteActivities, toSiteStays, type ActivityInput, type StayInput } from './sections'
 import type { SiteData, SiteDay, SitePhoto, SiteRoute, WebsiteSettingsDraft } from './types'
+import { locale } from '@/core/i18n'
 
 export function defaultSettings(trip: { title: string; destination: string; startDate: string; endDate: string }): WebsiteSettingsDraft {
   return {
@@ -60,7 +61,7 @@ export function moodEmoji(value: number): string {
 /** Datum lang, z. B. "Samstag, 4. Juli 2026" */
 export function longDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
-  return new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
+  return new Intl.DateTimeFormat(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(
     new Date(Date.UTC(y, m - 1, d))
   )
 }

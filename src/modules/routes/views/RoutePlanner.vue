@@ -17,6 +17,7 @@ import { MAX_SEARCH_SPAN, TRAIL_TYPES, type TrailHit, type TrailType } from '../
 import { RoutingApi, fetchElevations } from '../planning/api'
 import { formatDuration } from '@/services/tracks'
 import type { TrackPoint } from '../types'
+import { locale } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const route = useRoute()
@@ -317,33 +318,33 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Strecke planen & Wanderwege" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Strecke planen & Wanderwege')" />
 
   <ul class="nav nav-tabs mb-2">
     <li class="nav-item">
-      <button type="button" class="nav-link" :class="{ active: tab === 'planen' }" @click="tab = 'planen'"><i class="bi bi-signpost-split me-1" aria-hidden="true"></i>Von A nach B</button>
+      <button type="button" class="nav-link" :class="{ active: tab === 'planen' }" @click="tab = 'planen'"><i class="bi bi-signpost-split me-1" aria-hidden="true"></i>{{ $t('Von A nach B') }}</button>
     </li>
     <li class="nav-item">
-      <button type="button" class="nav-link" :class="{ active: tab === 'wanderwege' }" @click="tab = 'wanderwege'"><i class="bi bi-compass me-1" aria-hidden="true"></i>Wanderwege suchen</button>
+      <button type="button" class="nav-link" :class="{ active: tab === 'wanderwege' }" @click="tab = 'wanderwege'"><i class="bi bi-compass me-1" aria-hidden="true"></i>{{ $t('Wanderwege suchen') }}</button>
     </li>
   </ul>
 
-  <div v-if="!online" class="alert alert-warning small py-2">Planen und Suchen braucht Internet.</div>
+  <div v-if="!online" class="alert alert-warning small py-2">{{ $t('Planen und Suchen braucht Internet.') }}</div>
 
   <div class="row g-3">
     <div class="col-12 col-lg-7">
       <div :class="{ picking: tab === 'planen' }"><div ref="mapEl" class="planner-map"></div></div>
       <p class="small text-body-secondary mt-1 mb-0">
-        <template v-if="tab === 'planen'">Auf die Karte tippen, um Punkte zu setzen (erst A, dann B, weitere als Zwischenziele). Punkte lassen sich verschieben.</template>
-        <template v-else>Zur Gegend zoomen, dann „Im Ausschnitt suchen“.</template>
-        Daten © OpenStreetMap-Mitwirkende<template v-if="tab === 'planen'"> · Routenplaner: BRouter</template>.
+        <template v-if="tab === 'planen'">{{ $t('Auf die Karte tippen, um Punkte zu setzen (erst A, dann B, weitere als Zwischenziele). Punkte lassen sich verschieben.') }}</template>
+        <template v-else>{{ $t('Zur Gegend zoomen, dann „Im Ausschnitt suchen“.') }}</template>
+        {{ $t('Daten © OpenStreetMap-Mitwirkende') }}<template v-if="tab === 'planen'"> {{ $t('· Routenplaner: BRouter') }}</template>.
       </p>
     </div>
 
     <div class="col-12 col-lg-5">
       <!-- Planen -->
       <template v-if="tab === 'planen'">
-        <div class="btn-group btn-group-sm flex-wrap mb-2" role="group" aria-label="Art">
+        <div class="btn-group btn-group-sm flex-wrap mb-2" role="group" :aria-label="$t('Art')">
           <template v-for="p in PROFILES" :key="p.id">
             <input :id="`pr-${p.id}`" v-model="profile" type="radio" class="btn-check" :value="p.id" />
             <label class="btn btn-outline-primary" :for="`pr-${p.id}`"><i :class="`bi bi-${p.icon} me-1`" aria-hidden="true"></i>{{ p.label }}</label>
@@ -351,17 +352,17 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
         </div>
 
         <form class="input-group input-group-sm mb-2" @submit.prevent="runSearch">
-          <input v-model="query" class="form-control" placeholder="Ort, Adresse oder GPS-Koordinaten" aria-label="Punkt suchen" />
+          <input v-model="query" class="form-control" :placeholder="$t('Ort, Adresse oder GPS-Koordinaten')" :aria-label="$t('Punkt suchen')" />
           <button class="btn btn-outline-primary" type="submit" :disabled="!query.trim() || searching">
             <span v-if="searching" class="spinner-border spinner-border-sm" aria-hidden="true"></span><i v-else class="bi bi-plus-lg" aria-hidden="true"></i>
-            <span class="visually-hidden">Hinzufügen</span>
+            <span class="visually-hidden">{{ $t('Hinzufügen') }}</span>
           </button>
         </form>
         <div v-if="searchResults.length" class="list-group mb-2">
           <button v-for="r in searchResults" :key="`${r.lat},${r.lon}`" type="button" class="list-group-item list-group-item-action small" @click="pickResult(r)">{{ r.label }}</button>
         </div>
         <div v-if="namedPlaces.length" class="mb-2">
-          <div class="small text-body-secondary mb-1">Orte dieser Reise:</div>
+          <div class="small text-body-secondary mb-1">{{ $t('Orte dieser Reise:') }}</div>
           <div class="d-flex flex-wrap gap-1">
             <button v-for="p in namedPlaces" :key="p.id" type="button" class="btn btn-sm btn-outline-secondary" @click="addPoint(p.lat, p.lon, p.name)">
               <i :class="`bi bi-${placeIcon(p).icon} me-1`" :style="{ color: placeIcon(p).color }" aria-hidden="true"></i>{{ p.name }}
@@ -376,36 +377,36 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
           </li>
         </ol>
         <div class="d-flex gap-2 mb-2">
-          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="waypoints.length < 2" @click="reverse"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>Umkehren</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="!waypoints.length" @click="clearPlan">Leeren</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="waypoints.length < 2" @click="reverse"><i class="bi bi-arrow-left-right me-1" aria-hidden="true"></i>{{ $t('Umkehren') }}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="!waypoints.length" @click="clearPlan">{{ $t('Leeren') }}</button>
         </div>
 
-        <div v-if="planning" class="small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Berechne Strecke …</div>
+        <div v-if="planning" class="small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Berechne Strecke …') }}</div>
         <div v-if="planError" class="alert alert-danger small py-2">{{ planError }}</div>
         <div v-if="planned && plannedStats && !planning" class="card mb-2">
           <div class="card-body py-2">
             <div class="fw-semibold">{{ statsLine({ ...plannedStats, duration: null }) }}</div>
-            <div v-if="plannedTime" class="small text-body-secondary">Dauer ca. {{ formatDuration(plannedTime) }}{{ profile === 'hiking-mountain' ? ' (Gehzeit nach DIN 33466, ohne Pausen)' : '' }}</div>
+            <div v-if="plannedTime" class="small text-body-secondary">{{ $t('Dauer ca. {0}{1}', [formatDuration(plannedTime), profile === 'hiking-mountain' ? $t(' (Gehzeit nach DIN 33466, ohne Pausen)') : '']) }}</div>
           </div>
         </div>
       </template>
 
       <!-- Wanderwege -->
       <template v-else>
-        <div class="btn-group btn-group-sm mb-2" role="group" aria-label="Art">
+        <div class="btn-group btn-group-sm mb-2" role="group" :aria-label="$t('Art')">
           <template v-for="(t, key) in TRAIL_TYPES" :key="key">
             <input :id="`tt-${key}`" v-model="trailType" type="radio" class="btn-check" :value="key" />
             <label class="btn btn-outline-primary" :for="`tt-${key}`"><i :class="`bi bi-${t.icon} me-1`" aria-hidden="true"></i>{{ t.label }}</label>
           </template>
         </div>
         <form class="input-group input-group-sm mb-2" @submit.prevent="searchTrails">
-          <input v-model="trailName" class="form-control" placeholder="Name (optional), z. B. Glockner" aria-label="Name" />
+          <input v-model="trailName" class="form-control" :placeholder="$t('Name (optional), z. B. Glockner')" :aria-label="$t('Name')" />
           <button class="btn btn-primary" type="submit" :disabled="trailBusy">
-            <span v-if="trailBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Im Ausschnitt suchen
+            <span v-if="trailBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Im Ausschnitt suchen') }}
           </button>
         </form>
         <div v-if="trailError" class="alert alert-danger small py-2">{{ trailError }}</div>
-        <div v-if="searchedOnce && !hits.length && !trailBusy" class="small text-body-secondary mb-2">Nichts gefunden – Ausschnitt verschieben oder ohne Namen suchen.</div>
+        <div v-if="searchedOnce && !hits.length && !trailBusy" class="small text-body-secondary mb-2">{{ $t('Nichts gefunden – Ausschnitt verschieben oder ohne Namen suchen.') }}</div>
         <div class="list-group trail-list mb-2">
           <button v-for="h in hits" :key="h.id" type="button" class="list-group-item list-group-item-action" :class="{ active: selected?.hit.id === h.id }" @click="showTrail(h)">
             <div class="d-flex justify-content-between gap-2">
@@ -413,35 +414,35 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
               <span v-if="h.ref" class="badge text-bg-light border flex-none">{{ h.ref }}</span>
             </div>
             <div class="small opacity-75 text-truncate">
-              {{ [h.networkLabel, h.from && h.to ? `${h.from} – ${h.to}` : '', h.distance ? `${h.distance} km` : ''].filter(Boolean).join(' · ') || 'ausgeschilderte Route' }}
+              {{ [h.networkLabel, h.from && h.to ? `${h.from} – ${h.to}` : '', h.distance ? `${h.distance} km` : ''].filter(Boolean).join(' · ') || $t('ausgeschilderte Route') }}
             </div>
           </button>
         </div>
-        <div v-if="selected" class="small text-body-secondary mb-2">„{{ selected.hit.name }}“ · ca. {{ (selectedKm / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) }} km – Höhen werden beim Übernehmen ergänzt.</div>
+        <div v-if="selected" class="small text-body-secondary mb-2">{{ $t('„{0}“ · ca. {1} km – Höhen werden beim Übernehmen ergänzt.', [selected.hit.name, (selectedKm / 1000).toLocaleString($t(locale()), { maximumFractionDigits: 1 })]) }}</div>
       </template>
 
       <!-- Speichern -->
       <div v-if="canSave" class="card border-primary">
         <div class="card-body">
-          <h2 class="h6">Als Route speichern</h2>
+          <h2 class="h6">{{ $t('Als Route speichern') }}</h2>
           <div class="mb-2">
-            <label for="rp-name" class="form-label small mb-1">Name</label>
+            <label for="rp-name" class="form-label small mb-1">{{ $t('Name') }}</label>
             <input id="rp-name" v-model="saveName" class="form-control form-control-sm" maxlength="120" />
           </div>
           <div class="mb-2">
-            <label for="rp-day" class="form-label small mb-1">Tag</label>
+            <label for="rp-day" class="form-label small mb-1">{{ $t('Tag') }}</label>
             <select id="rp-day" v-model="saveDay" class="form-select form-select-sm">
-              <option value="">ohne Tag</option>
-              <option v-for="d in days" :key="d" :value="d">{{ new Date(`${d}T00:00:00Z`).toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }) }}</option>
+              <option value="">{{ $t('ohne Tag') }}</option>
+              <option v-for="d in days" :key="d" :value="d">{{ new Date(`${d}T00:00:00Z`).toLocaleDateString($t(locale()), { weekday: 'short', day: '2-digit', month: '2-digit', timeZone: 'UTC' }) }}</option>
             </select>
           </div>
           <button type="button" class="btn btn-primary btn-sm" :disabled="saving" @click="save">
-            <span v-if="saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span><i v-else class="bi bi-save me-1" aria-hidden="true"></i>Speichern
+            <span v-if="saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span><i v-else class="bi bi-save me-1" aria-hidden="true"></i>{{ $t('Speichern') }}
           </button>
-          <p class="small text-body-secondary mt-2 mb-0">Danach: auf der Karte der Reise, im Tagebuch und als GPX für Garmin exportierbar.</p>
+          <p class="small text-body-secondary mt-2 mb-0">{{ $t('Danach: auf der Karte der Reise, im Tagebuch und als GPX für Garmin exportierbar.') }}</p>
         </div>
       </div>
-      <p v-if="api && !api.viaServer" class="small text-body-secondary mt-2">Tipp: Mit eingerichtetem Geräte-Abgleich laufen Suche und Planung über deinen Server – zuverlässiger.</p>
+      <p v-if="api && !api.viaServer" class="small text-body-secondary mt-2">{{ $t('Tipp: Mit eingerichtetem Geräte-Abgleich laufen Suche und Planung über deinen Server – zuverlässiger.') }}</p>
     </div>
   </div>
 </template>

@@ -44,11 +44,11 @@ async function addSuggestions() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Dokumente & Notfall" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Dokumente & Notfall')" />
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'dokumente' }" @click="tab = 'dokumente'">Dokumente</button></li>
-    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'notfall' }" @click="tab = 'notfall'">Notfallnummern</button></li>
+    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'dokumente' }" @click="tab = 'dokumente'">{{ $t('Dokumente') }}</button></li>
+    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'notfall' }" @click="tab = 'notfall'">{{ $t('Notfallnummern') }}</button></li>
   </ul>
 
   <!-- Dokumente -->
@@ -56,31 +56,31 @@ async function addSuggestions() {
     <div v-for="d in renewals" :key="`r-${d.id}`" class="alert alert-danger py-2 small">
       <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>
       <strong>{{ d.title }}<template v-if="d.person"> ({{ d.person }})</template>:</strong>
-      jetzt kümmern – die Ausstellung kann mehrere Wochen dauern.
+      {{ $t('jetzt kümmern – die Ausstellung kann mehrere Wochen dauern.') }}
     </div>
 
     <div v-if="summary && summary.total" class="d-flex flex-wrap gap-2 small mb-3">
-      <span class="badge text-bg-light border">{{ summary.total }} Dokumente</span>
-      <span v-if="summary.missing" class="badge text-bg-danger">{{ summary.missing }} fehlen / beantragt</span>
-      <span v-if="summary.problems" class="badge text-bg-warning">{{ summary.problems }} Gültigkeit prüfen</span>
-      <span v-if="summary.notPacked" class="badge text-bg-light border">{{ summary.notPacked }} noch nicht eingepackt</span>
+      <span class="badge text-bg-light border">{{ $t('{0} Dokumente', [summary.total]) }}</span>
+      <span v-if="summary.missing" class="badge text-bg-danger">{{ $t('{0} fehlen / beantragt', [summary.missing]) }}</span>
+      <span v-if="summary.problems" class="badge text-bg-warning">{{ $t('{0} Gültigkeit prüfen', [summary.problems]) }}</span>
+      <span v-if="summary.notPacked" class="badge text-bg-light border">{{ $t('{0} noch nicht eingepackt', [summary.notPacked]) }}</span>
     </div>
 
     <div class="d-flex flex-wrap gap-2 mb-3">
       <RouterLink :to="`/trip/${tripId}/dokumente/neu`" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Dokument
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Dokument') }}
       </RouterLink>
       <button v-if="suggestions.length" type="button" class="btn btn-outline-primary" @click="addSuggestions">
-        <i class="bi bi-magic me-1" aria-hidden="true"></i>Vorschläge ({{ suggestions.length }})
+        <i class="bi bi-magic me-1" aria-hidden="true"></i>{{ $t('Vorschläge ({0})', [suggestions.length]) }}
       </button>
       <div v-if="docs.some((d) => d.number)" class="form-check form-switch ms-auto align-self-center mb-0">
         <input id="show-num" v-model="showNumbers" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="show-num">Nummern zeigen</label>
+        <label class="form-check-label small" for="show-num">{{ $t('Nummern zeigen') }}</label>
       </div>
     </div>
 
     <p v-if="sorted.length === 0" class="text-body-secondary">
-      Mit „Vorschläge“ legst du die üblichen Dokumente passend zur Anreise an. Trage Ablaufdaten ein – die App warnt rechtzeitig.
+      {{ $t('Mit „Vorschläge“ legst du die üblichen Dokumente passend zur Anreise an. Trage Ablaufdaten ein – die App warnt rechtzeitig.') }}
     </p>
 
     <ul class="list-group mb-3">
@@ -98,20 +98,19 @@ async function addSuggestions() {
           </div>
           <div class="small text-body-secondary">
             <template v-if="d.person">{{ d.person }} · </template>
-            <template v-if="d.number">Nr. {{ showNumbers ? d.number : maskNumber(d.number) }} · </template>
-            <template v-if="d.validUntil">gültig bis {{ formatDate(d.validUntil) }}</template>
+            <template v-if="d.number">{{ $t('Nr. {0} ·', [showNumbers ? d.number : maskNumber(d.number)]) }} </template>
+            <template v-if="d.validUntil">{{ $t('gültig bis {0}', [formatDate(d.validUntil)]) }}</template>
           </div>
           <div v-if="validityInfo(d)" class="small" :class="validityInfo(d)!.cls">
             <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ validityInfo(d)!.text }}
           </div>
-          <div v-if="d.hasCopy" class="small text-success"><i class="bi bi-cloud-check me-1" aria-hidden="true"></i>Kopie vorhanden</div>
+          <div v-if="d.hasCopy" class="small text-success"><i class="bi bi-cloud-check me-1" aria-hidden="true"></i>{{ $t('Kopie vorhanden') }}</div>
         </div>
       </li>
     </ul>
 
     <p class="small text-body-secondary">
-      <i class="bi bi-lock me-1" aria-hidden="true"></i>Alle Angaben bleiben nur auf diesem Gerät. Tipp: Kopien wichtiger Dokumente
-      zusätzlich sicher ablegen, z. B. als Foto in einem gesperrten Album.
+      <i class="bi bi-lock me-1" aria-hidden="true"></i>{{ $t('Alle Angaben bleiben nur auf diesem Gerät. Tipp: Kopien wichtiger Dokumente zusätzlich sicher ablegen, z. B. als Foto in einem gesperrten Album.') }}
     </p>
   </template>
 
@@ -128,15 +127,15 @@ async function addSuggestions() {
       </a>
     </div>
 
-    <h2 class="h6 text-body-secondary">Eigene Nummern</h2>
+    <h2 class="h6 text-body-secondary">{{ $t('Eigene Nummern') }}</h2>
     <p v-if="contacts.length === 0" class="small text-body-secondary">
-      z. B. Notruf der Auslandskrankenversicherung, Unterkunft, Pannendienst, Botschaft, Hausarzt.
+      {{ $t('z. B. Notruf der Auslandskrankenversicherung, Unterkunft, Pannendienst, Botschaft, Hausarzt.') }}
     </p>
     <div class="list-group mb-3">
       <div v-for="c in contacts" :key="c.id" class="list-group-item d-flex align-items-center gap-3">
         <div class="flex-grow-1 min-w-0">
           <RouterLink :to="`/trip/${tripId}/notfall/${c.id}`" class="fw-semibold text-body text-decoration-none">{{ c.label }}</RouterLink>
-          <span v-if="c.source" class="badge text-bg-light border ms-1 fw-normal" title="Automatisch aus den Reisehinweisen des Auswärtigen Amts">Auswärtiges Amt</span>
+          <span v-if="c.source" class="badge text-bg-light border ms-1 fw-normal" :title="$t('Automatisch aus den Reisehinweisen des Auswärtigen Amts')">{{ $t('Auswärtiges Amt') }}</span>
           <div class="small text-body-secondary text-truncate">{{ c.phone }}<template v-if="c.notes"> · {{ c.notes }}</template></div>
         </div>
         <a v-if="telHref(c.phone)" :href="telHref(c.phone)!" class="btn btn-success btn-sm" :aria-label="`${c.label} anrufen`">
@@ -145,7 +144,7 @@ async function addSuggestions() {
       </div>
     </div>
     <RouterLink :to="`/trip/${tripId}/notfall/neu`" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Nummer hinzufügen
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Nummer hinzufügen') }}
     </RouterLink>
   </template>
 </template>

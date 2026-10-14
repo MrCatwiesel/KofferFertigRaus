@@ -7,6 +7,7 @@
 import { reactive } from 'vue'
 import { getMeta, setMeta } from './meta'
 import { ServerClient } from './sync/client'
+import { t } from '@/core/i18n'
 
 export interface PushPrefs {
   erinnerungen: boolean
@@ -71,7 +72,7 @@ const sameKey = (sub: PushSubscription, key: string) => {
 
 async function client(): Promise<ServerClient> {
   const c = await ServerClient.fromSync()
-  if (!c) throw new Error('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.')
+  if (!c) throw new Error(t('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.'))
   return c
 }
 
@@ -99,7 +100,7 @@ async function setActive(on: boolean) {
 async function swReady(): Promise<ServiceWorkerRegistration> {
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('Der Hintergrunddienst der App läuft noch nicht – bitte die App einmal schließen und neu öffnen.')), 10_000)
+    timer = setTimeout(() => reject(new Error(t('Der Hintergrunddienst der App läuft noch nicht – bitte die App einmal schließen und neu öffnen.'))), 10_000)
   })
   try {
     return await Promise.race([navigator.serviceWorker.ready, timeout])
@@ -130,7 +131,7 @@ async function register(sub: PushSubscription, prefs?: Partial<PushPrefs>) {
  */
 export async function enablePush(publicKey: string, prefs?: Partial<PushPrefs>): Promise<void> {
   const answer = await Notification.requestPermission()
-  if (answer !== 'granted') throw new Error(answer === 'denied' ? 'Benachrichtigungen sind für die App nicht erlaubt.' : 'Keine Erlaubnis erteilt.')
+  if (answer !== 'granted') throw new Error(answer === 'denied' ? t('Benachrichtigungen sind für die App nicht erlaubt.') : t('Keine Erlaubnis erteilt.'))
   const sub = await subscribe(publicKey)
   await register(sub, prefs)
   await setActive(true)

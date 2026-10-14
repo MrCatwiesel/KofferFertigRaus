@@ -8,6 +8,7 @@ import { tripRepository } from '../repository'
 import type { Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
 import TripContextHeader from '../components/TripContextHeader.vue'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -42,7 +43,7 @@ async function upload(e: Event) {
     cover.value = (await resizeBlob(file, 1800, 0.82)).blob
     coverY.value = 50
   } catch (err) {
-    error.value = `Bild konnte nicht gelesen werden: ${(err as Error).message}`
+    error.value = t('Bild konnte nicht gelesen werden: {0}', [(err as Error).message])
   } finally {
     busy.value = false
   }
@@ -60,7 +61,7 @@ async function save() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="id" title="Titelbild" />
+  <TripContextHeader :trip-id="id" :title="$t('Titelbild')" />
 
   <div v-if="preview">
     <TripCover :trip="preview" class="preview mb-3">
@@ -73,37 +74,37 @@ async function save() {
     </TripCover>
 
     <div v-if="cover" class="mb-3">
-      <label for="cy" class="form-label small">Ausschnitt verschieben</label>
+      <label for="cy" class="form-label small">{{ $t('Ausschnitt verschieben') }}</label>
       <input id="cy" v-model.number="coverY" type="range" min="0" max="100" class="form-range" />
     </div>
     <p v-else class="small text-body-secondary">
-      Ohne eigenes Foto zeichnet die App eine Landschaft passend zum Reiseziel (Berge, Meer oder Stadt) in den Farben deines Stils.
+      {{ $t('Ohne eigenes Foto zeichnet die App eine Landschaft passend zum Reiseziel (Berge, Meer oder Stadt) in den Farben deines Stils.') }}
     </p>
 
     <div class="d-flex flex-wrap gap-2 mb-3">
       <label class="btn btn-outline-primary mb-0" :class="{ disabled: busy }">
         <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-        <i v-else class="bi bi-upload me-1" aria-hidden="true"></i>Foto hochladen
+        <i v-else class="bi bi-upload me-1" aria-hidden="true"></i>{{ $t('Foto hochladen') }}
         <input type="file" accept="image/*" class="d-none" @change="upload" />
       </label>
       <button v-if="cover" type="button" class="btn btn-outline-secondary" @click="cover = null">
-        <i class="bi bi-brush me-1" aria-hidden="true"></i>Gezeichnete Landschaft
+        <i class="bi bi-brush me-1" aria-hidden="true"></i>{{ $t('Gezeichnete Landschaft') }}
       </button>
     </div>
     <div v-if="error" class="alert alert-danger small py-2">{{ error }}</div>
 
     <template v-if="photos.length">
-      <h2 class="h6 text-body-secondary">Aus dem Reisetagebuch</h2>
+      <h2 class="h6 text-body-secondary">{{ $t('Aus dem Reisetagebuch') }}</h2>
       <div class="photo-grid mb-3">
-        <button v-for="p in photos" :key="p.id" type="button" class="photo" :class="{ active: cover === p.full }" :aria-label="p.caption || 'Foto wählen'" @click="choose(p)">
+        <button v-for="p in photos" :key="p.id" type="button" class="photo" :class="{ active: cover === p.full }" :aria-label="p.caption || $t('Foto wählen')" @click="choose(p)">
           <img :src="p.url" alt="" />
         </button>
       </div>
     </template>
 
     <div class="d-flex gap-2">
-      <button type="button" class="btn btn-primary" @click="save">Speichern</button>
-      <RouterLink :to="`/trip/${id}`" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="button" class="btn btn-primary" @click="save">{{ $t('Speichern') }}</button>
+      <RouterLink :to="`/trip/${id}`" class="btn btn-outline-secondary">{{ $t('Abbrechen') }}</RouterLink>
     </div>
   </div>
 </template>

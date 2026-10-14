@@ -46,26 +46,26 @@ function duration(l: TravelLeg) {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="An- und Rückreise" />
+  <TripContextHeader :trip-id="tripId" :title="$t('An- und Rückreise')" />
   <RouterLink :to="`/trip/${tripId}/buchung`" class="btn btn-outline-primary btn-sm mb-3">
-    <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>Buchung einlesen (Flug, Bahn, Bus)
+    <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>{{ $t('Buchung einlesen (Flug, Bahn, Bus)') }}
   </RouterLink>
 
   <section v-for="g in groups" :key="g.dir" class="mb-4">
     <div class="d-flex align-items-baseline justify-content-between mb-2">
       <h2 class="h5 mb-0">{{ DIRECTION[g.dir] }}</h2>
       <RouterLink :to="{ path: `/trip/${tripId}/anreise/neu`, query: { richtung: g.dir } }" class="btn btn-sm btn-outline-primary">
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Etappe
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Etappe') }}
       </RouterLink>
     </div>
 
     <!-- Kennzahlen -->
     <div v-if="g.summary.legs" class="d-flex flex-wrap gap-2 small mb-2">
       <span v-if="g.summary.distanceKm" class="badge text-bg-light border">
-        <i class="bi bi-rulers me-1" aria-hidden="true"></i>{{ Math.round(g.summary.distanceKm) }} km
+        <i class="bi bi-rulers me-1" aria-hidden="true"></i>{{ $t('{0} km', [Math.round(g.summary.distanceKm)]) }}
       </span>
       <span v-if="g.summary.travelMinutes" class="badge text-bg-light border">
-        <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ formatDuration(g.summary.travelMinutes) }} unterwegs
+        <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ $t('{0} unterwegs', [formatDuration(g.summary.travelMinutes)]) }}
       </span>
       <span v-if="g.summary.cost && trip" class="badge text-bg-light border">
         <i class="bi bi-wallet2 me-1" aria-hidden="true"></i>{{ formatMoney(g.summary.cost, trip.currency) }}
@@ -73,10 +73,10 @@ function duration(l: TravelLeg) {
     </div>
 
     <p v-if="g.legs.length === 0" class="text-body-secondary small mb-0">
-      Noch keine Etappe.
+      {{ $t('Noch keine Etappe.') }}
       <template v-if="g.dir === 'rueck' && canReverse">
         <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="createReturn">
-          Rückreise aus der Hinreise übernehmen
+          {{ $t('Rückreise aus der Hinreise übernehmen') }}
         </button>
       </template>
     </p>
@@ -86,7 +86,7 @@ function duration(l: TravelLeg) {
       <li v-for="(l, i) in g.legs" :key="l.id" class="leg">
         <div v-if="g.broken.has(l.id)" class="small text-warning-emphasis mb-1">
           <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
-          Lücke: vorher endet in „{{ g.legs[i - 1].to }}“
+          {{ $t('Lücke: vorher endet in „{0}“', [g.legs[i - 1].to]) }}
         </div>
         <div class="card position-relative">
           <div class="card-body py-2 d-flex gap-3">
@@ -101,33 +101,32 @@ function duration(l: TravelLeg) {
                 <template v-if="l.departTime"> · {{ l.departTime }}</template>
                 <template v-if="l.arriveTime"> – {{ l.arriveTime }}</template>
                 <template v-if="duration(l) !== null"> ({{ formatDuration(duration(l)!) }})</template>
-                <template v-if="l.distanceKm"> · {{ l.distanceKm }} km</template>
+                <template v-if="l.distanceKm"> {{ $t('· {0} km', [l.distanceKm]) }}</template>
                 <template v-if="legCost(l) !== null"> · {{ formatMoney(legCost(l)!, l.currency) }}</template>
               </div>
               <div v-if="recommendedBreaks(l.mode, duration(l)) > 0" class="small text-body-secondary">
                 <i class="bi bi-cup-hot me-1" aria-hidden="true"></i>
-                {{ recommendedBreaks(l.mode, duration(l)) }} {{ recommendedBreaks(l.mode, duration(l)) === 1 ? 'Pause' : 'Pausen' }}
-                einplanen (alle 2 Std. ca. 15–20 Min.)
+                {{ $t('{0} {1} einplanen (alle 2 Std. ca. 15–20 Min.)', [recommendedBreaks(l.mode, duration(l)), recommendedBreaks(l.mode, duration(l)) === 1 ? $t('Pause') : $t('Pausen')]) }}
               </div>
               <div class="d-flex flex-wrap gap-3 small mt-1 position-relative z-2">
                 <a :href="appleMapsUrl(l.from, l.to, l.mode)" target="_blank" rel="noopener noreferrer">
-                  <i class="bi bi-map me-1" aria-hidden="true"></i>Apple Karten
+                  <i class="bi bi-map me-1" aria-hidden="true"></i>{{ $t('Apple Karten') }}
                 </a>
                 <a :href="googleMapsUrl(l.from, l.to, l.mode)" target="_blank" rel="noopener noreferrer">
-                  <i class="bi bi-google me-1" aria-hidden="true"></i>Google Maps
+                  <i class="bi bi-google me-1" aria-hidden="true"></i>{{ $t('Google Maps') }}
                 </a>
                 <a v-if="safeUrl(l.url)" :href="safeUrl(l.url)!" target="_blank" rel="noopener noreferrer">
-                  <i class="bi bi-ticket-perforated me-1" aria-hidden="true"></i>Buchung
+                  <i class="bi bi-ticket-perforated me-1" aria-hidden="true"></i>{{ $t('Buchung') }}
                 </a>
               </div>
             </div>
             <div class="d-flex flex-column gap-1 position-relative z-2">
               <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="i === 0"
-                      aria-label="Nach oben" @click="move(g.dir, l.id, -1)">
+                      :aria-label="$t('Nach oben')" @click="move(g.dir, l.id, -1)">
                 <i class="bi bi-chevron-up" aria-hidden="true"></i>
               </button>
               <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="i === g.legs.length - 1"
-                      aria-label="Nach unten" @click="move(g.dir, l.id, 1)">
+                      :aria-label="$t('Nach unten')" @click="move(g.dir, l.id, 1)">
                 <i class="bi bi-chevron-down" aria-hidden="true"></i>
               </button>
             </div>

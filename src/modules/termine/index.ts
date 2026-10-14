@@ -6,11 +6,12 @@ import { formatDate } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { asReminderTrip, startCalendarSync } from './calendar'
 import { startPushSchedule } from './push-zeitplan'
+import { N_ } from '@/core/i18n'
 
 /** Modul „Termine & Fristen“: sammelt, was die anderen Bereiche an Daten kennen – und gibt es an den Kalender. */
 export const termineModule: AppModule = {
   id: 'termine',
-  title: 'Termine & Fristen',
+  title: N_('Termine & Fristen'),
   icon: 'calendar-check',
   order: 13,
   routes: [{ path: '/trip/:tripId/termine', name: 'termine', component: () => import('./views/TermineView.vue'), props: true }],
@@ -20,7 +21,7 @@ export const termineModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Termine & Fristen',
+    title: N_('Termine & Fristen'),
     icon: 'calendar-check',
     to: (tripId) => `/trip/${tripId}/termine`,
     async summary(tripId) {

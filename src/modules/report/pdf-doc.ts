@@ -7,6 +7,7 @@
 import type { Content, ContentStack, TDocumentDefinitions } from 'pdfmake/interfaces'
 import { MM, chunkPhotos, estimateTextHeight, pageGeometry, slotRects, type PageFormat, type PageGeometry, type Rect } from './pdf-layout'
 import { photoColumns } from './logic'
+import { locale } from '@/core/i18n'
 
 export interface PdfPhoto {
   id: string
@@ -101,8 +102,8 @@ function request(id: string, w: number, h: number, crop: boolean, source: { widt
   return { key: `${id}@${Math.round(w)}x${Math.round(h)}${crop ? 'c' : ''}`, id, w: round(w), h: round(h), crop, focusY, source }
 }
 
-const dateLong = (d: string) => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
-const dateShort = (d: string) => new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
+const dateLong = (d: string) => new Intl.DateTimeFormat(locale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
+const dateShort = (d: string) => new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
 const paras = (t: string) => t.trim().split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean)
 /** SVG aus der App fürs PDF: Farben, die sonst aus der Umgebung kämen, fest setzen */
 const pdfSvg = (svg: string) => svg.replace(/currentColor/g, '#555555').replace(/font-family="[^"]*"/g, 'font-family="Roboto"')

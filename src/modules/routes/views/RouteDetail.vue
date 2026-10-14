@@ -10,6 +10,7 @@ import { formatDistance, formatDuration, gpxFileName, lacksElevation, profileSvg
 import { useOnline } from '@/core/composables'
 import { routeRepository } from '../repository'
 import { FORMAT_LABEL, ROUTE_COLORS, type Route, type RouteDraft } from '../types'
+import { locale } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id: string }>()
 const router = useRouter()
@@ -60,12 +61,12 @@ const profile = computed(() => (route.value ? profileSvg(route.value.points, { c
 const facts = computed(() => {
   const s = route.value?.stats
   if (!s) return []
-  const time = (t: number | null) => (t === null ? '' : new Date(t * 1000).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }))
+  const time = (t: number | null) => (t === null ? '' : new Date(t * 1000).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' }))
   return [
     { label: 'Länge', value: formatDistance(s.distance) },
-    { label: 'Aufstieg', value: s.ascent ? `${s.ascent.toLocaleString('de-DE')} m` : '–' },
-    { label: 'Abstieg', value: s.descent ? `${s.descent.toLocaleString('de-DE')} m` : '–' },
-    { label: 'Höhe', value: s.minEle !== null ? `${s.minEle.toLocaleString('de-DE')} – ${s.maxEle!.toLocaleString('de-DE')} m` : '–' },
+    { label: 'Aufstieg', value: s.ascent ? `${s.ascent.toLocaleString(locale())} m` : '–' },
+    { label: 'Abstieg', value: s.descent ? `${s.descent.toLocaleString(locale())} m` : '–' },
+    { label: 'Höhe', value: s.minEle !== null ? `${s.minEle.toLocaleString(locale())} – ${s.maxEle!.toLocaleString(locale())} m` : '–' },
     { label: 'Dauer', value: formatDuration(s.duration) || '–' },
     { label: 'Start', value: time(s.start) || '–' }
   ]
@@ -104,9 +105,9 @@ async function remove() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="draft.name || 'Route'" />
+  <TripContextHeader :trip-id="tripId" :title="draft.name || $t('Route')" />
 
-  <div v-if="!route" class="text-body-secondary">Route nicht gefunden.</div>
+  <div v-if="!route" class="text-body-secondary">{{ $t('Route nicht gefunden.') }}</div>
   <template v-else>
     <RouteMap :lines="lines" markers height="340px" class="mb-3" />
 
@@ -122,61 +123,61 @@ async function remove() {
     </div>
 
     <div v-if="noEle" class="alert alert-info d-flex flex-wrap align-items-center gap-2 py-2">
-      <span class="flex-grow-1 small"><i class="bi bi-graph-up me-1" aria-hidden="true"></i>Die Datei enthält keine Höhen – daher kein Höhenprofil und keine Höhenmeter.</span>
+      <span class="flex-grow-1 small"><i class="bi bi-graph-up me-1" aria-hidden="true"></i>{{ $t('Die Datei enthält keine Höhen – daher kein Höhenprofil und keine Höhenmeter.') }}</span>
       <button type="button" class="btn btn-sm btn-primary" :disabled="eleBusy || !online" @click="fillEle">
-        <span v-if="eleBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Höhen ergänzen
+        <span v-if="eleBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Höhen ergänzen') }}
       </button>
       <div v-if="eleMsg" class="w-100 small text-danger">{{ eleMsg }}</div>
     </div>
     <p v-else-if="route.elevationSource === 'gelaende'" class="small text-body-secondary">
-      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Höhen aus dem Geländemodell ergänzt (Open-Meteo, ca. 90 m Raster) – nicht gemessen.
+      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ $t('Höhen aus dem Geländemodell ergänzt (Open-Meteo, ca. 90 m Raster) – nicht gemessen.') }}
     </p>
 
     <section class="card mb-3">
       <div class="card-body">
         <div class="mb-2">
-          <label for="r-name" class="form-label small">Name</label>
+          <label for="r-name" class="form-label small">{{ $t('Name') }}</label>
           <input id="r-name" v-model="draft.name" class="form-control" maxlength="120" />
         </div>
         <div class="row g-2 mb-2">
           <div class="col-12 col-md-6">
-            <label for="r-day" class="form-label small">Tag der Reise</label>
+            <label for="r-day" class="form-label small">{{ $t('Tag der Reise') }}</label>
             <select id="r-day" v-model="draft.date" class="form-select">
-              <option value="">– ohne Tag –</option>
-              <option v-for="(d, i) in days" :key="d" :value="d">Tag {{ i + 1 }} · {{ formatDayShort(d) }}</option>
+              <option value="">{{ $t('– ohne Tag –') }}</option>
+              <option v-for="(d, i) in days" :key="d" :value="d">{{ $t('Tag {0} · {1}', [i + 1, formatDayShort(d)]) }}</option>
               <option v-if="draft.date && !days.includes(draft.date)" :value="draft.date">{{ formatDayShort(draft.date) }}</option>
             </select>
           </div>
           <div class="col-12 col-md-6">
-            <span class="form-label small d-block">Farbe</span>
-            <div class="d-flex flex-wrap gap-1" role="radiogroup" aria-label="Farbe">
+            <span class="form-label small d-block">{{ $t('Farbe') }}</span>
+            <div class="d-flex flex-wrap gap-1" role="radiogroup" :aria-label="$t('Farbe')">
               <button v-for="c in ROUTE_COLORS" :key="c" type="button" class="swatch" :class="{ active: draft.color === c }" :style="{ background: c }"
                       :aria-label="`Farbe ${c}`" :aria-pressed="draft.color === c" @click="draft.color = c"></button>
             </div>
           </div>
         </div>
         <div class="mb-2">
-          <label for="r-notes" class="form-label small">Notizen</label>
-          <textarea id="r-notes" v-model="draft.notes" rows="3" class="form-control" placeholder="z. B. Parkplatz, Einkehr, Wegbeschaffenheit"></textarea>
+          <label for="r-notes" class="form-label small">{{ $t('Notizen') }}</label>
+          <textarea id="r-notes" v-model="draft.notes" rows="3" class="form-control" :placeholder="$t('z. B. Parkplatz, Einkehr, Wegbeschaffenheit')"></textarea>
         </div>
         <div class="form-check form-switch">
           <input id="r-share" v-model="draft.showInShare" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="r-share">Auf Reise-Webseite und in Lese-Links zeigen</label>
+          <label class="form-check-label" for="r-share">{{ $t('Auf Reise-Webseite und in Lese-Links zeigen') }}</label>
         </div>
-        <div class="form-text">Wird automatisch gespeichert.</div>
+        <div class="form-text">{{ $t('Wird automatisch gespeichert.') }}</div>
       </div>
     </section>
 
     <div class="d-flex flex-wrap gap-2 mb-2">
-      <button type="button" class="btn btn-outline-primary" @click="exportGpx"><i class="bi bi-download me-1" aria-hidden="true"></i>Als GPX (für Garmin)</button>
+      <button type="button" class="btn btn-outline-primary" @click="exportGpx"><i class="bi bi-download me-1" aria-hidden="true"></i>{{ $t('Als GPX (für Garmin)') }}</button>
       <button v-if="route.original" type="button" class="btn btn-outline-secondary" @click="downloadOriginal">
-        <i class="bi bi-file-earmark me-1" aria-hidden="true"></i>Originaldatei ({{ FORMAT_LABEL[route.format] }})
+        <i class="bi bi-file-earmark me-1" aria-hidden="true"></i>{{ $t('Originaldatei ({0})', [FORMAT_LABEL[route.format]]) }}
       </button>
-      <button type="button" class="btn btn-outline-danger ms-auto" @click="remove"><i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen</button>
+      <button type="button" class="btn btn-outline-danger ms-auto" @click="remove"><i class="bi bi-trash me-1" aria-hidden="true"></i>{{ $t('Löschen') }}</button>
     </div>
     <p class="small text-body-secondary">
-      GPX aufs Gerät: <strong>GPSMap</strong> per USB in den Ordner <code>Garmin/GPX</code> kopieren (oder Basecamp);
-      <strong>Fenix</strong> über Garmin Connect → Training &amp; Planung → Strecken → „Strecke importieren“ und dann ans Gerät senden.
+      {{ $t('GPX aufs Gerät:') }} <strong>{{ $t('GPSMap') }}</strong> {{ $t('per USB in den Ordner') }} <code>Garmin/GPX</code> {{ $t('kopieren (oder Basecamp);') }}
+      <strong>{{ $t('Fenix') }}</strong> {{ $t('über Garmin Connect → Training & Planung → Strecken → „Strecke importieren“ und dann ans Gerät senden.') }}
     </p>
   </template>
 </template>

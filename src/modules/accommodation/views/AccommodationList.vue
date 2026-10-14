@@ -20,30 +20,30 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Unterkünfte" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Unterkünfte')" />
 
   <!-- Übersicht: Abdeckung der Nächte -->
   <div v-if="cov && cov.totalNights > 0" class="card mb-3">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-baseline mb-2">
-        <strong>{{ cov.bookedNights }} von {{ cov.totalNights }} Nächten gebucht</strong>
+        <strong>{{ $t('{0} von {1} Nächten gebucht', [cov.bookedNights, cov.totalNights]) }}</strong>
         <span v-if="cost > 0 && trip" class="small text-body-secondary">{{ formatMoney(cost, trip.currency) }}</span>
       </div>
       <div class="progress mb-2" role="progressbar" :aria-valuenow="coveragePct" aria-valuemin="0" aria-valuemax="100"
-           aria-label="Gebuchte Nächte">
+           :aria-label="$t('Gebuchte Nächte')">
         <div class="progress-bar bg-success" :style="{ width: `${coveragePct}%` }"></div>
       </div>
       <div v-if="cov.gaps.length" class="small">
-        <span class="text-body-secondary">Noch offen:</span>
+        <span class="text-body-secondary">{{ $t('Noch offen:') }}</span>
         <span v-for="g in cov.gaps" :key="g.from" class="badge text-bg-light border ms-1">
           {{ formatDayShort(g.from) }}<template v-if="g.nights > 1"> – {{ formatDayShort(g.to) }}</template>
-          ({{ g.nights }} {{ g.nights === 1 ? 'Nacht' : 'Nächte' }})
+          ({{ g.nights }} {{ g.nights === 1 ? $t('Nacht') : $t('Nächte') }})
         </span>
       </div>
-      <div v-else class="small text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Alle Nächte gebucht.</div>
+      <div v-else class="small text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ $t('Alle Nächte gebucht.') }}</div>
       <div v-if="cov.doubleBooked.length" class="small text-danger mt-1">
         <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>
-        Doppelt gebucht: {{ cov.doubleBooked.map(formatDayShort).join(', ') }}
+        {{ $t('Doppelt gebucht: {0}', [cov.doubleBooked.map(formatDayShort).join(', ')]) }}
       </div>
     </div>
   </div>
@@ -51,22 +51,20 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
   <!-- Stornofristen -->
   <div v-for="d in deadlines" :key="d.accommodation.id" class="alert alert-warning py-2 small">
     <i class="bi bi-alarm me-1" aria-hidden="true"></i>
-    {{ d.accommodation.name }}: kostenlos stornierbar nur noch
-    {{ d.daysLeft === 0 ? 'heute' : `${d.daysLeft} ${d.daysLeft === 1 ? 'Tag' : 'Tage'}` }}
-    (bis {{ formatDate(d.accommodation.cancelUntil) }}).
+    {{ $t('{0}: kostenlos stornierbar nur noch {1} (bis {2}).', [d.accommodation.name, d.daysLeft === 0 ? 'heute' : `${d.daysLeft} ${d.daysLeft === 1 ? 'Tag' : 'Tage'}`, formatDate(d.accommodation.cancelUntil)]) }}
   </div>
 
   <div class="d-flex flex-wrap gap-2 mb-3">
     <RouterLink :to="`/trip/${tripId}/unterkuenfte/neu`" class="btn btn-primary">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Unterkunft hinzufügen
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Unterkunft hinzufügen') }}
     </RouterLink>
     <RouterLink :to="`/trip/${tripId}/buchung`" class="btn btn-outline-primary">
-      <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>Buchung einlesen
+      <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>{{ $t('Buchung einlesen') }}
     </RouterLink>
   </div>
 
   <p v-if="sorted.length === 0" class="text-body-secondary">
-    Noch keine Unterkunft. Lege auch Ideen an – so behältst du Vergleiche im Blick.
+    {{ $t('Noch keine Unterkunft. Lege auch Ideen an – so behältst du Vergleiche im Blick.') }}
   </p>
 
   <div class="vstack gap-2">
@@ -80,7 +78,7 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
             <div class="small text-body-secondary">
               {{ ACCOMMODATION_TYPE_LABELS[a.type] }} ·
               {{ formatDayShort(a.checkIn) }} – {{ formatDayShort(a.checkOut) }} ·
-              {{ nights(a.checkIn, a.checkOut) }} {{ nights(a.checkIn, a.checkOut) === 1 ? 'Nacht' : 'Nächte' }}
+              {{ nights(a.checkIn, a.checkOut) }} {{ nights(a.checkIn, a.checkOut) === 1 ? $t('Nacht') : $t('Nächte') }}
             </div>
             <div v-if="a.address" class="small text-body-secondary">
               <i class="bi bi-geo-alt" aria-hidden="true"></i> {{ a.address }}
@@ -90,13 +88,13 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
             <span class="badge" :class="ACCOMMODATION_STATUS[a.status].badge">{{ ACCOMMODATION_STATUS[a.status].label }}</span>
             <div v-if="a.price !== null" class="small mt-1">{{ formatMoney(a.price, a.currency) }}</div>
             <div v-if="pricePerNight(a) !== null" class="small text-body-secondary">
-              {{ formatMoney(pricePerNight(a)!, a.currency) }}/Nacht
+              {{ $t('{0}/Nacht', [formatMoney(pricePerNight(a)!, a.currency)]) }}
             </div>
           </div>
         </div>
         <a v-if="safeUrl(a.url)" :href="safeUrl(a.url)!" target="_blank" rel="noopener noreferrer"
            class="small position-relative z-2">
-          <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Zur Unterkunft
+          <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{{ $t('Zur Unterkunft') }}
         </a>
       </div>
     </div>

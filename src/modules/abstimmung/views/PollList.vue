@@ -97,37 +97,37 @@ const pct = (x: number) => `${Math.round(x * 100)} %`
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Abstimmungen" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Abstimmungen')" />
 
   <!-- Wer stimmt ab? -->
   <div v-if="!me.fixed" class="d-flex flex-wrap align-items-center gap-2 mb-3" data-poll-me>
-    <label for="poll-me" class="small fw-semibold">Ich stimme ab als</label>
+    <label for="poll-me" class="small fw-semibold">{{ $t('Ich stimme ab als') }}</label>
     <select v-if="participants.length" id="poll-me" v-model="chosen" class="form-select form-select-sm w-auto">
-      <option value="">– bitte wählen –</option>
+      <option value="">{{ $t('– bitte wählen –') }}</option>
       <option v-for="p in participants" :key="p" :value="p">{{ p }}</option>
     </select>
-    <input v-else id="poll-me" v-model.lazy.trim="chosen" class="form-control form-control-sm w-auto" placeholder="Dein Name" />
-    <span class="small text-body-secondary">(auf diesem Gerät gemerkt)</span>
+    <input v-else id="poll-me" v-model.lazy.trim="chosen" class="form-control form-control-sm w-auto" :placeholder="$t('Dein Name')" />
+    <span class="small text-body-secondary">{{ $t('(auf diesem Gerät gemerkt)') }}</span>
   </div>
-  <p v-else class="small text-body-secondary mb-3"><i class="bi bi-person-check me-1" aria-hidden="true"></i>Du stimmst ab als <strong>{{ me.name }}</strong>.</p>
+  <p v-else class="small text-body-secondary mb-3"><i class="bi bi-person-check me-1" aria-hidden="true"></i>{{ $t('Du stimmst ab als') }} <strong>{{ me.name }}</strong>.</p>
 
   <button v-if="editable && !showForm" type="button" class="btn btn-primary mb-3" data-poll-new @click="showForm = true">
-    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Abstimmung
+    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Neue Abstimmung') }}
   </button>
 
   <form v-if="showForm" class="card mb-3" data-poll-form @submit.prevent="create">
     <div class="card-body">
-      <h2 class="h6">Neue Abstimmung</h2>
+      <h2 class="h6">{{ $t('Neue Abstimmung') }}</h2>
       <div class="mb-2">
-        <label for="poll-q" class="form-label small">Frage</label>
-        <input id="poll-q" v-model="form.question" class="form-control" maxlength="200" placeholder="z. B. Wohin am Samstag?" required />
+        <label for="poll-q" class="form-label small">{{ $t('Frage') }}</label>
+        <input id="poll-q" v-model="form.question" class="form-control" maxlength="200" :placeholder="$t('z. B. Wohin am Samstag?')" required />
       </div>
       <div class="mb-2">
-        <label for="poll-lines" class="form-label small">Antworten – eine pro Zeile</label>
-        <textarea id="poll-lines" v-model="form.lines" class="form-control" rows="4" placeholder="Bergsee&#10;Altstadt&#10;Therme"></textarea>
+        <label for="poll-lines" class="form-label small">{{ $t('Antworten – eine pro Zeile') }}</label>
+        <textarea id="poll-lines" v-model="form.lines" class="form-control" rows="4" :placeholder="$t('Bergsee\nAltstadt\nTherme')"></textarea>
       </div>
       <details v-if="ideas.length" class="mb-2 small">
-        <summary>Unternehmungen zur Wahl stellen ({{ ideas.length }})</summary>
+        <summary>{{ $t('Unternehmungen zur Wahl stellen ({0})', [ideas.length]) }}</summary>
         <div v-for="a in ideas" :key="a.id" class="form-check mt-1">
           <input :id="`idea-${a.id}`" v-model="form.ideas" class="form-check-input" type="checkbox" :value="a.id" />
           <label class="form-check-label" :for="`idea-${a.id}`">{{ a.title }}</label>
@@ -137,40 +137,39 @@ const pct = (x: number) => `${Math.round(x * 100)} %`
         <div class="col-sm-6 d-flex align-items-center">
           <div class="form-check form-switch mb-0">
             <input id="poll-multi" v-model="form.multiple" class="form-check-input" type="checkbox" role="switch" />
-            <label class="form-check-label small" for="poll-multi">Mehrere Antworten erlaubt</label>
+            <label class="form-check-label small" for="poll-multi">{{ $t('Mehrere Antworten erlaubt') }}</label>
           </div>
         </div>
         <div class="col-sm-6">
-          <label for="poll-deadline" class="form-label small mb-0">Abstimmen bis (optional)</label>
+          <label for="poll-deadline" class="form-label small mb-0">{{ $t('Abstimmen bis (optional)') }}</label>
           <input id="poll-deadline" v-model="form.deadline" type="date" class="form-control form-control-sm" />
         </div>
       </div>
       <div class="mb-2">
-        <label for="poll-notes" class="form-label small">Hinweis (optional)</label>
+        <label for="poll-notes" class="form-label small">{{ $t('Hinweis (optional)') }}</label>
         <input id="poll-notes" v-model="form.notes" class="form-control form-control-sm" maxlength="500" />
       </div>
       <div v-if="formError" class="alert alert-danger py-1 small">{{ formError }}</div>
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Abstimmung starten</button>
-        <button type="button" class="btn btn-outline-secondary" @click="showForm = false">Abbrechen</button>
+        <button type="submit" class="btn btn-primary">{{ $t('Abstimmung starten') }}</button>
+        <button type="button" class="btn btn-outline-secondary" @click="showForm = false">{{ $t('Abbrechen') }}</button>
       </div>
     </div>
   </form>
 
   <p v-if="!polls.length && !showForm" class="text-body-secondary on-bg">
-    Gemeinsam entscheiden: Wohin am Samstag? Welches Restaurant? Welche Unterkunft? – Alle Mitreisenden stimmen auf ihrem Gerät ab,
-    das Ergebnis sehen alle sofort.
+    {{ $t('Gemeinsam entscheiden: Wohin am Samstag? Welches Restaurant? Welche Unterkunft? – Alle Mitreisenden stimmen auf ihrem Gerät ab, das Ergebnis sehen alle sofort.') }}
   </p>
 
   <section v-for="p in sorted" :key="p.id" class="card mb-3" :class="{ 'border-primary': isOpen(p, today) }" data-poll>
     <div class="card-body">
       <h2 class="h5 mb-1">{{ p.question }}</h2>
       <div class="small text-body-secondary mb-2 d-flex flex-wrap gap-2">
-        <span v-if="!isOpen(p, today)" class="badge text-bg-secondary">beendet</span>
-        <span v-else class="badge text-bg-primary">offen</span>
-        <span v-if="p.multiple">Mehrere Antworten möglich</span>
-        <span v-if="p.deadline">bis {{ formatDate(p.deadline) }}</span>
-        <span v-if="p.createdBy">von {{ p.createdBy }}</span>
+        <span v-if="!isOpen(p, today)" class="badge text-bg-secondary">{{ $t('beendet') }}</span>
+        <span v-else class="badge text-bg-primary">{{ $t('offen') }}</span>
+        <span v-if="p.multiple">{{ $t('Mehrere Antworten möglich') }}</span>
+        <span v-if="p.deadline">{{ $t('bis {0}', [formatDate(p.deadline)]) }}</span>
+        <span v-if="p.createdBy">{{ $t('von {0}', [p.createdBy]) }}</span>
       </div>
       <p v-if="p.notes" class="small mb-2">{{ p.notes }}</p>
 
@@ -182,7 +181,7 @@ const pct = (x: number) => `${Math.round(x * 100)} %`
             <i class="bi" :class="myChoices(p).includes(r.option.id) ? (p.multiple ? 'bi-check-square-fill' : 'bi-check-circle-fill') + ' text-primary' : p.multiple ? 'bi-square' : 'bi-circle'" aria-hidden="true"></i>
             <span class="flex-grow-1 text-start">
               {{ r.option.text }}
-              <i v-if="r.option.activityId" class="bi bi-star text-body-secondary ms-1" title="Unternehmung" aria-hidden="true"></i>
+              <i v-if="r.option.activityId" class="bi bi-star text-body-secondary ms-1" :title="$t('Unternehmung')" aria-hidden="true"></i>
               <i v-if="r.leading && resultOf(p).voters.length" class="bi bi-trophy-fill text-warning ms-1" title="vorne" aria-hidden="true"></i>
             </span>
             <span class="badge text-bg-light border">{{ r.count }}</span>
@@ -195,28 +194,28 @@ const pct = (x: number) => `${Math.round(x * 100)} %`
       </div>
 
       <div v-if="isOpen(p, today) && editable" class="input-group input-group-sm mb-2">
-        <input v-model="newOption[p.id]" class="form-control" placeholder="Weitere Antwort" maxlength="200" :aria-label="`Weitere Antwort für ${p.question}`" @keydown.enter.prevent="addOption(p)" />
-        <button type="button" class="btn btn-outline-secondary" @click="addOption(p)">Hinzufügen</button>
+        <input v-model="newOption[p.id]" class="form-control" :placeholder="$t('Weitere Antwort')" maxlength="200" :aria-label="`Weitere Antwort für ${p.question}`" @keydown.enter.prevent="addOption(p)" />
+        <button type="button" class="btn btn-outline-secondary" @click="addOption(p)">{{ $t('Hinzufügen') }}</button>
       </div>
 
       <div class="small text-body-secondary mb-2" data-poll-status>
-        {{ resultOf(p).voters.length }} {{ resultOf(p).voters.length === 1 ? 'Stimme' : 'Stimmen' }}
-        <template v-if="isOpen(p, today) && participants.length && missing(p).length"> · fehlt noch: {{ missing(p).join(', ') }}</template>
-        <template v-else-if="isOpen(p, today) && participants.length"> · alle haben abgestimmt</template>
-        <template v-if="isOpen(p, today) && !me.name"> · zum Abstimmen oben deinen Namen wählen</template>
+        {{ resultOf(p).voters.length }} {{ resultOf(p).voters.length === 1 ? $t('Stimme') : $t('Stimmen') }}
+        <template v-if="isOpen(p, today) && participants.length && missing(p).length"> {{ $t('· fehlt noch: {0}', [missing(p).join(', ')]) }}</template>
+        <template v-else-if="isOpen(p, today) && participants.length"> {{ $t('· alle haben abgestimmt') }}</template>
+        <template v-if="isOpen(p, today) && !me.name"> {{ $t('· zum Abstimmen oben deinen Namen wählen') }}</template>
       </div>
 
       <div v-if="!isOpen(p, today)" class="mb-2">
         <button v-for="a in winnerActivities(p)" :key="a.id" type="button" class="btn btn-sm btn-success me-2 mb-1" :disabled="!editable" @click="plan(a)">
-          <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>„{{ a.title }}“ einplanen
+          <i class="bi bi-calendar-check me-1" aria-hidden="true"></i>{{ $t('„{0}“ einplanen', [a.title]) }}
         </button>
       </div>
 
       <div v-if="editable" class="d-flex flex-wrap gap-2">
-        <button v-if="!p.closed" type="button" class="btn btn-sm btn-outline-secondary" data-poll-close @click="setClosed(p, true)">Beenden</button>
-        <button v-else type="button" class="btn btn-sm btn-outline-secondary" @click="setClosed(p, false)">Wieder öffnen</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @click="restart(p)">Neu abstimmen</button>
-        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="remove(p)"><i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">Löschen</span></button>
+        <button v-if="!p.closed" type="button" class="btn btn-sm btn-outline-secondary" data-poll-close @click="setClosed(p, true)">{{ $t('Beenden') }}</button>
+        <button v-else type="button" class="btn btn-sm btn-outline-secondary" @click="setClosed(p, false)">{{ $t('Wieder öffnen') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="restart(p)">{{ $t('Neu abstimmen') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="remove(p)"><i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">{{ $t('Löschen') }}</span></button>
       </div>
     </div>
   </section>

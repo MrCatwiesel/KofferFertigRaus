@@ -1,6 +1,7 @@
 import type { DayFact } from '@/core/registry'
 import { formatDistance, formatDuration } from '@/services/tracks'
 import type { Route } from './types'
+import { locale } from '@/core/i18n'
 
 /** Touren des Tages mit Strecke, Höhenmetern, Zeit und höchstem Punkt */
 export function routeDayFacts(routes: readonly Pick<Route, 'name' | 'kind' | 'date' | 'stats'>[], date: string): DayFact[] {
@@ -11,9 +12,9 @@ export function routeDayFacts(routes: readonly Pick<Route, 'name' | 'kind' | 'da
       const s = r.stats
       const parts = [
         formatDistance(s.distance),
-        s.ascent ? `${s.ascent.toLocaleString('de-DE')} Höhenmeter hinauf` : '',
+        s.ascent ? `${s.ascent.toLocaleString(locale())} Höhenmeter hinauf` : '',
         s.duration ? `${formatDuration(s.duration)} unterwegs` : '',
-        s.maxEle !== null && s.maxEle > 0 ? `höchster Punkt ${Math.round(s.maxEle).toLocaleString('de-DE')} m` : ''
+        s.maxEle !== null && s.maxEle > 0 ? `höchster Punkt ${Math.round(s.maxEle).toLocaleString(locale())} m` : ''
       ].filter(Boolean)
       return {
         order: 40,

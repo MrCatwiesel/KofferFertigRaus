@@ -2,11 +2,12 @@ import type { AppModule } from '@/core/registry'
 import { packingRepository } from './repository'
 import { progress } from './logic'
 import { packingReminders } from './reminders'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Packliste" (Meilenstein M2). */
 export const packingModule: AppModule = {
   id: 'packing',
-  title: 'Packliste',
+  title: N_('Packliste'),
   icon: 'backpack',
   order: 40,
   routes: [
@@ -17,7 +18,7 @@ export const packingModule: AppModule = {
   reminders: async (trip, today) => packingReminders(await packingRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung'],
-    title: 'Packliste',
+    title: N_('Packliste'),
     icon: 'backpack',
     to: (tripId) => `/trip/${tripId}/packliste`,
     async summary(tripId) {

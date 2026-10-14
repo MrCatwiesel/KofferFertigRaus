@@ -3,17 +3,18 @@ import { accommodationRepository } from '@/modules/accommodation/public'
 import { activityRepository } from '@/modules/activity/public'
 import { placeRepository } from './repository'
 import { offlineMapRepository } from './offline'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Karte". */
 export const mapModule: AppModule = {
   id: 'map',
-  title: 'Karte',
+  title: N_('Karte'),
   icon: 'map',
   order: 14,
   routes: [{ path: '/trip/:tripId/karte', name: 'map', component: () => import('./views/MapView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Karte',
+    title: N_('Karte'),
     icon: 'map',
     to: (tripId) => `/trip/${tripId}/karte`,
     async summary(tripId) {

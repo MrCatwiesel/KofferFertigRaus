@@ -40,7 +40,7 @@ onUnmounted(() => map?.remove())
 </script>
 
 <template>
-  <div ref="el" class="trips-map rounded" role="region" aria-label="Karte aller Reisen"></div>
+  <div ref="el" class="trips-map rounded" role="region" :aria-label="$t('Karte aller Reisen')"></div>
 </template>
 
 <style scoped>

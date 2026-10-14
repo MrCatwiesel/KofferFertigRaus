@@ -4,11 +4,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
 import { accommodationReminders } from './reminders'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Unterkünfte" (Meilenstein M1). */
 export const accommodationModule: AppModule = {
   id: 'accommodation',
-  title: 'Unterkünfte',
+  title: N_('Unterkünfte'),
   icon: 'house-door',
   order: 20,
   routes: [
@@ -19,7 +20,7 @@ export const accommodationModule: AppModule = {
   reminders: async (trip, today) => accommodationReminders(await accommodationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Unterkünfte',
+    title: N_('Unterkünfte'),
     icon: 'house-door',
     to: (tripId) => `/trip/${tripId}/unterkuenfte`,
     async summary(tripId) {

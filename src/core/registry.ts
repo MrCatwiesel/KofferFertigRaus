@@ -1,6 +1,7 @@
 import { sortReminders, type Reminder, type ReminderTrip } from './reminders'
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
+import { translated } from './i18n'
 
 /**
  * Ein Abschnitt auf der Reise-Detailseite, den ein Modul beisteuert
@@ -203,13 +204,13 @@ export function getModules(): readonly AppModule[] {
 export function getNavItems() {
   return getModules()
     .filter((m) => m.navTo)
-    .map((m) => ({ id: m.id, title: m.title, icon: m.icon, to: m.navTo! }))
+    .map((m) => translated({ id: m.id, title: m.title, icon: m.icon, to: m.navTo! }))
 }
 
 export function getTripSections(): (TripSection & { moduleId: string })[] {
   return getModules()
     .filter((m) => m.tripSection)
-    .map((m) => ({ ...m.tripSection!, moduleId: m.id }))
+    .map((m) => translated({ ...m.tripSection!, moduleId: m.id }))
 }
 
 /** Ruft die Aufräum-Funktionen aller Module für eine gelöschte Reise auf. */

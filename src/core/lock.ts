@@ -5,6 +5,7 @@
  * Gespeichert in localStorage dieses Geräts (wird nicht abgeglichen): Salz + PBKDF2-Prüfwert des Codes, Kennung des Schlüssels.
  */
 import { reactive } from 'vue'
+import { N_, t, translated } from '@/core/i18n'
 
 const KEY = 'nww-sperre'
 const ITERATIONS = 150_000
@@ -26,13 +27,13 @@ interface Attempts {
   until: number
 }
 
-export const LOCK_TIMEOUTS = [
-  { min: 0, label: 'Sofort beim Verlassen der App' },
-  { min: 1, label: 'Nach 1 Minute' },
-  { min: 5, label: 'Nach 5 Minuten' },
-  { min: 15, label: 'Nach 15 Minuten' },
-  { min: 60, label: 'Nach 1 Stunde' }
-]
+export const LOCK_TIMEOUTS = translated([
+  { min: 0, label: N_('Sofort beim Verlassen der App') },
+  { min: 1, label: N_('Nach 1 Minute') },
+  { min: 5, label: N_('Nach 5 Minuten') },
+  { min: 15, label: N_('Nach 15 Minuten') },
+  { min: 60, label: N_('Nach 1 Stunde') }
+])
 
 const b64 = (buf: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(buf as ArrayBuffer))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 const unb64 = (s: string) => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), (c) => c.charCodeAt(0))
@@ -77,7 +78,7 @@ export const validPin = (pin: string) => /^\d{4,8}$/.test(pin)
 
 /** Sperre einrichten oder Code ändern */
 export async function setPin(pin: string, timeoutMin = lock.timeoutMin): Promise<void> {
-  if (!validPin(pin)) throw new Error('Der Code braucht 4 bis 8 Ziffern.')
+  if (!validPin(pin)) throw new Error(t('Der Code braucht 4 bis 8 Ziffern.'))
   const salt = random(16)
   const old = readConfig()
   writeConfig({ salt: b64(salt), hash: await pinHash(pin, salt), iterations: ITERATIONS, length: pin.length, credentialId: old?.credentialId ?? null, timeoutMin })
@@ -135,7 +136,7 @@ export async function biometricAvailable(): Promise<boolean> {
 /** Face ID / Touch ID einrichten (legt auf dem Gerät einen Schlüssel nur für diese App an) */
 export async function enableBiometric(): Promise<void> {
   const c = readConfig()
-  if (!c) throw new Error('Zuerst einen Code festlegen.')
+  if (!c) throw new Error(t('Zuerst einen Code festlegen.'))
   const cred = (await navigator.credentials.create({
     publicKey: {
       rp: { name: 'Nix wie weg', id: location.hostname },

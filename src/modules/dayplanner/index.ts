@@ -6,11 +6,12 @@ import { activityRepository } from '@/modules/activity/public'
 import { describeCode } from '@/services/weather'
 import { weatherRepository } from './repository'
 import { initialDay } from './logic'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Tagesplaner" (Meilenstein M3). */
 export const dayplannerModule: AppModule = {
   id: 'dayplanner',
-  title: 'Heute',
+  title: N_('Heute'),
   icon: 'sun',
   navTo: '/heute',
   order: 12,
@@ -20,7 +21,7 @@ export const dayplannerModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Tagesplaner & Wetter',
+    title: N_('Tagesplaner & Wetter'),
     icon: 'cloud-sun',
     to: (tripId) => `/trip/${tripId}/tagesplan`,
     async summary(tripId) {

@@ -1,3 +1,4 @@
+import { t } from '@/core/i18n'
 /**
  * Zusammenführen beim Einlesen (Backup oder geteilte Reise): pro Datensatz gewinnt die neuere Änderung.
  * Reine Logik ohne Datenbank – dadurch einfach testbar.
@@ -36,8 +37,8 @@ export function emptyStats(): MergeStats {
 
 export function describeStats(s: MergeStats): string {
   const parts = []
-  if (s.added) parts.push(`${s.added} neu`)
-  if (s.updated) parts.push(`${s.updated} aktualisiert`)
-  if (s.unchanged) parts.push(`${s.unchanged} unverändert`)
-  return parts.length ? parts.join(', ') : 'nichts zu übernehmen'
+  if (s.added) parts.push(t('{0} neu', [s.added]))
+  if (s.updated) parts.push(t('{0} aktualisiert', [s.updated]))
+  if (s.unchanged) parts.push(t('{0} unverändert', [s.unchanged]))
+  return parts.length ? parts.join(', ') : t('nichts zu übernehmen')
 }

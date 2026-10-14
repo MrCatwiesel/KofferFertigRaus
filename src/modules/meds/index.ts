@@ -3,11 +3,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { medicationRepository, vaccinationRepository } from './repository'
 import { summarizeMeds } from './logic'
 import { medsReminders } from './reminders'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Reiseapotheke" (Meilenstein M2). */
 export const medsModule: AppModule = {
   id: 'meds',
-  title: 'Reiseapotheke',
+  title: N_('Reiseapotheke'),
   icon: 'capsule',
   order: 45,
   routes: [
@@ -20,7 +21,7 @@ export const medsModule: AppModule = {
   reminders: async (trip, today) => medsReminders(await medicationRepository.listByTrip(trip.id), await vaccinationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Reiseapotheke',
+    title: N_('Reiseapotheke'),
     icon: 'capsule',
     to: (tripId) => `/trip/${tripId}/apotheke`,
     async summary(tripId) {

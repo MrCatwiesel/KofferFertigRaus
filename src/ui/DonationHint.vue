@@ -12,7 +12,7 @@ defineProps<{ text?: string }>()
       {{ text ?? `${APP_CONFIG.name} ist kostenlos und ohne Werbung. Wenn dir die App hilft, freue ich mich über eine kleine Spende.` }}
     </div>
     <a :href="APP_CONFIG.donationUrl" target="_blank" rel="noopener" class="btn btn-sm btn-outline-danger flex-shrink-0">
-      Unterstützen
+      {{ $t('Unterstützen') }}
     </a>
   </div>
 </template>

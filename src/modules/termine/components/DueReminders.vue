@@ -21,13 +21,13 @@ const due = computed(() => list.value.filter((r) => r.id !== `trip:${props.tripI
     <div class="card-body py-2">
       <div class="d-flex align-items-center gap-2 mb-1">
         <i class="bi bi-bell text-primary" aria-hidden="true"></i>
-        <span class="fw-semibold flex-grow-1">Heute dran</span>
-        <RouterLink :to="`/trip/${tripId}/termine`" class="small">Alle Termine</RouterLink>
+        <span class="fw-semibold flex-grow-1">{{ $t('Heute dran') }}</span>
+        <RouterLink :to="`/trip/${tripId}/termine`" class="small">{{ $t('Alle Termine') }}</RouterLink>
       </div>
       <RouterLink v-for="r in due" :key="r.id" :to="r.to ?? `/trip/${tripId}/termine`" class="d-flex gap-2 py-1 text-decoration-none text-body border-top">
         <i :class="`bi bi-${KIND_LABEL[r.kind].icon}`" aria-hidden="true"></i>
-        <span class="flex-grow-1">{{ r.title }}<span v-if="r.time" class="text-body-secondary"> · {{ r.time }} Uhr</span></span>
-        <span v-if="groupOf(r, today) === 'ueberfaellig'" class="badge text-bg-danger align-self-center">überfällig</span>
+        <span class="flex-grow-1">{{ r.title }}<span v-if="r.time" class="text-body-secondary"> {{ $t('· {0} Uhr', [r.time]) }}</span></span>
+        <span v-if="groupOf(r, today) === 'ueberfaellig'" class="badge text-bg-danger align-self-center">{{ $t('überfällig') }}</span>
       </RouterLink>
     </div>
   </div>

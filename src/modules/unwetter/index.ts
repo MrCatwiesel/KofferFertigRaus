@@ -6,17 +6,18 @@ import { aktuelle, betrifftReise, imZeitfenster, VORLAUF_TAGE, zusammenfassung }
 import { unwetterRepository } from './repository'
 import { refreshIfStale } from './refresh'
 import { startBeobachtung } from './beobachten'
+import { N_ } from '@/core/i18n'
 
 /** Modul „Unwetter“: amtliche Warnungen (MeteoAlarm) für die Orte der Reise – auch als Push-Benachrichtigung. */
 export const unwetterModule: AppModule = {
   id: 'unwetter',
-  title: 'Unwetterwarnungen',
+  title: N_('Unwetterwarnungen'),
   icon: 'cloud-lightning-rain',
   order: 49,
   routes: [{ path: '/trip/:tripId/unwetter', name: 'unwetter', component: () => import('./views/UnwetterView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Unwetterwarnungen',
+    title: N_('Unwetterwarnungen'),
     icon: 'cloud-lightning-rain',
     to: (tripId) => `/trip/${tripId}/unwetter`,
     async summary(tripId) {

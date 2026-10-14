@@ -1,3 +1,4 @@
+import { locale } from '@/core/i18n'
 /**
  * Speicher des Browsers: Fotos brauchen Platz. Safari (iPad/iPhone) kann Daten von Webseiten
  * löschen, wenn wenig Speicher frei ist oder die Seite lange nicht genutzt wurde – außer der Speicher
@@ -40,5 +41,5 @@ export function formatBytes(bytes: number): string {
     v /= 1024
     i++
   }
-  return `${v.toLocaleString('de-DE', { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[i]}`
+  return `${v.toLocaleString(locale(), { maximumFractionDigits: v < 10 ? 1 : 0 })} ${units[i]}`
 }

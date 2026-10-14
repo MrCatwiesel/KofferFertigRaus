@@ -7,6 +7,7 @@ import { formatDate, tripPhase, tripStatusText } from '../logic'
 import type { Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
 import { canCreateTrips } from '@/core/people'
+import { t } from '@/core/i18n'
 
 const trips = useLiveQuery(() => tripRepository.listAll(), [] as Trip[])
 const showArchive = ref(false)
@@ -16,9 +17,9 @@ const groups = computed(() => {
   const active = trips.value.filter((t) => !t.archived)
   const by = (p: string) => active.filter((t) => tripPhase(t.startDate, t.endDate) === p)
   return [
-    { id: 'unterwegs', title: 'Gerade unterwegs', trips: by('unterwegs') },
-    { id: 'planung', title: 'Geplant', trips: by('planung').sort((a, b) => a.startDate.localeCompare(b.startDate)) },
-    { id: 'vorbei', title: 'Erinnerungen', trips: by('vorbei') }
+    { id: 'unterwegs', title: t('Gerade unterwegs'), trips: by('unterwegs') },
+    { id: 'planung', title: t('Geplant'), trips: by('planung').sort((a, b) => a.startDate.localeCompare(b.startDate)) },
+    { id: 'vorbei', title: t('Erinnerungen'), trips: by('vorbei') }
   ].filter((g) => g.trips.length)
 })
 const archived = computed(() => trips.value.filter((t) => t.archived))
@@ -26,25 +27,25 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
 
 <template>
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h1 class="h3 mb-0">Meine Reisen</h1>
+    <h1 class="h3 mb-0">{{ $t('Meine Reisen') }}</h1>
     <div class="d-flex gap-2">
-      <RouterLink v-if="trips.length" to="/statistik" class="btn btn-outline-primary" aria-label="Statistik">
-        <i class="bi bi-bar-chart" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Statistik</span>
+      <RouterLink v-if="trips.length" to="/statistik" class="btn btn-outline-primary" :aria-label="$t('Statistik')">
+        <i class="bi bi-bar-chart" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">{{ $t('Statistik') }}</span>
       </RouterLink>
       <RouterLink v-if="canCreateTrips()" to="/trip/neu" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Reise
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Neue Reise') }}
       </RouterLink>
     </div>
   </div>
 
   <div v-if="trips.length === 0" class="card text-center py-5 px-3">
     <i class="bi bi-globe-europe-africa display-4 d-block mb-3 text-primary" aria-hidden="true"></i>
-    <p class="mb-3">Noch keine Reise angelegt.</p>
+    <p class="mb-3">{{ $t('Noch keine Reise angelegt.') }}</p>
     <div class="d-flex flex-wrap gap-2 justify-content-center">
-      <RouterLink to="/einfuehrung" class="btn btn-primary" data-intro-link><i class="bi bi-play-circle me-1" aria-hidden="true"></i>Kurze Einführung (1 Minute)</RouterLink>
-      <RouterLink to="/trip/neu" class="btn btn-outline-primary">Erste Reise planen</RouterLink>
+      <RouterLink to="/einfuehrung" class="btn btn-primary" data-intro-link><i class="bi bi-play-circle me-1" aria-hidden="true"></i>{{ $t('Kurze Einführung (1 Minute)') }}</RouterLink>
+      <RouterLink to="/trip/neu" class="btn btn-outline-primary">{{ $t('Erste Reise planen') }}</RouterLink>
     </div>
-    <p class="small text-body-secondary mt-3 mb-0">Fragen? Das <RouterLink to="/hilfe">?</RouterLink> oben rechts öffnet jederzeit die Hilfe zur Seite, auf der du gerade bist.</p>
+    <p class="small text-body-secondary mt-3 mb-0">{{ $t('Fragen? Das') }} <RouterLink to="/hilfe">?</RouterLink> {{ $t('oben rechts öffnet jederzeit die Hilfe zur Seite, auf der du gerade bist.') }}</p>
   </div>
 
   <section v-for="g in groups" :key="g.id" class="mb-4">
@@ -70,7 +71,7 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
   <section v-if="archived.length" class="mb-4">
     <button type="button" class="btn btn-link px-0 text-decoration-none" :aria-expanded="showArchive" @click="showArchive = !showArchive">
       <i class="bi me-1" :class="showArchive ? 'bi-chevron-down' : 'bi-chevron-right'" aria-hidden="true"></i>
-      <i class="bi bi-archive me-1" aria-hidden="true"></i>Archiv ({{ archived.length }})
+      <i class="bi bi-archive me-1" aria-hidden="true"></i>{{ $t('Archiv ({0})', [archived.length]) }}
     </button>
     <div v-if="showArchive" class="list-group mt-2">
       <RouterLink v-for="t in archived" :key="t.id" :to="`/trip/${t.id}`" class="list-group-item list-group-item-action d-flex align-items-center gap-3">

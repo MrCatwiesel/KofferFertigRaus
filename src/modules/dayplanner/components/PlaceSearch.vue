@@ -45,7 +45,7 @@ onUnmounted(() => {
   <div>
     <div class="input-group mb-2">
       <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-      <input v-model="query" class="form-control" placeholder="Ort für die Wettervorhersage" aria-label="Ort suchen" />
+      <input v-model="query" class="form-control" :placeholder="$t('Ort für die Wettervorhersage')" :aria-label="$t('Ort suchen')" />
       <span v-if="loading" class="input-group-text"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span></span>
     </div>
     <div v-if="error" class="small text-body-secondary mb-2">{{ error }}</div>

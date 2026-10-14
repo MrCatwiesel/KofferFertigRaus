@@ -9,6 +9,7 @@ import { LoginError, checkInvite } from '../sync/api'
 import { ROLE_LABEL, people } from '../people'
 import { pushState } from '../push'
 import DevicesCard from './DevicesCard.vue'
+import { t } from '@/core/i18n'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,7 +84,7 @@ async function test() {
   message.value = null
   try {
     const info = await testConnection(normalized.value, key.value.trim())
-    message.value = { type: 'success', text: `Verbindung klappt. Auf dem Server liegen ${info.records} Einträge.` }
+    message.value = { type: 'success', text: t('Verbindung klappt. Auf dem Server liegen {0} Einträge.', [info.records]) }
   } catch (e) {
     message.value = { type: 'danger', text: (e as Error).message }
   } finally {
@@ -105,7 +106,7 @@ async function connect() {
         const c = await checkInvite(normalized.value, key.value.trim().toUpperCase().replace(/[\s-]/g, ''))
         if (c?.person) invitePerson.value = { person: c.person, needsPassword: c.needsPassword }
         if (c?.needsPassword) {
-          message.value = { type: 'info', text: `Einladung für ${c.person} (${c.group}). Leg jetzt dein Passwort fest – damit meldest du später weitere Geräte an.` }
+          message.value = { type: 'info', text: t('Einladung für {0} ({1}). Leg jetzt dein Passwort fest – damit meldest du später weitere Geräte an.', [c.person, c.group]) }
           return
         }
       }
@@ -118,7 +119,7 @@ async function connect() {
     serverInfo.value = (await (await ServerClient.fromSync())?.info()) ?? null
     message.value = syncState.lastError
       ? { type: 'danger', text: syncState.lastError }
-      : { type: 'success', text: 'Eingerichtet und abgeglichen. Ab jetzt geht es automatisch.' }
+      : { type: 'success', text: t('Eingerichtet und abgeglichen. Ab jetzt geht es automatisch.') }
   } catch (e) {
     message.value = { type: 'danger', text: (e as Error).message }
     if (e instanceof LoginError && e.code === 'passwort' && invitePerson.value) invitePerson.value.needsPassword = true
@@ -133,25 +134,25 @@ async function changePassword() {
   try {
     await c.json('/api/personen/ich', 'PATCH', { oldPassword: pwChange.value.old, password: pwChange.value.pw })
     pwChange.value = { open: false, old: '', pw: '', pw2: '' }
-    message.value = { type: 'success', text: 'Passwort geändert.' }
+    message.value = { type: 'success', text: t('Passwort geändert.') }
   } catch (e) {
     message.value = { type: 'danger', text: (e as Error).message }
   }
 }
 
 async function disconnect() {
-  if (!confirm('Abgleich auf diesem Gerät beenden? Die Daten auf dem Gerät bleiben erhalten.')) return
+  if (!confirm(t('Abgleich auf diesem Gerät beenden? Die Daten auf dem Gerät bleiben erhalten.'))) return
   if (syncState.device) await logoutThisDevice()
   else await disconnectSync()
   serverInfo.value = null
   key.value = ''
-  message.value = { type: 'info', text: 'Abgleich beendet.' }
+  message.value = { type: 'info', text: t('Abgleich beendet.') }
 }
 
 function onLoggedOut() {
   key.value = ''
   serverInfo.value = null
-  message.value = { type: 'info', text: 'Dieses Gerät ist abgemeldet. Die Daten auf dem Gerät bleiben erhalten.' }
+  message.value = { type: 'info', text: t('Dieses Gerät ist abgemeldet. Die Daten auf dem Gerät bleiben erhalten.') }
 }
 
 function newKey() {
@@ -162,9 +163,9 @@ function newKey() {
 const link = computed(() => (syncState.configured ? pairingLink(location.href, syncState.server, key.value) : ''))
 
 async function shareLink() {
-  const text = `Kopplungs-Link für „Nix wie weg“ – nur auf eigenen Geräten öffnen:\n${link.value}`
+  const text = t('Kopplungs-Link für „Nix wie weg“ – nur auf eigenen Geräten öffnen:\n{0}', [link.value])
   try {
-    if (navigator.share) await navigator.share({ title: 'Nix wie weg koppeln', text, url: link.value })
+    if (navigator.share) await navigator.share({ title: t('Nix wie weg koppeln'), text, url: link.value })
     else {
       await navigator.clipboard.writeText(link.value)
       linkCopied.value = true
@@ -177,7 +178,7 @@ async function shareLink() {
 async function copyKey() {
   try {
     await navigator.clipboard.writeText(key.value)
-    message.value = { type: 'info', text: 'Schlüssel kopiert – jetzt in der Server-Einstellung (NWW_KEYS) eintragen.' }
+    message.value = { type: 'info', text: t('Schlüssel kopiert – jetzt in der Server-Einstellung (NWW_KEYS) eintragen.') }
   } catch {
     showKey.value = true
   }
@@ -186,9 +187,9 @@ async function copyKey() {
 
 <template>
   <div class="mb-3">
-    <RouterLink to="/einstellungen" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Einstellungen</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Geräte-Abgleich</h1>
-    <p class="text-body-secondary small mb-0">Alle Geräte (Handys, Tablet, PC) mit denselben Daten – über deinen eigenen Server.</p>
+    <RouterLink to="/einstellungen" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ $t('Einstellungen') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ $t('Geräte-Abgleich') }}</h1>
+    <p class="text-body-secondary small mb-0">{{ $t('Alle Geräte (Handys, Tablet, PC) mit denselben Daten – über deinen eigenen Server.') }}</p>
   </div>
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
@@ -203,21 +204,21 @@ async function copyKey() {
         <i class="bi fs-2" :class="syncState.running ? 'bi-arrow-repeat text-primary spin' : syncState.lastError ? 'bi-cloud-slash text-warning' : 'bi-cloud-check text-success'" aria-hidden="true"></i>
         <div class="flex-grow-1">
           <div class="fw-semibold">
-            <template v-if="syncState.running">{{ syncState.progress || 'Gleiche ab …' }}</template>
+            <template v-if="syncState.running">{{ syncState.progress || $t('Gleiche ab …') }}</template>
             <template v-else-if="syncState.lastError">{{ syncState.lastError }}</template>
-            <template v-else>Abgeglichen {{ ago(syncState.lastSync) }}</template>
+            <template v-else>{{ $t('Abgeglichen {0}', [ago(syncState.lastSync)]) }}</template>
           </div>
           <div class="small text-body-secondary">
             {{ syncState.server }}
-            <template v-if="syncState.pending"> · {{ syncState.pending }} Änderungen warten</template>
+            <template v-if="syncState.pending"> {{ $t('· {0} Änderungen warten', [syncState.pending]) }}</template>
           </div>
         </div>
-        <button type="button" class="btn btn-outline-primary" :disabled="syncState.running || !online" @click="syncNow()">Jetzt</button>
+        <button type="button" class="btn btn-outline-primary" :disabled="syncState.running || !online" @click="syncNow()">{{ $t('Jetzt') }}</button>
       </div>
       <div v-if="syncState.warnings.length" class="alert alert-warning small py-2 mt-3 mb-0">
-        <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Nicht alles konnte abgeglichen werden – der Rest läuft normal weiter:</div>
+        <div class="fw-semibold mb-1"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ $t('Nicht alles konnte abgeglichen werden – der Rest läuft normal weiter:') }}</div>
         <ul class="mb-1 ps-3"><li v-for="w in syncState.warnings" :key="w">{{ w }}</li></ul>
-        <button type="button" class="btn btn-link btn-sm p-0" @click="syncState.warnings = []">Hinweise ausblenden</button>
+        <button type="button" class="btn btn-link btn-sm p-0" @click="syncState.warnings = []">{{ $t('Hinweise ausblenden') }}</button>
       </div>
     </div>
   </div>
@@ -228,13 +229,12 @@ async function copyKey() {
   <!-- Weitere Geräte koppeln (ältere Server ohne Gerätezugänge) -->
   <div v-else-if="syncState.configured && !syncState.revoked && serverInfo && !serverInfo.devices" class="card mb-3">
     <div class="card-body">
-      <h2 class="h6">Weiteres Gerät koppeln</h2>
+      <h2 class="h6">{{ $t('Weiteres Gerät koppeln') }}</h2>
       <p class="small text-body-secondary">
-        Schick den Link per AirDrop oder Nachricht an das andere Gerät (z. B. Birgits Handy) und öffne ihn dort.
-        Der Link enthält den Schlüssel – nur an eigene Geräte und Mitreisende weitergeben.
+        {{ $t('Schick den Link per AirDrop oder Nachricht an das andere Gerät (z. B. Birgits Handy) und öffne ihn dort. Der Link enthält den Schlüssel – nur an eigene Geräte und Mitreisende weitergeben.') }}
       </p>
-      <button type="button" class="btn btn-primary" @click="shareLink"><i class="bi bi-share me-1" aria-hidden="true"></i>Kopplungs-Link teilen</button>
-      <span v-if="linkCopied" class="small text-success ms-2">Link kopiert</span>
+      <button type="button" class="btn btn-primary" @click="shareLink"><i class="bi bi-share me-1" aria-hidden="true"></i>{{ $t('Kopplungs-Link teilen') }}</button>
+      <span v-if="linkCopied" class="small text-success ms-2">{{ $t('Link kopiert') }}</span>
     </div>
   </div>
 
@@ -245,23 +245,23 @@ async function copyKey() {
         <i class="bi bi-person-lock fs-3 text-primary" aria-hidden="true"></i>
         <div class="flex-grow-1">
           <div class="fw-semibold">
-            <template v-if="people.me">Angemeldet als {{ people.me.name }} <span class="badge text-bg-secondary fw-normal">{{ ROLE_LABEL[people.me.role] }}</span></template>
-            <template v-else>Personen &amp; Rechte</template>
+            <template v-if="people.me">{{ $t('Angemeldet als {0}', [people.me.name]) }} <span class="badge text-bg-secondary fw-normal">{{ ROLE_LABEL[people.me.role] }}</span></template>
+            <template v-else>{{ $t('Personen & Rechte') }}</template>
           </div>
           <div class="small text-body-secondary">
-            <template v-if="people.manager">Personen einladen, Rollen und Zugriff je Reise festlegen</template>
-            <template v-else>Deine privaten Einträge (Packliste, Medikamente, Dokumente) sieht nur du.</template>
+            <template v-if="people.manager">{{ $t('Personen einladen, Rollen und Zugriff je Reise festlegen') }}</template>
+            <template v-else>{{ $t('Deine privaten Einträge (Packliste, Medikamente, Dokumente) sieht nur du.') }}</template>
           </div>
         </div>
-        <RouterLink v-if="people.manager" to="/personen" class="btn btn-outline-primary">Verwalten</RouterLink>
+        <RouterLink v-if="people.manager" to="/personen" class="btn btn-outline-primary">{{ $t('Verwalten') }}</RouterLink>
       </div>
       <div v-if="people.me" class="mt-2">
-        <button v-if="!pwChange.open" type="button" class="btn btn-link btn-sm p-0" @click="pwChange.open = true">Passwort ändern</button>
+        <button v-if="!pwChange.open" type="button" class="btn btn-link btn-sm p-0" @click="pwChange.open = true">{{ $t('Passwort ändern') }}</button>
         <form v-else class="row g-2 mt-1" @submit.prevent="changePassword">
-          <div class="col-12 col-md-4"><input v-model="pwChange.old" type="password" class="form-control form-control-sm" placeholder="Bisheriges Passwort" autocomplete="current-password" aria-label="Bisheriges Passwort" /></div>
-          <div class="col-6 col-md-3"><input v-model="pwChange.pw" type="password" class="form-control form-control-sm" placeholder="Neues Passwort" autocomplete="new-password" aria-label="Neues Passwort" /></div>
-          <div class="col-6 col-md-3"><input v-model="pwChange.pw2" type="password" class="form-control form-control-sm" placeholder="Wiederholen" autocomplete="new-password" aria-label="Neues Passwort wiederholen" /></div>
-          <div class="col-12 col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100" :disabled="pwChange.pw.length < 8 || pwChange.pw !== pwChange.pw2">Ändern</button></div>
+          <div class="col-12 col-md-4"><input v-model="pwChange.old" type="password" class="form-control form-control-sm" :placeholder="$t('Bisheriges Passwort')" autocomplete="current-password" :aria-label="$t('Bisheriges Passwort')" /></div>
+          <div class="col-6 col-md-3"><input v-model="pwChange.pw" type="password" class="form-control form-control-sm" :placeholder="$t('Neues Passwort')" autocomplete="new-password" :aria-label="$t('Neues Passwort')" /></div>
+          <div class="col-6 col-md-3"><input v-model="pwChange.pw2" type="password" class="form-control form-control-sm" :placeholder="$t('Wiederholen')" autocomplete="new-password" :aria-label="$t('Neues Passwort wiederholen')" /></div>
+          <div class="col-12 col-md-2"><button type="submit" class="btn btn-primary btn-sm w-100" :disabled="pwChange.pw.length < 8 || pwChange.pw !== pwChange.pw2">{{ $t('Ändern') }}</button></div>
         </form>
       </div>
     </div>
@@ -272,10 +272,10 @@ async function copyKey() {
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi fs-3 text-primary" :class="pushState.active ? 'bi-bell-fill' : 'bi-bell'" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold">Benachrichtigungen</div>
-        <div class="small text-body-secondary">{{ pushState.active ? 'Auf diesem Gerät eingeschaltet' : 'Erinnerungen an Fristen und Termine aufs Gerät' }}</div>
+        <div class="fw-semibold">{{ $t('Benachrichtigungen') }}</div>
+        <div class="small text-body-secondary">{{ pushState.active ? $t('Auf diesem Gerät eingeschaltet') : $t('Erinnerungen an Fristen und Termine aufs Gerät') }}</div>
       </div>
-      <RouterLink to="/benachrichtigungen" class="btn btn-outline-primary stretched-link">{{ pushState.active ? 'Ändern' : 'Einrichten' }}</RouterLink>
+      <RouterLink to="/benachrichtigungen" class="btn btn-outline-primary stretched-link">{{ pushState.active ? $t('Ändern') : $t('Einrichten') }}</RouterLink>
     </div>
   </div>
 
@@ -284,121 +284,120 @@ async function copyKey() {
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi bi-people fs-3 text-primary" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold">Reisegruppen</div>
-        <div class="small text-body-secondary">Freunden eine eigene, getrennte Gruppe geben · Piwigo freigeben</div>
+        <div class="fw-semibold">{{ $t('Reisegruppen') }}</div>
+        <div class="small text-body-secondary">{{ $t('Freunden eine eigene, getrennte Gruppe geben · Piwigo freigeben') }}</div>
       </div>
-      <RouterLink to="/gruppen" class="btn btn-outline-primary stretched-link">Verwalten</RouterLink>
+      <RouterLink to="/gruppen" class="btn btn-outline-primary stretched-link">{{ $t('Verwalten') }}</RouterLink>
     </div>
   </div>
   <div v-else-if="syncState.configured && serverInfo?.group" class="small text-body-secondary mb-3">
-    <i class="bi bi-people me-1" aria-hidden="true"></i>Reisegruppe: {{ serverInfo.group }}
+    <i class="bi bi-people me-1" aria-hidden="true"></i>{{ $t('Reisegruppe: {0}', [serverInfo.group]) }}
   </div>
   <div v-if="syncState.configured && serverInfo?.admin" class="card mb-3">
     <div class="card-body d-flex align-items-center gap-3">
       <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold">Server-Sicherung</div>
-        <div class="small text-body-secondary">Weitere Sicherungsziele: Platte, SMB-Freigabe, SSH/rsync, WebDAV</div>
+        <div class="fw-semibold">{{ $t('Server-Sicherung') }}</div>
+        <div class="small text-body-secondary">{{ $t('Weitere Sicherungsziele: Platte, SMB-Freigabe, SSH/rsync, WebDAV') }}</div>
       </div>
-      <RouterLink to="/sicherung" class="btn btn-outline-primary stretched-link">Verwalten</RouterLink>
+      <RouterLink to="/sicherung" class="btn btn-outline-primary stretched-link">{{ $t('Verwalten') }}</RouterLink>
     </div>
   </div>
 
   <!-- Einrichten -->
   <div class="card mb-3">
     <div class="card-body">
-      <h2 class="h6">{{ deviceLogin ? 'Verbindung' : fromLink ? 'Dieses Gerät verbinden' : 'Einrichten' }}</h2>
-      <p v-if="fromLink" class="small">Du hast eine Einladung geöffnet. Gib dem Gerät einen Namen und tippe auf „Verbinden“.</p>
+      <h2 class="h6">{{ deviceLogin ? $t('Verbindung') : fromLink ? $t('Dieses Gerät verbinden') : $t('Einrichten') }}</h2>
+      <p v-if="fromLink" class="small">{{ $t('Du hast eine Einladung geöffnet. Gib dem Gerät einen Namen und tippe auf „Verbinden“.') }}</p>
 
       <template v-if="deviceLogin">
         <p class="small mb-3">
-          Verbunden mit <strong>{{ syncState.server }}</strong> als <strong>{{ syncState.device?.name }}</strong> – mit eigenem Gerätezugang.
-          Ein Schlüssel muss hier nicht mehr eingegeben werden.
+          {{ $t('Verbunden mit') }} <strong>{{ syncState.server }}</strong> {{ $t('als') }} <strong>{{ syncState.device?.name }}</strong> {{ $t('– mit eigenem Gerätezugang. Ein Schlüssel muss hier nicht mehr eingegeben werden.') }}
         </p>
-        <button type="button" class="btn btn-outline-danger" @click="disconnect">Dieses Gerät abmelden</button>
+        <button type="button" class="btn btn-outline-danger" @click="disconnect">{{ $t('Dieses Gerät abmelden') }}</button>
       </template>
       <template v-else>
 
-      <div class="btn-group btn-group-sm mb-3" role="group" aria-label="Anmelden mit">
+      <div class="btn-group btn-group-sm mb-3" role="group" :aria-label="$t('Anmelden mit')">
         <input id="mode-code" v-model="mode" type="radio" class="btn-check" value="code" />
-        <label class="btn btn-outline-primary" for="mode-code">Einladung oder Schlüssel</label>
+        <label class="btn btn-outline-primary" for="mode-code">{{ $t('Einladung oder Schlüssel') }}</label>
         <input id="mode-pw" v-model="mode" type="radio" class="btn-check" value="passwort" />
-        <label class="btn btn-outline-primary" for="mode-pw">Name und Passwort</label>
+        <label class="btn btn-outline-primary" for="mode-pw">{{ $t('Name und Passwort') }}</label>
       </div>
 
       <div class="mb-2">
-        <label for="server" class="form-label">Server-Adresse</label>
+        <label for="server" class="form-label">{{ $t('Server-Adresse') }}</label>
         <input id="server" v-model="server" class="form-control" placeholder="https://reise.example.de" autocomplete="off" autocapitalize="off" spellcheck="false" />
         <div v-if="mixed" class="small text-danger mt-1">
-          Die App läuft über https – der Server muss auch über https erreichbar sein (siehe Anleitung).
+          {{ $t('Die App läuft über https – der Server muss auch über https erreichbar sein (siehe Anleitung).') }}
         </div>
         <div v-if="hostedHere" class="small text-success mt-1">
-          <i class="bi bi-house-check me-1" aria-hidden="true"></i>Die App kommt von deinem eigenen Server – Adresse ist schon eingetragen, nur noch den Schlüssel einfügen.
+          <i class="bi bi-house-check me-1" aria-hidden="true"></i>{{ $t('Die App kommt von deinem eigenen Server – Adresse ist schon eingetragen, nur noch den Schlüssel einfügen.') }}
         </div>
       </div>
       <div v-if="mode === 'passwort'" class="row g-2 mb-3">
         <div class="col-12 col-md-6">
-          <label for="login" class="form-label">Dein Name</label>
+          <label for="login" class="form-label">{{ $t('Dein Name') }}</label>
           <input id="login" v-model="login" class="form-control" autocomplete="username" autocapitalize="words" />
         </div>
         <div class="col-12 col-md-6">
-          <label for="login-pw" class="form-label">Passwort</label>
+          <label for="login-pw" class="form-label">{{ $t('Passwort') }}</label>
           <input id="login-pw" v-model="password" type="password" class="form-control" autocomplete="current-password" />
         </div>
-        <div class="col-12 form-text mt-1">Für Personen, die schon eingeladen wurden und ein Passwort festgelegt haben.</div>
+        <div class="col-12 form-text mt-1">{{ $t('Für Personen, die schon eingeladen wurden und ein Passwort festgelegt haben.') }}</div>
       </div>
       <div v-else class="mb-3">
-        <label for="key" class="form-label">Einladungscode oder Schlüssel der Reisegruppe</label>
+        <label for="key" class="form-label">{{ $t('Einladungscode oder Schlüssel der Reisegruppe') }}</label>
         <div class="input-group">
           <input id="key" v-model="key" :type="showKey ? 'text' : 'password'" class="form-control font-monospace" autocomplete="off" autocapitalize="off" spellcheck="false" />
-          <button type="button" class="btn btn-outline-secondary" :aria-label="showKey ? 'Verbergen' : 'Anzeigen'" @click="showKey = !showKey">
+          <button type="button" class="btn btn-outline-secondary" :aria-label="showKey ? $t('Verbergen') : $t('Anzeigen')" @click="showKey = !showKey">
             <i class="bi" :class="showKey ? 'bi-eye-slash' : 'bi-eye'" aria-hidden="true"></i>
           </button>
-          <button v-if="key" type="button" class="btn btn-outline-secondary" aria-label="Kopieren" @click="copyKey"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
+          <button v-if="key" type="button" class="btn btn-outline-secondary" :aria-label="$t('Kopieren')" @click="copyKey"><i class="bi bi-clipboard" aria-hidden="true"></i></button>
         </div>
-        <div v-if="isCode" class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Einladungscode erkannt – gilt einmal.</div>
+        <div v-if="isCode" class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ $t('Einladungscode erkannt – gilt einmal.') }}</div>
         <div v-else class="form-text">
-          Einladungscode (z. B. <code>ABCD-EFGH-JKLM</code>) von einem anderen Gerät – oder den Schlüssel der Reisegruppe. Noch keinen?
-          <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">Schlüssel erzeugen</button>
-          und beim Server als <code>NWW_KEYS</code> eintragen.
+          {{ $t('Einladungscode (z. B.') }} <code>ABCD-EFGH-JKLM</code>{{ $t(') von einem anderen Gerät – oder den Schlüssel der Reisegruppe. Noch keinen?') }}
+          <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">{{ $t('Schlüssel erzeugen') }}</button>
+          {{ $t('und beim Server als') }} <code>NWW_KEYS</code> {{ $t('eintragen.') }}
         </div>
         <div v-if="invitePerson?.needsPassword" class="row g-2 mt-2" data-new-password>
-          <div class="col-12 small fw-semibold">Passwort für {{ invitePerson.person }} festlegen</div>
+          <div class="col-12 small fw-semibold">{{ $t('Passwort für {0} festlegen', [invitePerson.person]) }}</div>
           <div class="col-6">
-            <input v-model="password" type="password" class="form-control" placeholder="Passwort" autocomplete="new-password" aria-label="Neues Passwort" />
+            <input v-model="password" type="password" class="form-control" :placeholder="$t('Passwort')" autocomplete="new-password" :aria-label="$t('Neues Passwort')" />
           </div>
           <div class="col-6">
-            <input v-model="password2" type="password" class="form-control" placeholder="Wiederholen" autocomplete="new-password" aria-label="Passwort wiederholen" />
+            <input v-model="password2" type="password" class="form-control" :placeholder="$t('Wiederholen')" autocomplete="new-password" :aria-label="$t('Passwort wiederholen')" />
           </div>
-          <div class="col-12 form-text mt-0">Mindestens 8 Zeichen.<span v-if="pwMismatch" class="text-danger"> Die Passwörter stimmen nicht überein.</span></div>
+          <div class="col-12 form-text mt-0">{{ $t('Mindestens 8 Zeichen.') }}<span v-if="pwMismatch" class="text-danger"> {{ $t('Die Passwörter stimmen nicht überein.') }}</span></div>
         </div>
       </div>
       <div class="mb-3">
-        <label for="devname" class="form-label">Name dieses Geräts</label>
-        <input id="devname" v-model="deviceName" class="form-control" maxlength="60" placeholder="z. B. iPad Marco" />
-        <div class="form-text">So erscheint das Gerät in der Geräteliste – dort kannst du es auch wieder abmelden.</div>
+        <label for="devname" class="form-label">{{ $t('Name dieses Geräts') }}</label>
+        <input id="devname" v-model="deviceName" class="form-control" maxlength="60" :placeholder="$t('z. B. iPad Marco')" />
+        <div class="form-text">{{ $t('So erscheint das Gerät in der Geräteliste – dort kannst du es auch wieder abmelden.') }}</div>
       </div>
       <div class="d-flex flex-wrap gap-2">
         <button type="button" class="btn btn-primary" :disabled="busy || !canConnect" @click="connect">
           <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-          {{ syncState.configured ? 'Speichern' : 'Verbinden' }}
+          {{ syncState.configured ? $t('Speichern') : $t('Verbinden') }}
         </button>
-        <button v-if="mode === 'code'" type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || isCode || !online" @click="test">Verbindung testen</button>
-        <button v-if="syncState.configured" type="button" class="btn btn-outline-danger ms-auto" @click="disconnect">Abgleich beenden</button>
+        <button v-if="mode === 'code'" type="button" class="btn btn-outline-secondary" :disabled="busy || !normalized || !keyOk || isCode || !online" @click="test">{{ $t('Verbindung testen') }}</button>
+        <button v-if="syncState.configured" type="button" class="btn btn-outline-danger ms-auto" @click="disconnect">{{ $t('Abgleich beenden') }}</button>
       </div>
-      <p v-if="!online" class="small text-body-secondary mt-2 mb-0">Zum Einrichten wird Internet benötigt.</p>
+      <p v-if="!online" class="small text-body-secondary mt-2 mb-0">{{ $t('Zum Einrichten wird Internet benötigt.') }}</p>
       </template>
     </div>
   </div>
 
   <details class="small mb-3">
-    <summary>So funktioniert der Abgleich</summary>
+    <summary>{{ $t('So funktioniert der Abgleich') }}</summary>
     <ul class="mt-2">
-      <li>Jedes Gerät merkt sich seine Änderungen – auch offline – und schickt sie, sobald Internet da ist.</li>
-      <li>Abgeglichen wird beim Öffnen der App, nach Änderungen (nach wenigen Sekunden) und alle 5 Minuten.</li>
-      <li>Ändern zwei Geräte denselben Eintrag, gewinnt die neuere Änderung. Löschungen werden übertragen.</li>
-      <li>Fotos werden in voller Größe übertragen. Beim ersten Abgleich kann das je nach Anzahl etwas dauern.</li>
-      <li>Die Daten liegen nur auf deinen Geräten und deinem Server.</li>
+      <li>{{ $t('Jedes Gerät merkt sich seine Änderungen – auch offline – und schickt sie, sobald Internet da ist.') }}</li>
+      <li>{{ $t('Abgeglichen wird beim Öffnen der App, nach Änderungen (nach wenigen Sekunden) und alle 5 Minuten.') }}</li>
+      <li>{{ $t('Ändern zwei Geräte denselben Eintrag, gewinnt die neuere Änderung. Löschungen werden übertragen.') }}</li>
+      <li>{{ $t('Fotos werden in voller Größe übertragen. Beim ersten Abgleich kann das je nach Anzahl etwas dauern.') }}</li>
+      <li>{{ $t('Die Daten liegen nur auf deinen Geräten und deinem Server.') }}</li>
     </ul>
   </details>
 </template>

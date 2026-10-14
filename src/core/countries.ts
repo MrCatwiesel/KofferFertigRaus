@@ -1,25 +1,33 @@
-/** Länder (ISO 3166-1 alpha-2) mit deutschen Namen aus dem Browser (Intl.DisplayNames). */
+/** Länder (ISO 3166-1 alpha-2) mit Namen in der Sprache der App aus dem Browser (Intl.DisplayNames). */
+import { N_, lang, t } from './i18n'
+
 const CODES =
   'AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PS PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS XK YE ZA ZM ZW'.split(' ')
 
-let names: Map<string, string> | null = null
+const names = new Map<string, Map<string, string>>()
 
-/** Deutscher Name eines Landes, z. B. "AT" → "Österreich" */
-export function countryName(code: string): string {
+/** Name eines Landes, z. B. "AT" → "Österreich" (Englisch: "Austria") */
+export const countryName = (code: string): string => countryNameIn(code, lang.value)
+
+export function countryNameIn(code: string, language: string): string {
   try {
-    return new Intl.DisplayNames(['de'], { type: 'region' }).of(code) ?? code
+    return new Intl.DisplayNames([language], { type: 'region' }).of(code) ?? code
   } catch {
     return code
   }
 }
 
-/** Alle Länder, alphabetisch nach deutschem Namen (ohne Deutschland – Reiseziel im Ausland) */
-export function allCountries(): { code: string; name: string }[] {
-  names ??= new Map(CODES.map((c) => [c, countryName(c)]))
-  return [...names]
+const namesIn = (language: string) => {
+  if (!names.has(language)) names.set(language, new Map(CODES.map((c) => [c, countryNameIn(c, language)])))
+  return names.get(language)!
+}
+
+/** Alle Länder, alphabetisch nach Namen (ohne Deutschland – Reiseziel im Ausland) */
+export function allCountries(language: string = lang.value): { code: string; name: string }[] {
+  return [...namesIn(language)]
     .filter(([c]) => c !== 'DE')
     .map(([code, name]) => ({ code, name }))
-    .sort((a, b) => a.name.localeCompare(b.name, 'de'))
+    .sort((a, b) => a.name.localeCompare(b.name, language))
 }
 
 const norm = (s: string) =>
@@ -33,8 +41,11 @@ const norm = (s: string) =>
 export function guessCountries(destination: string): string[] {
   const d = norm(destination)
   if (!d.trim()) return []
-  return allCountries()
-    .filter(({ name }) => name.length > 3 && new RegExp(`(^|[^a-z])${norm(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`).test(d))
+  // Deutsche und englische Namen („Italien“ oder „Italy“)
+  const hit = (name: string) => name.length > 3 && new RegExp(`(^|[^a-z])${norm(name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z]|$)`).test(d)
+  const en = namesIn('en')
+  return allCountries('de')
+    .filter(({ code, name }) => hit(name) || hit(en.get(code) ?? ''))
     .map((c) => c.code)
 }
 
@@ -66,10 +77,10 @@ export function currencyOf(country: string): string | null {
   return EURO.has(country) ? 'EUR' : (CURRENCY[country] ?? null)
 }
 
-/** Deutscher Name einer Währung, z. B. "CHF" → "Schweizer Franken" */
+/** Name einer Währung, z. B. "CHF" → "Schweizer Franken" */
 export function currencyName(code: string): string {
   try {
-    return new Intl.DisplayNames(['de'], { type: 'currency' }).of(code) ?? code
+    return new Intl.DisplayNames([lang.value], { type: 'currency' }).of(code) ?? code
   } catch {
     return code
   }
@@ -80,23 +91,23 @@ export const inEuRoaming = (country: string) => EU_ROAMING.has(country)
 /** Steckdosen, in die deutsche Stecker (Typ C/F) nicht oder nur teilweise passen */
 const PLUGS: Record<string, string> = {}
 for (const [type, list] of Object.entries({
-  'G (britisch)': 'GB IE MT CY AE SG MY HK KE TZ UG QA BH KW OM SA NG GH ZM ZW BW MU SC',
-  'A/B (amerikanisch)': 'US CA MX JP CU DO CR PA GT HN NI SV TW PH CO VE EC',
-  'I (australisch/chinesisch)': 'AU NZ CN AR FJ PG',
-  'J (Schweiz – flache Eurostecker passen)': 'CH LI',
-  'L (Italien – flache Eurostecker passen)': 'IT SM VA',
-  'D/M (indisch/südafrikanisch)': 'IN ZA NP LK NA',
-  'H (Israel)': 'IL'
+  [N_('G (britisch)')]: 'GB IE MT CY AE SG MY HK KE TZ UG QA BH KW OM SA NG GH ZM ZW BW MU SC',
+  [N_('A/B (amerikanisch)')]: 'US CA MX JP CU DO CR PA GT HN NI SV TW PH CO VE EC',
+  [N_('I (australisch/chinesisch)')]: 'AU NZ CN AR FJ PG',
+  [N_('J (Schweiz – flache Eurostecker passen)')]: 'CH LI',
+  [N_('L (Italien – flache Eurostecker passen)')]: 'IT SM VA',
+  [N_('D/M (indisch/südafrikanisch)')]: 'IN ZA NP LK NA',
+  [N_('H (Israel)')]: 'IL'
 }))
   for (const c of list.split(' ')) PLUGS[c] = type
 
 export function plugTypeFor(country: string): string | null {
-  return PLUGS[country] ?? null
+  return PLUGS[country] ? t(PLUGS[country]) : null
 }
 
 /** Länder mit Vignettenpflicht für Autobahnen (Pkw) */
 const VIGNETTE: Record<string, string> = {
-  AT: 'digitale Vignette (asfinag.at)', CH: 'Vignette (auch als E-Vignette)', SI: 'e-Vinjeta', CZ: 'elektronische Vignette',
-  SK: 'elektronische Vignette', HU: 'e-Vignette (Matrica)', RO: 'Rovinieta', BG: 'elektronische Vignette', MD: 'Vignette'
+  AT: N_('digitale Vignette (asfinag.at)'), CH: N_('Vignette (auch als E-Vignette)'), SI: 'e-Vinjeta', CZ: N_('elektronische Vignette'),
+  SK: N_('elektronische Vignette'), HU: N_('e-Vignette (Matrica)'), RO: 'Rovinieta', BG: N_('elektronische Vignette'), MD: N_('Vignette')
 }
-export const vignetteFor = (country: string): string | null => VIGNETTE[country] ?? null
+export const vignetteFor = (country: string): string | null => (VIGNETTE[country] ? t(VIGNETTE[country]) : null)

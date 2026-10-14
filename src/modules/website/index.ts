@@ -2,11 +2,12 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository } from '@/modules/journal/public'
 import { websiteRepository } from './repository'
 import { TEMPLATE_INFO } from './types'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Reise-Webseite" (Meilenstein M5). */
 export const websiteModule: AppModule = {
   id: 'website',
-  title: 'Reise-Webseite',
+  title: N_('Reise-Webseite'),
   icon: 'globe2',
   order: 70,
   routes: [
@@ -14,7 +15,7 @@ export const websiteModule: AppModule = {
   ],
   tripSection: {
     phases: ['teilen'],
-    title: 'Reise-Webseite',
+    title: N_('Reise-Webseite'),
     icon: 'globe2',
     to: (tripId) => `/trip/${tripId}/webseite`,
     async summary(tripId) {

@@ -1,15 +1,16 @@
 import type { AppModule } from '@/core/registry'
+import { N_ } from '@/core/i18n'
 
 /** Modul „Buchung einlesen“: Bestätigungen (Text, PDF, E-Mail, Kalender) → Unterkunft, An-/Rückreise oder Beleg. */
 export const bookingModule: AppModule = {
   id: 'booking',
-  title: 'Buchung einlesen',
+  title: N_('Buchung einlesen'),
   icon: 'file-earmark-arrow-down',
   order: 19,
   routes: [{ path: '/trip/:tripId/buchung', name: 'booking-import', component: () => import('./views/BookingImport.vue'), props: true }],
   tripSection: {
     phases: ['planung'],
-    title: 'Buchung einlesen',
+    title: N_('Buchung einlesen'),
     icon: 'file-earmark-arrow-down',
     to: (tripId) => `/trip/${tripId}/buchung`,
     summary: async () => 'Bestätigung als PDF, Mail oder Text → Unterkunft oder Fahrt eintragen'

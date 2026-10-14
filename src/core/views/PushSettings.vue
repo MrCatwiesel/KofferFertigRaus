@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { syncState } from '../sync/engine'
 import { disablePush, enablePush, loadPushStatus, permission, pushState, pushSupport, sendTestPush, setPushPrefs, type PushPrefs } from '../push'
+import { locale, t } from '@/core/i18n'
 
 const support = pushSupport()
 const loading = ref(true)
@@ -43,52 +44,52 @@ async function run(fn: () => Promise<unknown>, done = '') {
 function turnOn() {
   const key = status.value?.publicKey
   if (!key) return
-  void run(() => enablePush(key), 'Benachrichtigungen sind eingeschaltet. Tipp: „Testnachricht senden“ zeigt, ob alles ankommt.')
+  void run(() => enablePush(key), t('Benachrichtigungen sind eingeschaltet. Tipp: „Testnachricht senden“ zeigt, ob alles ankommt.'))
 }
-const turnOff = () => run(disablePush, 'Benachrichtigungen sind auf diesem Gerät ausgeschaltet.')
-const test = () => run(sendTestPush, 'Testnachricht ist unterwegs – sie sollte in ein paar Sekunden erscheinen.')
+const turnOff = () => run(disablePush, t('Benachrichtigungen sind auf diesem Gerät ausgeschaltet.'))
+const test = () => run(sendTestPush, t('Testnachricht ist unterwegs – sie sollte in ein paar Sekunden erscheinen.'))
 const toggle = (key: keyof PushPrefs, on: boolean) => run(() => setPushPrefs({ [key]: on }))
 
-const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '')
+const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso)) : '')
 </script>
 
 <template>
   <div class="mb-3">
-    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Geräte-Abgleich</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Benachrichtigungen</h1>
-    <p class="text-body-secondary small mb-0 on-bg">Erinnerungen an Fristen und Termine, Unwetterwarnungen – auch wenn die App geschlossen ist. Gilt für dieses Gerät.</p>
+    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ $t('Geräte-Abgleich') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ $t('Benachrichtigungen') }}</h1>
+    <p class="text-body-secondary small mb-0 on-bg">{{ $t('Erinnerungen an Fristen und Termine, Unwetterwarnungen – auch wenn die App geschlossen ist. Gilt für dieses Gerät.') }}</p>
   </div>
 
   <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
   <div v-if="info" class="alert alert-success" role="status">{{ info }}</div>
 
   <div v-if="!syncState.configured" class="alert alert-info">
-    Benachrichtigungen kommen über den eigenen Server. Erst den <RouterLink to="/abgleich">Geräte-Abgleich</RouterLink> einrichten.
+    {{ $t('Benachrichtigungen kommen über den eigenen Server. Erst den') }} <RouterLink to="/abgleich">{{ $t('Geräte-Abgleich') }}</RouterLink> {{ $t('einrichten.') }}
   </div>
-  <div v-else-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade …</div>
+  <div v-else-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Lade …') }}</div>
   <div v-else-if="tooOld" class="alert alert-warning" data-push-too-old>
-    Der Server kennt noch keine Benachrichtigungen. Bitte den Server auf Version 1.17 aktualisieren (im Container: <code>update.sh</code>).
+    {{ $t('Der Server kennt noch keine Benachrichtigungen. Bitte den Server auf Version 1.17 aktualisieren (im Container:') }} <code>update.sh</code>).
   </div>
   <div v-else-if="noDevice" class="alert alert-warning">
-    Dieses Gerät ist noch mit dem Schlüssel der Reisegruppe verbunden. Für Benachrichtigungen bitte unter
-    <RouterLink to="/abgleich">Geräte-Abgleich → Verbindung</RouterLink> als eigenes Gerät anmelden.
+    {{ $t('Dieses Gerät ist noch mit dem Schlüssel der Reisegruppe verbunden. Für Benachrichtigungen bitte unter') }}
+    <RouterLink to="/abgleich">{{ $t('Geräte-Abgleich → Verbindung') }}</RouterLink> {{ $t('als eigenes Gerät anmelden.') }}
   </div>
 
   <template v-else-if="status">
     <!-- Gerät kann es nicht -->
     <div v-if="support === 'ios-installieren'" class="card mb-3 border-primary" data-push-install>
       <div class="card-body">
-        <h2 class="h6"><i class="bi bi-phone me-1" aria-hidden="true"></i>Erst die App installieren</h2>
-        <p class="small mb-2">Auf iPad und iPhone gibt es Benachrichtigungen nur für Apps auf dem Home-Bildschirm (ab iOS 16.4):</p>
+        <h2 class="h6"><i class="bi bi-phone me-1" aria-hidden="true"></i>{{ $t('Erst die App installieren') }}</h2>
+        <p class="small mb-2">{{ $t('Auf iPad und iPhone gibt es Benachrichtigungen nur für Apps auf dem Home-Bildschirm (ab iOS 16.4):') }}</p>
         <ol class="small mb-0">
-          <li>In Safari auf <i class="bi bi-box-arrow-up" aria-label="Teilen"></i> „Teilen“ tippen</li>
-          <li>„Zum Home-Bildschirm“ wählen</li>
-          <li>Die App über das neue Symbol öffnen und hier einschalten</li>
+          <li>{{ $t('In Safari auf') }} <i class="bi bi-box-arrow-up" :aria-label="$t('Teilen')"></i> {{ $t('„Teilen“ tippen') }}</li>
+          <li>{{ $t('„Zum Home-Bildschirm“ wählen') }}</li>
+          <li>{{ $t('Die App über das neue Symbol öffnen und hier einschalten') }}</li>
         </ol>
       </div>
     </div>
     <div v-else-if="support !== 'ok'" class="alert alert-warning">
-      {{ support === 'unsicher' ? 'Benachrichtigungen gehen nur, wenn die App über https geöffnet ist.' : 'Dieser Browser unterstützt keine Push-Benachrichtigungen.' }}
+      {{ support === 'unsicher' ? $t('Benachrichtigungen gehen nur, wenn die App über https geöffnet ist.') : $t('Dieser Browser unterstützt keine Push-Benachrichtigungen.') }}
     </div>
 
     <section v-else class="card mb-3" data-push-card>
@@ -96,22 +97,21 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
         <div class="d-flex align-items-center gap-3">
           <i class="bi fs-2" :class="abo ? 'bi-bell-fill text-primary' : 'bi-bell-slash text-body-secondary'" aria-hidden="true"></i>
           <div class="flex-grow-1">
-            <div class="fw-semibold">{{ abo ? 'Eingeschaltet' : 'Ausgeschaltet' }}</div>
+            <div class="fw-semibold">{{ abo ? $t('Eingeschaltet') : $t('Ausgeschaltet') }}</div>
             <div class="small text-body-secondary">
-              <template v-if="abo && status.geplant">{{ status.geplant }} Erinnerung{{ status.geplant === 1 ? '' : 'en' }} geplant · nächste {{ when(status.naechste) }}</template>
-              <template v-else-if="abo">Gerade nichts geplant</template>
-              <template v-else>Auf diesem Gerät kommen keine Benachrichtigungen.</template>
+              <template v-if="abo && status.geplant">{{ $t('{0} Erinnerung{1} geplant · nächste {2}', [status.geplant, status.geplant === 1 ? '' : 'en', when(status.naechste)]) }}</template>
+              <template v-else-if="abo">{{ $t('Gerade nichts geplant') }}</template>
+              <template v-else>{{ $t('Auf diesem Gerät kommen keine Benachrichtigungen.') }}</template>
             </div>
           </div>
           <button v-if="!abo" type="button" class="btn btn-primary" :disabled="busy || denied" data-push-on @click="turnOn">
-            <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Einschalten
+            <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Einschalten') }}
           </button>
-          <button v-else type="button" class="btn btn-outline-secondary" :disabled="busy" data-push-off @click="turnOff">Ausschalten</button>
+          <button v-else type="button" class="btn btn-outline-secondary" :disabled="busy" data-push-off @click="turnOff">{{ $t('Ausschalten') }}</button>
         </div>
 
         <div v-if="denied" class="alert alert-warning small py-2 mt-3 mb-0">
-          Benachrichtigungen sind für die App nicht erlaubt. Auf dem iPad: <em>Einstellungen → Mitteilungen → Nix wie weg</em> → „Mitteilungen erlauben“.
-          Im Browser: Schloss-Symbol neben der Adresse → Benachrichtigungen erlauben. Danach die Seite neu laden.
+          {{ $t('Benachrichtigungen sind für die App nicht erlaubt. Auf dem iPad:') }} <em>{{ $t('Einstellungen → Mitteilungen → Nix wie weg') }}</em> {{ $t('→ „Mitteilungen erlauben“. Im Browser: Schloss-Symbol neben der Adresse → Benachrichtigungen erlauben. Danach die Seite neu laden.') }}
         </div>
 
         <template v-if="abo">
@@ -119,43 +119,41 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat('de-DE', { w
           <div class="form-check form-switch mb-2">
             <input id="push-erinnerungen" class="form-check-input" type="checkbox" :checked="abo.prefs.erinnerungen" :disabled="busy" @change="toggle('erinnerungen', ($event.target as HTMLInputElement).checked)" />
             <label class="form-check-label" for="push-erinnerungen">
-              Erinnerungen an Termine und Fristen
-              <span class="d-block small text-body-secondary">Stornofrist, Check-in, Abfahrt, Impftermin … – mit derselben Vorwarnung wie im Kalender (Fristen 2 Tage, Termine 2 Stunden, Reisebeginn am Vorabend)</span>
+              {{ $t('Erinnerungen an Termine und Fristen') }}
+              <span class="d-block small text-body-secondary">{{ $t('Stornofrist, Check-in, Abfahrt, Impftermin … – mit derselben Vorwarnung wie im Kalender (Fristen 2 Tage, Termine 2 Stunden, Reisebeginn am Vorabend)') }}</span>
             </label>
           </div>
           <div class="form-check form-switch mb-3">
             <input id="push-aenderungen" class="form-check-input" type="checkbox" :checked="abo.prefs.aenderungen" :disabled="busy" @change="toggle('aenderungen', ($event.target as HTMLInputElement).checked)" />
             <label class="form-check-label" for="push-aenderungen">
-              Neues von den Mitreisenden
-              <span class="d-block small text-body-secondary">z. B. „Dolomiten: Birgit – Neu: ein Tagebucheintrag, 5 Fotos“ – gebündelt, höchstens alle 15 Minuten je Reise</span>
+              {{ $t('Neues von den Mitreisenden') }}
+              <span class="d-block small text-body-secondary">{{ $t('z. B. „Dolomiten: Birgit – Neu: ein Tagebucheintrag, 5 Fotos“ – gebündelt, höchstens alle 15 Minuten je Reise') }}</span>
             </label>
           </div>
           <template v-if="abo.prefs.unwetter !== undefined">
             <div class="form-check form-switch mb-1">
               <input id="push-unwetter" class="form-check-input" type="checkbox" :checked="abo.prefs.unwetter" :disabled="busy" data-push-unwetter @change="toggle('unwetter', ($event.target as HTMLInputElement).checked)" />
               <label class="form-check-label" for="push-unwetter">
-                Unwetterwarnungen an den Reiseorten
-                <span class="d-block small text-body-secondary">Amtliche Warnungen (MeteoAlarm) der Stufen Orange und Rot – ab dem Tag vor der Anreise bis zur Abreise, für Unterkünfte und Reiseziel</span>
+                {{ $t('Unwetterwarnungen an den Reiseorten') }}
+                <span class="d-block small text-body-secondary">{{ $t('Amtliche Warnungen (MeteoAlarm) der Stufen Orange und Rot – ab dem Tag vor der Anreise bis zur Abreise, für Unterkünfte und Reiseziel') }}</span>
               </label>
             </div>
             <div class="form-check form-switch mb-3 ms-4">
               <input id="push-unwetter-gelb" class="form-check-input" type="checkbox" :checked="abo.prefs.unwetterGelb" :disabled="busy || !abo.prefs.unwetter" @change="toggle('unwetterGelb', ($event.target as HTMLInputElement).checked)" />
               <label class="form-check-label" for="push-unwetter-gelb">
-                Auch Gelb
-                <span class="d-block small text-body-secondary">z. B. Gewitter oder Hitze – im Sommer in den Bergen fast täglich</span>
+                {{ $t('Auch Gelb') }}
+                <span class="d-block small text-body-secondary">{{ $t('z. B. Gewitter oder Hitze – im Sommer in den Bergen fast täglich') }}</span>
               </label>
             </div>
           </template>
-          <button type="button" class="btn btn-outline-primary btn-sm" :disabled="busy" data-push-test @click="test"><i class="bi bi-send me-1" aria-hidden="true"></i>Testnachricht senden</button>
-          <div v-if="abo.lastError" class="small text-danger mt-2"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Zuletzt: {{ abo.lastError }}</div>
+          <button type="button" class="btn btn-outline-primary btn-sm" :disabled="busy" data-push-test @click="test"><i class="bi bi-send me-1" aria-hidden="true"></i>{{ $t('Testnachricht senden') }}</button>
+          <div v-if="abo.lastError" class="small text-danger mt-2"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ $t('Zuletzt: {0}', [abo.lastError]) }}</div>
         </template>
       </div>
     </section>
 
     <p class="small text-body-secondary on-bg">
-      <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>Die Nachrichten laufen verschlüsselt über den Push-Dienst des Geräts
-      (Apple, Google oder Mozilla) –
-      lesen kann sie nur dieses Gerät. Erinnerungen kommen pünktlich, auch wenn die App geschlossen ist; geplant werden sie bei jedem Abgleich.
+      <i class="bi bi-shield-lock me-1" aria-hidden="true"></i>{{ $t('Die Nachrichten laufen verschlüsselt über den Push-Dienst des Geräts (Apple, Google oder Mozilla) – lesen kann sie nur dieses Gerät. Erinnerungen kommen pünktlich, auch wenn die App geschlossen ist; geplant werden sie bei jedem Abgleich.') }}
     </p>
   </template>
 </template>

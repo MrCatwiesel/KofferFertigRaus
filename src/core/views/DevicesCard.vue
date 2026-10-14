@@ -4,6 +4,7 @@ import qrcode from 'qrcode-generator'
 import { ServerClient } from '../sync/client'
 import { logoutThisDevice, syncState } from '../sync/engine'
 import { ago, inviteLink } from '../sync/logic'
+import { locale, t, tn } from '@/core/i18n'
 
 interface Device {
   id: string
@@ -55,12 +56,12 @@ onUnmounted(() => clearInterval(timer))
 type SyncInfo = { level: 'ok' | 'warn' | 'unknown'; text: string }
 /** Abgleich-Stand eines Geräts in Worten */
 function syncInfo(d: Device): SyncInfo {
-  if (d.behind === null && d.pending === null) return { level: 'unknown', text: 'Stand unbekannt – gleicht beim nächsten Öffnen ab' }
+  if (d.behind === null && d.pending === null) return { level: 'unknown', text: t('Stand unbekannt – gleicht beim nächsten Öffnen ab') }
   const parts: string[] = []
-  if (d.behind) parts.push(`${d.behind} ${d.behind === 1 ? 'Änderung fehlt' : 'Änderungen fehlen'} noch`)
+  if (d.behind) parts.push(tn(d.behind, '{n} Änderung fehlt noch', '{n} Änderungen fehlen noch'))
   if (d.pending) parts.push(`${d.pending} noch nicht hochgeladen`)
-  if (d.behind === null) parts.unshift('noch nie vollständig abgeglichen')
-  return parts.length ? { level: 'warn', text: parts.join(' · ') } : { level: 'ok', text: 'auf dem neuesten Stand' }
+  if (d.behind === null) parts.unshift(t('noch nie vollständig abgeglichen'))
+  return parts.length ? { level: 'warn', text: parts.join(' · ') } : { level: 'ok', text: t('auf dem neuesten Stand') }
 }
 const notReady = computed(() => devices.value.filter((d) => syncInfo(d).level === 'warn'))
 
@@ -69,7 +70,7 @@ const others = computed(() => devices.value.filter((d) => !d.current))
 const legacyActive = computed(() => !!keyLastSeen.value && Date.now() - new Date(keyLastSeen.value).getTime() < 14 * 86400_000)
 
 async function rename(d: Device) {
-  const name = prompt('Name des Geräts', d.name)?.trim()
+  const name = prompt(t('Name des Geräts'), d.name)?.trim()
   if (!name || name === d.name || !client.value) return
   try {
     await client.value.json(`/api/geraete/${d.id}`, 'PATCH', { name })
@@ -81,7 +82,7 @@ async function rename(d: Device) {
 }
 
 async function revoke(d: Device) {
-  if (!client.value || !confirm(`„${d.name}“ abmelden? Das Gerät gleicht danach nicht mehr ab – seine Daten bleiben dort erhalten.`)) return
+  if (!client.value || !confirm(t('„{0}“ abmelden? Das Gerät gleicht danach nicht mehr ab – seine Daten bleiben dort erhalten.', [d.name]))) return
   try {
     await client.value.json(`/api/geraete/${d.id}`, 'DELETE')
     info.value = `„${d.name}“ ist abgemeldet.`
@@ -92,10 +93,10 @@ async function revoke(d: Device) {
 }
 
 async function revokeOthers() {
-  if (!client.value || !confirm(`Alle ${others.value.length} anderen Geräte abmelden? Nur dieses Gerät bleibt angemeldet.`)) return
+  if (!client.value || !confirm(t('Alle {0} anderen Geräte abmelden? Nur dieses Gerät bleibt angemeldet.', [others.value.length]))) return
   try {
     const r = await client.value.json<{ revoked: number }>('/api/geraete/andere-abmelden', 'POST')
-    info.value = `${r.revoked} Geräte abgemeldet.`
+    info.value = t('{0} Geräte abgemeldet.', [r.revoked])
     await load()
   } catch (e) {
     error.value = (e as Error).message
@@ -103,7 +104,7 @@ async function revokeOthers() {
 }
 
 async function logoutHere() {
-  if (!confirm('Dieses Gerät abmelden und den Abgleich beenden? Die Daten auf diesem Gerät bleiben erhalten.')) return
+  if (!confirm(t('Dieses Gerät abmelden und den Abgleich beenden? Die Daten auf diesem Gerät bleiben erhalten.'))) return
   await logoutThisDevice()
   emit('loggedOut')
 }
@@ -138,12 +139,12 @@ async function newInvite() {
 
 async function shareInvite() {
   if (!invite.value) return
-  const text = `Einladung zu „Nix wie weg“ (gilt einmal, 24 Stunden):\n${invite.value.link}\nOder in der App eingeben: ${invite.value.code}`
+  const text = t('Einladung zu „Nix wie weg“ (gilt einmal, 24 Stunden):\n{0}\nOder in der App eingeben: {1}', [invite.value.link, invite.value.code])
   try {
-    if (navigator.share) await navigator.share({ title: 'Nix wie weg – Einladung', text })
+    if (navigator.share) await navigator.share({ title: t('Nix wie weg – Einladung'), text })
     else {
       await navigator.clipboard.writeText(text)
-      info.value = 'Einladung kopiert.'
+      info.value = t('Einladung kopiert.')
     }
   } catch {
     /* abgebrochen */
@@ -151,35 +152,35 @@ async function shareInvite() {
 }
 
 const until = (iso: string) =>
-  new Intl.DateTimeFormat('de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+  new Intl.DateTimeFormat(locale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 </script>
 
 <template>
   <div class="card mb-3">
     <div class="card-body">
       <h2 class="h6 d-flex align-items-center gap-2">
-        <i class="bi bi-phone" aria-hidden="true"></i>Angemeldete Geräte
-        <span v-if="syncState.device" class="small text-body-secondary fw-normal ms-auto">Dieses Gerät: {{ syncState.device.name }}</span>
+        <i class="bi bi-phone" aria-hidden="true"></i>{{ $t('Angemeldete Geräte') }}
+        <span v-if="syncState.device" class="small text-body-secondary fw-normal ms-auto">{{ $t('Dieses Gerät: {0}', [syncState.device.name]) }}</span>
       </h2>
 
       <div v-if="!loading && devices.length > 1" class="small mb-2" :class="notReady.length ? 'text-warning-emphasis' : 'text-success'">
         <i class="bi" :class="notReady.length ? 'bi-exclamation-triangle' : 'bi-check2-all'" aria-hidden="true"></i>
-        <template v-if="notReady.length">{{ notReady.map((d) => d.name).join(', ') }} {{ notReady.length === 1 ? 'ist' : 'sind' }} noch nicht auf dem neuesten Stand.</template>
-        <template v-else>Alle Geräte sind auf dem neuesten Stand.</template>
+        <template v-if="notReady.length">{{ $t('{0} {1} noch nicht auf dem neuesten Stand.', [notReady.map((d) => d.name).join(', '), notReady.length === 1 ? 'ist' : 'sind']) }}</template>
+        <template v-else>{{ $t('Alle Geräte sind auf dem neuesten Stand.') }}</template>
       </div>
       <div v-if="error" class="alert alert-danger small py-2">{{ error }}</div>
       <div v-if="info" class="alert alert-success small py-2" role="status">{{ info }}</div>
-      <div v-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade …</div>
+      <div v-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Lade …') }}</div>
 
       <div v-else class="list-group mb-2">
         <div v-for="d in devices" :key="d.id" class="list-group-item d-flex align-items-center gap-2">
           <i class="bi" :class="/iPad|iPhone|Android/.test(d.agent + d.name) ? 'bi-tablet' : 'bi-laptop'" aria-hidden="true"></i>
           <div class="flex-grow-1 min-w-0">
             <div class="text-truncate">
-              {{ d.name }} <span v-if="d.current" class="badge text-bg-primary ms-1">dieses Gerät</span>
+              {{ d.name }} <span v-if="d.current" class="badge text-bg-primary ms-1">{{ $t('dieses Gerät') }}</span>
             </div>
             <div class="small text-body-secondary text-truncate">
-              {{ d.agent || 'unbekannt' }} · zuletzt {{ ago(d.synced ?? d.lastSeen ?? d.created) }}
+              {{ $t('{0} · zuletzt {1}', [d.agent || 'unbekannt', ago(d.synced ?? d.lastSeen ?? d.created)]) }}
             </div>
             <div class="small" :class="{ 'text-success': syncInfo(d).level === 'ok', 'text-warning-emphasis': syncInfo(d).level === 'warn', 'text-body-secondary': syncInfo(d).level === 'unknown' }">
               <i class="bi" :class="syncInfo(d).level === 'ok' ? 'bi-check2' : syncInfo(d).level === 'warn' ? 'bi-hourglass-split' : 'bi-question-circle'" aria-hidden="true"></i>
@@ -189,40 +190,38 @@ const until = (iso: string) =>
           <div class="dropdown flex-none">
             <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="`Aktionen für ${d.name}`"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><button class="dropdown-item" @click="rename(d)">Umbenennen</button></li>
-              <li v-if="d.current"><button class="dropdown-item text-danger" @click="logoutHere">Dieses Gerät abmelden</button></li>
-              <li v-else><button class="dropdown-item text-danger" @click="revoke(d)">Abmelden</button></li>
+              <li><button class="dropdown-item" @click="rename(d)">{{ $t('Umbenennen') }}</button></li>
+              <li v-if="d.current"><button class="dropdown-item text-danger" @click="logoutHere">{{ $t('Dieses Gerät abmelden') }}</button></li>
+              <li v-else><button class="dropdown-item text-danger" @click="revoke(d)">{{ $t('Abmelden') }}</button></li>
             </ul>
           </div>
         </div>
-        <div v-if="!devices.length" class="list-group-item small text-body-secondary">Noch keine Geräte mit eigenem Zugang.</div>
+        <div v-if="!devices.length" class="list-group-item small text-body-secondary">{{ $t('Noch keine Geräte mit eigenem Zugang.') }}</div>
       </div>
 
       <p v-if="legacyActive" class="small text-body-secondary">
-        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Mindestens ein Gerät meldet sich noch direkt mit dem Gruppenschlüssel an
-        (zuletzt {{ ago(keyLastSeen) }}). Es stellt beim nächsten Abgleich mit der neuen App-Version von selbst um.
+        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ $t('Mindestens ein Gerät meldet sich noch direkt mit dem Gruppenschlüssel an (zuletzt {0}). Es stellt beim nächsten Abgleich mit der neuen App-Version von selbst um.', [ago(keyLastSeen)]) }}
       </p>
 
       <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-primary btn-sm" @click="newInvite"><i class="bi bi-qr-code me-1" aria-hidden="true"></i>Gerät hinzufügen</button>
-        <button v-if="others.length && syncState.device" type="button" class="btn btn-outline-danger btn-sm" @click="revokeOthers">Alle anderen abmelden</button>
+        <button type="button" class="btn btn-primary btn-sm" @click="newInvite"><i class="bi bi-qr-code me-1" aria-hidden="true"></i>{{ $t('Gerät hinzufügen') }}</button>
+        <button v-if="others.length && syncState.device" type="button" class="btn btn-outline-danger btn-sm" @click="revokeOthers">{{ $t('Alle anderen abmelden') }}</button>
       </div>
 
       <!-- Einladung -->
       <div v-if="invite" class="border rounded p-3 mt-3 text-center">
-        <div class="qr mx-auto mb-2" role="img" aria-label="QR-Code der Einladung" v-html="invite.svg"></div>
-        <div class="small mb-1">Mit der Kamera des neuen Geräts scannen – oder in der App unter „Geräte-Abgleich“ eingeben:</div>
+        <div class="qr mx-auto mb-2" role="img" :aria-label="$t('QR-Code der Einladung')" v-html="invite.svg"></div>
+        <div class="small mb-1">{{ $t('Mit der Kamera des neuen Geräts scannen – oder in der App unter „Geräte-Abgleich“ eingeben:') }}</div>
         <div class="fs-4 font-monospace fw-semibold mb-1 user-select-all">{{ invite.code }}</div>
-        <div class="small text-body-secondary mb-2">Gilt einmal, bis {{ until(invite.expires) }}.</div>
-        <button type="button" class="btn btn-outline-primary btn-sm" @click="shareInvite"><i class="bi bi-share me-1" aria-hidden="true"></i>Einladung teilen</button>
+        <div class="small text-body-secondary mb-2">{{ $t('Gilt einmal, bis {0}.', [until(invite.expires)]) }}</div>
+        <button type="button" class="btn btn-outline-primary btn-sm" @click="shareInvite"><i class="bi bi-share me-1" aria-hidden="true"></i>{{ $t('Einladung teilen') }}</button>
         <p class="small text-body-secondary mt-2 mb-0 text-start">
-          Tipp fürs iPad/iPhone: Ist die App dort schon auf dem Home-Bildschirm, öffne sie und gib den Code ein – der Link öffnet sonst nur Safari.
+          {{ $t('Tipp fürs iPad/iPhone: Ist die App dort schon auf dem Home-Bildschirm, öffne sie und gib den Code ein – der Link öffnet sonst nur Safari.') }}
         </p>
       </div>
 
       <p class="small text-body-secondary mt-3 mb-0">
-        Jedes Gerät hat einen eigenen Zugang. Verlorenes Gerät? Hier abmelden – alle anderen laufen weiter.
-        Geräte, die {{ idleDays }} Tage nicht da waren, werden automatisch abgemeldet.
+        {{ $t('Jedes Gerät hat einen eigenen Zugang. Verlorenes Gerät? Hier abmelden – alle anderen laufen weiter. Geräte, die {0} Tage nicht da waren, werden automatisch abgemeldet.', [idleDays]) }}
       </p>
     </div>
   </div>

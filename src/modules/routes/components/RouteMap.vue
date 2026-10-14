@@ -58,7 +58,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div ref="el" class="route-map rounded border" :style="{ height }" role="region" aria-label="Karte mit Strecken"></div>
+  <div ref="el" class="route-map rounded border" :style="{ height }" role="region" :aria-label="$t('Karte mit Strecken')"></div>
 </template>
 
 <style scoped>

@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 /**
  * Designs der App – reine Daten, ohne DOM (testbar, z. B. Kontrast aller Farben).
  *
@@ -66,116 +67,116 @@ const F = {
   system: SANS
 }
 
-export const THEMES: ThemeDef[] = [
+export const THEMES: ThemeDef[] = translated([
   {
-    id: 'alpin', label: 'Alpin & natürlich', hint: 'Tannengrün, Sand und Abendrot',
+    id: 'alpin', label: N_('Alpin & natürlich'), hint: N_('Tannengrün, Sand und Abendrot'),
     heading: { font: F.lora, weight: 700 }, body: { font: F.nunito }, radius: 0.85, border: 1, shadow: 'soft', pattern: 'topo', logo: 'berg', tile: 'soft',
     light: { primary: '#2f5d50', onPrimary: '#ffffff', accent: '#c4703a', bg: '#f4efe4', surface: '#fffdf8', surface2: '#f7f2e8', text: '#26302b', muted: '#5f645b', border: '#e2d9c7', sky1: '#f6d7a7', sky2: '#e9a46a', far: '#8aa597', mid: '#4f7a68', near: '#2f5d50' },
     dark: { primary: '#86bba5', onPrimary: '#10201a', accent: '#e39b63', bg: '#121815', surface: '#1b231f', surface2: '#222c27', text: '#e9e5db', muted: '#a7aaa0', border: '#2f3a34', sky1: '#3b3550', sky2: '#7a4d4a', far: '#3d5248', mid: '#2c4038', near: '#1d2c26' }
   },
   {
-    id: 'modern', label: 'Frisch & modern', hint: 'Kräftiges Blau und Türkis, runde Formen',
+    id: 'modern', label: N_('Frisch & modern'), hint: N_('Kräftiges Blau und Türkis, runde Formen'),
     heading: { font: F.montserrat, weight: 700 }, body: { font: F.montserrat }, radius: 1.15, border: 1, shadow: 'float', pattern: 'blobs', logo: 'pin', tile: 'gradient', gradient: true,
     light: { primary: '#1463ff', onPrimary: '#ffffff', accent: '#0e9e90', sun: '#ffd166', bg: '#eef3fb', surface: '#ffffff', surface2: '#f4f7fd', text: '#162036', muted: '#56637b', border: '#dde5f2', sky1: '#8fd3ff', sky2: '#3c7bff', far: '#7fb8e8', mid: '#2f8fd8', near: '#1463ff' },
     dark: { primary: '#6d9bff', onPrimary: '#0b1430', accent: '#2dd4bf', sun: '#ffd166', bg: '#0b1120', surface: '#131b2e', surface2: '#1a2339', text: '#e6ebf5', muted: '#9aa6bd', border: '#26314a', sky1: '#233a7a', sky2: '#4c2f80', far: '#1f3466', mid: '#1a2b55', near: '#131f40' }
   },
   {
-    id: 'retro', label: 'Retro-Reiseplakat', hint: 'Petrol, Orange und Creme, Stempel-Optik',
+    id: 'retro', label: N_('Retro-Reiseplakat'), hint: N_('Petrol, Orange und Creme, Stempel-Optik'),
     heading: { font: F.slab, weight: 700, upper: true }, body: { font: F.nunito }, radius: 0.45, border: 2, shadow: 'hard', pattern: 'sunburst', logo: 'stempel', tile: 'solid',
     light: { primary: '#1f6f78', onPrimary: '#fbf5e6', accent: '#e2603a', bg: '#f1e5c9', surface: '#fbf4e3', surface2: '#f5ead0', text: '#2b2620', muted: '#665a4b', border: '#2b2620', sky1: '#f4c869', sky2: '#e2603a', far: '#e9b44c', mid: '#1f6f78', near: '#133f45' },
     dark: { primary: '#5cbcc7', onPrimary: '#14262a', accent: '#f08a5d', bg: '#1c1914', surface: '#26221b', surface2: '#2e2920', text: '#f2e7d0', muted: '#b6a88f', border: '#8a7b62', sky1: '#6b3f2a', sky2: '#2c4a50', far: '#7a5a2a', mid: '#1f4f55', near: '#12302f' }
   },
   {
-    id: 'mittelmeer', label: 'Mittelmeer', hint: 'Azurblau, Terrakotta und Kalkweiß',
+    id: 'mittelmeer', label: N_('Mittelmeer'), hint: N_('Azurblau, Terrakotta und Kalkweiß'),
     heading: { font: F.playfair, weight: 700 }, body: { font: F.nunito }, radius: 0.9, border: 1, shadow: 'soft', pattern: 'waves', logo: 'pin', tile: 'soft',
     light: { primary: '#1d5fa6', onPrimary: '#ffffff', accent: '#c75d2c', sun: '#f6c453', bg: '#f6f2ea', surface: '#fffdf9', surface2: '#f2ece1', text: '#1d2a3a', muted: '#566174', border: '#e3dccf', sky1: '#ffe2b8', sky2: '#7fb6e6', far: '#9cc3e0', mid: '#3f86c4', near: '#1d5fa6' },
     dark: { primary: '#79b0ec', onPrimary: '#0c1b2c', accent: '#f08d5c', sun: '#f6c453', bg: '#0e1620', surface: '#16212d', surface2: '#1d2a38', text: '#e8edf3', muted: '#a3afbf', border: '#2a3a4c', sky1: '#523a52', sky2: '#1c3554', far: '#2a4560', mid: '#1f3a55', near: '#142a40' }
   },
   {
-    id: 'nordisch', label: 'Nordisch klar', hint: 'Schiefer, Senf und viel Ruhe – schlicht und flach',
+    id: 'nordisch', label: N_('Nordisch klar'), hint: N_('Schiefer, Senf und viel Ruhe – schlicht und flach'),
     heading: { font: F.montserrat, weight: 600 }, body: { font: F.nunito }, radius: 0.35, border: 1, shadow: 'none', pattern: 'grid', logo: 'kompass', tile: 'outline',
     light: { primary: '#3d5a6c', onPrimary: '#ffffff', accent: '#a8711f', sun: '#e8b64c', bg: '#f3f4f2', surface: '#ffffff', surface2: '#eceeeb', text: '#1f2629', muted: '#576166', border: '#d4d9d7', sky1: '#e8eef0', sky2: '#b9cbd4', far: '#a9bcc6', mid: '#6f8a99', near: '#3d5a6c' },
     dark: { primary: '#9cb8c9', onPrimary: '#142026', accent: '#e0ab55', bg: '#121618', surface: '#1a2023', surface2: '#20282c', text: '#e6eaec', muted: '#9fa9ae', border: '#2c3539', sky1: '#2a3640', sky2: '#18222a', far: '#2b3a43', mid: '#223038', near: '#18242b' }
   },
   {
-    id: 'toskana', label: 'Toskana', hint: 'Olive, Terrakotta und warmes Licht',
+    id: 'toskana', label: N_('Toskana'), hint: N_('Olive, Terrakotta und warmes Licht'),
     heading: { font: F.merri, weight: 700 }, body: { font: F.nunito }, radius: 0.6, border: 1, shadow: 'soft', pattern: 'dots', logo: 'berg', tile: 'soft',
     light: { primary: '#56662a', onPrimary: '#ffffff', accent: '#a94a22', sun: '#e9a03b', bg: '#f4ebdc', surface: '#fffaf1', surface2: '#f3e8d6', text: '#2e2a22', muted: '#665e50', border: '#e2d4bc', sky1: '#f7d9a8', sky2: '#e3a467', far: '#b8b77d', mid: '#7d8a45', near: '#4f5b25' },
     dark: { primary: '#b5c47a', onPrimary: '#1b2009', accent: '#e08355', bg: '#17150f', surface: '#211e16', surface2: '#29251b', text: '#efe7d8', muted: '#b3a990', border: '#3a3426', sky1: '#5a3b2a', sky2: '#2f2a3f', far: '#46492c', mid: '#343a20', near: '#232815' }
   },
   {
-    id: 'tropen', label: 'Tropen', hint: 'Dschungelgrün, Koralle und Sonne',
+    id: 'tropen', label: N_('Tropen'), hint: N_('Dschungelgrün, Koralle und Sonne'),
     heading: { font: F.montserrat, weight: 700 }, body: { font: F.nunito }, radius: 1.2, border: 1, shadow: 'float', pattern: 'blobs', logo: 'pin', tile: 'gradient', gradient: true,
     light: { primary: '#0b7259', onPrimary: '#ffffff', accent: '#d9472f', sun: '#ffc94a', bg: '#eef8f3', surface: '#ffffff', surface2: '#f1faf6', text: '#10291f', muted: '#4b665a', border: '#d4ebe1', sky1: '#ffe08a', sky2: '#ff9f7a', far: '#7cc9a8', mid: '#1f9e78', near: '#0b6b53' },
     dark: { primary: '#4fd1a9', onPrimary: '#062019', accent: '#ff8a73', sun: '#ffc94a', bg: '#07150f', surface: '#0f2219', surface2: '#142b20', text: '#e3f4ec', muted: '#9cbcae', border: '#1f3a2e', sky1: '#5a2f3c', sky2: '#1f3b4a', far: '#1d4a3a', mid: '#15382c', near: '#0d2a20' }
   },
   {
-    id: 'wueste', label: 'Wüste & Oase', hint: 'Ocker, Sand und Oasen-Türkis',
+    id: 'wueste', label: N_('Wüste & Oase'), hint: N_('Ocker, Sand und Oasen-Türkis'),
     heading: { font: F.playfair, weight: 700 }, body: { font: F.nunito }, radius: 0.5, border: 1, shadow: 'soft', pattern: 'waves', logo: 'stempel', tile: 'soft',
     light: { primary: '#8c4718', onPrimary: '#ffffff', accent: '#1f6d73', sun: '#f2b134', bg: '#f5e9d3', surface: '#fffaf0', surface2: '#f2e3c7', text: '#33241a', muted: '#6a5543', border: '#e4cfa9', sky1: '#f9dca0', sky2: '#ef9e5b', far: '#e2b77a', mid: '#c98a4b', near: '#9a5a2a' },
     dark: { primary: '#e3a26b', onPrimary: '#2a1607', accent: '#5cc2c9', sun: '#f2b134', bg: '#18120c', surface: '#221a12', surface2: '#2b2117', text: '#f2e6d3', muted: '#bba68b', border: '#3d2f20', sky1: '#5c3420', sky2: '#2a2240', far: '#5b3d22', mid: '#43301b', near: '#2e2113' }
   },
   {
-    id: 'polarlicht', label: 'Polarlicht', hint: 'Nordlicht-Grün und Violett, am schönsten dunkel',
+    id: 'polarlicht', label: N_('Polarlicht'), hint: N_('Nordlicht-Grün und Violett, am schönsten dunkel'),
     heading: { font: F.montserrat, weight: 700 }, body: { font: F.montserrat }, radius: 1, border: 1, shadow: 'float', pattern: 'aurora', logo: 'kompass', tile: 'gradient', gradient: true,
     light: { primary: '#1d6884', onPrimary: '#ffffff', accent: '#6a3fc9', sun: '#d7f5ec', bg: '#eef3f8', surface: '#ffffff', surface2: '#f2f6fa', text: '#14202b', muted: '#52627a', border: '#d9e3ec', sky1: '#8fe3c9', sky2: '#3a3f8f', far: '#6f8fb5', mid: '#3d5a85', near: '#1e3155' },
     dark: { primary: '#3fe0b5', onPrimary: '#04201a', accent: '#a782ff', sun: '#d7f5ec', bg: '#070d1a', surface: '#0f1729', surface2: '#152036', text: '#e4ecf7', muted: '#9aa8c0', border: '#22304a', sky1: '#1fbf95', sky2: '#1b1446', far: '#1d2a4d', mid: '#151f3b', near: '#0c1428' }
   },
   {
-    id: 'urban', label: 'Großstadt', hint: 'Anthrazit und Signalgelb, kantig',
+    id: 'urban', label: N_('Großstadt'), hint: N_('Anthrazit und Signalgelb, kantig'),
     heading: { font: F.montserrat, weight: 700, upper: true }, body: { font: F.montserrat }, radius: 0.15, border: 2, shadow: 'none', pattern: 'grid', logo: 'kompass', tile: 'solid',
     light: { primary: '#1d1d1f', onPrimary: '#ffd400', accent: '#b38f00', sun: '#ffcc00', bg: '#ececec', surface: '#ffffff', surface2: '#f4f4f4', text: '#111111', muted: '#4f4f4f', border: '#1d1d1f', sky1: '#ffd84d', sky2: '#f2994a', far: '#9a9a9a', mid: '#5c5c5c', near: '#2a2a2a' },
     dark: { primary: '#ffd400', onPrimary: '#111111', accent: '#ffd400', sun: '#ffd400', bg: '#0f0f10', surface: '#1a1a1c', surface2: '#222225', text: '#f2f2f2', muted: '#a8a8a8', border: '#5a5a5a', sky1: '#f2994a', sky2: '#2b1f3d', far: '#3a3a3a', mid: '#262626', near: '#151515' }
   },
   {
-    id: 'tagebuch', label: 'Reisetagebuch', hint: 'Tinte auf Papier, handschriftliche Überschriften',
+    id: 'tagebuch', label: N_('Reisetagebuch'), hint: N_('Tinte auf Papier, handschriftliche Überschriften'),
     heading: { font: F.caveat, weight: 700, adjust: 0.55 }, body: { font: F.nunito }, radius: 0.3, border: 1, shadow: 'soft', pattern: 'paper', logo: 'stempel', tile: 'outline',
     light: { primary: '#2c4a7a', onPrimary: '#ffffff', accent: '#b03628', sun: '#e8a33d', bg: '#f6efe0', surface: '#fffbf2', surface2: '#f3ead6', text: '#2a2622', muted: '#655c52', border: '#e0d3b8', sky1: '#f7deb0', sky2: '#a8c4dc', far: '#9fb3a5', mid: '#6b8a7a', near: '#3f5a4d' },
     dark: { primary: '#8fb1e8', onPrimary: '#0f1c33', accent: '#e57367', sun: '#e8a33d', bg: '#191712', surface: '#221f19', surface2: '#2a261f', text: '#efe6d2', muted: '#b2a68f', border: '#3b352a', sky1: '#4a3a2a', sky2: '#232c3d', far: '#34403a', mid: '#28322c', near: '#1b231f' }
   },
   {
-    id: 'provence', label: 'Provence', hint: 'Lavendel, Rosé und Sommerlicht',
+    id: 'provence', label: N_('Provence'), hint: N_('Lavendel, Rosé und Sommerlicht'),
     heading: { font: F.lora, weight: 700 }, body: { font: F.nunito }, radius: 1, border: 1, shadow: 'soft', pattern: 'dots', logo: 'pin', tile: 'soft',
     light: { primary: '#5e4b8b', onPrimary: '#ffffff', accent: '#a8455f', sun: '#f2c45a', bg: '#f5f1f7', surface: '#fffdff', surface2: '#f1ebf5', text: '#262033', muted: '#5e566e', border: '#e2d9ea', sky1: '#f7d6c9', sky2: '#b9a6dc', far: '#b7a8d1', mid: '#8a76b5', near: '#5e4b8b' },
     dark: { primary: '#b9a6ef', onPrimary: '#1d1530', accent: '#f08da3', sun: '#f2c45a', bg: '#13101a', surface: '#1c1826', surface2: '#231e30', text: '#ece6f5', muted: '#aaa0bd', border: '#332c44', sky1: '#4b2f45', sky2: '#221c3d', far: '#3a3054', mid: '#2b2440', near: '#1e192e' }
   },
   {
-    id: 'herbst', label: 'Herbstwald', hint: 'Kastanie, Bernstein und Laub',
+    id: 'herbst', label: N_('Herbstwald'), hint: N_('Kastanie, Bernstein und Laub'),
     heading: { font: F.merri, weight: 700 }, body: { font: F.nunito }, radius: 0.7, border: 1, shadow: 'soft', pattern: 'topo', logo: 'berg', tile: 'soft',
     light: { primary: '#7a3e1d', onPrimary: '#ffffff', accent: '#9a6512', sun: '#f0b33c', bg: '#f3ebe1', surface: '#fffaf4', surface2: '#f1e6d8', text: '#2d221b', muted: '#665850', border: '#e3d4c3', sky1: '#f6cf8f', sky2: '#d9774a', far: '#b98a5a', mid: '#8a5a32', near: '#5a3a22' },
     dark: { primary: '#e59a6a', onPrimary: '#2a1205', accent: '#e7aa45', sun: '#f0b33c', bg: '#16110d', surface: '#1f1914', surface2: '#271f19', text: '#f1e5d9', muted: '#b8a594', border: '#3b2f25', sky1: '#5e3420', sky2: '#2a1f2c', far: '#4a3424', mid: '#36271b', near: '#241a12' }
   },
   {
-    id: 'kueste', label: 'Küste & Ostsee', hint: 'Marineblau, Dünen und Leuchtturm-Orange',
+    id: 'kueste', label: N_('Küste & Ostsee'), hint: N_('Marineblau, Dünen und Leuchtturm-Orange'),
     heading: { font: F.montserrat, weight: 600 }, body: { font: F.nunito }, radius: 0.8, border: 1, shadow: 'soft', pattern: 'waves', logo: 'pin', tile: 'soft',
     light: { primary: '#1c4e74', onPrimary: '#ffffff', accent: '#b8611a', sun: '#f5c451', bg: '#edf3f6', surface: '#ffffff', surface2: '#eef4f7', text: '#15283a', muted: '#526474', border: '#d6e2ea', sky1: '#fde3b3', sky2: '#8ec3e6', far: '#b8d3e6', mid: '#4a86b4', near: '#1c4e74' },
     dark: { primary: '#86bde6', onPrimary: '#0b1d2c', accent: '#f2a65a', sun: '#f5c451', bg: '#0b141c', surface: '#121e29', surface2: '#182633', text: '#e5eef5', muted: '#9db0c1', border: '#253747', sky1: '#4b3a4a', sky2: '#13263a', far: '#1e3449', mid: '#172a3c', near: '#0f1e2c' }
   },
   {
-    id: 'sommer', label: 'Sommerfrische', hint: 'Türkis, Mango und Zitronengelb – verspielt rund',
+    id: 'sommer', label: N_('Sommerfrische'), hint: N_('Türkis, Mango und Zitronengelb – verspielt rund'),
     heading: { font: F.nunito, weight: 800 }, body: { font: F.nunito }, radius: 1.4, border: 1, shadow: 'float', pattern: 'dots', logo: 'pin', tile: 'gradient', gradient: true,
     light: { primary: '#0b6b78', onPrimary: '#ffffff', accent: '#c45a12', sun: '#ffd23f', bg: '#fffaf0', surface: '#ffffff', surface2: '#fff4e0', text: '#1d2b2f', muted: '#52636a', border: '#f1e3c8', sky1: '#fff1b8', sky2: '#7fd6e0', far: '#9fe0d0', mid: '#2bb3a3', near: '#0f7c8c' },
     dark: { primary: '#5fd6e0', onPrimary: '#062a2f', accent: '#ffa66b', sun: '#ffd23f', bg: '#0b1719', surface: '#122326', surface2: '#182c30', text: '#e6f4f5', muted: '#a1bcc0', border: '#24393d', sky1: '#6b4a1f', sky2: '#12303a', far: '#1c3f3f', mid: '#163233', near: '#0f2426' }
   },
   {
-    id: 'nachtzug', label: 'Nachtzug', hint: 'Mitternachtsblau und Gold, elegant',
+    id: 'nachtzug', label: N_('Nachtzug'), hint: N_('Mitternachtsblau und Gold, elegant'),
     heading: { font: F.playfair, weight: 700 }, body: { font: F.nunito }, radius: 0.5, border: 1, shadow: 'soft', pattern: 'stars', logo: 'stempel', tile: 'solid',
     light: { primary: '#1f2a4d', onPrimary: '#f5d27a', accent: '#8a6416', sun: '#f5d27a', bg: '#f2efe8', surface: '#fffdf8', surface2: '#ebe6da', text: '#1b2033', muted: '#565b6f', border: '#dcd5c4', sky1: '#f3d58f', sky2: '#34406e', far: '#6b7398', mid: '#3b4670', near: '#1f2a4d' },
     dark: { primary: '#e8c46a', onPrimary: '#1a1405', accent: '#e8c46a', sun: '#f5d27a', bg: '#0c1020', surface: '#141a30', surface2: '#1a2140', text: '#ece8dc', muted: '#a9adbf', border: '#2a3254', sky1: '#3a3466', sky2: '#0a0f24', far: '#232b50', mid: '#1a2140', near: '#10162e' }
   },
   {
-    id: 'kontrast', label: 'Kontrastreich', hint: 'Sehr gut lesbar: kräftige Farben, größere Schrift',
+    id: 'kontrast', label: N_('Kontrastreich'), hint: N_('Sehr gut lesbar: kräftige Farben, größere Schrift'),
     heading: { font: F.system, weight: 800 }, body: { font: F.system }, radius: 0.4, border: 2, shadow: 'none', pattern: 'none', logo: 'berg', tile: 'solid', scale: 1.08,
     light: { primary: '#003a8c', onPrimary: '#ffffff', accent: '#b00020', sun: '#ffb000', bg: '#ffffff', surface: '#ffffff', surface2: '#f2f2f2', text: '#000000', muted: '#2b2b2b', border: '#000000', sky1: '#ffe08a', sky2: '#6aa6ff', far: '#6b7c99', mid: '#34507a', near: '#0c2244' },
     dark: { primary: '#ffd400', onPrimary: '#000000', accent: '#ff6b6b', sun: '#ffb000', bg: '#000000', surface: '#0a0a0a', surface2: '#161616', text: '#ffffff', muted: '#e0e0e0', border: '#ffffff', sky1: '#5a4a10', sky2: '#0a1a3a', far: '#2a3a5a', mid: '#1a2a44', near: '#0a1428' }
   },
   {
-    id: 'klassisch', label: 'Klassisch', hint: 'Das ursprüngliche Blau, Systemschrift',
+    id: 'klassisch', label: N_('Klassisch'), hint: N_('Das ursprüngliche Blau, Systemschrift'),
     heading: { font: F.system, weight: 600 }, body: { font: F.system }, radius: 0.75, border: 1, shadow: 'soft', pattern: 'none', logo: 'pin', tile: 'soft',
     light: { primary: '#0b5ed7', onPrimary: '#ffffff', accent: '#b07d00', sun: '#ffd43b', bg: '#f5f7fa', surface: '#ffffff', surface2: '#f1f3f5', text: '#212529', muted: '#5a6168', border: '#dee2e6', sky1: '#cfe2ff', sky2: '#6ea8fe', far: '#9ec5fe', mid: '#3d8bfd', near: '#0a58ca' },
     dark: { primary: '#6ea8fe', onPrimary: '#031633', accent: '#ffda6a', sun: '#ffd43b', bg: '#121416', surface: '#1b1e21', surface2: '#212529', text: '#dee2e6', muted: '#a7acb1', border: '#343a40', sky1: '#2b3a55', sky2: '#121c2c', far: '#1f2c40', mid: '#172233', near: '#0f1824' }
   }
-]
+])
 
 export const DEFAULT_THEME = 'alpin'
 

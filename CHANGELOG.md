@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.36.0 – 2026-10-14
+
+### Neu: Englisch (Teil 1)
+- **Sprache wählbar** unter *Einstellungen → Sprache · Language*: Deutsch, English oder „Wie das Gerät“. Gilt für dieses Gerät
+- Schon auf Englisch: Reiseliste und Reiseseite, Reise anlegen und bearbeiten, Einstellungen, Geräte-Abgleich, Personen & Rechte, Benachrichtigungen, Server-Sicherung, App-Sperre, Aussehen und Designs, **Hilfe und Einführung** – dazu Datum, Zahlen, Ländernamen und Währungen im englischen Format
+- Die übrigen Bereiche folgen in den nächsten Versionen; bis dahin erscheinen dort noch deutsche Texte. Deshalb stellt „Wie das Gerät“ vorerst noch nicht von selbst auf Englisch um
+- Für Deutsch ändert sich nichts
+
 ## 1.35.0 – 2026-10-14
 
 ### Neu: Hilfe & Einführung

@@ -2,6 +2,7 @@ import { formatDate } from '../../../core/format'
 import { esc, longDate } from '../logic'
 import type { SiteActivity, SiteData, SiteRoute, SiteStay } from '../types'
 import { profileSvg, statsLine as routeStats, trackSvg } from '../../../services/tracks'
+import { locale } from '@/core/i18n'
 
 /** Gemeinsame Bausteine aller Vorlagen. */
 
@@ -49,7 +50,7 @@ export function routesBlock(routes: SiteRoute[]): string {
 }
 
 const shortDate = (iso: string) =>
-  iso ? new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)) : ''
+  iso ? new Intl.DateTimeFormat(locale(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(new Date(`${iso}T00:00:00Z`)) : ''
 
 /** Unterkünfte als kleine Karten: Art, Name, Zeitraum, Nächte – Adresse und Link nur, wenn freigegeben. */
 export function staysBlock(stays: SiteStay[], heading = 'Unsere Unterkünfte'): string {

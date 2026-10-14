@@ -14,6 +14,7 @@ import { db, now } from '@/core/db'
 import { DEFAULT_LAYOUT, normalizeLayout, type TripLayout } from '@/core/trip-layout'
 import { resizeBlob } from '@/services/images'
 import { DEFAULT_THEME, THEMES, getTheme, themeVars } from './themes'
+import { N_, translated } from '@/core/i18n'
 
 export type ColorMode = 'auto' | 'hell' | 'dunkel'
 export type TextSize = 'klein' | 'normal' | 'gross' | 'sehrgross'
@@ -71,19 +72,19 @@ export const DEFAULT_SETTINGS: AppearanceSettings = {
   layout: DEFAULT_LAYOUT
 }
 
-export const TEXT_SIZES: Record<TextSize, { label: string; percent: number }> = {
-  klein: { label: 'Klein', percent: 93.75 },
-  normal: { label: 'Normal', percent: 100 },
-  gross: { label: 'Groß', percent: 112.5 },
-  sehrgross: { label: 'Sehr groß', percent: 125 }
-}
+export const TEXT_SIZES: Record<TextSize, { label: string; percent: number }> = translated({
+  klein: { label: N_('Klein'), percent: 93.75 },
+  normal: { label: N_('Normal'), percent: 100 },
+  gross: { label: N_('Groß'), percent: 112.5 },
+  sehrgross: { label: N_('Sehr groß'), percent: 125 }
+})
 
-export const CORNERS: Record<Corners, { label: string; rem: number | null }> = {
-  stil: { label: 'Wie das Design', rem: null },
-  eckig: { label: 'Eckig', rem: 0.15 },
-  rund: { label: 'Rund', rem: 0.9 },
-  sehrrund: { label: 'Sehr rund', rem: 1.5 }
-}
+export const CORNERS: Record<Corners, { label: string; rem: number | null }> = translated({
+  stil: { label: N_('Wie das Design'), rem: null },
+  eckig: { label: N_('Eckig'), rem: 0.15 },
+  rund: { label: N_('Rund'), rem: 0.9 },
+  sehrrund: { label: N_('Sehr rund'), rem: 1.5 }
+})
 
 const KEY = 'nww-aussehen'
 const clamp = (v: unknown, min: number, max: number, d: number) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, v)) : d)

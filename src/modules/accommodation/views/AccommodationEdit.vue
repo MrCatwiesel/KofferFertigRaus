@@ -66,29 +66,29 @@ async function remove() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Unterkunft bearbeiten' : 'Neue Unterkunft'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? $t('Unterkunft bearbeiten') : $t('Neue Unterkunft')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
-      <label for="name" class="form-label">Name</label>
+      <label for="name" class="form-label">{{ $t('Name') }}</label>
       <input id="name" v-model="draft.name" class="form-control" :class="{ 'is-invalid': invalid('name') }"
-             placeholder="z. B. Hotel Seeblick" />
+             :placeholder="$t('z. B. Hotel Seeblick')" />
       <div class="invalid-feedback">{{ errors.name }}</div>
     </div>
     <div class="col-12 col-md-4">
-      <label for="type" class="form-label">Art</label>
+      <label for="type" class="form-label">{{ $t('Art') }}</label>
       <select id="type" v-model="draft.type" class="form-select">
         <option v-for="(label, key) in ACCOMMODATION_TYPE_LABELS" :key="key" :value="key">{{ label }}</option>
       </select>
     </div>
 
     <div class="col-6">
-      <label for="in" class="form-label">Anreise</label>
+      <label for="in" class="form-label">{{ $t('Anreise') }}</label>
       <input id="in" v-model="draft.checkIn" type="date" class="form-control" :class="{ 'is-invalid': invalid('checkIn') }" />
       <div class="invalid-feedback">{{ errors.checkIn }}</div>
     </div>
     <div class="col-6">
-      <label for="out" class="form-label">Abreise</label>
+      <label for="out" class="form-label">{{ $t('Abreise') }}</label>
       <input id="out" v-model="draft.checkOut" type="date" class="form-control" :min="draft.checkIn"
              :class="{ 'is-invalid': invalid('checkOut') }" />
       <div class="invalid-feedback">{{ errors.checkOut }}</div>
@@ -99,8 +99,8 @@ async function remove() {
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Status</label>
-      <div class="btn-group flex-wrap" role="group" aria-label="Status">
+      <label class="form-label d-block">{{ $t('Status') }}</label>
+      <div class="btn-group flex-wrap" role="group" :aria-label="$t('Status')">
         <template v-for="(s, key) in ACCOMMODATION_STATUS" :key="key">
           <input :id="`st-${key}`" v-model="draft.status" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`st-${key}`">{{ s.label }}</label>
@@ -109,48 +109,48 @@ async function remove() {
     </div>
 
     <div class="col-12 col-md-6">
-      <label for="price" class="form-label">Preis gesamt</label>
+      <label for="price" class="form-label">{{ $t('Preis gesamt') }}</label>
       <div class="input-group has-validation">
         <input id="price" v-model.number="draft.price" type="number" min="0" step="1" class="form-control"
                :class="{ 'is-invalid': invalid('price') }" placeholder="optional" />
-        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" aria-label="Währung">
-          <option>EUR</option><option>CHF</option><option>USD</option><option>GBP</option>
+        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" :aria-label="$t('Währung')">
+          <option>{{ $t('EUR') }}</option><option>{{ $t('CHF') }}</option><option>{{ $t('USD') }}</option><option>{{ $t('GBP') }}</option>
         </select>
         <div class="invalid-feedback">{{ errors.price }}</div>
       </div>
     </div>
     <div class="col-12 col-md-6">
-      <label for="cancel" class="form-label">Kostenlos stornierbar bis</label>
+      <label for="cancel" class="form-label">{{ $t('Kostenlos stornierbar bis') }}</label>
       <input id="cancel" v-model="draft.cancelUntil" type="date" class="form-control"
              :class="{ 'is-invalid': invalid('cancelUntil') }" />
       <div class="invalid-feedback">{{ errors.cancelUntil }}</div>
     </div>
 
     <div class="col-12">
-      <label for="address" class="form-label">Adresse</label>
+      <label for="address" class="form-label">{{ $t('Adresse') }}</label>
       <input id="address" v-model="draft.address" class="form-control" autocomplete="off" />
     </div>
     <div class="col-12 col-md-8">
-      <label for="url" class="form-label">Link</label>
+      <label for="url" class="form-label">{{ $t('Link') }}</label>
       <input id="url" v-model="draft.url" type="url" class="form-control" placeholder="https://…" />
     </div>
     <div class="col-12 col-md-4">
-      <label for="ref" class="form-label">Buchungsnummer</label>
+      <label for="ref" class="form-label">{{ $t('Buchungsnummer') }}</label>
       <input id="ref" v-model="draft.bookingRef" class="form-control" />
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
+      <label for="notes" class="form-label">{{ $t('Notizen') }}</label>
       <textarea id="notes" v-model="draft.notes" rows="3" class="form-control"
-                placeholder="Frühstück, Parkplatz, Check-in-Zeit …"></textarea>
+                :placeholder="$t('Frühstück, Parkplatz, Check-in-Zeit …')"></textarea>
     </div>
 
     <div class="col-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary" :disabled="saving">
-        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern
+        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ $t('Speichern') }}
       </button>
-      <RouterLink :to="`/trip/${tripId}/unterkuenfte`" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <RouterLink :to="`/trip/${tripId}/unterkuenfte`" class="btn btn-outline-secondary">{{ $t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ $t('Löschen') }}
       </button>
     </div>
   </form>

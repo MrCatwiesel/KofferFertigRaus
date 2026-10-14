@@ -24,12 +24,12 @@ const mine = computed(() => isMine(accounts, trip.value?.memberLinks, model.valu
 
 <template>
   <select v-if="people.length" :id="inputId" v-model="model" class="form-select">
-    <option value="">Alle / gemeinsam</option>
+    <option value="">{{ $t('Alle / gemeinsam') }}</option>
     <option v-for="p in [...people, ...extra]" :key="p" :value="p">{{ p }}</option>
   </select>
-  <input v-else :id="inputId" v-model="model" class="form-control" placeholder="leer = für alle" />
-  <div v-if="owner && mine" class="form-text" data-private><i class="bi bi-lock me-1" aria-hidden="true"></i>Privat – gehört zu deinem Konto.</div>
+  <input v-else :id="inputId" v-model="model" class="form-control" :placeholder="$t('leer = für alle')" />
+  <div v-if="owner && mine" class="form-text" data-private><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ $t('Privat – gehört zu deinem Konto.') }}</div>
   <div v-else-if="owner && accounts.me" class="form-text text-warning-emphasis" data-private>
-    <i class="bi bi-lock me-1" aria-hidden="true"></i>Gehört {{ owner.name }} – nach dem Speichern sieht nur {{ owner.name }} diesen Eintrag.
+    <i class="bi bi-lock me-1" aria-hidden="true"></i>{{ $t('Gehört {0} – nach dem Speichern sieht nur {1} diesen Eintrag.', [owner.name, owner.name]) }}
   </div>
 </template>

@@ -33,19 +33,19 @@ watch(running, (t) => {
     <template v-else-if="next">
       <div class="mx-auto mb-4" style="max-width: 36rem"><DueReminders :trip-id="next.id" /></div>
       <i class="bi bi-hourglass-split display-4 text-primary d-block mb-3" aria-hidden="true"></i>
-      <p class="mb-1">Gerade läuft keine Reise.</p>
+      <p class="mb-1">{{ $t('Gerade läuft keine Reise.') }}</p>
       <p class="text-body-secondary">
-        Nächste Reise: <strong>{{ next.title }}</strong> in {{ diffDays(today, next.startDate) }} Tagen ({{ formatDate(next.startDate) }}).
+        {{ $t('Nächste Reise:') }} <strong>{{ next.title }}</strong> {{ $t('in {0} Tagen ({1}).', [diffDays(today, next.startDate), formatDate(next.startDate)]) }}
       </p>
       <div class="d-flex gap-2 justify-content-center flex-wrap">
-        <RouterLink :to="`/trip/${next.id}/tagesplan`" class="btn btn-primary">Tage schon planen</RouterLink>
-        <RouterLink :to="`/trip/${next.id}`" class="btn btn-outline-secondary">Zur Reise</RouterLink>
+        <RouterLink :to="`/trip/${next.id}/tagesplan`" class="btn btn-primary">{{ $t('Tage schon planen') }}</RouterLink>
+        <RouterLink :to="`/trip/${next.id}`" class="btn btn-outline-secondary">{{ $t('Zur Reise') }}</RouterLink>
       </div>
     </template>
     <template v-else>
       <i class="bi bi-sun display-4 text-primary d-block mb-3" aria-hidden="true"></i>
-      <p class="text-body-secondary">Keine laufende oder geplante Reise.</p>
-      <RouterLink to="/trip/neu" class="btn btn-primary">Reise planen</RouterLink>
+      <p class="text-body-secondary">{{ $t('Keine laufende oder geplante Reise.') }}</p>
+      <RouterLink to="/trip/neu" class="btn btn-primary">{{ $t('Reise planen') }}</RouterLink>
     </template>
   </div>
 </template>

@@ -89,7 +89,7 @@ const weatherLine = computed(() => {
     <div class="card-body py-2">
       <button type="button" class="btn btn-link p-0 text-decoration-none d-flex align-items-center gap-2 w-100 text-start" :aria-expanded="open" @click="open = !open">
         <i class="bi bi-stars text-primary" aria-hidden="true"></i>
-        <span class="fw-semibold flex-grow-1 text-body">Vorschläge für diese Reise <span v-if="visible.length" class="badge text-bg-primary">{{ visible.length }}</span></span>
+        <span class="fw-semibold flex-grow-1 text-body">{{ $t('Vorschläge für diese Reise') }} <span v-if="visible.length" class="badge text-bg-primary">{{ visible.length }}</span></span>
         <i class="bi text-body-secondary" :class="open ? 'bi-chevron-up' : 'bi-chevron-down'" aria-hidden="true"></i>
       </button>
 
@@ -97,31 +97,31 @@ const weatherLine = computed(() => {
         <p class="small mb-2" :class="weatherLine ? '' : 'text-body-secondary'">
           <i class="bi bi-cloud-sun me-1" aria-hidden="true"></i>
           <template v-if="weatherLine">{{ weatherLine }}</template>
-          <template v-else-if="loadingWeather">Wetter wird abgefragt …</template>
-          <template v-else-if="!online">Ohne Internet: Vorschläge ohne Wetter.</template>
-          <template v-else>Kein Wetter gefunden – im Tagesplaner einen Ort fürs Wetter festlegen.</template>
+          <template v-else-if="loadingWeather">{{ $t('Wetter wird abgefragt …') }}</template>
+          <template v-else-if="!online">{{ $t('Ohne Internet: Vorschläge ohne Wetter.') }}</template>
+          <template v-else>{{ $t('Kein Wetter gefunden – im Tagesplaner einen Ort fürs Wetter festlegen.') }}</template>
         </p>
 
         <p v-if="!visible.length" class="small text-body-secondary mb-1">
-          Alles Passende ist schon auf der Liste.
-          <button v-if="dismissed.length" type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="restore">Ausgeblendete wieder zeigen ({{ dismissed.length }})</button>
+          {{ $t('Alles Passende ist schon auf der Liste.') }}
+          <button v-if="dismissed.length" type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="restore">{{ $t('Ausgeblendete wieder zeigen ({0})', [dismissed.length]) }}</button>
         </p>
         <ul v-else class="list-unstyled mb-2">
           <li v-for="s in visible" :key="s.key" class="d-flex align-items-start gap-2 py-1 border-top" :data-suggestion="s.key">
             <input :id="`sg-${s.key}`" class="form-check-input mt-1" type="checkbox" :checked="selected.has(s.key)" @change="toggle(s.key)" />
             <label :for="`sg-${s.key}`" class="flex-grow-1">
               <span class="fw-semibold">{{ s.name }}</span>
-              <span v-if="s.personal && (trip?.participants?.length ?? 0) > 1" class="small text-body-secondary"> · je Person</span>
+              <span v-if="s.personal && (trip?.participants?.length ?? 0) > 1" class="small text-body-secondary"> {{ $t('· je Person') }}</span>
               <span v-else-if="s.quantity > 1" class="small text-body-secondary"> · {{ s.quantity }}×</span>
               <span class="d-block small text-body-secondary"><i :class="`bi bi-${CATEGORY[s.category].icon} me-1`" aria-hidden="true"></i>{{ s.reason }}</span>
             </label>
-            <button type="button" class="btn btn-sm btn-link text-body-secondary p-0" :aria-label="`${s.name} ausblenden`" title="Nicht vorschlagen" @click="dismiss(s)">
+            <button type="button" class="btn btn-sm btn-link text-body-secondary p-0" :aria-label="`${s.name} ausblenden`" :title="$t('Nicht vorschlagen')" @click="dismiss(s)">
               <i class="bi bi-x-lg" aria-hidden="true"></i>
             </button>
           </li>
         </ul>
         <button v-if="visible.length" type="button" class="btn btn-primary btn-sm" :disabled="!chosen.length" @click="take(chosen)">
-          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ chosen.length }} übernehmen
+          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('{0} übernehmen', [chosen.length]) }}
         </button>
       </div>
     </div>

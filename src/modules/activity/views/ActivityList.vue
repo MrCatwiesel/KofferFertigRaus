@@ -31,53 +31,52 @@ const priorityStars = (p: number) => 4 - p
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Unternehmungen" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Unternehmungen')" />
 
   <div v-if="list.length" class="d-flex flex-wrap gap-2 small mb-3">
-    <span class="badge text-bg-light border">{{ counts.idee }} Ideen</span>
-    <span class="badge text-bg-primary">{{ counts.geplant }} geplant</span>
-    <span class="badge text-bg-success">{{ counts.erledigt }} erledigt</span>
+    <span class="badge text-bg-light border">{{ $t('{0} Ideen', [counts.idee]) }}</span>
+    <span class="badge text-bg-primary">{{ $t('{0} geplant', [counts.geplant]) }}</span>
+    <span class="badge text-bg-success">{{ $t('{0} erledigt', [counts.erledigt]) }}</span>
     <span v-if="cost > 0 && trip" class="badge text-bg-light border">
-      ca. {{ formatMoney(cost, trip.currency) }} für {{ trip.travelers }} {{ trip.travelers === 1 ? 'Person' : 'Personen' }}
+      {{ $t('ca. {0} für {1} {2}', [formatMoney(cost, trip.currency), trip.travelers, trip.travelers === 1 ? $t('Person') : $t('Personen')]) }}
     </span>
   </div>
 
   <div v-if="busyDays.length" class="alert alert-warning py-2 small">
     <i class="bi bi-hourglass-split me-1" aria-hidden="true"></i>
-    Viel Programm (über 8 Std.): {{ busyDays.map(formatDayShort).join(', ') }}
+    {{ $t('Viel Programm (über 8 Std.): {0}', [busyDays.map(formatDayShort).join(', ')]) }}
   </div>
 
   <RouterLink :to="`/trip/${tripId}/unternehmungen/neu`" class="btn btn-primary mb-3">
-    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Unternehmung hinzufügen
+    <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Unternehmung hinzufügen') }}
   </RouterLink>
 
   <!-- Filter -->
   <div v-if="list.length" class="row g-2 mb-3">
     <div class="col-6 col-md-4">
-      <select v-model="category" class="form-select form-select-sm" aria-label="Kategorie">
-        <option value="">Alle Kategorien</option>
+      <select v-model="category" class="form-select form-select-sm" :aria-label="$t('Kategorie')">
+        <option value="">{{ $t('Alle Kategorien') }}</option>
         <option v-for="(c, key) in CATEGORY" :key="key" :value="key">{{ c.label }}</option>
       </select>
     </div>
     <div class="col-6 col-md-4">
-      <select v-model="setting" class="form-select form-select-sm" aria-label="Drinnen oder draußen">
-        <option value="">Drinnen & draußen</option>
+      <select v-model="setting" class="form-select form-select-sm" :aria-label="$t('Drinnen oder draußen')">
+        <option value="">{{ $t('Drinnen & draußen') }}</option>
         <option v-for="(s, key) in SETTING" :key="key" :value="key">{{ s.label }}</option>
       </select>
     </div>
     <div class="col-12 col-md-4 d-flex align-items-center">
       <div class="form-check form-switch mb-0">
         <input id="open-only" v-model="openOnly" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="open-only">Nur offene</label>
+        <label class="form-check-label small" for="open-only">{{ $t('Nur offene') }}</label>
       </div>
     </div>
   </div>
 
   <p v-if="list.length === 0" class="text-body-secondary">
-    Sammle hier alles, was ihr erleben wollt – Sehenswürdigkeiten, Ausflüge, Restaurants.
-    Mit „Drinnen/Draußen“ kann der Tagesplaner später auf das Wetter reagieren.
+    {{ $t('Sammle hier alles, was ihr erleben wollt – Sehenswürdigkeiten, Ausflüge, Restaurants. Mit „Drinnen/Draußen“ kann der Tagesplaner später auf das Wetter reagieren.') }}
   </p>
-  <p v-else-if="shown.length === 0" class="text-body-secondary">Keine Unternehmung passt zum Filter.</p>
+  <p v-else-if="shown.length === 0" class="text-body-secondary">{{ $t('Keine Unternehmung passt zum Filter.') }}</p>
 
   <div class="vstack gap-2">
     <div v-for="a in shown" :key="a.id" class="card position-relative"
@@ -92,9 +91,9 @@ const priorityStars = (p: number) => 4 - p
             <span :title="PRIORITY[a.priority]" class="text-warning">
               <i v-for="n in priorityStars(a.priority)" :key="n" class="bi bi-star-fill" aria-hidden="true"></i>
             </span>
-            <span class="visually-hidden">Priorität: {{ PRIORITY[a.priority] }}</span>
+            <span class="visually-hidden">{{ $t('Priorität: {0}', [PRIORITY[a.priority]]) }}</span>
             · <i :class="`bi bi-${SETTING[a.setting].icon}`" aria-hidden="true"></i> {{ SETTING[a.setting].label }}
-            <template v-if="a.durationHours"> · {{ a.durationHours }} Std.</template>
+            <template v-if="a.durationHours"> {{ $t('· {0} Std.', [a.durationHours]) }}</template>
             <template v-if="a.pricePerPerson && trip"> · {{ formatMoney(estimatedCost(a, trip.travelers), a.currency) }}</template>
           </div>
           <div v-if="a.place || a.openingHours" class="small text-body-secondary text-truncate">
@@ -104,13 +103,13 @@ const priorityStars = (p: number) => 4 - p
           <div class="mt-1">
             <span class="badge" :class="ACTIVITY_STATUS[a.status].badge">{{ ACTIVITY_STATUS[a.status].label }}</span>
             <span v-if="a.plannedDate" class="badge text-bg-light border ms-1">{{ formatDayShort(a.plannedDate) }}</span>
-            <span v-if="a.bookingRequired" class="badge text-bg-warning ms-1">Reservierung nötig</span>
+            <span v-if="a.bookingRequired" class="badge text-bg-warning ms-1">{{ $t('Reservierung nötig') }}</span>
           </div>
         </div>
         <button v-if="a.status === 'geplant' || a.status === 'erledigt'" type="button"
                 class="btn btn-sm position-relative z-2"
                 :class="a.status === 'erledigt' ? 'btn-success' : 'btn-outline-success'"
-                :aria-label="a.status === 'erledigt' ? 'Als nicht erledigt markieren' : 'Als erledigt markieren'"
+                :aria-label="a.status === 'erledigt' ? $t('Als nicht erledigt markieren') : $t('Als erledigt markieren')"
                 @click="toggleDone(a)">
           <i class="bi bi-check-lg" aria-hidden="true"></i>
         </button>

@@ -96,26 +96,25 @@ async function addFromOther() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Packliste füllen" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Packliste füllen')" />
 
   <section class="mb-4">
-    <h2 class="h5">Vorlagen</h2>
+    <h2 class="h5">{{ $t('Vorlagen') }}</h2>
     <p class="small text-body-secondary">
-      Mengen für {{ days }} {{ days === 1 ? 'Tag' : 'Tage' }} und {{ trip?.travelers ?? 1 }}
-      {{ (trip?.travelers ?? 1) === 1 ? 'Person' : 'Personen' }}. Doppeltes wird zusammengefasst, Vorhandenes übersprungen.
+      {{ $t('Mengen für {0} {1} und {2} {3}. Doppeltes wird zusammengefasst, Vorhandenes übersprungen.', [days, days === 1 ? $t('Tag') : $t('Tage'), trip?.travelers ?? 1, (trip?.travelers ?? 1) === 1 ? $t('Person') : $t('Personen')]) }}
     </p>
     <div v-if="participants.length" class="mb-3">
-      <div class="small fw-semibold mb-1">Persönliches anlegen für:</div>
+      <div class="small fw-semibold mb-1">{{ $t('Persönliches anlegen für:') }}</div>
       <div class="d-flex flex-wrap gap-2">
         <template v-for="p in participants" :key="p">
           <input :id="`fp-${p}`" type="checkbox" class="btn-check" :checked="forPeople.has(p)" @change="togglePerson(p)" />
           <label class="btn btn-sm btn-outline-secondary" :for="`fp-${p}`"><i class="bi bi-person me-1" aria-hidden="true"></i>{{ p }}</label>
         </template>
       </div>
-      <div class="form-text">Kleidung, Zahnbürste, Ladekabel usw. bekommt jede gewählte Person einzeln, Gemeinsames kommt einmal auf die Liste.</div>
+      <div class="form-text">{{ $t('Kleidung, Zahnbürste, Ladekabel usw. bekommt jede gewählte Person einzeln, Gemeinsames kommt einmal auf die Liste.') }}</div>
     </div>
     <div v-else class="alert alert-light border small py-2">
-      <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>Tipp: Trag bei der Reise unter „Wer reist mit?“ Namen ein – dann wird Persönliches pro Person getrennt.
+      <i class="bi bi-lightbulb me-1" aria-hidden="true"></i>{{ $t('Tipp: Trag bei der Reise unter „Wer reist mit?“ Namen ein – dann wird Persönliches pro Person getrennt.') }}
     </div>
 
     <div class="row g-2 mb-3">
@@ -129,31 +128,31 @@ async function addFromOther() {
     </div>
 
     <div v-if="preview.length" class="small text-body-secondary mb-2">
-      {{ preview.length }} neue Einträge:
+      {{ $t('{0} neue Einträge:', [preview.length]) }}
       <span v-for="([label, n], idx) in previewByCategory" :key="label">{{ idx ? ', ' : '' }}{{ n }} {{ label }}</span>
       <div v-if="participants.length">
         <span v-for="([who, n], idx) in previewByPerson" :key="who">{{ idx ? ' · ' : '' }}{{ who }}: {{ n }}</span>
       </div>
     </div>
-    <div v-else class="small text-body-secondary mb-2">Keine neuen Einträge – alles schon auf der Liste.</div>
+    <div v-else class="small text-body-secondary mb-2">{{ $t('Keine neuen Einträge – alles schon auf der Liste.') }}</div>
     <button type="button" class="btn btn-primary" :disabled="busy || !preview.length" @click="addTemplates">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ preview.length }} Einträge hinzufügen
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('{0} Einträge hinzufügen', [preview.length]) }}
     </button>
   </section>
 
   <section v-if="otherTrips.length" class="mb-4">
-    <h2 class="h5">Von einer anderen Reise übernehmen</h2>
+    <h2 class="h5">{{ $t('Von einer anderen Reise übernehmen') }}</h2>
     <div class="input-group">
-      <select v-model="sourceTrip" class="form-select" aria-label="Reise auswählen" @change="loadSource">
-        <option value="">Reise auswählen …</option>
+      <select v-model="sourceTrip" class="form-select" :aria-label="$t('Reise auswählen')" @change="loadSource">
+        <option value="">{{ $t('Reise auswählen …') }}</option>
         <option v-for="t in otherTrips" :key="t.id" :value="t.id">{{ t.title }} ({{ formatDate(t.startDate) }})</option>
       </select>
       <button type="button" class="btn btn-outline-primary" :disabled="busy || !fromOther.length" @click="addFromOther">
-        {{ sourceTrip ? `${fromOther.length} übernehmen` : 'Übernehmen' }}
+        {{ sourceTrip ? `${fromOther.length} übernehmen` : $t('Übernehmen') }}
       </button>
     </div>
-    <div v-if="sourceTrip && sourceItems.length === 0" class="form-text">Diese Reise hat keine Packliste.</div>
+    <div v-if="sourceTrip && sourceItems.length === 0" class="form-text">{{ $t('Diese Reise hat keine Packliste.') }}</div>
   </section>
 
-  <RouterLink :to="`/trip/${tripId}/packliste`" class="btn btn-outline-secondary">Zurück zur Packliste</RouterLink>
+  <RouterLink :to="`/trip/${tripId}/packliste`" class="btn btn-outline-secondary">{{ $t('Zurück zur Packliste') }}</RouterLink>
 </template>

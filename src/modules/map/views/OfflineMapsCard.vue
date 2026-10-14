@@ -127,7 +127,7 @@ const kmLabel = (b: Bbox) => {
 <template>
   <section class="card mb-3">
     <div class="card-body">
-      <h2 class="h6 card-title"><i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>Offline-Karten</h2>
+      <h2 class="h6 card-title"><i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>{{ $t('Offline-Karten') }}</h2>
 
       <!-- Gespeichert auf diesem Gerät -->
       <div v-if="local.length" class="list-group mb-3">
@@ -143,45 +143,44 @@ const kmLabel = (b: Bbox) => {
         </div>
       </div>
       <p v-else class="small text-body-secondary">
-        Speichere den Kartenausschnitt deiner Reise auf diesem Gerät – dann siehst du Karte, Orte und Routen auch ohne Netz,
-        z. B. in den Bergen oder im Ausland.
+        {{ $t('Speichere den Kartenausschnitt deiner Reise auf diesem Gerät – dann siehst du Karte, Orte und Routen auch ohne Netz, z. B. in den Bergen oder im Ausland.') }}
       </p>
 
       <!-- Auf dem Server vorhanden, hier noch nicht -->
       <div v-if="fetchable.length" class="mb-3">
-        <div class="small text-body-secondary mb-1">Auf deinem Server, aber noch nicht auf diesem Gerät:</div>
+        <div class="small text-body-secondary mb-1">{{ $t('Auf deinem Server, aber noch nicht auf diesem Gerät:') }}</div>
         <div v-for="m in fetchable" :key="m.id" class="d-flex flex-wrap align-items-center gap-2 mb-1">
           <span class="small flex-grow-1">{{ m.name }} · {{ kmLabel(m.bbox) }} · {{ formatMb(m.size) }}</span>
-          <button type="button" class="btn btn-sm btn-outline-primary" :disabled="!!busy" @click="fetchToDevice(m)">Auf dieses Gerät laden</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="!!busy" aria-label="Auf dem Server löschen" @click="removeOnServer(m)">
+          <button type="button" class="btn btn-sm btn-outline-primary" :disabled="!!busy" @click="fetchToDevice(m)">{{ $t('Auf dieses Gerät laden') }}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="!!busy" :aria-label="$t('Auf dem Server löschen')" @click="removeOnServer(m)">
             <i class="bi bi-trash" aria-hidden="true"></i>
           </button>
         </div>
       </div>
       <div v-if="pendingOnServer.length && !busy" class="small text-body-secondary mb-2">
-        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Der Server erstellt gerade „{{ pendingOnServer[0].name }}“ –
-        <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="refresh">neu prüfen</button>
+        <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ $t('Der Server erstellt gerade „{0}“ –', [pendingOnServer[0].name]) }}
+        <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="refresh">{{ $t('neu prüfen') }}</button>
       </div>
 
       <!-- Neuen Ausschnitt speichern -->
       <div v-if="noServer" class="alert alert-secondary small mb-0">
-        Offline-Karten erstellt dein eigener Server. Richte zuerst den
-        <RouterLink to="/abgleich">Geräte-Abgleich</RouterLink> ein.
+        {{ $t('Offline-Karten erstellt dein eigener Server. Richte zuerst den') }}
+        <RouterLink to="/abgleich">{{ $t('Geräte-Abgleich') }}</RouterLink> {{ $t('ein.') }}
       </div>
-      <div v-else-if="!online" class="small text-body-secondary">Neue Ausschnitte kannst du speichern, sobald wieder Internet da ist.</div>
+      <div v-else-if="!online" class="small text-body-secondary">{{ $t('Neue Ausschnitte kannst du speichern, sobald wieder Internet da ist.') }}</div>
       <div v-else-if="serverReady === false" class="alert alert-secondary small mb-0">
-        Dein Server kann noch keine Offline-Karten erstellen. Im Container einmal
-        <code>/opt/nix-wie-weg/server/proxmox/update.sh</code> ausführen – danach geht es.
+        {{ $t('Dein Server kann noch keine Offline-Karten erstellen. Im Container einmal') }}
+        <code>/opt/nix-wie-weg/server/proxmox/update.sh</code> {{ $t('ausführen – danach geht es.') }}
       </div>
       <template v-else>
         <div class="row g-2 align-items-end mb-2">
           <div class="col-12 col-sm-6">
-            <label for="om-name" class="form-label small mb-1">Name</label>
+            <label for="om-name" class="form-label small mb-1">{{ $t('Name') }}</label>
             <input id="om-name" v-model="name" class="form-control form-control-sm" maxlength="80" />
           </div>
           <div class="col-12 col-sm-6">
-            <span class="form-label small mb-1 d-block">Detail</span>
-            <div class="btn-group btn-group-sm w-100" role="group" aria-label="Detail">
+            <span class="form-label small mb-1 d-block">{{ $t('Detail') }}</span>
+            <div class="btn-group btn-group-sm w-100" role="group" :aria-label="$t('Detail')">
               <template v-for="d in DETAIL_LEVELS" :key="d.zoom">
                 <input :id="`om-z${d.zoom}`" v-model="zoom" type="radio" class="btn-check" :value="d.zoom" />
                 <label class="btn btn-outline-primary" :for="`om-z${d.zoom}`" :title="d.hint">{{ d.label }}</label>
@@ -190,12 +189,11 @@ const kmLabel = (b: Bbox) => {
           </div>
         </div>
         <p class="small text-body-secondary mb-2">
-          Gespeichert wird der <strong>aktuelle Kartenausschnitt</strong><template v-if="size"> (ca. {{ size.width }} × {{ size.height }} km)</template>.
-          {{ DETAIL_LEVELS.find((d) => d.zoom === zoom)?.hint }}. Meist 5–80 MB.
+          {{ $t('Gespeichert wird der') }} <strong>{{ $t('aktuelle Kartenausschnitt') }}</strong><template v-if="size"> {{ $t('(ca. {0} × {1} km)', [size.width, size.height]) }}</template>{{ $t('. {0}. Meist 5–80 MB.', [DETAIL_LEVELS.find((d) => d.zoom === zoom)?.hint]) }}
         </p>
-        <div v-if="tooLarge" class="small text-warning-emphasis mb-2">Der Ausschnitt ist zu groß – bitte etwas näher heranzoomen.</div>
+        <div v-if="tooLarge" class="small text-warning-emphasis mb-2">{{ $t('Der Ausschnitt ist zu groß – bitte etwas näher heranzoomen.') }}</div>
         <button type="button" class="btn btn-primary btn-sm" :disabled="!!busy || tooLarge || !viewBbox" @click="order">
-          <i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>Ausschnitt offline speichern
+          <i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>{{ $t('Ausschnitt offline speichern') }}
         </button>
       </template>
 
@@ -207,7 +205,7 @@ const kmLabel = (b: Bbox) => {
       </div>
       <div v-if="done" class="small text-success mt-2" role="status">{{ done }}</div>
       <div v-if="error" class="small text-danger mt-2" role="alert">{{ error }}</div>
-      <p class="small text-body-secondary mt-2 mb-0">Kartendaten: © OpenStreetMap-Mitwirkende, Protomaps</p>
+      <p class="small text-body-secondary mt-2 mb-0">{{ $t('Kartendaten: © OpenStreetMap-Mitwirkende, Protomaps') }}</p>
     </div>
   </section>
 </template>

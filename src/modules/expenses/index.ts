@@ -4,11 +4,12 @@ import { formatMoney } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { expenseRepository } from './repository'
 import { summarize } from './logic'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Ausgaben" (unterwegs). */
 export const expensesModule: AppModule = {
   id: 'expenses',
-  title: 'Ausgaben',
+  title: N_('Ausgaben'),
   icon: 'wallet2',
   order: 55,
   routes: [
@@ -18,7 +19,7 @@ export const expensesModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs', 'danach'],
-    title: 'Ausgaben',
+    title: N_('Ausgaben'),
     icon: 'wallet2',
     to: (tripId) => `/trip/${tripId}/ausgaben`,
     async summary(tripId) {

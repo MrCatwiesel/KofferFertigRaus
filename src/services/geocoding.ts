@@ -1,3 +1,4 @@
+import { locale } from '@/core/i18n'
 /**
  * Adresssuche über Nominatim (OpenStreetMap), https://nominatim.org
  * Nutzungsregeln: höchstens 1 Anfrage pro Sekunde, keine Suche beim Tippen – darum nur auf Knopfdruck.
@@ -49,5 +50,5 @@ export function distanceKm(a: { lat: number; lon: number }, b: { lat: number; lo
 
 export function formatDistance(km: number): string {
   if (km < 1) return `${Math.round(km * 1000)} m`
-  return `${km.toLocaleString('de-DE', { maximumFractionDigits: km < 10 ? 1 : 0 })} km`
+  return `${km.toLocaleString(locale(), { maximumFractionDigits: km < 10 ? 1 : 0 })} km`
 }

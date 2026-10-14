@@ -86,6 +86,16 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - `modules/abstimmung`: `polls` (Frage, Antworten, Frist) und `pollVotes` – **eine Stimme je Person und Abstimmung als eigener Datensatz** (`${pollId}:${Name}`), damit gleichzeitiges Abstimmen auf mehreren Geräten nichts überschreibt (neuere Änderung gewinnt je Datensatz).
 - Stimme mit `memberId` gehört dieser Person: Der Server (`members.mjs`, `denyWrite`) lässt sie nur von ihr ändern – auch mit „Nur lesen“ –, Fremdes wird mit `fremde-stimme` abgelehnt. Löschen fremder Stimmen (Abstimmung gelöscht, „Neu abstimmen“) braucht Bearbeiten-Recht.
 
+## Sprachen (Deutsch, Englisch)
+
+- `src/core/i18n/index.ts`, ohne Pakete. **Der deutsche Text ist der Schlüssel:** im Skript `t('Neue Reise')`, in Vorlagen `$t('Neue Reise')` (globale Eigenschaft – `$`, damit `v-for="t in …"` nicht stört). Platzhalter `t('{0} von {1}', [a, b])` oder benannt; Einzahl/Mehrzahl `tn(n, '{n} Tag', '{n} Tage')`.
+- **Konstanten** (Beschriftungen in Objekten/Listen, die beim Laden ausgewertet werden): Texte mit `N_('…')` markieren und das Objekt mit `translated(…)` einpacken – übersetzt wird beim Lesen.
+- Englische Texte in `src/core/i18n/en/*.ts` (`'Deutsch': 'English'`), nur bei Englisch nachgeladen. Fehlt eine Übersetzung, erscheint Deutsch.
+- `node build/i18n-texte.mjs fehlend` listet fehlende Übersetzungen je Datei. Der Test `src/core/__tests__/i18n.test.ts` prüft für die fertigen Bereiche (`FERTIG`), dass alles übersetzt ist und keine Platzhalter erfunden werden.
+- Datum/Zahlen über `locale()` statt `'de-DE'`; Ländernamen über `Intl.DisplayNames` in der App-Sprache.
+- Hilfe und Einführung auf Englisch: `src/core/hilfe/inhalt-en.ts` (gleiche ids), ausgewählt über `hilfe/sprache.ts`.
+- **Neue Texte immer mit `t`/`$t` schreiben** und die englische Fassung eintragen.
+
 ## Hilfe und Einführung
 
 - Inhalt als Daten in `src/core/hilfe/inhalt.ts` (`HELP_TOPICS`, `INTRO_SLIDES`) – Text mit `**fett**` und `*kursiv*`, angezeigt über `RichText.vue` ohne `v-html`.

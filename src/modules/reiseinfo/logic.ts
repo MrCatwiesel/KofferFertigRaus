@@ -1,7 +1,8 @@
 import { missionName, partText, warningLabel } from './parse'
 import { SOURCE_URL, type CountryInfo } from './types'
+import { locale } from '@/core/i18n'
 
-const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString('de-DE') : '')
+const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString(locale()) : '')
 const clip = (s: string, n = 1500) => (s.length > n ? `${s.slice(0, n).trimEnd()} …` : s)
 
 /** Eintrag für die Dokumentenliste (wie ein TravelDocumentDraft, plus Kennung für spätere Aktualisierung) */

@@ -1,6 +1,7 @@
 /** Reine Funktionen des Moduls „Unwetter“ (ohne Datenbank und Netz). */
 import { addDays } from '@/core/dates'
 import type { UnwetterOrt, UnwetterStand, Warnung } from './types'
+import { locale } from '@/core/i18n'
 
 /** So viele Tage vor der Reise werden Warnungen schon geholt */
 export const VORLAUF_TAGE = 7
@@ -60,7 +61,7 @@ export function betrifftReise(w: Warnung, stand: UnwetterStand): boolean {
 
 /** „Di. 14:00 – Mi. 02:00“ (lokale Zeit des Geräts) */
 export function zeitraum(w: Pick<Warnung, 'beginn' | 'ende'>, now = Date.now()): string {
-  const fmt = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+  const fmt = new Intl.DateTimeFormat(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   const f = (iso: string) => fmt.format(new Date(iso)).replace(',', '')
   const b = Date.parse(w.beginn)
   const von = !Number.isNaN(b) && b > now ? f(w.beginn) : 'jetzt'

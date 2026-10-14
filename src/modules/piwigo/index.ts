@@ -2,17 +2,18 @@ import type { AppModule } from '@/core/registry'
 import { describeQueue } from './logic'
 import { albumLinkRepository, uploadRepository } from './repository'
 import { piwigoAvailable, queuePhotos, startUploader } from './uploader'
+import { N_ } from '@/core/i18n'
 
 /** Modul "Piwigo": Fotos mit der eigenen Piwigo-Galerie verbinden (über den Abgleich-Server). */
 export const piwigoModule: AppModule = {
   id: 'piwigo',
-  title: 'Piwigo',
+  title: N_('Piwigo'),
   icon: 'images',
   order: 62,
   routes: [{ path: '/trip/:tripId/piwigo', name: 'piwigo-trip', component: () => import('./views/PiwigoTrip.vue'), props: true }],
   tripSection: {
     phases: ['danach', 'teilen'],
-    title: 'Fotos in Piwigo',
+    title: N_('Fotos in Piwigo'),
     icon: 'images',
     to: (tripId) => `/trip/${tripId}/piwigo`,
     async summary(tripId) {

@@ -72,14 +72,14 @@ async function addKit() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Reiseapotheke" />
+  <TripContextHeader :trip-id="tripId" :title="$t('Reiseapotheke')" />
 
   <ul class="nav nav-pills mb-3">
-    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'medikamente' }" @click="tab = 'medikamente'">Medikamente</button></li>
-    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'plan' }" @click="tab = 'plan'">Einnahmeplan</button></li>
+    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'medikamente' }" @click="tab = 'medikamente'">{{ $t('Medikamente') }}</button></li>
+    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'plan' }" @click="tab = 'plan'">{{ $t('Einnahmeplan') }}</button></li>
     <li class="nav-item">
       <button class="nav-link" :class="{ active: tab === 'impfungen' }" @click="tab = 'impfungen'">
-        Impfungen
+        {{ $t('Impfungen') }}
         <span v-if="requiredMissing || (trip && vaccs.some((v) => vaccinationNeedsAction(v, trip!.endDate)))" class="badge text-bg-warning ms-1">!</span>
       </button>
     </li>
@@ -87,7 +87,7 @@ async function addKit() {
 
   <!-- Person wählen (gilt für Medikamente und Einnahmeplan) -->
   <div v-if="people.length && tab !== 'impfungen'" class="d-flex flex-wrap gap-2 mb-3">
-    <button type="button" class="btn btn-sm" :class="planPerson === '' ? 'btn-secondary' : 'btn-outline-secondary'" @click="planPerson = ''">Alle</button>
+    <button type="button" class="btn btn-sm" :class="planPerson === '' ? 'btn-secondary' : 'btn-outline-secondary'" @click="planPerson = ''">{{ $t('Alle') }}</button>
     <button v-for="p in people" :key="p" type="button" class="btn btn-sm"
             :class="planPerson === p ? 'btn-secondary' : 'btn-outline-secondary'" @click="planPerson = p">
       <i class="bi bi-person me-1" aria-hidden="true"></i>{{ p }}
@@ -98,16 +98,15 @@ async function addKit() {
   <template v-if="tab === 'medikamente'">
     <div class="d-flex flex-wrap gap-2 mb-3">
       <RouterLink :to="`/trip/${tripId}/apotheke/medikament/neu`" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Medikament
+        <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Medikament') }}
       </RouterLink>
       <button v-if="missingKit.length" type="button" class="btn btn-outline-primary" @click="addKit">
-        <i class="bi bi-bag-plus me-1" aria-hidden="true"></i>Grundausstattung ({{ missingKit.length }})
+        <i class="bi bi-bag-plus me-1" aria-hidden="true"></i>{{ $t('Grundausstattung ({0})', [missingKit.length]) }}
       </button>
     </div>
 
     <p v-if="sorted.length === 0" class="text-body-secondary">
-      Trage Dauermedikamente mit Einnahmezeiten ein – die App rechnet aus, wie viel du für
-      {{ days }} Tage plus {{ DEFAULT_RESERVE_DAYS }} Tage Reserve brauchst.
+      {{ $t('Trage Dauermedikamente mit Einnahmezeiten ein – die App rechnet aus, wie viel du für {0} Tage plus {1} Tage Reserve brauchst.', [days, DEFAULT_RESERVE_DAYS]) }}
     </p>
 
     <ul class="list-group mb-3">
@@ -122,25 +121,25 @@ async function addKit() {
           <span v-if="m.person" class="badge text-bg-light border ms-1">{{ m.person }}</span>
           <div class="small text-body-secondary">
             <i :class="`bi bi-${KIND[m.kind].icon} me-1`" aria-hidden="true"></i>{{ KIND[m.kind].label }}
-            <template v-if="m.kind === 'dauer' && m.times.length"> · {{ m.dose || '' }} um {{ m.times.join(', ') }}</template>
+            <template v-if="m.kind === 'dauer' && m.times.length"> {{ $t('· {0} um {1}', [m.dose || '', m.times.join(', ')]) }}</template>
           </div>
           <div v-if="unitsNeeded(m, days) !== null" class="small">
-            Bedarf: {{ unitsNeeded(m, days) }} Stück
+            {{ $t('Bedarf: {0} Stück', [unitsNeeded(m, days)]) }}
             <template v-if="stockStatus(m, days).state === 'ok'">
-              <span class="text-success"><i class="bi bi-check-circle ms-1" aria-hidden="true"></i> reicht</span>
+              <span class="text-success"><i class="bi bi-check-circle ms-1" aria-hidden="true"></i> {{ $t('reicht') }}</span>
             </template>
             <template v-else-if="stockStatus(m, days).state === 'knapp'">
-              <span class="text-danger"><i class="bi bi-exclamation-circle ms-1" aria-hidden="true"></i> {{ stockStatus(m, days).missing }} fehlen</span>
+              <span class="text-danger"><i class="bi bi-exclamation-circle ms-1" aria-hidden="true"></i> {{ $t('{0} fehlen', [stockStatus(m, days).missing]) }}</span>
             </template>
-            <span v-else class="text-body-secondary"> · Vorrat nicht angegeben</span>
+            <span v-else class="text-body-secondary"> {{ $t('· Vorrat nicht angegeben') }}</span>
           </div>
           <div v-if="expiry(m)" class="small" :class="expiry(m)!.cls">
             <i class="bi bi-calendar-x me-1" aria-hidden="true"></i>{{ expiry(m)!.text }} ({{ formatDate(m.expiryDate) }})
           </div>
           <div class="d-flex flex-wrap gap-1 mt-1">
-            <span v-if="m.prescription" class="badge text-bg-info">Rezept</span>
-            <span v-if="m.handLuggage" class="badge text-bg-light border">Handgepäck</span>
-            <span v-if="m.cooling" class="badge text-bg-primary">kühlen</span>
+            <span v-if="m.prescription" class="badge text-bg-info">{{ $t('Rezept') }}</span>
+            <span v-if="m.handLuggage" class="badge text-bg-light border">{{ $t('Handgepäck') }}</span>
+            <span v-if="m.cooling" class="badge text-bg-primary">{{ $t('kühlen') }}</span>
           </div>
         </div>
       </li>
@@ -149,7 +148,7 @@ async function addKit() {
 
   <!-- Einnahmeplan -->
   <template v-else-if="tab === 'plan'">
-    <p v-if="schedule.length === 0" class="text-body-secondary">Keine Dauermedikation mit Einnahmezeiten eingetragen.</p>
+    <p v-if="schedule.length === 0" class="text-body-secondary">{{ $t('Keine Dauermedikation mit Einnahmezeiten eingetragen.') }}</p>
     <ul v-else class="list-group mb-3">
       <li v-for="(e, idx) in schedule" :key="idx" class="list-group-item d-flex gap-3 align-items-center">
         <span class="fw-semibold font-monospace">{{ e.time }}</span>
@@ -161,43 +160,42 @@ async function addKit() {
     </ul>
     <p class="small text-body-secondary">
       <i class="bi bi-globe me-1" aria-hidden="true"></i>
-      Bei Zeitverschiebung die Einnahmezeiten mit Arzt oder Apotheke abstimmen.
+      {{ $t('Bei Zeitverschiebung die Einnahmezeiten mit Arzt oder Apotheke abstimmen.') }}
     </p>
   </template>
 
   <!-- Impfungen -->
   <template v-else>
     <RouterLink :to="`/trip/${tripId}/apotheke/impfung/neu`" class="btn btn-primary mb-3">
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Impfung
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Impfung') }}
     </RouterLink>
     <div v-if="advice.length" class="card mb-3 advice">
       <div class="card-body py-2">
         <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-          <h2 class="h6 mb-0 flex-grow-1"><i class="bi bi-shield-exclamation me-1" aria-hidden="true"></i>Laut Reisehinweisen</h2>
+          <h2 class="h6 mb-0 flex-grow-1"><i class="bi bi-shield-exclamation me-1" aria-hidden="true"></i>{{ $t('Laut Reisehinweisen') }}</h2>
           <button v-if="adviceMissing.length > 1" type="button" class="btn btn-sm btn-outline-primary" @click="takeAdvice(adviceMissing)">
-            Alle übernehmen ({{ adviceMissing.length }})
+            {{ $t('Alle übernehmen ({0})', [adviceMissing.length]) }}
           </button>
         </div>
         <ul class="list-unstyled mb-1">
           <li v-for="a in advice" :key="a.name" class="d-flex flex-wrap align-items-center gap-2 py-1 border-top">
             <span class="fw-semibold">{{ a.name }}</span>
-            <span v-if="a.required" class="badge text-bg-danger">Pflicht</span>
+            <span v-if="a.required" class="badge text-bg-danger">{{ $t('Pflicht') }}</span>
             <span class="small text-body-secondary flex-grow-1">{{ a.countries.join(', ') }}</span>
-            <span v-if="a.match" class="badge" :class="VACC_STATUS[a.match.status].badge">eingetragen: {{ VACC_STATUS[a.match.status].label }}</span>
+            <span v-if="a.match" class="badge" :class="VACC_STATUS[a.match.status].badge">{{ $t('eingetragen: {0}', [VACC_STATUS[a.match.status].label]) }}</span>
             <button v-else type="button" class="btn btn-sm btn-outline-primary py-0" @click="takeAdvice([a])">
-              <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Übernehmen
+              <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ $t('Übernehmen') }}
             </button>
           </li>
         </ul>
         <p class="small text-body-secondary mb-0">
-          Vom Auswärtigen Amt genannt (Pflicht- und empfohlene Impfungen, auch Standardimpfungen). Was davon für euch nötig ist,
-          klärt die reisemedizinische Beratung – <RouterLink :to="`/trip/${tripId}/reisehinweise`">Details in den Reisehinweisen</RouterLink>.
+          {{ $t('Vom Auswärtigen Amt genannt (Pflicht- und empfohlene Impfungen, auch Standardimpfungen). Was davon für euch nötig ist, klärt die reisemedizinische Beratung –') }} <RouterLink :to="`/trip/${tripId}/reisehinweise`">{{ $t('Details in den Reisehinweisen') }}</RouterLink>.
         </p>
       </div>
     </div>
 
     <p v-if="vaccs.length === 0 && !advice.length" class="text-body-secondary">
-      Prüfe rechtzeitig (am besten 6–8 Wochen vorher) mit Hausarzt oder reisemedizinischer Beratung, welche Impfungen für dein Ziel empfohlen sind.
+      {{ $t('Prüfe rechtzeitig (am besten 6–8 Wochen vorher) mit Hausarzt oder reisemedizinischer Beratung, welche Impfungen für dein Ziel empfohlen sind.') }}
     </p>
     <div class="vstack gap-2 mb-3">
       <div v-for="v in vaccs" :key="v.id" class="card position-relative">
@@ -210,11 +208,11 @@ async function addKit() {
           </div>
           <div class="small text-body-secondary">
             <template v-if="v.person">{{ v.person }} · </template>
-            <template v-if="v.date">{{ v.status === 'erledigt' ? 'geimpft' : 'Termin' }} {{ formatDate(v.date) }}</template>
-            <template v-if="v.validUntil"> · gültig bis {{ formatDate(v.validUntil) }}</template>
+            <template v-if="v.date">{{ v.status === 'erledigt' ? 'geimpft' : $t('Termin') }} {{ formatDate(v.date) }}</template>
+            <template v-if="v.validUntil"> {{ $t('· gültig bis {0}', [formatDate(v.validUntil)]) }}</template>
           </div>
           <div v-if="trip && v.status === 'erledigt' && vaccinationNeedsAction(v, trip.endDate)" class="small text-warning-emphasis">
-            <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Schutz endet vor Reiseende – Auffrischung prüfen
+            <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ $t('Schutz endet vor Reiseende – Auffrischung prüfen') }}
           </div>
         </div>
       </div>
@@ -222,7 +220,7 @@ async function addKit() {
   </template>
 
   <p class="small text-body-secondary border-top pt-2">
-    Die Reiseapotheke hilft beim Organisieren und ersetzt keine ärztliche oder pharmazeutische Beratung.
+    {{ $t('Die Reiseapotheke hilft beim Organisieren und ersetzt keine ärztliche oder pharmazeutische Beratung.') }}
   </p>
 </template>
 

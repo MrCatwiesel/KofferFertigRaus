@@ -19,6 +19,7 @@
  * Ältere Dateien (alles in einer Zeile) werden weiterhin gelesen.
  */
 import { safeBlobType } from './blob-types'
+import { t } from '@/core/i18n'
 
 export interface BackupMeta {
   app: 'nix-wie-weg'
@@ -37,7 +38,7 @@ interface EncodedBlob {
   __blob: string
 }
 
-const NOT_OURS = 'Das ist keine Datei von „Nix wie weg“.'
+const NOT_OURS = t('Das ist keine Datei von „Nix wie weg“.')
 
 function checkMeta(m: Partial<BackupMeta> | null | undefined): asserts m is BackupMeta {
   if (m?.app !== 'nix-wie-weg' || m.format !== 1) throw new Error(NOT_OURS)
@@ -236,12 +237,12 @@ export async function readBackup(
       table = JSON.parse(start[1]) as string
       continue
     }
-    if (!table) throw new Error('Die Datei ist beschädigt.')
+    if (!table) throw new Error(t('Die Datei ist beschädigt.'))
     buf.push(decodeRow(JSON.parse(line.startsWith(',') ? line.slice(1) : line) as Record<string, unknown>))
     chars += line.length
     if (buf.length >= maxRows || chars >= maxChars) await flush()
   }
   await flush()
-  if (!complete) throw new Error('Die Datei ist unvollständig (abgeschnitten?). Was bis dahin drinstand, wurde übernommen.')
+  if (!complete) throw new Error(t('Die Datei ist unvollständig (abgeschnitten?). Was bis dahin drinstand, wurde übernommen.'))
   return meta
 }

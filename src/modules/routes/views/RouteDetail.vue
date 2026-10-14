@@ -10,7 +10,7 @@ import { formatDistance, formatDuration, gpxFileName, lacksElevation, profileSvg
 import { useOnline } from '@/core/composables'
 import { routeRepository } from '../repository'
 import { FORMAT_LABEL, ROUTE_COLORS, type Route, type RouteDraft } from '../types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id: string }>()
 const router = useRouter()
@@ -26,7 +26,7 @@ async function fillEle() {
   eleBusy.value = true
   eleMsg.value = ''
   try {
-    eleMsg.value = (await routeRepository.fillElevations(props.id)) ? '' : 'Höhen konnten nicht abgerufen werden – bitte später noch einmal.'
+    eleMsg.value = (await routeRepository.fillElevations(props.id)) ? '' : t('Höhen konnten nicht abgerufen werden – bitte später noch einmal.')
   } finally {
     eleBusy.value = false
   }
@@ -48,7 +48,7 @@ watch(
   (d) => {
     if (!loaded.value) return
     clearTimeout(timer)
-    timer = setTimeout(() => routeRepository.update(props.id, { ...d, name: d.name.trim() || 'Route' }), 400)
+    timer = setTimeout(() => routeRepository.update(props.id, { ...d, name: d.name.trim() || t('Route') }), 400)
   },
   { deep: true }
 )
@@ -63,12 +63,12 @@ const facts = computed(() => {
   if (!s) return []
   const time = (t: number | null) => (t === null ? '' : new Date(t * 1000).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' }))
   return [
-    { label: 'Länge', value: formatDistance(s.distance) },
-    { label: 'Aufstieg', value: s.ascent ? `${s.ascent.toLocaleString(locale())} m` : '–' },
-    { label: 'Abstieg', value: s.descent ? `${s.descent.toLocaleString(locale())} m` : '–' },
-    { label: 'Höhe', value: s.minEle !== null ? `${s.minEle.toLocaleString(locale())} – ${s.maxEle!.toLocaleString(locale())} m` : '–' },
-    { label: 'Dauer', value: formatDuration(s.duration) || '–' },
-    { label: 'Start', value: time(s.start) || '–' }
+    { label: t('Länge'), value: formatDistance(s.distance) },
+    { label: t('Aufstieg'), value: s.ascent ? `${s.ascent.toLocaleString(locale())} m` : '–' },
+    { label: t('Abstieg'), value: s.descent ? `${s.descent.toLocaleString(locale())} m` : '–' },
+    { label: t('Höhe'), value: s.minEle !== null ? `${s.minEle.toLocaleString(locale())} – ${s.maxEle!.toLocaleString(locale())} m` : '–' },
+    { label: t('Dauer'), value: formatDuration(s.duration) || '–' },
+    { label: t('Start'), value: time(s.start) || '–' }
   ]
 })
 
@@ -83,7 +83,7 @@ function download(blob: Blob, name: string) {
 
 async function exportGpx() {
   if (!route.value) return
-  const name = draft.name || 'Route'
+  const name = draft.name || t('Route')
   const file = new File([toGpx(name, route.value.points, route.value.kind)], gpxFileName(name), { type: 'application/gpx+xml' })
   try {
     if (navigator.canShare?.({ files: [file] })) return await navigator.share({ files: [file], title: name })
@@ -98,7 +98,7 @@ function downloadOriginal() {
 }
 
 async function remove() {
-  if (!route.value || !confirm(`Route „${draft.name}“ löschen?`)) return
+  if (!route.value || !confirm(t('Route „{0}“ löschen?', [draft.name]))) return
   await routeRepository.remove(props.id)
   router.replace(`/trip/${props.tripId}/routen`)
 }

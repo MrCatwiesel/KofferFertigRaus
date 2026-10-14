@@ -1,4 +1,5 @@
 import type { PackingCategory } from './types'
+import { N_, translated } from '@/core/i18n'
 
 /**
  * Mengenregel einer Vorlage:
@@ -32,176 +33,176 @@ export interface PackingTemplate {
  * Eingebaute Vorlagen. Neue Vorlage = neues Objekt in dieser Liste.
  * Namen gleicher Dinge in allen Vorlagen identisch schreiben – sie werden beim Zusammenführen zusammengefasst.
  */
-export const TEMPLATES: PackingTemplate[] = [
+export const TEMPLATES: PackingTemplate[] = translated([
   {
     id: 'basis',
-    title: 'Grundausstattung',
+    title: N_('Grundausstattung'),
     icon: 'check2-square',
-    description: 'Was auf fast jede Reise gehört',
+    description: N_('Was auf fast jede Reise gehört'),
     items: [
-      { name: 'Personalausweis / Reisepass', category: 'dokumente', qty: { perPerson: 1 }, essential: true },
-      { name: 'Führerschein', category: 'dokumente', essential: true },
-      { name: 'Krankenversicherungskarte', category: 'dokumente', qty: { perPerson: 1 }, essential: true },
-      { name: 'EC-/Kreditkarte', category: 'dokumente', essential: true },
-      { name: 'Bargeld', category: 'dokumente' },
-      { name: 'Buchungsbestätigungen', category: 'dokumente' },
-      { name: 'Unterwäsche', category: 'kleidung', qty: { perDay: 1, max: 8 } },
-      { name: 'Socken', category: 'kleidung', qty: { perDay: 1, max: 8 } },
-      { name: 'T-Shirts', category: 'kleidung', qty: { perDay: 0.7, max: 6 } },
-      { name: 'Hosen', category: 'kleidung', qty: { perDay: 0.3, max: 3 } },
-      { name: 'Pullover / Jacke', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Schlafsachen', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Bequeme Schuhe', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Zahnbürste & Zahnpasta', category: 'hygiene', personal: true },
-      { name: 'Duschgel & Shampoo', category: 'hygiene' },
-      { name: 'Deo', category: 'hygiene', personal: true },
-      { name: 'Kamm / Bürste', category: 'hygiene', personal: true },
-      { name: 'Persönliche Medikamente', category: 'gesundheit', essential: true, personal: true },
-      { name: 'Pflaster & Schmerzmittel', category: 'gesundheit' },
-      { name: 'Handy & Ladekabel', category: 'technik', essential: true, personal: true },
-      { name: 'Powerbank', category: 'technik' },
-      { name: 'Kopfhörer', category: 'technik', personal: true },
-      { name: 'Schlüssel (Haus)', category: 'sonstiges', essential: true }
+      { name: N_('Personalausweis / Reisepass'), category: 'dokumente', qty: { perPerson: 1 }, essential: true },
+      { name: N_('Führerschein'), category: 'dokumente', essential: true },
+      { name: N_('Krankenversicherungskarte'), category: 'dokumente', qty: { perPerson: 1 }, essential: true },
+      { name: N_('EC-/Kreditkarte'), category: 'dokumente', essential: true },
+      { name: N_('Bargeld'), category: 'dokumente' },
+      { name: N_('Buchungsbestätigungen'), category: 'dokumente' },
+      { name: N_('Unterwäsche'), category: 'kleidung', qty: { perDay: 1, max: 8 } },
+      { name: N_('Socken'), category: 'kleidung', qty: { perDay: 1, max: 8 } },
+      { name: N_('T-Shirts'), category: 'kleidung', qty: { perDay: 0.7, max: 6 } },
+      { name: N_('Hosen'), category: 'kleidung', qty: { perDay: 0.3, max: 3 } },
+      { name: N_('Pullover / Jacke'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Schlafsachen'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Bequeme Schuhe'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Zahnbürste & Zahnpasta'), category: 'hygiene', personal: true },
+      { name: N_('Duschgel & Shampoo'), category: 'hygiene' },
+      { name: N_('Deo'), category: 'hygiene', personal: true },
+      { name: N_('Kamm / Bürste'), category: 'hygiene', personal: true },
+      { name: N_('Persönliche Medikamente'), category: 'gesundheit', essential: true, personal: true },
+      { name: N_('Pflaster & Schmerzmittel'), category: 'gesundheit' },
+      { name: N_('Handy & Ladekabel'), category: 'technik', essential: true, personal: true },
+      { name: N_('Powerbank'), category: 'technik' },
+      { name: N_('Kopfhörer'), category: 'technik', personal: true },
+      { name: N_('Schlüssel (Haus)'), category: 'sonstiges', essential: true }
     ]
   },
   {
     id: 'strand',
-    title: 'Strand & Sonne',
+    title: N_('Strand & Sonne'),
     icon: 'sun',
-    description: 'Badeurlaub, Pool, Meer',
+    description: N_('Badeurlaub, Pool, Meer'),
     items: [
-      { name: 'Badesachen', category: 'kleidung', qty: 2, personal: true },
-      { name: 'Strandtuch', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Sonnencreme (LSF 30+)', category: 'hygiene', essential: true },
-      { name: 'After-Sun', category: 'hygiene' },
-      { name: 'Sonnenbrille', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Sonnenhut / Kappe', category: 'kleidung', qty: { perPerson: 1 } },
-      { name: 'Flip-Flops / Badeschuhe', category: 'kleidung', qty: { perPerson: 1 } },
-      { name: 'Shorts', category: 'kleidung', qty: { perDay: 0.4, max: 4 } },
-      { name: 'Strandtasche', category: 'freizeit' },
-      { name: 'Wasserdichte Handyhülle', category: 'technik' },
-      { name: 'Insektenschutz', category: 'gesundheit' }
+      { name: N_('Badesachen'), category: 'kleidung', qty: 2, personal: true },
+      { name: N_('Strandtuch'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Sonnencreme (LSF 30+)'), category: 'hygiene', essential: true },
+      { name: N_('After-Sun'), category: 'hygiene' },
+      { name: N_('Sonnenbrille'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Sonnenhut / Kappe'), category: 'kleidung', qty: { perPerson: 1 } },
+      { name: N_('Flip-Flops / Badeschuhe'), category: 'kleidung', qty: { perPerson: 1 } },
+      { name: N_('Shorts'), category: 'kleidung', qty: { perDay: 0.4, max: 4 } },
+      { name: N_('Strandtasche'), category: 'freizeit' },
+      { name: N_('Wasserdichte Handyhülle'), category: 'technik' },
+      { name: N_('Insektenschutz'), category: 'gesundheit' }
     ]
   },
   {
     id: 'wandern',
-    title: 'Wandern & Berge',
+    title: N_('Wandern & Berge'),
     icon: 'tree',
-    description: 'Tageswanderungen, Bergtouren',
+    description: N_('Tageswanderungen, Bergtouren'),
     items: [
-      { name: 'Wanderschuhe', category: 'kleidung', qty: { perPerson: 1 }, essential: true },
-      { name: 'Wandersocken', category: 'kleidung', qty: { perDay: 0.5, max: 4 } },
-      { name: 'Regenjacke', category: 'kleidung', qty: { perPerson: 1 }, essential: true },
-      { name: 'Funktionsshirts', category: 'kleidung', qty: 3, personal: true },
-      { name: 'Fleecejacke', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Tagesrucksack', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Trinkflasche', category: 'unterwegs', qty: { perPerson: 1 } },
-      { name: 'Wanderkarte / Offline-Karten', category: 'freizeit' },
-      { name: 'Blasenpflaster', category: 'gesundheit' },
-      { name: 'Erste-Hilfe-Set', category: 'gesundheit', essential: true },
-      { name: 'Stirnlampe', category: 'technik' },
-      { name: 'Sonnencreme (LSF 30+)', category: 'hygiene' },
-      { name: 'Sonnenbrille', category: 'freizeit', qty: { perPerson: 1 } }
+      { name: N_('Wanderschuhe'), category: 'kleidung', qty: { perPerson: 1 }, essential: true },
+      { name: N_('Wandersocken'), category: 'kleidung', qty: { perDay: 0.5, max: 4 } },
+      { name: N_('Regenjacke'), category: 'kleidung', qty: { perPerson: 1 }, essential: true },
+      { name: N_('Funktionsshirts'), category: 'kleidung', qty: 3, personal: true },
+      { name: N_('Fleecejacke'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Tagesrucksack'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Trinkflasche'), category: 'unterwegs', qty: { perPerson: 1 } },
+      { name: N_('Wanderkarte / Offline-Karten'), category: 'freizeit' },
+      { name: N_('Blasenpflaster'), category: 'gesundheit' },
+      { name: N_('Erste-Hilfe-Set'), category: 'gesundheit', essential: true },
+      { name: N_('Stirnlampe'), category: 'technik' },
+      { name: N_('Sonnencreme (LSF 30+)'), category: 'hygiene' },
+      { name: N_('Sonnenbrille'), category: 'freizeit', qty: { perPerson: 1 } }
     ]
   },
   {
     id: 'stadt',
-    title: 'Städtereise',
+    title: N_('Städtereise'),
     icon: 'buildings',
-    description: 'Museen, Restaurants, viel zu Fuß',
+    description: N_('Museen, Restaurants, viel zu Fuß'),
     items: [
-      { name: 'Bequeme Schuhe', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Schickes Outfit für abends', category: 'kleidung', qty: 1, personal: true },
-      { name: 'Kleiner Rucksack / Umhängetasche', category: 'freizeit' },
-      { name: 'Regenschirm', category: 'unterwegs' },
-      { name: 'Stadtplan / Offline-Karten', category: 'technik' },
-      { name: 'Museumspass / Tickets', category: 'dokumente' },
-      { name: 'Reiseadapter', category: 'technik' }
+      { name: N_('Bequeme Schuhe'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Schickes Outfit für abends'), category: 'kleidung', qty: 1, personal: true },
+      { name: N_('Kleiner Rucksack / Umhängetasche'), category: 'freizeit' },
+      { name: N_('Regenschirm'), category: 'unterwegs' },
+      { name: N_('Stadtplan / Offline-Karten'), category: 'technik' },
+      { name: N_('Museumspass / Tickets'), category: 'dokumente' },
+      { name: N_('Reiseadapter'), category: 'technik' }
     ]
   },
   {
     id: 'winter',
-    title: 'Winter & Ski',
+    title: N_('Winter & Ski'),
     icon: 'snow',
-    description: 'Schnee, Kälte, Wintersport',
+    description: N_('Schnee, Kälte, Wintersport'),
     items: [
-      { name: 'Winterjacke', category: 'kleidung', qty: { perPerson: 1 }, essential: true },
-      { name: 'Skihose', category: 'kleidung', qty: { perPerson: 1 } },
-      { name: 'Thermounterwäsche', category: 'kleidung', qty: 2, personal: true },
-      { name: 'Mütze, Schal, Handschuhe', category: 'kleidung', qty: { perPerson: 1 } },
-      { name: 'Skisocken', category: 'kleidung', qty: { perDay: 0.5, max: 5 } },
-      { name: 'Winterstiefel', category: 'kleidung', qty: { perPerson: 1 } },
-      { name: 'Skibrille / Helm', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Lippenpflege', category: 'hygiene' },
-      { name: 'Sonnencreme (LSF 30+)', category: 'hygiene' },
-      { name: 'Skipass / Liftkarte', category: 'dokumente' }
+      { name: N_('Winterjacke'), category: 'kleidung', qty: { perPerson: 1 }, essential: true },
+      { name: N_('Skihose'), category: 'kleidung', qty: { perPerson: 1 } },
+      { name: N_('Thermounterwäsche'), category: 'kleidung', qty: 2, personal: true },
+      { name: N_('Mütze, Schal, Handschuhe'), category: 'kleidung', qty: { perPerson: 1 } },
+      { name: N_('Skisocken'), category: 'kleidung', qty: { perDay: 0.5, max: 5 } },
+      { name: N_('Winterstiefel'), category: 'kleidung', qty: { perPerson: 1 } },
+      { name: N_('Skibrille / Helm'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Lippenpflege'), category: 'hygiene' },
+      { name: N_('Sonnencreme (LSF 30+)'), category: 'hygiene' },
+      { name: N_('Skipass / Liftkarte'), category: 'dokumente' }
     ]
   },
   {
     id: 'camping',
-    title: 'Camping',
+    title: N_('Camping'),
     icon: 'house',
-    description: 'Zelt, Wohnmobil, draußen schlafen',
+    description: N_('Zelt, Wohnmobil, draußen schlafen'),
     items: [
-      { name: 'Zelt', category: 'freizeit', essential: true },
-      { name: 'Schlafsack', category: 'freizeit', qty: { perPerson: 1 }, essential: true },
-      { name: 'Isomatte', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Campingkocher & Gas', category: 'freizeit' },
-      { name: 'Geschirr & Besteck', category: 'freizeit' },
-      { name: 'Taschenlampe / Stirnlampe', category: 'technik' },
-      { name: 'Campingstühle', category: 'freizeit', qty: { perPerson: 1 } },
-      { name: 'Müllbeutel', category: 'sonstiges' },
-      { name: 'Wäscheleine & Klammern', category: 'sonstiges' },
-      { name: 'Insektenschutz', category: 'gesundheit' },
-      { name: 'Campingplatz-Ausweis (ACSI o. Ä.)', category: 'dokumente' }
+      { name: N_('Zelt'), category: 'freizeit', essential: true },
+      { name: N_('Schlafsack'), category: 'freizeit', qty: { perPerson: 1 }, essential: true },
+      { name: N_('Isomatte'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Campingkocher & Gas'), category: 'freizeit' },
+      { name: N_('Geschirr & Besteck'), category: 'freizeit' },
+      { name: N_('Taschenlampe / Stirnlampe'), category: 'technik' },
+      { name: N_('Campingstühle'), category: 'freizeit', qty: { perPerson: 1 } },
+      { name: N_('Müllbeutel'), category: 'sonstiges' },
+      { name: N_('Wäscheleine & Klammern'), category: 'sonstiges' },
+      { name: N_('Insektenschutz'), category: 'gesundheit' },
+      { name: N_('Campingplatz-Ausweis (ACSI o. Ä.)'), category: 'dokumente' }
     ]
   },
   {
     id: 'kinder',
-    title: 'Mit Kindern',
+    title: N_('Mit Kindern'),
     icon: 'balloon',
-    description: 'Familienurlaub mit kleinen Kindern',
+    description: N_('Familienurlaub mit kleinen Kindern'),
     items: [
-      { name: 'Kinderreisepass / Kinderausweis', category: 'dokumente', essential: true },
-      { name: 'Kuscheltier', category: 'kinder', essential: true },
-      { name: 'Wechselkleidung', category: 'kinder', qty: 2 },
-      { name: 'Spiele & Bücher für unterwegs', category: 'kinder' },
-      { name: 'Snacks', category: 'unterwegs' },
-      { name: 'Kinder-Sonnencreme', category: 'kinder' },
-      { name: 'Fieberthermometer', category: 'gesundheit' },
-      { name: 'Fiebersaft / Zäpfchen', category: 'gesundheit' },
-      { name: 'Feuchttücher', category: 'kinder' },
-      { name: 'Kopfhörer für Kinder', category: 'technik' }
+      { name: N_('Kinderreisepass / Kinderausweis'), category: 'dokumente', essential: true },
+      { name: N_('Kuscheltier'), category: 'kinder', essential: true },
+      { name: N_('Wechselkleidung'), category: 'kinder', qty: 2 },
+      { name: N_('Spiele & Bücher für unterwegs'), category: 'kinder' },
+      { name: N_('Snacks'), category: 'unterwegs' },
+      { name: N_('Kinder-Sonnencreme'), category: 'kinder' },
+      { name: N_('Fieberthermometer'), category: 'gesundheit' },
+      { name: N_('Fiebersaft / Zäpfchen'), category: 'gesundheit' },
+      { name: N_('Feuchttücher'), category: 'kinder' },
+      { name: N_('Kopfhörer für Kinder'), category: 'technik' }
     ]
   },
   {
     id: 'auto',
-    title: 'Mit dem Auto',
+    title: N_('Mit dem Auto'),
     icon: 'car-front',
-    description: 'Lange Autofahrten',
+    description: N_('Lange Autofahrten'),
     items: [
-      { name: 'Fahrzeugschein', category: 'dokumente', essential: true },
-      { name: 'Warnwesten', category: 'unterwegs', qty: { perPerson: 1 } },
-      { name: 'Vignette / Mautbox', category: 'dokumente' },
-      { name: 'Handyhalterung & Autoladekabel', category: 'technik' },
-      { name: 'Getränke & Snacks', category: 'unterwegs' },
-      { name: 'Kühltasche', category: 'unterwegs' },
-      { name: 'Sonnenschutz für Autofenster', category: 'unterwegs' }
+      { name: N_('Fahrzeugschein'), category: 'dokumente', essential: true },
+      { name: N_('Warnwesten'), category: 'unterwegs', qty: { perPerson: 1 } },
+      { name: N_('Vignette / Mautbox'), category: 'dokumente' },
+      { name: N_('Handyhalterung & Autoladekabel'), category: 'technik' },
+      { name: N_('Getränke & Snacks'), category: 'unterwegs' },
+      { name: N_('Kühltasche'), category: 'unterwegs' },
+      { name: N_('Sonnenschutz für Autofenster'), category: 'unterwegs' }
     ]
   },
   {
     id: 'flug',
-    title: 'Flugreise',
+    title: N_('Flugreise'),
     icon: 'airplane',
-    description: 'Handgepäck und Flughafen',
+    description: N_('Handgepäck und Flughafen'),
     items: [
-      { name: 'Bordkarten', category: 'dokumente', essential: true },
-      { name: 'Flüssigkeitenbeutel (max. 100 ml)', category: 'hygiene' },
-      { name: 'Nackenkissen', category: 'unterwegs' },
-      { name: 'Kofferwaage', category: 'sonstiges' },
-      { name: 'Gepäckanhänger', category: 'sonstiges' },
-      { name: 'Reiseadapter', category: 'technik' },
-      { name: 'Kopfhörer', category: 'technik', personal: true }
+      { name: N_('Bordkarten'), category: 'dokumente', essential: true },
+      { name: N_('Flüssigkeitenbeutel (max. 100 ml)'), category: 'hygiene' },
+      { name: N_('Nackenkissen'), category: 'unterwegs' },
+      { name: N_('Kofferwaage'), category: 'sonstiges' },
+      { name: N_('Gepäckanhänger'), category: 'sonstiges' },
+      { name: N_('Reiseadapter'), category: 'technik' },
+      { name: N_('Kopfhörer'), category: 'technik', personal: true }
     ]
   }
-]
+])

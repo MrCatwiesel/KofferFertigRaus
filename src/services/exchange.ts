@@ -4,6 +4,7 @@
  * Abgerufene Kurse bleiben auf dem Gerät gespeichert (offline nutzbar).
  */
 import { getMeta, setMeta } from '@/core/meta'
+import { t } from '@/core/i18n'
 
 /** Währungen mit EZB-Referenzkurs */
 export const ECB_CURRENCIES = new Set('EUR USD JPY BGN CZK DKK GBP HUF PLN RON SEK CHF ISK NOK TRY AUD BRL CAD CNY HKD IDR ILS INR KRW MXN MYR NZD PHP SGD THB ZAR'.split(' '))

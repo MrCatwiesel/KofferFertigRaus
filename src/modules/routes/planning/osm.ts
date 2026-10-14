@@ -4,14 +4,15 @@
  * Die Wege einer Route liegen in OSM als einzelne Abschnitte vor – stitch() fügt sie zu einer Linie zusammen.
  */
 import { haversine } from '../../../services/tracks'
+import { N_, translated } from '@/core/i18n'
 
 export type TrailType = 'hiking' | 'bicycle' | 'mtb'
 
-export const TRAIL_TYPES: Record<TrailType, { label: string; routes: string; icon: string }> = {
-  hiking: { label: 'Wanderwege', routes: 'hiking|foot', icon: 'person-walking' },
-  bicycle: { label: 'Radwege', routes: 'bicycle', icon: 'bicycle' },
-  mtb: { label: 'MTB-Strecken', routes: 'mtb', icon: 'bicycle' }
-}
+export const TRAIL_TYPES: Record<TrailType, { label: string; routes: string; icon: string }> = translated({
+  hiking: { label: N_('Wanderwege'), routes: 'hiking|foot', icon: 'person-walking' },
+  bicycle: { label: N_('Radwege'), routes: 'bicycle', icon: 'bicycle' },
+  mtb: { label: N_('MTB-Strecken'), routes: 'mtb', icon: 'bicycle' }
+})
 
 /** Größter Suchausschnitt (Grad) – größere Abfragen dauern zu lange */
 export const MAX_SEARCH_SPAN = 0.6

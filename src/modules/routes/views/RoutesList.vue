@@ -9,7 +9,7 @@ import { lacksElevation, statsLine, trackSvg } from '../logic'
 import { ACCEPT, parseRouteFile } from '../parse'
 import { buildRoute, routeRepository } from '../repository'
 import type { Route } from '../types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
@@ -47,7 +47,7 @@ async function importFiles(event: Event) {
     }
   }
   if (created.length) await routeRepository.addMany(created)
-  result.value = { ok: created.length ? `${created.length} ${created.length === 1 ? 'Route' : 'Routen'} übernommen.` : '', errors }
+  result.value = { ok: created.length ? t('{0} {1} übernommen.', [created.length, created.length === 1 ? 'Route' : 'Routen']) : '', errors }
   busy.value = false
   // Dateien ohne Höhen: im Hintergrund aus dem Geländemodell ergänzen
   const flat = created.filter((r) => lacksElevation(r.points))

@@ -10,7 +10,7 @@ import { unwetterRepository } from '../repository'
 import { refreshUnwetter } from '../refresh'
 import { aktuelle, betrifftReise, imZeitfenster, VORLAUF_TAGE, wo, zeitraum } from '../logic'
 import { ART_ICON, QUELLE_URL, STUFE_STIL, type UnwetterStand, type Warnung } from '../types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -47,7 +47,7 @@ onMounted(() => {
 const stil = (w: Warnung) => STUFE_STIL[w.stufe] ?? STUFE_STIL[2]
 const zeit = (iso: string) => new Intl.DateTimeFormat(locale(), { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 const ortNamen = (w: Warnung) => w.orte.map((i) => stand.value?.orte[i]?.name).filter(Boolean).join(', ')
-const QUELLE_LABEL = { unterkunft: 'Unterkunft', wetter: 'Wetter-Ort im Tagesplan', ziel: 'Reiseziel' } as const
+const QUELLE_LABEL = { unterkunft: t('Unterkunft'), wetter: t('Wetter-Ort im Tagesplan'), ziel: t('Reiseziel') } as const
 </script>
 
 <template>
@@ -84,9 +84,9 @@ const QUELLE_LABEL = { unterkunft: 'Unterkunft', wetter: 'Wetter-Ort im Tagespla
       <section v-for="w in amOrt" :key="w.id" class="card mb-3 warnung" :class="{ 'opacity-75': !betrifftReise(w, stand) }" data-unwetter-warnung>
         <div class="card-body">
           <h2 class="h5 d-flex flex-wrap align-items-center gap-2 mb-1">
-            <span class="badge" :class="stil(w).badge"><i :class="`bi bi-${stil(w).icon} me-1`" aria-hidden="true"></i>{{ w.stufeName }}</span>
-            <span><i :class="`bi bi-${ART_ICON[w.art] ?? 'exclamation-triangle'} me-1`" aria-hidden="true"></i>{{ w.artName }}</span>
-            <span v-if="w.ereignis && w.ereignis !== w.artName" class="small text-body-secondary fw-normal">{{ w.ereignis }}</span>
+            <span class="badge" :class="stil(w).badge"><i :class="`bi bi-${stil(w).icon} me-1`" aria-hidden="true"></i>{{ $t(w.stufeName) }}</span>
+            <span><i :class="`bi bi-${ART_ICON[w.art] ?? 'exclamation-triangle'} me-1`" aria-hidden="true"></i>{{ $t(w.artName) }}</span>
+            <span v-if="w.ereignis && w.ereignis !== w.artName && w.ereignis !== $t(w.artName)" class="small text-body-secondary fw-normal">{{ w.ereignis }}</span>
           </h2>
           <div class="small mb-2">
             <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ zeitraum(w) }} · <i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ wo(w) }}
@@ -110,8 +110,8 @@ const QUELLE_LABEL = { unterkunft: 'Unterkunft', wetter: 'Wetter-Ort im Tagespla
         <div class="card-body pt-0">
           <p class="small text-body-secondary">{{ $t('Für dieses Land kennt der Server die Warnregionen nicht genau. Bitte selbst prüfen, ob dein Ort dabei ist.') }}</p>
           <div v-for="w in imLand" :key="w.id" class="border-top py-2 small">
-            <span class="badge me-1" :class="stil(w).badge">{{ w.stufeName }}</span>
-            <strong>{{ w.artName }}</strong> · {{ flag(w.land) }} {{ wo(w) }} · {{ zeitraum(w) }}
+            <span class="badge me-1" :class="stil(w).badge">{{ $t(w.stufeName) }}</span>
+            <strong>{{ $t(w.artName) }}</strong> · {{ flag(w.land) }} {{ wo(w) }} · {{ zeitraum(w) }}
             <div v-if="w.titel" class="text-body-secondary">{{ w.titel }}</div>
           </div>
         </div>
@@ -128,7 +128,7 @@ const QUELLE_LABEL = { unterkunft: 'Unterkunft', wetter: 'Wetter-Ort im Tagespla
             <span class="fw-semibold">{{ o.name }}</span>
             <span class="text-body-secondary"> · {{ QUELLE_LABEL[o.quelle] }} · {{ formatDate(o.von) }} – {{ formatDate(o.bis) }}</span>
             <div class="text-body-secondary">
-              {{ o.regionen.length ? `Warnregion: ${o.regionen.map((r) => r.name).join(' / ')}` : $t('Keine Warnregion (außerhalb von MeteoAlarm)') }}
+              {{ o.regionen.length ? $t('Warnregion: {0}', [o.regionen.map((r) => r.name).join(' / ')]) : $t('Keine Warnregion (außerhalb von MeteoAlarm)') }}
             </div>
           </li>
         </ul>

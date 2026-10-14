@@ -2,6 +2,7 @@
  * Ton aufnehmen (Sprachnotizen) mit MediaRecorder.
  * iPhone/iPad (Safari) nehmen als audio/mp4 (AAC) auf, Chrome/Firefox als audio/webm (Opus).
  */
+import { t } from '@/core/i18n'
 
 /** Längste Aufnahme – danach wird automatisch beendet (≈ 7 MB bei 64 kbit/s) */
 export const MAX_SECONDS = 15 * 60
@@ -36,7 +37,7 @@ export interface Recording {
 
 /** Fragt das Mikrofon an und startet die Aufnahme. Wirft eine verständliche Fehlermeldung. */
 export async function startRecording(onAutoStop?: () => void): Promise<Recording> {
-  if (!canRecord()) throw new Error('Dieses Gerät bzw. dieser Browser kann keinen Ton aufnehmen.')
+  if (!canRecord()) throw new Error(t('Dieses Gerät bzw. dieser Browser kann keinen Ton aufnehmen.'))
   let stream: MediaStream
   try {
     stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } })
@@ -44,8 +45,8 @@ export async function startRecording(onAutoStop?: () => void): Promise<Recording
     const name = (e as Error).name
     throw new Error(
       name === 'NotAllowedError' || name === 'SecurityError'
-        ? 'Kein Zugriff aufs Mikrofon. Bitte in den Einstellungen des Geräts erlauben (iPad: Einstellungen → Safari → Mikrofon).'
-        : 'Mikrofon nicht verfügbar.'
+        ? t('Kein Zugriff aufs Mikrofon. Bitte in den Einstellungen des Geräts erlauben (iPad: Einstellungen → Safari → Mikrofon).')
+        : t('Mikrofon nicht verfügbar.')
     )
   }
   const mimeType = pickMime((t) => MediaRecorder.isTypeSupported(t))

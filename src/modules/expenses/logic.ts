@@ -1,5 +1,6 @@
 import { diffDays, todayIso } from '../../core/dates'
 import type { Expense, ExpenseCategory, ExpenseDraft } from './types'
+import { t } from '@/core/i18n'
 
 export function emptyExpenseDraft(over: Partial<ExpenseDraft> = {}): ExpenseDraft {
   return {
@@ -48,9 +49,9 @@ export function parseQuickExpense(input: string): { amount: number; description:
 
 export function validateExpense(d: ExpenseDraft, tripCurrency: string): Partial<Record<keyof ExpenseDraft, string>> {
   const e: Partial<Record<keyof ExpenseDraft, string>> = {}
-  if (!d.date) e.date = 'Bitte ein Datum wählen.'
-  if (!(d.amount > 0)) e.amount = 'Betrag muss größer als 0 sein.'
-  if (d.currency !== tripCurrency && !(d.rate > 0)) e.rate = 'Bitte einen Umrechnungskurs angeben.'
+  if (!d.date) e.date = t('Bitte ein Datum wählen.')
+  if (!(d.amount > 0)) e.amount = t('Betrag muss größer als 0 sein.')
+  if (d.currency !== tripCurrency && !(d.rate > 0)) e.rate = t('Bitte einen Umrechnungskurs angeben.')
   return e
 }
 

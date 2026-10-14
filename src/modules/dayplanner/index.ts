@@ -6,7 +6,7 @@ import { activityRepository } from '@/modules/activity/public'
 import { describeCode } from '@/services/weather'
 import { weatherRepository } from './repository'
 import { initialDay } from './logic'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Tagesplaner" (Meilenstein M3). */
 export const dayplannerModule: AppModule = {
@@ -36,8 +36,8 @@ export const dayplannerModule: AppModule = {
       const plannedDays = new Set(acts.filter((a) => a.plannedDate && a.status !== 'verworfen').map((a) => a.plannedDate)).size
       const parts: string[] = []
       if (w) parts.push(`${day === todayIso() ? 'Heute' : 'Am ersten Tag'}: ${describeCode(w.code).label}, ${Math.round(w.tempMax)}°`)
-      else if (!cache) parts.push('Ort fürs Wetter festlegen')
-      parts.push(`${plannedDays} ${plannedDays === 1 ? 'Tag' : 'Tage'} mit Programm`)
+      else if (!cache) parts.push(t('Ort fürs Wetter festlegen'))
+      parts.push(t('{0} {1} mit Programm', [plannedDays, plannedDays === 1 ? 'Tag' : 'Tage']))
       return parts.join(' · ')
     }
   },

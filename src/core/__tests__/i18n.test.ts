@@ -4,7 +4,7 @@ import { collectKeys, loadEnglish } from '../../../build/i18n-texte.mjs'
 import { N_, deviceLang, fill, t, tn, translated, useDictForTests } from '../i18n'
 
 /** Bereiche, die schon vollständig übersetzt sind (wächst mit jeder Version) */
-const FERTIG = [/^App\.vue$/, /^core\//, /^ui\//, /^modules\/(trip|travel|accommodation|booking|activity|abstimmung|meds|documents|termine)\//]
+const FERTIG = [/^App\.vue$/, /^core\//, /^ui\//, /^services\//, /^modules\/(trip|travel|accommodation|booking|activity|abstimmung|meds|documents|termine|packing|reiseinfo|dayplanner|unwetter|map|routes|expenses)\//]
 
 afterEach(() => useDictForTests('de', {}))
 

@@ -1,4 +1,5 @@
 /** Eine amtliche Warnung (MeteoAlarm, über den eigenen Server – Antwort von GET /api/unwetter). */
+import { N_, translated } from '@/core/i18n'
 export interface Warnung {
   id: string
   /** ISO-Ländercode */
@@ -53,11 +54,11 @@ export interface UnwetterStand {
   fehler: string[]
 }
 
-export const STUFE_STIL: Record<number, { label: string; badge: string; alert: string; icon: string }> = {
-  2: { label: 'Gelb', badge: 'text-bg-warning', alert: 'alert-warning', icon: 'exclamation-triangle' },
-  3: { label: 'Orange', badge: 'stufe-orange', alert: 'alert-warning', icon: 'exclamation-triangle-fill' },
-  4: { label: 'Rot', badge: 'text-bg-danger', alert: 'alert-danger', icon: 'exclamation-octagon-fill' }
-}
+export const STUFE_STIL: Record<number, { label: string; badge: string; alert: string; icon: string }> = translated({
+  2: { label: N_('Gelb'), badge: 'text-bg-warning', alert: 'alert-warning', icon: 'exclamation-triangle' },
+  3: { label: N_('Orange'), badge: 'stufe-orange', alert: 'alert-warning', icon: 'exclamation-triangle-fill' },
+  4: { label: N_('Rot'), badge: 'text-bg-danger', alert: 'alert-danger', icon: 'exclamation-octagon-fill' }
+})
 
 /** Bootstrap-Icons je Art */
 export const ART_ICON: Record<string, string> = {

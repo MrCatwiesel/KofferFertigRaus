@@ -6,6 +6,7 @@ import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/
 import { expenseRepository } from '../repository'
 import { balances, defaultExpenseDate, emptyExpenseDraft, inTripCurrency, parseQuickExpense, settle, sortExpenses, summarize } from '../logic'
 import { EXPENSE_CATEGORY, type Expense, type ExpenseCategory } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -37,7 +38,7 @@ async function quickAdd() {
   quickError.value = ''
   const parsed = parseQuickExpense(quick.value)
   if (!parsed || !trip.value) {
-    quickError.value = 'Bitte einen Betrag eingeben, z. B. „12,50 Eis“.'
+    quickError.value = t('Bitte einen Betrag eingeben, z. B. „12,50 Eis“.')
     return
   }
   await expenseRepository.create(

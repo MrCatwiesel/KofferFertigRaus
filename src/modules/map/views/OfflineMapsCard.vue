@@ -14,6 +14,7 @@ import {
   type OfflineMap,
   type ServerMap
 } from '../offline'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; tripTitle: string; viewBbox: Bbox | null }>()
 const emit = defineEmits<{ show: [bbox: Bbox] }>()
@@ -72,9 +73,9 @@ async function order() {
   done.value = ''
   progress.value = 0
   try {
-    busy.value = 'Server schneidet den Ausschnitt aus …'
+    busy.value = t('Server schneidet den Ausschnitt aus …')
     const created = await api.value.order(name.value.trim() || props.tripTitle, props.tripId, roundBbox(props.viewBbox), zoom.value)
-    const ready = await api.value.waitUntilReady(created.id, (s) => (busy.value = `Server schneidet den Ausschnitt aus … ${s} s`))
+    const ready = await api.value.waitUntilReady(created.id, (s) => (busy.value = t('Server schneidet den Ausschnitt aus … {0} s', [s])))
     await fetchToDevice(ready)
   } catch (e) {
     error.value = (e as Error).message
@@ -87,13 +88,13 @@ async function order() {
 async function fetchToDevice(m: ServerMap) {
   if (!api.value) return
   error.value = ''
-  busy.value = 'Lade auf dieses Gerät …'
+  busy.value = t('Lade auf dieses Gerät …')
   try {
     const saved = await saveToDevice(api.value, m, props.tripId, (p) => {
       progress.value = p
-      busy.value = `Lade auf dieses Gerät … ${Math.round(p * 100)} %`
+      busy.value = t('Lade auf dieses Gerät … {0} %', [Math.round(p * 100)])
     })
-    done.value = `„${saved.name}“ gespeichert (${formatMb(saved.size)}) – funktioniert jetzt auch ohne Internet.`
+    done.value = t('„{0}“ gespeichert ({1}) – funktioniert jetzt auch ohne Internet.', [saved.name, formatMb(saved.size)])
     emit('show', saved.bbox)
   } catch (e) {
     error.value = (e as Error).message
@@ -103,12 +104,12 @@ async function fetchToDevice(m: ServerMap) {
 }
 
 async function removeLocal(m: OfflineMap) {
-  if (!confirm(`Offline-Karte „${m.name}“ von diesem Gerät löschen?`)) return
+  if (!confirm(t('Offline-Karte „{0}“ von diesem Gerät löschen?', [m.name]))) return
   await offlineMapRepository.remove(m.id)
 }
 
 async function removeOnServer(m: ServerMap) {
-  if (!api.value || !confirm(`Karte „${m.name}“ auch auf dem Server löschen? Andere Geräte können sie dann nicht mehr laden.`)) return
+  if (!api.value || !confirm(t('Karte „{0}“ auch auf dem Server löschen? Andere Geräte können sie dann nicht mehr laden.', [m.name]))) return
   try {
     await api.value.remove(m.id)
   } catch (e) {
@@ -117,7 +118,7 @@ async function removeOnServer(m: ServerMap) {
   void refresh()
 }
 
-const detailLabel = (z: number) => DETAIL_LEVELS.find((d) => d.zoom === z)?.label ?? `bis Zoom ${z}`
+const detailLabel = (z: number) => DETAIL_LEVELS.find((d) => d.zoom === z)?.label ?? t('bis Zoom {0}', [z])
 const kmLabel = (b: Bbox) => {
   const k = bboxKm(b)
   return `${k.width} × ${k.height} km`

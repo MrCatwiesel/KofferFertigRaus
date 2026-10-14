@@ -3,7 +3,7 @@ import { accommodationRepository } from '@/modules/accommodation/public'
 import { activityRepository } from '@/modules/activity/public'
 import { placeRepository } from './repository'
 import { offlineMapRepository } from './offline'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Karte". */
 export const mapModule: AppModule = {
@@ -24,8 +24,8 @@ export const mapModule: AppModule = {
         placeRepository.listByTrip(tripId)
       ])
       const total = accs.filter((a) => a.status !== 'storniert').length + acts.filter((a) => a.status !== 'verworfen').length
-      if (total === 0) return 'Unterkünfte und Unternehmungen auf der Karte'
-      return `${places.length} von ${total} Orten auf der Karte`
+      if (total === 0) return t('Unterkünfte und Unternehmungen auf der Karte')
+      return t('{0} von {1} Orten auf der Karte', [places.length, total])
     }
   },
   onTripDelete: async (tripId) => {

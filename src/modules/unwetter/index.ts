@@ -6,7 +6,7 @@ import { aktuelle, betrifftReise, imZeitfenster, VORLAUF_TAGE, zusammenfassung }
 import { unwetterRepository } from './repository'
 import { refreshIfStale } from './refresh'
 import { startBeobachtung } from './beobachten'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul „Unwetter“: amtliche Warnungen (MeteoAlarm) für die Orte der Reise – auch als Push-Benachrichtigung. */
 export const unwetterModule: AppModule = {
@@ -23,11 +23,11 @@ export const unwetterModule: AppModule = {
     async summary(tripId) {
       const trip = await tripRepository.get(tripId)
       if (!trip) return ''
-      if (!syncState.configured) return 'Über den eigenen Server (Geräte-Abgleich)'
-      if (!imZeitfenster(trip, todayIso())) return trip.endDate < todayIso() ? 'Reise vorbei' : `Ab ${VORLAUF_TAGE} Tage vor der Reise (MeteoAlarm)`
+      if (!syncState.configured) return t('Über den eigenen Server (Geräte-Abgleich)')
+      if (!imZeitfenster(trip, todayIso())) return trip.endDate < todayIso() ? t('Reise vorbei') : t('Ab {0} Tage vor der Reise (MeteoAlarm)', [VORLAUF_TAGE])
       void refreshIfStale(tripId).catch(() => undefined) // im Hintergrund aktuell halten
       const s = await unwetterRepository.get(tripId)
-      if (!s) return 'Noch nicht abgerufen'
+      if (!s) return t('Noch nicht abgerufen')
       return zusammenfassung(aktuelle(s).filter((w) => betrifftReise(w, s)))
     }
   },

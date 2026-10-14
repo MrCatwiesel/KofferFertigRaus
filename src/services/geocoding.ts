@@ -1,4 +1,4 @@
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 /**
  * Adresssuche über Nominatim (OpenStreetMap), https://nominatim.org
  * Nutzungsregeln: höchstens 1 Anfrage pro Sekunde, keine Suche beim Tippen – darum nur auf Knopfdruck.
@@ -27,7 +27,7 @@ export async function searchAddress(query: string, signal?: AbortSignal): Promis
   await throttle()
   const params = new URLSearchParams({ q, format: 'jsonv2', limit: '6', 'accept-language': 'de', addressdetails: '0' })
   const res = await fetch(`${URL_SEARCH}?${params}`, { signal, headers: { Accept: 'application/json' } })
-  if (!res.ok) throw new Error(`Adresssuche fehlgeschlagen (${res.status})`)
+  if (!res.ok) throw new Error(t('Adresssuche fehlgeschlagen ({0})', [res.status]))
   return parseNominatim(await res.json())
 }
 

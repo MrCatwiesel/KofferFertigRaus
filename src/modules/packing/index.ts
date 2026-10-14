@@ -2,7 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { packingRepository } from './repository'
 import { progress } from './logic'
 import { packingReminders } from './reminders'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Packliste" (Meilenstein M2). */
 export const packingModule: AppModule = {
@@ -23,9 +23,9 @@ export const packingModule: AppModule = {
     to: (tripId) => `/trip/${tripId}/packliste`,
     async summary(tripId) {
       const p = progress(await packingRepository.listByTrip(tripId))
-      if (p.total === 0) return 'Noch leer – mit Vorlage starten'
-      const base = `${p.packed} von ${p.total} eingepackt`
-      return p.essentialOpen ? `${base} · ${p.essentialOpen} Wichtige fehlen` : base
+      if (p.total === 0) return t('Noch leer – mit Vorlage starten')
+      const base = t('{0} von {1} eingepackt', [p.packed, p.total])
+      return p.essentialOpen ? t('{0} · {1} Wichtige fehlen', [base, p.essentialOpen]) : base
     }
   },
   onTripDelete: (tripId) => packingRepository.removeByTrip(tripId)

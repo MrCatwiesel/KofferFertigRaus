@@ -6,6 +6,7 @@ import { packingRepository } from '../repository'
 import { SHARED, emptyPackingDraft, groupByCategory, parseQuickAdd, persons, progress, progressByPerson } from '../logic'
 import { CATEGORY, type PackingCategory, type PackingItem } from '../types'
 import PackingSuggestions from '../components/PackingSuggestions.vue'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -29,7 +30,7 @@ const groups = computed(() =>
 )
 /** Fortschritt für den gewählten Reiter (Person bzw. Gemeinsam) oder für alles */
 const prog = computed(() => tabs.value.find((t) => t.person === person.value)?.progress ?? progress(list.value))
-const tabLabel = (p: string) => (p === SHARED ? 'Gemeinsam' : p)
+const tabLabel = (p: string) => (p === SHARED ? t('Gemeinsam') : p)
 
 function toggle(item: PackingItem) {
   packingRepository.setPacked(item.id, !item.packed)
@@ -50,7 +51,7 @@ async function quickAdd() {
 }
 
 async function unpackAll() {
-  if (!confirm('Alle Häkchen entfernen? Praktisch, um für die Rückreise neu zu packen.')) return
+  if (!confirm(t('Alle Häkchen entfernen? Praktisch, um für die Rückreise neu zu packen.'))) return
   await packingRepository.unpackAll(props.tripId)
 }
 </script>

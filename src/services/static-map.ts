@@ -6,9 +6,10 @@
  * Es werden nur die Kacheln für dieses eine Bild geladen (wie beim Ansehen der Karte) –
  * angesehene Kacheln liegen ohnehin im Zwischenspeicher der App. Ohne Internet: `null`.
  */
+import { t } from '@/core/i18n'
 
 export const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-export const MAP_ATTRIBUTION = '© OpenStreetMap-Mitwirkende'
+export const mapAttribution = () => t('© OpenStreetMap-Mitwirkende')
 const TILE = 256
 
 export type LatLon = readonly [number, number, ...unknown[]]
@@ -137,11 +138,11 @@ export async function renderStaticMap(lines: readonly MapLine[], o: StaticMapOpt
   }
   // Quellenangabe (Pflicht bei OpenStreetMap)
   ctx.font = '12px system-ui, sans-serif'
-  const w = ctx.measureText(MAP_ATTRIBUTION).width + 10
+  const w = ctx.measureText(mapAttribution()).width + 10
   ctx.fillStyle = 'rgba(255,255,255,0.8)'
   ctx.fillRect(o.width - w, o.height - 18, w, 18)
   ctx.fillStyle = '#333'
-  ctx.fillText(MAP_ATTRIBUTION, o.width - w + 5, o.height - 5)
+  ctx.fillText(mapAttribution(), o.width - w + 5, o.height - 5)
 
   const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', 0.88))
   canvas.width = canvas.height = 0

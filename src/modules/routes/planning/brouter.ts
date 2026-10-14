@@ -3,14 +3,15 @@
  * https://brouter.de – über den eigenen Server angefragt (oder direkt, falls kein Server eingerichtet ist).
  */
 import type { TrackPoint } from '../types'
+import { N_, t, translated } from '@/core/i18n'
 
-export const PROFILES = [
-  { id: 'hiking-mountain', label: 'Wandern', icon: 'person-walking' },
-  { id: 'trekking', label: 'Fahrrad', icon: 'bicycle' },
-  { id: 'fastbike', label: 'Rennrad', icon: 'bicycle' },
-  { id: 'car-fast', label: 'Auto', icon: 'car-front' },
-  { id: 'shortest', label: 'Kürzester Weg', icon: 'rulers' }
-] as const
+export const PROFILES = translated([
+  { id: 'hiking-mountain', label: N_('Wandern'), icon: 'person-walking' },
+  { id: 'trekking', label: N_('Fahrrad'), icon: 'bicycle' },
+  { id: 'fastbike', label: N_('Rennrad'), icon: 'bicycle' },
+  { id: 'car-fast', label: N_('Auto'), icon: 'car-front' },
+  { id: 'shortest', label: N_('Kürzester Weg'), icon: 'rulers' }
+] as const)
 export type ProfileId = (typeof PROFILES)[number]['id']
 export const PROFILE_IDS = PROFILES.map((p) => p.id) as readonly string[]
 
@@ -31,7 +32,7 @@ export interface PlannedRoute {
 export function parseBrouter(json: unknown): PlannedRoute {
   const f = (json as { features?: { geometry?: { coordinates?: number[][] }; properties?: Record<string, string> }[] })?.features?.[0]
   const coords = f?.geometry?.coordinates
-  if (!Array.isArray(coords) || coords.length < 2) throw new Error('Der Routenplaner hat keine Strecke gefunden.')
+  if (!Array.isArray(coords) || coords.length < 2) throw new Error(t('Der Routenplaner hat keine Strecke gefunden.'))
   const p = f?.properties ?? {}
   const num = (v: string | undefined) => (v !== undefined && Number.isFinite(Number(v)) ? Number(v) : null)
   return {

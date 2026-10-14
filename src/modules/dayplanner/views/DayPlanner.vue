@@ -13,6 +13,7 @@ import { weatherRepository } from '../repository'
 import { forecastAvailableFrom, initialDay, inForecastRange, isRainy, isStale, planDay, tripDates } from '../logic'
 import type { WeatherCache } from '../types'
 import PlaceSearch from '../components/PlaceSearch.vue'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const route = useRoute()
@@ -61,7 +62,7 @@ async function loadWeather(place: Place) {
     await weatherRepository.put({ tripId: props.tripId, place: { ...place }, fetchedAt: new Date().toISOString(), days })
     changingPlace.value = false
   } catch (e) {
-    weatherError.value = online.value ? (e as Error).message : 'Offline – es wird die zuletzt geladene Vorhersage gezeigt.'
+    weatherError.value = online.value ? (e as Error).message : t('Offline – es wird die zuletzt geladene Vorhersage gezeigt.')
   } finally {
     loadingWeather.value = false
   }
@@ -76,7 +77,7 @@ onMounted(async () => {
 const ageText = computed(() => {
   if (!cache.value) return ''
   const h = Math.round((Date.now() - Date.parse(cache.value.fetchedAt)) / 3_600_000)
-  return h < 1 ? 'gerade eben' : h < 24 ? `vor ${h} Std.` : `vor ${Math.round(h / 24)} Tagen`
+  return h < 1 ? t('gerade eben') : h < 24 ? t('vor {0} Std.', [h]) : t('vor {0} Tagen', [Math.round(h / 24)])
 })
 
 async function planIt(a: Activity) {

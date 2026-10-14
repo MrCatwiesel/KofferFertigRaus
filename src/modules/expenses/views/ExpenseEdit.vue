@@ -11,6 +11,7 @@ import { currencyName, currencyOf } from '@/core/countries'
 import { todayIso } from '@/core/dates'
 import { getMeta, setMeta } from '@/core/meta'
 import { getRate, type Rate } from '@/services/exchange'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -48,11 +49,11 @@ async function loadRate(force = false) {
 }
 watch(() => [draft.currency, draft.date], () => ready.value && void loadRate())
 const rateHint = computed(() => {
-  if (rateState.value === 'laedt') return 'Kurs wird abgefragt …'
-  if (rateState.value === 'fehlt') return `Kein EZB-Kurs für ${draft.currency} verfügbar – bitte Kurs eintragen (z. B. vom Kontoauszug oder Wechselbeleg).`
+  if (rateState.value === 'laedt') return t('Kurs wird abgefragt …')
+  if (rateState.value === 'fehlt') return t('Kein EZB-Kurs für {0} verfügbar – bitte Kurs eintragen (z. B. vom Kontoauszug oder Wechselbeleg).', [draft.currency])
   if (rateTouched.value || !rateInfo.value) return ''
   const d = rateInfo.value.date.split('-').reverse().join('.')
-  return `EZB-Referenzkurs vom ${d}${rateInfo.value.cached ? ' (gespeichert, offline)' : ''}`
+  return t('EZB-Referenzkurs vom {0}{1}', [d, rateInfo.value.cached ? ' (gespeichert, offline)' : ''])
 })
 
 onMounted(async () => {
@@ -134,7 +135,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm('Diese Ausgabe löschen?')) return
+  if (!props.id || !confirm(t('Diese Ausgabe löschen?'))) return
   await expenseRepository.remove(props.id)
   router.replace(listPath.value)
 }

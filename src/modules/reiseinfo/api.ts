@@ -3,6 +3,7 @@
  * Über den eigenen Server (zwischengespeichert, kein CORS-Problem) – sonst direkt.
  */
 import { ServerClient } from '@/core/sync/client'
+import { t } from '@/core/i18n'
 
 const ROOT = 'https://www.auswaertiges-amt.de/opendata'
 const AA = `${ROOT}/travelwarning`
@@ -12,9 +13,9 @@ async function getJson(url: string): Promise<unknown> {
   try {
     res = await fetch(url)
   } catch {
-    throw new Error(navigator.onLine ? 'Auswärtiges Amt nicht erreichbar.' : 'Für die Reisehinweise wird Internet benötigt.')
+    throw new Error(navigator.onLine ? t('Auswärtiges Amt nicht erreichbar.') : t('Für die Reisehinweise wird Internet benötigt.'))
   }
-  if (!res.ok) throw new Error(`Auswärtiges Amt antwortet mit Fehler ${res.status}.`)
+  if (!res.ok) throw new Error(t('Auswärtiges Amt antwortet mit Fehler {0}.', [res.status]))
   return res.json()
 }
 
@@ -24,7 +25,7 @@ export async function fetchTravelWarning(country: string): Promise<unknown> {
   if (client) return client.json(`/api/reiseinfo/${encodeURIComponent(country)}`)
   const list = (await getJson(AA)) as { response?: Record<string, { countryCode?: string }> & { contentList?: string[] } }
   const id = list.response?.contentList?.find((k) => list.response?.[k]?.countryCode?.toUpperCase() === country)
-  if (!id) throw new Error('Für dieses Land gibt es keine Reisehinweise.')
+  if (!id) throw new Error(t('Für dieses Land gibt es keine Reisehinweise.'))
   return getJson(`${AA}/${id}`)
 }
 

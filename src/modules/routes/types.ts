@@ -1,4 +1,5 @@
 /** Ein Punkt: Breite, Länge, Höhe in m (oder null), Zeit in Sekunden seit 1970 (oder null). */
+import { N_, translated } from '@/core/i18n'
 export type TrackPoint = [lat: number, lon: number, ele: number | null, time: number | null]
 
 /** Aufgezeichnete Tour (mit Zeiten) oder geplante Route (ohne). */
@@ -61,7 +62,7 @@ export type RouteDraft = Pick<Route, 'name' | 'color' | 'date' | 'notes' | 'show
 
 export const ROUTE_COLORS = ['#e11d48', '#2563eb', '#16a34a', '#d97706', '#7c3aed', '#0891b2', '#db2777', '#475569']
 
-export const FORMAT_LABEL: Record<RouteFormat, string> = {
+export const FORMAT_LABEL: Record<RouteFormat, string> = translated({
   gpx: 'GPX',
   fit: 'FIT (Garmin)',
   tcx: 'TCX',
@@ -69,5 +70,5 @@ export const FORMAT_LABEL: Record<RouteFormat, string> = {
   kmz: 'KMZ',
   geojson: 'GeoJSON',
   osm: 'OpenStreetMap',
-  planung: 'In der App geplant'
-}
+  planung: N_('In der App geplant')
+})

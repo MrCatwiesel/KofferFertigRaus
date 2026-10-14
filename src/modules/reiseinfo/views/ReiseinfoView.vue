@@ -8,7 +8,7 @@ import { refreshTripInfos } from '../refresh'
 import { missionName, warningLabel } from '../parse'
 import { SOURCE_URL, type CountryInfo, type Mission } from '../types'
 import { telHref } from '@/modules/documents/public'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const tel = (p: string) => telHref(p) ?? undefined
 
@@ -28,8 +28,8 @@ async function refresh(force = true) {
   try {
     const r = await refreshTripInfos(props.tripId, force)
     if (r.errors.length) message.value = { type: 'danger', text: r.errors.join(' · ') }
-    else if (r.updated.length) message.value = { type: 'success', text: `Aktualisiert: ${r.updated.map(countryName).join(', ')} – auch in den Dokumenten.` }
-    else message.value = { type: 'info', text: 'Alles aktuell – keine Änderungen beim Auswärtigen Amt.' }
+    else if (r.updated.length) message.value = { type: 'success', text: t('Aktualisiert: {0} – auch in den Dokumenten.', [r.updated.map(countryName).join(', ')]) }
+    else message.value = { type: 'info', text: t('Alles aktuell – keine Änderungen beim Auswärtigen Amt.') }
   } finally {
     busy.value = false
   }

@@ -1,5 +1,12 @@
 # Änderungsprotokoll
 
+## 1.38.0 – 2026-10-14
+
+### Englisch (Teil 3): Packliste, Reisehinweise und Unterwegs
+- Auf Englisch jetzt auch: **Packliste** (alle Vorlagen und Vorschläge), **Reisehinweise** (Rahmen und Bezeichnungen – die Hinweise selbst kommen vom Auswärtigen Amt auf Deutsch), **Tagesplaner und Wetter, Heute, Unwetterwarnungen, Karte und Offline-Karten, Routen & Touren, Ausgaben**
+- Wetterbeschreibungen, Warnstufen und Warnarten, Kartenquellen und Fehlermeldungen der Dienste in der gewählten Sprache
+- Noch auf Deutsch: Tagebuch, Reisebericht/Fotobuch, Reise-Webseite, Lese-Links, Piwigo, Statistik – folgen als Letztes
+
 ## 1.37.0 – 2026-10-14
 
 ### Englisch (Teil 2): Planung

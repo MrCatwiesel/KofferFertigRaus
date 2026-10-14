@@ -17,7 +17,7 @@ import { MAX_SEARCH_SPAN, TRAIL_TYPES, type TrailHit, type TrailType } from '../
 import { RoutingApi, fetchElevations } from '../planning/api'
 import { formatDuration } from '@/services/tracks'
 import type { TrackPoint } from '../types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const route = useRoute()
@@ -51,7 +51,7 @@ onMounted(async () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+    attribution: t('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende')
   }).addTo(map)
   lineLayer = markRaw(L.layerGroup().addTo(map))
   pointLayer = markRaw(L.layerGroup().addTo(map))
@@ -108,7 +108,7 @@ function drawWaypoints() {
     const m = L.marker([w.lat, w.lon], {
       draggable: true,
       icon: L.divIcon({ className: 'nww-wp', html: `<span>${letter(i, waypoints.value.length)}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
-      title: w.label || `Punkt ${i + 1}`
+      title: w.label || t('Punkt {0}', [i + 1])
     })
     m.on('dragend', () => {
       const p = m.getLatLng()
@@ -199,8 +199,8 @@ const plannedStats = computed(() => (planned.value ? computeStats(planned.value.
 const planName = computed(() => {
   const w = waypoints.value
   if (w.length < 2) return ''
-  const a = w[0].label || 'Start'
-  const b = w[w.length - 1].label || 'Ziel'
+  const a = w[0].label || t('Start')
+  const b = w[w.length - 1].label || t('Ziel')
   return `${a} → ${b}`
 })
 
@@ -218,7 +218,7 @@ async function searchTrails() {
   if (!api.value || !bbox) return
   trailError.value = ''
   if (bbox[2] - bbox[0] > MAX_SEARCH_SPAN || bbox[3] - bbox[1] > MAX_SEARCH_SPAN) {
-    trailError.value = 'Der Kartenausschnitt ist zu groß – bitte näher an die Gegend heranzoomen.'
+    trailError.value = t('Der Kartenausschnitt ist zu groß – bitte näher an die Gegend heranzoomen.')
     return
   }
   trailBusy.value = true
@@ -292,10 +292,10 @@ async function save() {
       const st = computeStats(points)
       const h = selected.value.hit
       notes = [
-        `Aus OpenStreetMap (Relation ${h.id})`,
+        t('Aus OpenStreetMap (Relation {0})', [h.id]),
         h.networkLabel ? `${TRAIL_TYPES[h.type].label.slice(0, -1)} (${h.networkLabel})` : '',
         h.from && h.to ? `${h.from} – ${h.to}` : '',
-        h.type === 'hiking' ? `Gehzeit ca. ${formatDuration(hikingTime(st.distance, st.ascent, st.descent))}` : '',
+        h.type === 'hiking' ? t('Gehzeit ca. {0}', [formatDuration(hikingTime(st.distance, st.ascent, st.descent))]) : '',
         h.website
       ]
         .filter(Boolean)
@@ -303,7 +303,7 @@ async function save() {
       format = 'osm'
     } else return
     const count = await routeRepository.count(props.tripId)
-    const r = buildRoute(props.tripId, { name: saveName.value.trim() || 'Route', kind: 'route', points }, { format, filename: '', original: null }, count, trip.value)
+    const r = buildRoute(props.tripId, { name: saveName.value.trim() || t('Route'), kind: 'route', points }, { format, filename: '', original: null }, count, trip.value)
     r.notes = notes
     r.date = saveDay.value
     await routeRepository.addMany([r])

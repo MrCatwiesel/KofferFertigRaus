@@ -6,6 +6,7 @@
 import { ServerClient } from '@/core/sync/client'
 import { geometryQuery, parseHits, relationLine, searchQuery, type TrailHit, type TrailType } from './osm'
 import { lonlats, parseBrouter, type PlannedRoute } from './brouter'
+import { t } from '@/core/i18n'
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter'
 const BROUTER = 'https://brouter.de/brouter'
@@ -16,10 +17,10 @@ async function overpass(query: string): Promise<unknown> {
   try {
     res = await fetch(OVERPASS, { method: 'POST', body: new URLSearchParams({ data: query }) })
   } catch {
-    throw new Error(navigator.onLine ? 'OpenStreetMap-Suche nicht erreichbar.' : 'Für die Suche wird Internet benötigt.')
+    throw new Error(navigator.onLine ? t('OpenStreetMap-Suche nicht erreichbar.') : t('Für die Suche wird Internet benötigt.'))
   }
-  if (res.status === 429 || res.status === 504) throw new Error('Die OpenStreetMap-Suche ist gerade ausgelastet – bitte gleich noch einmal.')
-  if (!res.ok) throw new Error(`OpenStreetMap-Suche fehlgeschlagen (${res.status}).`)
+  if (res.status === 429 || res.status === 504) throw new Error(t('Die OpenStreetMap-Suche ist gerade ausgelastet – bitte gleich noch einmal.'))
+  if (!res.ok) throw new Error(t('OpenStreetMap-Suche fehlgeschlagen ({0}).', [res.status]))
   return res.json()
 }
 
@@ -45,7 +46,7 @@ export class RoutingApi {
   async trailLine(id: number): Promise<[number, number][]> {
     const json = this.client ? await this.client.json(`/api/routing/wanderwege/${id}`) : await overpass(geometryQuery(id))
     const line = relationLine(json as never)
-    if (line.length < 2) throw new Error('Für diese Route liefert OpenStreetMap keinen Verlauf.')
+    if (line.length < 2) throw new Error(t('Für diese Route liefert OpenStreetMap keinen Verlauf.'))
     return line
   }
 
@@ -56,10 +57,10 @@ export class RoutingApi {
     try {
       res = await fetch(`${BROUTER}?${q}`)
     } catch {
-      throw new Error(navigator.onLine ? 'Routenplaner nicht erreichbar – mit eigenem Server (Geräte-Abgleich) klappt es zuverlässiger.' : 'Für die Planung wird Internet benötigt.')
+      throw new Error(navigator.onLine ? t('Routenplaner nicht erreichbar – mit eigenem Server (Geräte-Abgleich) klappt es zuverlässiger.') : t('Für die Planung wird Internet benötigt.'))
     }
     const text = await res.text()
-    if (!res.ok) throw new Error(text.trim().slice(0, 200) || `Routenplaner-Fehler (${res.status}).`)
+    if (!res.ok) throw new Error(text.trim().slice(0, 200) || t('Routenplaner-Fehler ({0}).', [res.status]))
     return parseBrouter(JSON.parse(text))
   }
 }

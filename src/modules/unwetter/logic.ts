@@ -1,7 +1,7 @@
 /** Reine Funktionen des Moduls „Unwetter“ (ohne Datenbank und Netz). */
 import { addDays } from '@/core/dates'
 import type { UnwetterOrt, UnwetterStand, Warnung } from './types'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 /** So viele Tage vor der Reise werden Warnungen schon geholt */
 export const VORLAUF_TAGE = 7
@@ -34,7 +34,7 @@ export function reiseOrte({ trip, unterkuenfte, wetter, ziel }: OrtQuellen): Unw
     if (o.bis > near.bis) near.bis = o.bis
   }
   for (const u of unterkuenfte) {
-    add({ name: u.name || 'Unterkunft', lat: u.lat, lon: u.lon, von: u.checkIn || trip.startDate, bis: u.checkOut || trip.endDate, quelle: 'unterkunft' })
+    add({ name: u.name || t('Unterkunft'), lat: u.lat, lon: u.lon, von: u.checkIn || trip.startDate, bis: u.checkOut || trip.endDate, quelle: 'unterkunft' })
   }
   if (wetter) add({ name: wetter.name, lat: wetter.lat, lon: wetter.lon, von: trip.startDate, bis: trip.endDate, quelle: 'wetter' })
   if (!out.length && ziel) add({ name: ziel.name, lat: ziel.lat, lon: ziel.lon, von: trip.startDate, bis: trip.endDate, quelle: 'ziel' })
@@ -64,8 +64,8 @@ export function zeitraum(w: Pick<Warnung, 'beginn' | 'ende'>, now = Date.now()):
   const fmt = new Intl.DateTimeFormat(locale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
   const f = (iso: string) => fmt.format(new Date(iso)).replace(',', '')
   const b = Date.parse(w.beginn)
-  const von = !Number.isNaN(b) && b > now ? f(w.beginn) : 'jetzt'
-  return w.ende ? `${von} – ${f(w.ende)}` : `ab ${von}`
+  const von = !Number.isNaN(b) && b > now ? f(w.beginn) : t('jetzt')
+  return w.ende ? `${von} – ${f(w.ende)}` : t('ab {0}', [von])
 }
 
 /** Wo? Regionen am Reiseort, sonst die Gebiete laut Wetterdienst */
@@ -74,8 +74,8 @@ export const wo = (w: Warnung) => (w.regionen.length ? w.regionen.map((r) => r.n
 /** Kurzfassung für die Reiseseite */
 export function zusammenfassung(liste: Warnung[]): string {
   const amOrt = liste.filter((w) => !w.ortlos)
-  if (!amOrt.length) return liste.length ? `Keine Warnung an den Reiseorten (${liste.length} sonst im Land)` : 'Keine Warnungen an den Reiseorten'
+  if (!amOrt.length) return liste.length ? t('Keine Warnung an den Reiseorten ({0} sonst im Land)', [liste.length]) : t('Keine Warnungen an den Reiseorten')
   const top = amOrt[0]
   const more = amOrt.length - 1
-  return `${top.stufeName}: ${top.artName} (${wo(top)})${more ? ` · ${more} weitere` : ''}`
+  return `${t(top.stufeName)}: ${t(top.artName)} (${wo(top)})${more ? t(' · {0} weitere', [more]) : ''}`
 }

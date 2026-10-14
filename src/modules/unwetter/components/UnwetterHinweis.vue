@@ -21,7 +21,7 @@ onMounted(() => void refreshIfStale(props.tripId).catch(() => undefined))
     <div v-for="w in liste.slice(0, 3)" :key="w.id" class="d-flex gap-2 align-items-start">
       <i :class="`bi bi-${ART_ICON[w.art] ?? 'exclamation-triangle'}`" aria-hidden="true"></i>
       <span>
-        <strong>{{ $t('Warnstufe {0}: {1}', [w.stufeName, w.artName]) }}</strong> – {{ wo(w) }}
+        <strong>{{ $t('Warnstufe {0}: {1}', [$t(w.stufeName), $t(w.artName)]) }}</strong> – {{ wo(w) }}
         <span class="small d-block">{{ zeitraum(w) }}</span>
       </span>
     </div>

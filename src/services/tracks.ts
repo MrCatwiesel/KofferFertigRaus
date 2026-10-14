@@ -1,4 +1,4 @@
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 /**
  * Strecken zeichnen und beschreiben – reine Funktionen ohne Datenbank.
  * Genutzt von Routen-Modul, Reise-Webseite und Lese-Link-Seite.
@@ -93,7 +93,7 @@ export function trackSvg(points: readonly PlainPoint[], opts: { width?: number; 
   const [sx, sy] = xy(points[0])
   const [ex, ey] = xy(points[points.length - 1])
   const sw = opts.stroke ?? 3.5
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-track" role="img" aria-label="Streckenverlauf"><path d="${d}" fill="none" stroke="#fff" stroke-width="${sw + 3}" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/><path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="6" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="6" fill="#111827" stroke="#fff" stroke-width="2"/></svg>`
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-track" role="img" aria-label="${t('Streckenverlauf')}"><path d="${d}" fill="none" stroke="#fff" stroke-width="${sw + 3}" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/><path d="${d}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/><circle cx="${sx.toFixed(1)}" cy="${sy.toFixed(1)}" r="6" fill="#16a34a" stroke="#fff" stroke-width="2"/><circle cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="6" fill="#111827" stroke="#fff" stroke-width="2"/></svg>`
 }
 
 /** Höhenprofil: Entfernung (x) gegen Höhe (y). */
@@ -128,7 +128,7 @@ export function profileSvg(points: readonly PlainPoint[], opts: { width?: number
   const line = data.map((p, i) => `${i ? 'L' : 'M'}${x(p.d).toFixed(1)} ${y(p.e).toFixed(1)}`).join('')
   const area = `${line}L${x(total).toFixed(1)} ${H - bottom}L${left} ${H - bottom}Z`
   const label = (v: number) => `${Math.round(v).toLocaleString(locale())} m`
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-profile" role="img" aria-label="Höhenprofil von ${label(minE)} bis ${label(maxE)}"><path d="${area}" fill="${color}" opacity=".18"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><line x1="${left}" y1="${H - bottom}" x2="${W - right}" y2="${H - bottom}" stroke="currentColor" opacity=".25"/><g font-size="11" fill="currentColor" opacity=".7" font-family="system-ui,sans-serif"><text x="${left - 6}" y="${y(maxE) + 4}" text-anchor="end">${label(maxE)}</text><text x="${left - 6}" y="${y(minE) + 4}" text-anchor="end">${label(minE)}</text><text x="${left}" y="${H - 5}">0</text><text x="${W - right}" y="${H - 5}" text-anchor="end">${formatDistance(total)}</text></g></svg>`
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-profile" role="img" aria-label="${t('Höhenprofil von {0} bis {1}', [label(minE), label(maxE)])}"><path d="${area}" fill="${color}" opacity=".18"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><line x1="${left}" y1="${H - bottom}" x2="${W - right}" y2="${H - bottom}" stroke="currentColor" opacity=".25"/><g font-size="11" fill="currentColor" opacity=".7" font-family="system-ui,sans-serif"><text x="${left - 6}" y="${y(maxE) + 4}" text-anchor="end">${label(maxE)}</text><text x="${left - 6}" y="${y(minE) + 4}" text-anchor="end">${label(minE)}</text><text x="${left}" y="${H - 5}">0</text><text x="${W - right}" y="${H - 5}" text-anchor="end">${formatDistance(total)}</text></g></svg>`
 }
 
 
@@ -158,5 +158,5 @@ export function routesSvg(routes: readonly { points: readonly PlainPoint[]; colo
       return `<path d="${d}" fill="none" stroke="#fff" stroke-width="${sw + 3}" stroke-linejoin="round" stroke-linecap="round" opacity=".8"/><path d="${d}" fill="none" stroke="${safeHex(r.color)}" stroke-width="${sw}" stroke-linejoin="round" stroke-linecap="round"/>`
     })
     .join('')
-  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-routes" role="img" aria-label="Übersicht aller Touren">${paths}</svg>`
+  return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-routes" role="img" aria-label="${t('Übersicht aller Touren')}">${paths}</svg>`
 }

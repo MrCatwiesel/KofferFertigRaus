@@ -8,6 +8,7 @@ import { packingRepository } from '../repository'
 import { draftsFromOtherTrip, draftsFromTemplates } from '../logic'
 import { TEMPLATES } from '../templates'
 import { CATEGORY, type PackingItem } from '../types'
+import { t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -66,7 +67,7 @@ const preview = computed(() =>
 /** Vorschau je Person: "Ich 34 · Anna 34 · Gemeinsam 20" */
 const previewByPerson = computed(() => {
   const m = new Map<string, number>()
-  for (const d of preview.value) m.set(d.person || 'Gemeinsam', (m.get(d.person || 'Gemeinsam') ?? 0) + 1)
+  for (const d of preview.value) m.set(d.person || t('Gemeinsam'), (m.get(d.person || t('Gemeinsam')) ?? 0) + 1)
   return [...m.entries()]
 })
 const previewByCategory = computed(() => {

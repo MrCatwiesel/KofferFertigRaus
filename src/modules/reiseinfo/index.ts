@@ -4,7 +4,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { countryInfoRepository } from './repository'
 import { refreshIfStale, refreshTripInfos } from './refresh'
 import { warningLabel } from './parse'
-import { N_ } from '@/core/i18n'
+import { N_, t } from '@/core/i18n'
 
 /** Modul "Reisehinweise": Auswärtiges Amt – Sicherheitslage, Einreise, Impfschutz je Zielland. */
 export const reiseinfoModule: AppModule = {
@@ -22,11 +22,11 @@ export const reiseinfoModule: AppModule = {
       void refreshIfStale(tripId).catch(() => undefined) // im Hintergrund aktuell halten
       const trip = await tripRepository.get(tripId)
       const countries = trip?.countries ?? []
-      if (!countries.length) return 'Zielland angeben → Einreise, Impfschutz, Sicherheitslage'
+      if (!countries.length) return t('Zielland angeben → Einreise, Impfschutz, Sicherheitslage')
       const infos = await countryInfoRepository.listByTrip(tripId)
       const parts = countries.map((c) => {
         const i = infos.find((x) => x.country === c)
-        if (!i) return `${countryName(c)}: noch nicht abgerufen`
+        if (!i) return t('{0}: noch nicht abgerufen', [countryName(c)])
         return `${countryName(c)}: ${warningLabel(i).text}${i.unseenChange ? ' – geändert!' : ''}`
       })
       return parts.join(' · ')

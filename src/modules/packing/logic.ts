@@ -1,5 +1,6 @@
 import { CATEGORY, type PackingCategory, type PackingDraft, type PackingItem } from './types'
 import type { PackingTemplate, QuantityRule, TemplateItem } from './templates'
+import { t } from '@/core/i18n'
 
 export function emptyPackingDraft(over: Partial<PackingDraft> = {}): PackingDraft {
   return {
@@ -198,7 +199,7 @@ export function parseQuickAdd(input: string): { name: string; quantity: number }
 
 export function validatePacking(d: PackingDraft): Partial<Record<keyof PackingDraft, string>> {
   const e: Partial<Record<keyof PackingDraft, string>> = {}
-  if (!d.name.trim()) e.name = 'Bitte einen Namen angeben.'
-  if (!Number.isInteger(d.quantity) || d.quantity < 1) e.quantity = 'Mindestens 1.'
+  if (!d.name.trim()) e.name = t('Bitte einen Namen angeben.')
+  if (!Number.isInteger(d.quantity) || d.quantity < 1) e.quantity = t('Mindestens 1.')
   return e
 }

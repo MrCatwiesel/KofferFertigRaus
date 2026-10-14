@@ -18,7 +18,7 @@ import { groupByPixels } from '../photo-groups'
 import { KIND_STYLE, type MapPlace } from '../types'
 import { offlineMapRepository, type Bbox, type OfflineMap } from '../offline'
 import OfflineMapsCard from './OfflineMapsCard.vue'
-import { locale } from '@/core/i18n'
+import { locale, t } from '@/core/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -111,7 +111,7 @@ function icon(kind: MapItem['kind'], done: boolean) {
   const s = KIND_STYLE[kind]
   return L.divIcon({
     className: 'nww-pin',
-    html: `<span style="background:${done ? '#94a3b8' : s.color}"><i class="bi bi-${s.icon}"></i></span>`,
+    html: t('<span style="background:{0}"><i class="bi bi-{1}"></i></span>', [done ? '#94a3b8' : s.color, s.icon]),
     iconSize: [30, 30],
     iconAnchor: [15, 28],
     popupAnchor: [0, -26]
@@ -120,10 +120,8 @@ function icon(kind: MapItem['kind'], done: boolean) {
 
 function popupHtml(l: Located): string {
   const links = navLinks(l.place.lat, l.place.lon, l.title)
-  const dist = me.value ? ` · ${formatDistance(distanceKm(me.value, l.place))} entfernt` : ''
-  return `<strong>${escapeHtml(l.title)}</strong><br><small>${escapeHtml(l.subtitle)}${dist}</small><br>
-    <small class="font-monospace">${formatGarmin(l.place.lat, l.place.lon)}</small><br>
-    <a href="${links.apple}" target="_blank" rel="noopener">Apple Karten</a> · <a href="${links.google}" target="_blank" rel="noopener">Google Maps</a>`
+  const dist = me.value ? t(' · {0} entfernt', [formatDistance(distanceKm(me.value, l.place))]) : ''
+  return t('<strong>{0}</strong><br><small>{1}{2}</small><br>\n    <small class="font-monospace">{3}</small><br>\n    <a href="{4}" target="_blank" rel="noopener">Apple Karten</a> · <a href="{5}" target="_blank" rel="noopener">Google Maps</a>', [escapeHtml(l.title), escapeHtml(l.subtitle), dist, formatGarmin(l.place.lat, l.place.lon), links.apple, links.google])
 }
 
 function draw() {
@@ -139,7 +137,7 @@ function draw() {
       L.DomEvent.stop(e)
       const [lat, lon] = nearestOnRoute(o.points, e.latlng.lat, e.latlng.lng)
       if (photoTarget.value) return void choosePhotoPlace(lat, lon)
-      if (target.value && pickOnMap.value) return void choose(lat, lon, `auf Route „${o.name}“`)
+      if (target.value && pickOnMap.value) return void choose(lat, lon, t('auf Route „{0}“', [o.name]))
       L.popup().setLatLng([lat, lon]).setContent(routePopup(o, lat, lon)).openOn(map!)
     })
   }
@@ -168,7 +166,7 @@ function drawPhotos() {
       iconAnchor: [22, 22],
       popupAnchor: [0, -20]
     })
-    L.marker([lat, lon], { icon, title: sorted.length > 1 ? `${sorted.length} Fotos` : sorted[0].caption || 'Foto', zIndexOffset: 500 })
+    L.marker([lat, lon], { icon, title: sorted.length > 1 ? t('{0} Fotos', [sorted.length]) : sorted[0].caption || t('Foto'), zIndexOffset: 500 })
       .bindPopup(() => photoPopup(sorted), { maxWidth: 300, minWidth: 200 })
       .addTo(photoLayer)
   }
@@ -183,11 +181,11 @@ function photoPopup(list: PlacedPhoto[]): HTMLElement {
     `<div class="grid">${shown
       .map((p, i) => `<a href="#" data-i="${i}" title="${escapeHtml(p.caption || time(p))}"><img src="${thumbUrl(p)}" alt="${escapeHtml(p.caption)}"></a>`)
       .join('')}</div>` +
-    (list.length > shown.length ? `<small>… und ${list.length - shown.length} weitere</small><br>` : '') +
+    (list.length > shown.length ? t('<small>… und {0} weitere</small><br>', [list.length - shown.length]) : '') +
     `<small>${escapeHtml(list.length === 1 ? list[0].caption || time(list[0]) : `${list.length} Fotos · ${time(list[0])} – ${time(list[list.length - 1])}`)}</small>` +
-    (list.some((p) => p.source === 'tour') ? `<br><small class="text-body-secondary"><i class="bi bi-signpost-2"></i> Ort aus der Tour zur Aufnahmezeit geschätzt</small>` : '') +
+    (list.some((p) => p.source === 'tour') ? t('<br><small class="text-body-secondary"><i class="bi bi-signpost-2"></i> Ort aus der Tour zur Aufnahmezeit geschätzt</small>') : '') +
     (list.length === 1
-      ? `<br><small><a href="#" data-act="move">Ort ändern</a>${list[0].source === 'karte' ? ' · <a href="#" data-act="clear">Ort entfernen</a>' : ''}</small>`
+      ? t('<br><small><a href="#" data-act="move">Ort ändern</a>{0}</small>', [list[0].source === 'karte' ? ' · <a href="#" data-act="clear">Ort entfernen</a>' : ''])
       : '')
   box.addEventListener('click', (ev) => {
     const a = (ev.target as HTMLElement).closest('a')
@@ -212,7 +210,7 @@ function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
     ev.preventDefault()
     map?.closePopup()
     if (act === 'details') router.push(o.to)
-    else choose(lat, lon, `auf Route „${o.name}“`)
+    else choose(lat, lon, t('auf Route „{0}“', [o.name]))
   })
   return box
 }
@@ -239,7 +237,7 @@ onMounted(async () => {
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+      attribution: t('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende')
     })
   )
   layer = markRaw(L.layerGroup().addTo(map))
@@ -301,7 +299,7 @@ async function applyBase() {
       offlineLayers = layers.map((l) => markRaw(l).addTo(map!))
       return
     } catch (e) {
-      baseError.value = `Offline-Karte konnte nicht geladen werden: ${(e as Error).message}`
+      baseError.value = t('Offline-Karte konnte nicht geladen werden: {0}', [(e as Error).message])
     }
   }
   if (osm && map && !map.hasLayer(osm)) osm.addTo(map)
@@ -344,7 +342,7 @@ function startLocate(it: MapItem) {
   if (c) results.value = [coordResult(c.lat, c.lon)]
 }
 
-const coordResult = (lat: number, lon: number): GeoResult => ({ lat, lon, label: `Koordinaten ${formatDecimal(lat, lon)} · ${formatGarmin(lat, lon)}` })
+const coordResult = (lat: number, lon: number): GeoResult => ({ lat, lon, label: t('Koordinaten {0} · {1}', [formatDecimal(lat, lon), formatGarmin(lat, lon)]) })
 
 async function runSearch() {
   searchError.value = ''
@@ -357,9 +355,9 @@ async function runSearch() {
   searching.value = true
   try {
     results.value = await searchAddress(query.value)
-    if (!results.value.length) searchError.value = 'Nichts gefunden – kürzer suchen (z. B. nur Ort) oder auf der Karte antippen.'
+    if (!results.value.length) searchError.value = t('Nichts gefunden – kürzer suchen (z. B. nur Ort) oder auf der Karte antippen.')
   } catch (e) {
-    searchError.value = online.value ? (e as Error).message : 'Für die Suche wird Internet benötigt – oder auf der Karte antippen.'
+    searchError.value = online.value ? (e as Error).message : t('Für die Suche wird Internet benötigt – oder auf der Karte antippen.')
   } finally {
     searching.value = false
   }
@@ -375,7 +373,7 @@ async function choose(lat: number, lon: number, label: string) {
 
 function onMapClick(lat: number, lon: number) {
   if (photoTarget.value) return void choosePhotoPlace(lat, lon)
-  if (target.value && pickOnMap.value) choose(lat, lon, 'auf der Karte gesetzt')
+  if (target.value && pickOnMap.value) choose(lat, lon, t('auf der Karte gesetzt'))
 }
 
 // ---- Foto von Hand verorten ----
@@ -395,7 +393,7 @@ async function choosePhotoPlace(lat: number, lon: number) {
 
 function fromRoute(o: MapOverlay, end: boolean) {
   const [lat, lon] = end ? o.points[o.points.length - 1] : o.points[0]
-  choose(lat, lon, `${end ? 'Ziel' : 'Start'} von „${o.name}“`)
+  choose(lat, lon, t('{0} von „{1}“', [end ? 'Ziel' : 'Start', o.name]))
 }
 
 const copied = ref('')
@@ -403,7 +401,7 @@ async function copyCoords(l: Located) {
   const text = formatDecimal(l.place.lat, l.place.lon, 6)
   try {
     await navigator.clipboard.writeText(text)
-    copied.value = `Kopiert: ${text}`
+    copied.value = t('Kopiert: {0}', [text])
   } catch {
     copied.value = text
   }

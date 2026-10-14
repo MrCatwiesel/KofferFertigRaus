@@ -1,3 +1,4 @@
+import { N_, translated } from '@/core/i18n'
 export type PlaceKind = 'accommodation' | 'activity'
 
 /** Position eines Ortes auf der Karte (Unterkunft oder Unternehmung). */
@@ -14,7 +15,7 @@ export interface MapPlace {
   updatedAt: string
 }
 
-export const KIND_STYLE: Record<PlaceKind, { label: string; color: string; icon: string }> = {
-  accommodation: { label: 'Unterkunft', color: '#6366f1', icon: 'house-door-fill' },
-  activity: { label: 'Unternehmung', color: '#10b981', icon: 'star-fill' }
-}
+export const KIND_STYLE: Record<PlaceKind, { label: string; color: string; icon: string }> = translated({
+  accommodation: { label: N_('Unterkunft'), color: '#6366f1', icon: 'house-door-fill' },
+  activity: { label: N_('Unternehmung'), color: '#10b981', icon: 'star-fill' }
+})

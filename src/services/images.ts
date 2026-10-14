@@ -92,6 +92,47 @@ export async function resizeBlob(blob: Blob, maxEdge: number, quality = 0.8): Pr
   }
 }
 
+/**
+ * Bild auf eine Größe bringen: mit `crop` genau auf das Seitenverhältnis w:h zuschneiden (Mitte, senkrecht nach `focusY`
+ * 0 = oben … 100 = unten), sonst nur einpassen. Nie größer als das Original. Ergebnis JPEG.
+ */
+export async function fitBlob(blob: Blob, target: { w: number; h: number; crop: boolean; focusY?: number }, quality = 0.85): Promise<Blob> {
+  const img = await decode(blob)
+  try {
+    let sx = 0
+    let sy = 0
+    let sw = img.width
+    let sh = img.height
+    if (target.crop) {
+      const aspect = target.w / target.h
+      if (sw / sh > aspect) {
+        sw = sh * aspect
+        sx = (img.width - sw) / 2
+      } else {
+        sh = sw / aspect
+        sy = (img.height - sh) * Math.min(1, Math.max(0, (target.focusY ?? 50) / 100))
+      }
+    }
+    const k = Math.min(1, target.w / sw, target.h / sh)
+    const w = Math.max(1, Math.round(sw * k))
+    const h = Math.max(1, Math.round(sh * k))
+    const canvas = document.createElement('canvas')
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    if (!ctx) throw new Error('Zeichnen nicht möglich.')
+    ctx.imageSmoothingQuality = 'high'
+    ctx.drawImage(img.source, sx, sy, sw, sh, 0, 0, w, h)
+    const out = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Bild konnte nicht gespeichert werden.'))), 'image/jpeg', quality)
+    )
+    canvas.width = canvas.height = 0 // Speicher sofort freigeben (iPad)
+    return out
+  } finally {
+    img.close()
+  }
+}
+
 /** Blob → data:-URL (zum Einbetten in eine HTML-Datei). */
 export function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {

@@ -5,7 +5,8 @@
  * Farben und Schriften kommen aus dem gewählten Design.
  */
 import { computed, nextTick, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
-import { flag } from '@/core/countries'
+import { countryName, flag } from '@/core/countries'
+import { formatBytes } from '@/core/storage'
 import { formatMoney } from '@/core/format'
 import { tripRepository, type Trip } from '@/modules/trip/public'
 import { MOODS, journalRepository, photoRepository, type JournalEntry, type Photo } from '@/modules/journal/public'
@@ -14,6 +15,10 @@ import { accommodationRepository, type Accommodation } from '@/modules/accommoda
 import { EXPENSE_CATEGORY, expenseRepository, summarize, type Expense } from '@/modules/expenses/public'
 import { routesSvg } from '@/services/tracks'
 import { DEFAULT_OPTIONS, buildDays, photoColumns, pickCover, reportStats, type ReportOptions } from '../logic'
+import { DEFAULT_PDF_OPTIONS, type PdfInput, type PdfOptions } from '../pdf-doc'
+import { PAGE_FORMATS, type PageFormat } from '../pdf-layout'
+import type { PdfProgress } from '../pdf'
+import { fileSlug, shareOrDownload } from '@/services/share-file'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -89,6 +94,102 @@ const paras = (t: string) => t.trim().split(/\n\s*\n/).filter(Boolean)
 const routeSvg = (r: Route) => trackSvg(r.preview, { width: 420, height: 260, color: r.color, stroke: 3.5 })
 const profile = (r: Route) => profileSvg(r.points, { width: 520, height: 120, color: r.color })
 
+// ——— PDF-Datei (direkt erzeugt, ohne Druckdialog) ———
+const PDF_KEY = 'nww-bericht-pdf'
+const po = reactive<Omit<PdfOptions, 'layout'>>({ format: DEFAULT_PDF_OPTIONS.format, bleed: false, perPage: 4, quality: 'teilen' })
+try {
+  Object.assign(po, JSON.parse(localStorage.getItem(PDF_KEY) ?? '{}'))
+} catch {
+  /* Standard */
+}
+watch(po, () => {
+  try {
+    localStorage.setItem(PDF_KEY, JSON.stringify(po))
+  } catch {
+    /* egal */
+  }
+})
+const formats = Object.entries(PAGE_FORMATS) as [PageFormat, { label: string }][]
+const pdfBusy = ref<PdfProgress | null>(null)
+const pdfFile = shallowRef<File | null>(null)
+const pdfError = ref('')
+const pdfDone = ref('')
+watch([o, po], () => {
+  pdfFile.value = null
+  pdfDone.value = ''
+})
+
+function accentColor(): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--nww-primary').trim()
+  return /^#[0-9a-f]{6}$/i.test(v) ? v : '#0d6efd'
+}
+
+function pdfInput(t: Trip): PdfInput {
+  const st = stats.value
+  const coverPhoto = t.cover ? null : pickCover(entries.value, photos.value)
+  const r2 = (r: Route) => ({ id: r.id, name: r.name, color: r.color, statsText: statsLine(r.stats), trackSvg: trackSvg(r.preview, { width: 600, height: 380, color: r.color, stroke: 3.5 }), profileSvg: profileSvg(r.points, { width: 600, height: 150, color: r.color }) })
+  return {
+    options: { ...po, layout: o.layout },
+    accent: accentColor(),
+    trip: { title: t.title, destination: t.destination, countryNames: (t.countries ?? []).map(countryName).join(', '), startDate: t.startDate, endDate: t.endDate, participants: t.participants ?? [] },
+    cover: t.cover ? { id: 'cover', width: 4000, height: 4000, focusY: t.coverY ?? 50 } : coverPhoto ? { id: coverPhoto.id, width: coverPhoto.width, height: coverPhoto.height, focusY: 50 } : null,
+    stats: o.stats && st
+      ? [
+          { value: String(st.days), label: 'Tage' },
+          ...(st.entries ? [{ value: String(st.entries), label: 'Tagebuch-Einträge' }] : []),
+          ...(st.photos ? [{ value: String(st.photos), label: 'Fotos' }] : []),
+          ...(st.routes ? [{ value: km(st.distance), label: `auf ${st.routes} ${st.routes === 1 ? 'Tour' : 'Touren'}` }] : []),
+          ...(st.ascent ? [{ value: `${st.ascent.toLocaleString('de-DE')} m`, label: 'bergauf' }] : [])
+        ]
+      : [],
+    overviewSvg: overview.value,
+    legend: o.routes ? routes.value.map((r) => ({ name: r.name, color: r.color })) : [],
+    stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, `${nights(s)} ${nights(s) === 1 ? 'Nacht' : 'Nächte'}`].filter(Boolean).join(' · ')) : [],
+    money: o.expenses && money.value
+      ? [
+          `${formatMoney(money.value.total, t.currency)} insgesamt · ${formatMoney(money.value.perDay, t.currency)} pro Tag`,
+          money.value.byCategory.map((c) => `${EXPENSE_CATEGORY[c.category].label}: ${formatMoney(c.amount, t.currency)}`).join(' · ')
+        ]
+      : [],
+    days: built.value.days.map((d) => ({
+      date: d.date,
+      dayNo: d.dayNo,
+      entries: d.entries.map((e) => ({
+        id: e.id, title: e.title, text: e.text, location: e.location,
+        moodLabel: MOODS.find((m) => m.value === e.mood)?.label ?? '',
+        photos: e.photos.map((p) => ({ id: p.id, caption: p.caption, width: p.width, height: p.height }))
+      })),
+      routes: d.routes.map(r2)
+    })),
+    otherRoutes: built.value.otherRoutes.map(r2)
+  }
+}
+
+async function makePdf() {
+  const t = trip.value
+  if (!t) return
+  pdfError.value = ''
+  pdfDone.value = ''
+  pdfFile.value = null
+  pdfBusy.value = { step: 'fotos', done: 0, total: 1 }
+  try {
+    const { createPdf } = await import('../pdf')
+    const byId = new Map(photos.value.map((p) => [p.id, p]))
+    const blob = await createPdf(pdfInput(t), (id) => (id === 'cover' ? t.cover : (byId.get(id)?.full ?? byId.get(id)?.thumb)), (p) => (pdfBusy.value = p))
+    pdfFile.value = new File([blob], `${fileSlug(t.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
+  } catch (e) {
+    pdfError.value = `PDF konnte nicht erstellt werden: ${(e as Error).message}`
+  } finally {
+    pdfBusy.value = null
+  }
+}
+
+async function sharePdf() {
+  if (!pdfFile.value) return
+  const r = await shareOrDownload(pdfFile.value)
+  pdfDone.value = r === 'heruntergeladen' ? 'Die PDF-Datei wurde heruntergeladen.' : r === 'geteilt' ? 'Geteilt.' : ''
+}
+
 const printing = ref(false)
 async function print() {
   printing.value = true
@@ -105,8 +206,8 @@ async function print() {
     <RouterLink :to="`/trip/${tripId}?bereich=danach`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ trip?.title ?? 'Zurück' }}</RouterLink>
     <h1 class="h3 mb-1 mt-1">Reisebericht</h1>
     <p class="small text-body-secondary mb-2">
-      Zum Drucken oder als PDF: „Drucken“ antippen. Auf dem iPad im Druckdialog oben auf <i class="bi bi-box-arrow-up" aria-hidden="true"></i> Teilen →
-      „In Dateien sichern“ – schon ist das PDF fertig (z. B. für die Familie oder als Vorlage fürs Fotobuch).
+      „PDF-Datei erstellen“ macht eine fertige Datei zum Verschicken oder Sichern. Das Fotobuch lässt sich in Druckqualität
+      bei vielen Fotobuch-Anbietern hochladen (Format passend wählen, ggf. mit Beschnitt). Die Vorschau unten zeigt den Inhalt.
     </p>
 
     <div class="card">
@@ -133,10 +234,52 @@ async function print() {
           <label class="form-check mb-0"><input v-model="o.stays" class="form-check-input" type="checkbox" /> Unterkünfte</label>
           <label class="form-check mb-0"><input v-model="o.expenses" class="form-check-input" type="checkbox" /> Ausgaben</label>
         </div>
+        <div v-if="o.layout === 'fotobuch'" class="col-12 row g-2 m-0 p-0 align-items-end">
+          <div class="col-6 col-md-4">
+            <label for="r-format" class="small fw-semibold mb-1 d-block">Seitenformat</label>
+            <select id="r-format" v-model="po.format" class="form-select form-select-sm">
+              <option v-for="[k, f] in formats" :key="k" :value="k">{{ f.label }}</option>
+            </select>
+          </div>
+          <div class="col-6 col-md-4">
+            <label for="r-per" class="small fw-semibold mb-1 d-block">Fotos je Seite</label>
+            <select id="r-per" v-model.number="po.perPage" class="form-select form-select-sm">
+              <option :value="1">1 (jedes Foto ganzseitig)</option>
+              <option :value="2">bis zu 2</option>
+              <option :value="3">bis zu 3</option>
+              <option :value="4">bis zu 4</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-4 small">
+            <label class="form-check mb-0"><input v-model="po.bleed" class="form-check-input" type="checkbox" /> 3 mm Beschnitt (für Druckereien)</label>
+          </div>
+        </div>
         <div class="col-12">
-          <button type="button" class="btn btn-primary" :disabled="loading || printing" @click="print">
+          <button type="button" class="btn btn-primary me-2" :disabled="loading || !!pdfBusy" data-make-pdf @click="makePdf">
+            <span v-if="pdfBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
+            <i v-else class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF-Datei erstellen
+          </button>
+          <select v-model="po.quality" class="form-select form-select-sm d-inline-block w-auto align-middle me-2" aria-label="Bildqualität">
+            <option value="teilen">kleine Datei (zum Teilen)</option>
+            <option value="druck">Druckqualität (300 dpi)</option>
+          </select>
+          <div v-if="pdfBusy" class="small text-body-secondary mt-2" data-pdf-progress>
+            {{ pdfBusy.step === 'fotos' ? `Fotos vorbereiten … ${pdfBusy.done} / ${pdfBusy.total}` : 'PDF wird zusammengesetzt …' }}
+            <div class="progress mt-1" style="height: 6px" role="progressbar" aria-label="Fortschritt">
+              <div class="progress-bar" :style="{ width: `${pdfBusy.step === 'fotos' ? (pdfBusy.done / Math.max(1, pdfBusy.total)) * 90 : 95}%` }"></div>
+            </div>
+          </div>
+          <div v-if="pdfFile" class="alert alert-success py-2 mt-2 mb-0 d-flex flex-wrap align-items-center gap-2" data-pdf-ready>
+            <span><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ pdfFile.name }} ({{ formatBytes(pdfFile.size) }})</span>
+            <button type="button" class="btn btn-sm btn-success" @click="sharePdf"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>Teilen / Sichern</button>
+            <span v-if="pdfDone" class="small">{{ pdfDone }}</span>
+          </div>
+          <div v-if="pdfError" class="alert alert-danger py-2 mt-2 mb-0">{{ pdfError }}</div>
+        </div>
+        <div class="col-12">
+          <button type="button" class="btn btn-outline-primary" :disabled="loading || printing" @click="print">
             <span v-if="printing" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-            <i v-else class="bi bi-printer me-1" aria-hidden="true"></i>Drucken / als PDF sichern
+            <i v-else class="bi bi-printer me-1" aria-hidden="true"></i>Drucken
           </button>
           <span class="small text-body-secondary ms-2">{{ built.days.length }} Tage · {{ photos.length }} Fotos</span>
         </div>

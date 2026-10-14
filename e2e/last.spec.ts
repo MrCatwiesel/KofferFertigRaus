@@ -291,9 +291,26 @@ test('Lasttest: viele Reisen, Fotos und Routen', async ({ baseURL }) => {
   }
   console.log(JSON.stringify({ sicherung: backup }))
 
+  // Fotobuch der großen Reise (150 Fotos) in Druckqualität als PDF-Datei
+  const pdf: Record<string, unknown> = {}
+  await page.goto('/leer.html')
+  await page.goto('/#/trip/L00/bericht')
+  await page.locator('article.report .r-title').waitFor()
+  await page.getByRole('button', { name: 'Fotobuch', exact: true }).click()
+  await page.locator('#r-format').selectOption('a4-quer')
+  await page.getByLabel('Bildqualität').selectOption('druck')
+  t1 = Date.now()
+  await page.locator('[data-make-pdf]').click()
+  const ready = page.locator('[data-pdf-ready], .alert-danger')
+  await ready.first().waitFor({ timeout: 20 * 60_000 })
+  pdf.ms = Date.now() - t1
+  pdf.meldung = (await ready.first().textContent())?.trim()
+  pdf.heapMB = await page.evaluate(() => Math.round(((performance as unknown as { memory?: { usedJSHeapSize: number } }).memory?.usedJSHeapSize ?? 0) / 1e6))
+  console.log(JSON.stringify({ fotobuch: pdf }))
+
   console.table(results)
   page.off('console', logConsole)
-  writeFileSync('test-results/last.json', JSON.stringify({ cpu, counts, results, hintergrund: bg, sicherung: backup }, null, 2))
+  writeFileSync('test-results/last.json', JSON.stringify({ cpu, counts, results, hintergrund: bg, sicherung: backup, fotobuch: pdf }, null, 2))
   } finally {
     await context.close()
     rmSync(profile, { recursive: true, force: true })

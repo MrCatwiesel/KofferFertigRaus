@@ -9,9 +9,9 @@ export const reportModule: AppModule = {
   routes: [{ path: '/trip/:tripId/bericht', name: 'report', component: () => import('./views/ReportView.vue'), props: true }],
   tripSection: {
     phases: ['danach', 'teilen'],
-    title: 'Reisebericht (PDF)',
+    title: 'Reisebericht & Fotobuch (PDF)',
     icon: 'file-earmark-richtext',
     to: (tripId) => `/trip/${tripId}/bericht`,
-    summary: async () => 'Tagebuch, Fotos und Touren zum Drucken, als PDF oder Fotobuch'
+    summary: async () => 'Tagebuch, Fotos und Touren als PDF-Datei zum Teilen oder als Fotobuch'
   }
 }

@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.27.0 – 2026-10-14
+
+### Neu: Reisebericht und Fotobuch als PDF-Datei (Reise → Danach/Teilen → „Reisebericht & Fotobuch“)
+- **„PDF-Datei erstellen“** macht eine fertige Datei – ohne Umweg über den Druckdialog. Danach „Teilen / Sichern“: auf dem iPad AirDrop, Nachrichten, Mail oder „In Dateien sichern“, am Rechner Download
+- **Bericht:** A4 hoch – Titelseite mit Foto, Überblick (Zahlen, Übersichtskarte der Touren, Unterkünfte, Ausgaben), Tage mit Text, Fotos und Touren samt Höhenprofil, Seitenzahlen
+- **Fotobuch:** große Fotos, jeder Eintrag auf neuer Seite; das erste Foto groß, danach Seiten mit 2–4 Fotos (passend zugeschnitten), Bildunterschriften im Foto, Titelbild randlos
+  - Seitenformat **A4 hoch, A4 quer, Quadrat 21 cm oder 30 cm**; Fotos je Seite (1–4); auf Wunsch **3 mm Beschnitt** für Druckereien
+  - **Druckqualität (300 dpi)** zum Hochladen bei einem Fotobuch-Anbieter oder **kleine Datei** zum Verschicken
+- Getestet mit 150 Fotos in Druckqualität: knapp 2 Minuten auf einem gebremsten Rechner, alles auf dem Gerät, ohne Internet
+- „Drucken“ gibt es weiterhin
+- Dateinamen ohne Umlaute (Chrome hat Namen mit „ß“ sonst verworfen und die Datei „download“ genannt) – betrifft auch „Reise teilen“
+
 ## 1.26.0 – 2026-10-14
 
 ### Schnell auch mit vielen Daten (Lasttest)

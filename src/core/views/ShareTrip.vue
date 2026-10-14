@@ -5,6 +5,7 @@ import { db } from '../db'
 import { exportTrip, importBackup } from '../backup'
 import { describeStats } from '../merge'
 import { formatBytes } from '../storage'
+import { fileSlug } from '@/services/share-file'
 
 /** Eine Reise als Datei teilen und die Datei der Mitreisenden wieder einlesen (ohne Server). */
 const props = defineProps<{ tripId: string }>()
@@ -24,8 +25,7 @@ onMounted(async () => {
 })
 
 const fileName = computed(() => {
-  const slug = title.value.toLowerCase().replace(/[^a-z0-9äöüß]+/g, '-').replace(/^-|-$/g, '') || 'reise'
-  return `nix-wie-weg-${slug}-${new Date().toISOString().slice(0, 10)}.json`
+  return `nix-wie-weg-${fileSlug(title.value)}-${new Date().toISOString().slice(0, 10)}.json`
 })
 
 async function create() {

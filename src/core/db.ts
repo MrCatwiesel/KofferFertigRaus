@@ -19,6 +19,7 @@ import type { Route } from '@/modules/routes/types'
 import type { OfflineMap } from '@/modules/map/offline'
 import type { CountryInfo } from '@/modules/reiseinfo/types'
 import type { UnwetterStand } from '@/modules/unwetter/types'
+import type { Poll, PollVote } from '@/modules/abstimmung/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -41,6 +42,8 @@ export class NixDb extends Dexie {
   emergencyContacts!: Table<EmergencyContact, string>
   weather!: Table<WeatherCache, string>
   unwetter!: Table<UnwetterStand, string>
+  polls!: Table<Poll, string>
+  pollVotes!: Table<PollVote, string>
   journalEntries!: Table<JournalEntry, string>
   photos!: Table<Photo, string>
   voiceNotes!: Table<VoiceNote, string>
@@ -176,7 +179,13 @@ export class NixDb extends Dexie {
       unwetter: 'tripId'
     })
 
-    // Nächste Änderung: this.version(21).stores({ … })
+    // v21: Abstimmungen und Stimmen (abgeglichen, eine Stimme je Person und Abstimmung)
+    this.version(21).stores({
+      polls: 'id, tripId',
+      pollVotes: 'id, tripId, pollId'
+    })
+
+    // Nächste Änderung: this.version(22).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

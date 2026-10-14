@@ -23,5 +23,7 @@ export const DATA_TABLES = [
   'countryInfos',
   'appearance',
   'photos',
-  'voiceNotes'
+  'voiceNotes',
+  'polls',
+  'pollVotes'
 ] as const

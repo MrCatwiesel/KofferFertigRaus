@@ -42,7 +42,9 @@ export const CHANGE_LABELS = {
   travelLegs: ['ein', 'Reiseabschnitt', 'Reiseabschnitte'],
   expenses: ['eine', 'Ausgabe', 'Ausgaben'],
   places: ['ein', 'Ort', 'Orte'],
-  documents: ['ein', 'Dokument', 'Dokumente']
+  documents: ['ein', 'Dokument', 'Dokumente'],
+  polls: ['eine', 'Abstimmung', 'Abstimmungen'],
+  pollVotes: ['eine', 'Stimme', 'Stimmen']
 }
 
 /** unwetter: Warnstufe Orange und Rot an den Reiseorten (unwetter.mjs), unwetterGelb: auch Gelb */

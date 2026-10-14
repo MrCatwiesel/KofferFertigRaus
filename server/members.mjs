@@ -7,6 +7,7 @@
  *  - Private Einträge: Packliste, Medikamente, Impfungen und Dokumente einer Person, deren Teilnehmer-Name an der Reise
  *    mit ihrem Konto verknüpft ist (`trip.memberLinks[name] = memberId`). Sichtbar nur für sie selbst und für die
  *    Personen in `sharedWith` (`'*'` = alle). Nicht verknüpfte Teilnehmer und „für alle“ bleiben für die Gruppe sichtbar.
+ *  - Abstimmungen: Eine Stimme (`pollVotes`) mit `memberId` gehört dieser Person – nur sie ändert sie, auch mit „Nur lesen“.
  *  - Geräte ohne Person (Gruppenschlüssel, ältere Geräte) haben – wie bisher – vollen Zugriff.
  *
  * Der Server setzt die Rechte beim Abgleich durch: Unsichtbares geht als Löschung ans Gerät, unerlaubte Änderungen
@@ -178,6 +179,19 @@ export function createMembers(store) {
     /** Warum eine Änderung nicht erlaubt ist – oder null. `oldData` = Fassung auf dem Server, `newData` null = Löschen. */
     function denyWrite(tbl, id, oldData, newData) {
       if (full) return null
+      // Stimmen bei Abstimmungen: nur die eigene (Feld memberId) – das darf auch, wer die Reise nur lesen kann.
+      // Fremde Stimmen löschen (Abstimmung gelöscht oder zurückgesetzt) geht wie jede Änderung mit Bearbeiten-Recht.
+      if (tbl === 'pollVotes') {
+        const t = tripOf(tbl, id, newData ?? oldData)
+        if (t && role(t) === 'kein') return 'nur-lesen'
+        if (!newData) {
+          if (oldData?.memberId === member.id) return null
+        } else {
+          if (newData.memberId != null && newData.memberId !== member.id) return 'fremde-stimme'
+          if (oldData && oldData.memberId != null && oldData.memberId !== member.id) return 'fremde-stimme'
+          if (newData.memberId === member.id) return null
+        }
+      }
       const affected = new Set([oldData && tripOf(tbl, id, oldData), newData && tripOf(tbl, id, newData), tbl === 'trips' ? id : null].filter(Boolean))
       if (affected.size) {
         for (const t of affected) if (role(t) !== 'bearbeiten') return 'nur-lesen'

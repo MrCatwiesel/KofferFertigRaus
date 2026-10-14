@@ -32,7 +32,7 @@ const MAX_BLOB_BYTES = 30 * 1024 * 1024
 function warn(text: string) {
   if (!syncState.warnings.includes(text)) syncState.warnings = [...syncState.warnings, text].slice(-20)
 }
-const label = (tbl: string, row: Record<string, unknown> | undefined) => String(row?.name ?? row?.title ?? row?.filename ?? row?.caption ?? '') || tbl
+const label = (tbl: string, row: Record<string, unknown> | undefined) => String(row?.name ?? row?.title ?? row?.question ?? row?.filename ?? row?.caption ?? '') || tbl
 
 const META = {
   server: 'sync.server',
@@ -226,6 +226,7 @@ async function applyRejected(api: SyncApi, rejected: RejectedChange[]): Promise<
     const data = r.current.deleted || !r.current.data ? null : await decodeFromServer(api, r.tbl, r.current.data, local)
     if (data && r.reason === 'nur-lesen') warn(`„${label(r.tbl, data)}“: nur Leserecht – Änderung zurückgenommen.`)
     else if (data && r.reason === 'privat') warn(`„${label(r.tbl, data)}“ gehört einer anderen Person – Änderung zurückgenommen.`)
+    else if (data && r.reason === 'fremde-stimme') warn('Diese Stimme gehört einer anderen Person – Änderung zurückgenommen.')
     else if (data && r.reason === 'verknuepfung') warn('Die Verknüpfung eines Teilnehmers kann nur die Person selbst lösen – zurückgenommen.')
     else if (!data && local && r.reason === 'nur-lesen' && r.current.stamp === '') warn(`„${label(r.tbl, local)}“: nur Leserecht – nicht gespeichert.`)
     plan.push({ r, data })

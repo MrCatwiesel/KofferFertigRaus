@@ -4,7 +4,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 
 **Stand 1.5.0 – alle Meilensteine umgesetzt:**
 
-- **Planen:** Reiseprojekt mit Teilnehmern, An- und Rückreise, Unterkünfte, Unternehmungen, Budget
+- **Planen:** Reiseprojekt mit Teilnehmern, An- und Rückreise, Unterkünfte, Unternehmungen, Budget, gemeinsame Abstimmungen
 - **Vorbereiten:** Packliste (Vorlagen, pro Person), Reiseapotheke, Dokumente & Notfallnummern
 - **Unterwegs:** Tagesplaner mit Wetter, Unwetterwarnungen und Öffnungszeiten, Karte, Ausgaben mit Ausgleich, Routen & Touren (GPX, Garmin FIT, KML) mit Höhenprofil
 - **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei, Anbindung an die eigene **Piwigo**-Galerie
@@ -76,6 +76,7 @@ src/
     routes/        Modul "Routen & Touren" (parse/ = GPX, FIT, TCX, KML/KMZ, GeoJSON)
     website/       Modul "Reise-Webseite" (templates/ = Design-Vorlagen, render.ts = HTML-Datei)
     activity/      Modul "Unternehmungen"
+    abstimmung/    Modul "Abstimmungen" (eine Stimme je Person als eigener Datensatz)
     piwigo/        Modul "Piwigo" (Fotos hochladen und auswählen, über den Abgleich-Server)
     share/         Modul "Lese-Links" (Reisen für Freunde freigeben)
     unwetter/      Modul "Unwetterwarnungen" (MeteoAlarm über den eigenen Server, auch als Push)

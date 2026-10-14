@@ -2,6 +2,7 @@ import { registerModule } from '@/core/registry'
 import { tripModule } from './trip'
 import { accommodationModule } from './accommodation'
 import { activityModule } from './activity'
+import { abstimmungModule } from './abstimmung'
 import { travelModule } from './travel'
 import { packingModule } from './packing'
 import { medsModule } from './meds'
@@ -32,6 +33,7 @@ export function registerAllModules(): void {
   registerModule(accommodationModule)
   registerModule(bookingModule)
   registerModule(activityModule)
+  registerModule(abstimmungModule)
   registerModule(packingModule)
   registerModule(medsModule)
   registerModule(reiseinfoModule)

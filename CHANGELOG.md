@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.34.0 – 2026-10-14 (Server 1.19.0)
+
+### Neu: Abstimmungen
+- **Gemeinsam entscheiden** (*Reise → Abstimmungen*): Frage stellen, Antworten eine pro Zeile – z. B. „Was machen wir am Samstag?“. Jede Person stimmt auf ihrem eigenen Gerät ab, das Ergebnis sehen alle nach dem Abgleich
+- **Unternehmungen zur Wahl stellen:** Ideen aus den Unternehmungen als Antworten übernehmen; nach dem Beenden plant „einplanen“ den Gewinner ein
+- Eine oder mehrere Antworten, Frist („Abstimmen bis“), Hinweis; Antworten lassen sich nachträglich ergänzen
+- Ergebnis mit Balken, Namen und Pokal für die Antwort(en) vorne; „fehlt noch: …“ zeigt, wer noch nicht abgestimmt hat
+- **Wer stimmt ab?** Mit Personen & Rechte automatisch die eigene Person (auch mit „Nur lesen“ – die Stimme gehört nur dir, niemand sonst kann sie ändern). Ohne Personen wählt man auf dem Gerät „Ich stimme ab als …“ – so kann z. B. ein Elternteil auch für die Kinder abstimmen
+- Die Reiseseite zeigt offene Abstimmungen und ob deine Stimme noch fehlt; mit „Neues von den Mitreisenden“ kommt eine Benachrichtigung bei neuen Abstimmungen und Stimmen
+- Braucht für die Rechte-Prüfung den Server ab Version 1.19 (ältere Server gleichen Abstimmungen auch ab, prüfen aber die Stimmen nicht)
+
 ## 1.33.0 – 2026-10-14 (Server 1.18.0)
 
 ### Neu: Unwetterwarnungen

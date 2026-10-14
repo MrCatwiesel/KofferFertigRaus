@@ -126,6 +126,8 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 - Geräte **ohne Person** (Gruppenschlüssel, ältere Geräte) haben wie bisher vollen Zugriff. Der Verwalter kann sie unter
   *Geräte ohne Person* einer Person zuordnen. Den Gruppenschlüssel daher gut aufbewahren und nicht weitergeben.
 - Personen sperren oder entfernen meldet alle ihre Geräte ab.
+- **Abstimmungen** (ab 1.19): Die eigene Stimme darf jede Person abgeben und ändern – auch mit „Nur lesen“. Fremde Stimmen
+  ändern geht nicht; löschen (Abstimmung zurücksetzen) nur mit Bearbeiten-Recht.
 
 ## Push-Benachrichtigungen (ab Server 1.17)
 

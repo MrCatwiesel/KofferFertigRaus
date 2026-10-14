@@ -81,6 +81,11 @@ Der Generator (`modules/website`) erzeugt **eine einzige HTML-Datei**: Bootstrap
 - **Push:** Die App lädt die Orte der laufenden/kommenden Reisen hoch (`PUT /api/unwetter/beobachten`, je Person, wie der Zeitplan der Erinnerungen); der Server prüft alle 10 min und merkt sich Gesendetes in `unwetter_sent` (Art + Stufe + Tag + Regionen → Aktualisierungen derselben Warnung kommen nicht doppelt). Einstellungen `unwetter`/`unwetterGelb` am Push-Abo.
 - **App** (`modules/unwetter`): Orte aus Unterkünften mit Kartenpunkt, Wetter-Ort des Tagesplans, sonst das per Ortssuche gefundene Reiseziel (`reiseOrte` in `logic.ts`). Warnungen nur als Zwischenspeicher auf dem Gerät (Tabelle `unwetter`, nicht abgeglichen). Hinweis im Tagesplan über `UnwetterHinweis` aus `unwetter/public.ts`.
 
+## Abstimmungen
+
+- `modules/abstimmung`: `polls` (Frage, Antworten, Frist) und `pollVotes` – **eine Stimme je Person und Abstimmung als eigener Datensatz** (`${pollId}:${Name}`), damit gleichzeitiges Abstimmen auf mehreren Geräten nichts überschreibt (neuere Änderung gewinnt je Datensatz).
+- Stimme mit `memberId` gehört dieser Person: Der Server (`members.mjs`, `denyWrite`) lässt sie nur von ihr ändern – auch mit „Nur lesen“ –, Fremdes wird mit `fremde-stimme` abgelehnt. Löschen fremder Stimmen (Abstimmung gelöscht, „Neu abstimmen“) braucht Bearbeiten-Recht.
+
 ## Abgleich per Datei (ohne Server)
 
 Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugehörigen Datensätzen (alle Tabellen mit `tripId`) in eine JSON-Datei. `importBackup()` führt zusammen: neue Datensätze werden ergänzt, vorhandene nur ersetzt, wenn `updatedAt` neuer ist (Logik in `core/merge.ts`). Löschungen werden nicht übertragen. Daher: **jeder Datensatz braucht `updatedAt`** (bzw. `createdAt`), und jede Änderung muss es setzen.
@@ -106,5 +111,6 @@ Ohne Server: `exportTrip()` (core/backup.ts) schreibt eine Reise mit allen zugeh
 | 2026-10-11 | Piwigo über den Abgleich-Server statt direkt aus der App | Safari blockiert Cookies fremder Seiten; Schlüssel bleibt auf dem Server; Piwigo muss nicht öffentlich sein |
 | 2026-10-11 | Tagebuch behält verkleinerte Kopie (2048 px), Original nach Piwigo | offline nutzbar, volle Qualität in der Galerie; Wunsch des Nutzers |
 | 2026-10-14 | Push-Benachrichtigungen über den eigenen Server (Web Push, VAPID ohne Pakete), Zeitplan von der App | Erinnerungen auch bei geschlossener App; Termine entstehen in den Modulen, der Server bleibt dumm; keine Fremddienste außer dem Push-Dienst des Geräts |
+| 2026-10-14 | Stimmen als eigene Datensätze je Person statt Liste in der Abstimmung | kein Überschreiben bei gleichzeitigem Abstimmen; Server kann „nur die eigene Stimme“ prüfen |
 | 2026-10-14 | Unwetterwarnungen über MeteoAlarm und den eigenen Server, Regionen-Umrisse mitgeliefert | amtliche Warnungen für ganz Europa aus einer Quelle; Zuordnung per Koordinaten statt Namen; Push ohne offene App |
 | 2026-10-03 | Teilnehmer als Namensliste an der Reise (`participants`), Module speichern den Namen im Feld `person` | einfach, offline, ohne eigene Personen-Tabelle; `PersonSelect` aus `trip/public` für alle Formulare |

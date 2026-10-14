@@ -3,7 +3,7 @@ import { computed, markRaw, nextTick, onMounted, onUnmounted, ref, watch } from 
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useLiveQuery, useOnline } from '@/core/composables'
-import { getMapOverlays, type MapOverlay } from '@/core/registry'
+import { getMapOverlays, getMapPhotos, placePhoto, type MapOverlay, type MapPhoto } from '@/core/registry'
 import { useRouter } from 'vue-router'
 import { formatDayShort } from '@/core/format'
 import { distanceKm, formatDistance, searchAddress, type GeoResult } from '@/services/geocoding'
@@ -14,6 +14,7 @@ import { ACCOMMODATION_TYPE_LABELS, accommodationRepository, type Accommodation 
 import { SETTING, activityRepository, type Activity } from '@/modules/activity/public'
 import { placeRepository } from '../repository'
 import { boundsOf, buildQuery, navLinks, nearestOnRoute, splitByLocation, type Located, type MapItem } from '../logic'
+import { groupByPixels } from '../photo-groups'
 import { KIND_STYLE, type MapPlace } from '../types'
 import { offlineMapRepository, type Bbox, type OfflineMap } from '../offline'
 import OfflineMapsCard from './OfflineMapsCard.vue'
@@ -27,6 +28,22 @@ const acts = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] 
 const places = useLiveQuery(() => placeRepository.listByTrip(props.tripId), [] as MapPlace[])
 // Linien anderer Module (z. B. Routen)
 const overlays = useLiveQuery(() => getMapOverlays(props.tripId), [] as MapOverlay[], { shallow: true })
+// Fotos mit Aufnahmeort (Tagebuch)
+const mapPhotos = useLiveQuery(() => getMapPhotos(props.tripId), [] as MapPhoto[], { shallow: true })
+const PHOTOS_KEY = 'nww-karte-fotos'
+const showPhotos = ref(true)
+try {
+  showPhotos.value = localStorage.getItem(PHOTOS_KEY) !== 'aus'
+} catch {
+  /* Standard */
+}
+watch(showPhotos, (v) => {
+  try {
+    localStorage.setItem(PHOTOS_KEY, v ? 'an' : 'aus')
+  } catch {
+    /* egal */
+  }
+})
 const router = useRouter()
 
 const dayFilter = ref('')
@@ -61,12 +78,28 @@ const visible = computed(() =>
   split.value.located.filter((l) => !dayFilter.value || l.kind === 'accommodation' || l.date === dayFilter.value)
 )
 const visibleOverlays = computed(() => overlays.value.filter((o) => !dayFilter.value || o.date === dayFilter.value))
-const plannedDays = computed(() => [...new Set([...acts.value.map((a) => a.plannedDate), ...overlays.value.map((o) => o.date)].filter(Boolean))].sort())
+type PlacedPhoto = MapPhoto & { lat: number; lon: number }
+const placedPhotos = computed(() => mapPhotos.value.filter((p): p is PlacedPhoto => p.lat !== null && p.lon !== null))
+const unplacedPhotos = computed(() => mapPhotos.value.filter((p) => p.lat === null))
+const visiblePhotos = computed(() => (showPhotos.value ? placedPhotos.value.filter((p) => !dayFilter.value || p.date === dayFilter.value) : []))
+const plannedDays = computed(() =>
+  [...new Set([...acts.value.map((a) => a.plannedDate), ...overlays.value.map((o) => o.date), ...mapPhotos.value.map((p) => p.date)].filter(Boolean))].sort()
+)
 
 // ---- Karte ----
 const mapEl = ref<HTMLElement>()
 let map: L.Map | null = null
 let layer: L.LayerGroup | null = null
+let photoLayer: L.LayerGroup | null = null
+const thumbUrls = new Map<string, string>()
+function thumbUrl(p: MapPhoto): string {
+  let u = thumbUrls.get(p.id)
+  if (!u) {
+    u = URL.createObjectURL(p.thumb)
+    thumbUrls.set(p.id, u)
+  }
+  return u
+}
 let meMarker: L.CircleMarker | null = null
 let osm: L.TileLayer | null = null
 let offlineLayers: L.Layer[] = []
@@ -104,6 +137,7 @@ function draw() {
     hit.on('click', (e: L.LeafletMouseEvent) => {
       L.DomEvent.stop(e)
       const [lat, lon] = nearestOnRoute(o.points, e.latlng.lat, e.latlng.lng)
+      if (photoTarget.value) return void choosePhotoPlace(lat, lon)
       if (target.value && pickOnMap.value) return void choose(lat, lon, `auf Route „${o.name}“`)
       L.popup().setLatLng([lat, lon]).setContent(routePopup(o, lat, lon)).openOn(map!)
     })
@@ -114,6 +148,56 @@ function draw() {
       .addTo(layer)
   }
   if (!fitted) fitAll()
+}
+
+/** Fotos als runde Vorschaubilder; was übereinander läge, wird zu einer Gruppe mit Zahl */
+function drawPhotos() {
+  if (!map || !photoLayer) return
+  photoLayer.clearLayers()
+  const m = map
+  const groups = groupByPixels(visiblePhotos.value, (lat, lon) => m.latLngToLayerPoint([lat, lon]), 44)
+  for (const g of groups) {
+    const sorted = [...g].sort((a, b) => a.takenAt.localeCompare(b.takenAt))
+    const lat = sorted.reduce((s, p) => s + p.lat, 0) / sorted.length
+    const lon = sorted.reduce((s, p) => s + p.lon, 0) / sorted.length
+    const icon = L.divIcon({
+      className: 'nww-photo',
+      html: `<img src="${thumbUrl(sorted[0])}" alt="">${sorted.length > 1 ? `<b>${sorted.length}</b>` : ''}`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22],
+      popupAnchor: [0, -20]
+    })
+    L.marker([lat, lon], { icon, title: sorted.length > 1 ? `${sorted.length} Fotos` : sorted[0].caption || 'Foto', zIndexOffset: 500 })
+      .bindPopup(() => photoPopup(sorted), { maxWidth: 300, minWidth: 200 })
+      .addTo(photoLayer)
+  }
+}
+
+function photoPopup(list: PlacedPhoto[]): HTMLElement {
+  const box = document.createElement('div')
+  box.className = 'nww-photo-popup'
+  const time = (p: MapPhoto) => new Date(p.takenAt).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  const shown = list.slice(0, 12)
+  box.innerHTML =
+    `<div class="grid">${shown
+      .map((p, i) => `<a href="#" data-i="${i}" title="${escapeHtml(p.caption || time(p))}"><img src="${thumbUrl(p)}" alt="${escapeHtml(p.caption)}"></a>`)
+      .join('')}</div>` +
+    (list.length > shown.length ? `<small>… und ${list.length - shown.length} weitere</small><br>` : '') +
+    `<small>${escapeHtml(list.length === 1 ? list[0].caption || time(list[0]) : `${list.length} Fotos · ${time(list[0])} – ${time(list[list.length - 1])}`)}</small>` +
+    (list.some((p) => p.source === 'tour') ? `<br><small class="text-body-secondary"><i class="bi bi-signpost-2"></i> Ort aus der Tour zur Aufnahmezeit geschätzt</small>` : '') +
+    (list.length === 1
+      ? `<br><small><a href="#" data-act="move">Ort ändern</a>${list[0].source === 'karte' ? ' · <a href="#" data-act="clear">Ort entfernen</a>' : ''}</small>`
+      : '')
+  box.addEventListener('click', (ev) => {
+    const a = (ev.target as HTMLElement).closest('a')
+    if (!a) return
+    ev.preventDefault()
+    map?.closePopup()
+    if (a.dataset.act === 'move') return startPlacePhoto(list[0])
+    if (a.dataset.act === 'clear') return void placePhoto(list[0].id, null)
+    if (a.dataset.i) router.push(shown[Number(a.dataset.i)].to)
+  })
+  return box
 }
 
 function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
@@ -134,7 +218,11 @@ function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
 
 function fitAll() {
   if (!map) return
-  const pts = [...visible.value.map((l) => l.place), ...visibleOverlays.value.flatMap((o) => o.points.map(([lat, lon]) => ({ lat, lon })))]
+  const pts = [
+    ...visible.value.map((l) => l.place),
+    ...visibleOverlays.value.flatMap((o) => o.points.map(([lat, lon]) => ({ lat, lon }))),
+    ...visiblePhotos.value.map((p) => ({ lat: p.lat, lon: p.lon }))
+  ]
   const b = boundsOf(pts)
   if (b) {
     map.fitBounds(b, { padding: [40, 40], maxZoom: 15 })
@@ -154,14 +242,18 @@ onMounted(async () => {
     })
   )
   layer = markRaw(L.layerGroup().addTo(map))
+  photoLayer = markRaw(L.layerGroup().addTo(map))
+  map.on('zoomend', drawPhotos)
   map.on('click', (e: L.LeafletMouseEvent) => onMapClick(e.latlng.lat, e.latlng.lng))
   map.on('moveend', updateViewBbox)
   draw()
+  drawPhotos()
   updateViewBbox()
   void applyBase()
 })
 
 onUnmounted(() => {
+  thumbUrls.forEach((u) => URL.revokeObjectURL(u))
   map?.remove()
   map = null
 })
@@ -170,6 +262,10 @@ watch([visible, me, visibleOverlays], draw, { deep: true })
 watch(dayFilter, () => {
   fitted = false
   draw()
+})
+watch(visiblePhotos, () => {
+  drawPhotos()
+  if (!fitted) fitAll()
 })
 
 // ---- Kartengrundlage: online (OpenStreetMap) oder gespeicherte Offline-Karte ----
@@ -274,7 +370,23 @@ async function choose(lat: number, lon: number, label: string) {
 }
 
 function onMapClick(lat: number, lon: number) {
+  if (photoTarget.value) return void choosePhotoPlace(lat, lon)
   if (target.value && pickOnMap.value) choose(lat, lon, 'auf der Karte gesetzt')
+}
+
+// ---- Foto von Hand verorten ----
+const photoTarget = ref<MapPhoto | null>(null)
+function startPlacePhoto(p: MapPhoto) {
+  target.value = null
+  pickOnMap.value = false
+  photoTarget.value = p
+  showPhotos.value = true
+  mapEl.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+async function choosePhotoPlace(lat: number, lon: number) {
+  const p = photoTarget.value
+  photoTarget.value = null
+  if (p) await placePhoto(p.id, { lat, lon })
 }
 
 function fromRoute(o: MapOverlay, end: boolean) {
@@ -362,6 +474,9 @@ const nearest = computed(() => {
       <span class="legend" :style="{ background: KIND_STYLE.accommodation.color }"></span> Unterkunft
       <span class="legend ms-2" :style="{ background: KIND_STYLE.activity.color }"></span> Unternehmung
     </span>
+    <button v-if="mapPhotos.length" type="button" class="btn btn-sm" :class="showPhotos ? 'btn-primary' : 'btn-outline-primary'" :aria-pressed="showPhotos" data-photos-toggle @click="showPhotos = !showPhotos">
+      <i class="bi bi-images me-1" aria-hidden="true"></i>Fotos ({{ mapPhotos.length }})
+    </button>
   </div>
 
   <div v-if="target && pickOnMap" class="alert alert-info py-2 small mb-2">
@@ -369,8 +484,14 @@ const nearest = computed(() => {
     <button type="button" class="btn btn-link btn-sm p-0 ms-2" @click="pickOnMap = false">Abbrechen</button>
   </div>
 
+  <div v-if="photoTarget" class="alert alert-info py-2 small mb-2 d-flex align-items-center gap-2" data-photo-target>
+    <img :src="thumbUrl(photoTarget)" alt="" class="photo-mini" />
+    <span class="flex-grow-1">Tippe auf die Karte, wo das Foto entstanden ist – oder auf eine Route.</span>
+    <button type="button" class="btn btn-link btn-sm p-0" @click="photoTarget = null">Abbrechen</button>
+  </div>
+
   <!-- Dynamische Klasse am Rahmen: Vue würde sonst die Klassen überschreiben, die Leaflet am Kartenelement setzt -->
-  <div class="map-frame mb-3" :class="{ picking: pickOnMap }"><div ref="mapEl" class="map"></div></div>
+  <div class="map-frame mb-3" :class="{ picking: pickOnMap || !!photoTarget }"><div ref="mapEl" class="map"></div></div>
   <p v-if="baseError" class="small text-danger">{{ baseError }}</p>
   <p v-else-if="!online && !offlineMaps.length" class="small text-body-secondary">
     Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast. Tipp: unten „Offline-Karten“ – dann ist die ganze Gegend gespeichert.
@@ -422,6 +543,28 @@ const nearest = computed(() => {
         <button type="button" class="btn btn-sm btn-outline-secondary" @click="target = null">Abbrechen</button>
       </div>
       <p class="small text-body-secondary mt-2 mb-0">Adresssuche: Nominatim / © OpenStreetMap-Mitwirkende</p>
+    </div>
+  </section>
+
+  <!-- Fotos ohne Ort -->
+  <section v-if="unplacedPhotos.length" class="mb-3" data-unplaced-photos>
+    <h2 class="h6 text-body-secondary">Fotos ohne Ort ({{ unplacedPhotos.length }})</h2>
+    <p class="small text-body-secondary mb-2">
+      Diese Fotos haben keine GPS-Angaben, und keine aufgezeichnete Tour passt zur Aufnahmezeit. Antippen und auf der Karte setzen.
+    </p>
+    <div class="d-flex flex-wrap gap-2">
+      <button
+        v-for="p in unplacedPhotos.slice(0, 60)"
+        :key="p.id"
+        type="button"
+        class="btn p-0 border-0 photo-pick"
+        :class="{ active: photoTarget?.id === p.id }"
+        :title="p.caption || formatDayShort(p.date)"
+        :aria-label="`Foto ${p.caption || formatDayShort(p.date)} auf der Karte setzen`"
+        @click="startPlacePhoto(p)"
+      >
+        <img :src="thumbUrl(p)" alt="" />
+      </button>
     </div>
   </section>
 
@@ -515,6 +658,63 @@ const nearest = computed(() => {
   transform: rotate(-45deg);
   border: 2px solid #fff;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.photo-mini {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 50%;
+  flex: none;
+}
+.photo-pick img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--bs-border-radius);
+  display: block;
+}
+.photo-pick.active img {
+  outline: 3px solid var(--bs-primary);
+  outline-offset: 2px;
+}
+:deep(.nww-photo) {
+  position: relative;
+}
+:deep(.nww-photo) img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.45);
+  background: #ddd;
+}
+:deep(.nww-photo) b {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  min-width: 22px;
+  padding: 0 5px;
+  border-radius: 11px;
+  background: var(--bs-primary);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 20px;
+  text-align: center;
+  border: 2px solid #fff;
+}
+:deep(.nww-photo-popup .grid) {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+}
+:deep(.nww-photo-popup img) {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
 }
 :deep(.nww-pin) i {
   transform: rotate(45deg);

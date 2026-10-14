@@ -1,4 +1,5 @@
 import { addDays, diffDays, todayIso } from '../../core/dates'
+import type { MapPhoto } from '../../core/registry'
 import { MOODS, type JournalEntry, type JournalEntryDraft, type Photo } from './types'
 
 export function emptyEntryDraft(date = ''): JournalEntryDraft {
@@ -99,4 +100,75 @@ export function moveItem<T>(list: T[], index: number, delta: -1 | 1): T[] {
 /** Aufnahmezeit aus der Datei, soweit bekannt (Änderungsdatum), sonst jetzt. */
 export function takenAtFromFile(file: { lastModified?: number }, now: Date = new Date()): string {
   return new Date(file.lastModified && file.lastModified > 0 ? file.lastModified : now.getTime()).toISOString()
+}
+
+// ——— Fotos auf der Karte ———
+
+/** Punkt einer Tour: Breite, Länge, Höhe, Zeit (Sekunden seit 1970) */
+type TimedPoint = readonly [number, number, number | null, number | null]
+
+/**
+ * Wo war man zu einer Zeit? Aus den aufgezeichneten Touren (mit Zeitstempeln) zwischen den beiden
+ * nächsten Punkten gemittelt. Höchstens `slack` Sekunden vor dem Start bzw. nach dem Ende einer Tour
+ * gilt noch deren Anfangs- bzw. Endpunkt (Foto am Parkplatz). Sonst `null`.
+ */
+export function positionAt(tracks: readonly (readonly TimedPoint[])[], when: number, slack = 900): [number, number] | null {
+  let best: { pos: [number, number]; gap: number } | null = null
+  for (const pts of tracks) {
+    const timed = pts.filter((p) => p[3] !== null && Number.isFinite(p[3]))
+    if (timed.length < 2) continue
+    const t = (i: number) => timed[i][3] as number
+    const first = t(0)
+    const last = t(timed.length - 1)
+    if (when < first - slack || when > last + slack) continue
+    let pos: [number, number]
+    let gap = 0
+    if (when <= first) {
+      pos = [timed[0][0], timed[0][1]]
+      gap = first - when
+    } else if (when >= last) {
+      pos = [timed[timed.length - 1][0], timed[timed.length - 1][1]]
+      gap = when - last
+    } else {
+      // binäre Suche: letzter Punkt vor `when`
+      let lo = 0
+      let hi = timed.length - 1
+      while (hi - lo > 1) {
+        const mid = (lo + hi) >> 1
+        if (t(mid) <= when) lo = mid
+        else hi = mid
+      }
+      const span = t(hi) - t(lo)
+      const f = span > 0 ? (when - t(lo)) / span : 0
+      pos = [timed[lo][0] + (timed[hi][0] - timed[lo][0]) * f, timed[lo][1] + (timed[hi][1] - timed[lo][1]) * f]
+      // große Lücke in der Aufzeichnung (z. B. Gerät aus) → weniger sicher
+      gap = Math.min(when - t(lo), t(hi) - when) > slack ? slack + 1 : 0
+    }
+    if (gap > slack) continue
+    if (!best || gap < best.gap) best = { pos: [Math.round(pos[0] * 1e6) / 1e6, Math.round(pos[1] * 1e6) / 1e6], gap }
+  }
+  return best?.pos ?? null
+}
+
+/** Fotos einer Reise für die Karte: eigener Ort (GPS/Hand), sonst aus den Touren zur Aufnahmezeit, sonst ohne Ort */
+export function photosForMap(
+  tripId: string,
+  photos: readonly Pick<Photo, 'id' | 'entryId' | 'caption' | 'takenAt' | 'thumb' | 'lat' | 'lon' | 'placeSource'>[],
+  entries: readonly Pick<JournalEntry, 'id' | 'date'>[],
+  tracks: readonly (readonly TimedPoint[])[]
+): MapPhoto[] {
+  const dates = new Map(entries.map((e) => [e.id, e.date]))
+  const out: MapPhoto[] = []
+  for (const p of photos) {
+    const date = dates.get(p.entryId) ?? p.takenAt.slice(0, 10)
+    const base = { id: p.id, date, caption: p.caption, takenAt: p.takenAt, thumb: p.thumb, to: `/trip/${tripId}/tagebuch/${p.entryId}` }
+    if (typeof p.lat === 'number' && typeof p.lon === 'number') {
+      out.push({ ...base, lat: p.lat, lon: p.lon, source: p.placeSource === 'karte' ? 'karte' : 'exif' })
+      continue
+    }
+    const when = Date.parse(p.takenAt) / 1000
+    const pos = Number.isFinite(when) ? positionAt(tracks, when) : null
+    out.push(pos ? { ...base, lat: pos[0], lon: pos[1], source: 'tour' } : { ...base, lat: null, lon: null, source: 'keiner' })
+  }
+  return out
 }

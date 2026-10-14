@@ -83,5 +83,12 @@ export const photoRepository = {
   /** Verknüpft ein Foto mit seinem Original in einer Galerie (z. B. nach dem Hochladen). */
   async setExternal(id: string, externalRef: string, externalUrl: string): Promise<void> {
     await db.photos.update(id, { externalRef, externalUrl, updatedAt: now() })
+  },
+  /** Aufnahmeort von Hand setzen bzw. entfernen (`null`) */
+  async setPlace(id: string, pos: { lat: number; lon: number } | null): Promise<boolean> {
+    const changes = pos
+      ? { lat: Math.round(pos.lat * 1e6) / 1e6, lon: Math.round(pos.lon * 1e6) / 1e6, placeSource: 'karte' as const, updatedAt: now() }
+      : { lat: undefined, lon: undefined, placeSource: undefined, updatedAt: now() }
+    return (await db.photos.update(id, changes)) > 0
   }
 }

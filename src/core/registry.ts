@@ -83,6 +83,24 @@ export interface AddedPhoto {
 }
 
 /** Eine Linie auf der Reisekarte (z. B. eine Route), die ein anderes Modul beisteuert. */
+/** Ein Foto mit Aufnahmeort für die Karte */
+export interface MapPhoto {
+  id: string
+  /** `null`: Ort unbekannt (kann auf der Karte gesetzt werden) */
+  lat: number | null
+  lon: number | null
+  /** Tag (YYYY-MM-DD) – für den Tagesfilter der Karte */
+  date: string
+  caption: string
+  /** Aufnahmezeit (ISO) */
+  takenAt: string
+  thumb: Blob
+  /** Detailseite in der App (z. B. der Tagebuch-Eintrag) */
+  to: string
+  /** Woher der Ort stammt: aus der Datei (GPS), von Hand gesetzt, aus einer Tour zur Aufnahmezeit geschätzt – oder keiner */
+  source: 'exif' | 'karte' | 'tour' | 'keiner'
+}
+
 export interface MapOverlay {
   id: string
   name: string
@@ -138,6 +156,10 @@ export interface AppModule {
   onStart?: () => void
   /** Linien für die Reisekarte */
   mapOverlays?: (tripId: string) => Promise<MapOverlay[]>
+  /** Fotos mit Aufnahmeort für die Karte (z. B. aus dem Tagebuch) */
+  mapPhotos?: (tripId: string) => Promise<MapPhoto[]>
+  /** Ort eines Fotos von Hand setzen (`null` = entfernen); true, wenn das Foto zu diesem Modul gehört */
+  placePhoto?: (photoId: string, pos: { lat: number; lon: number } | null) => Promise<boolean>
   /** Termine und Fristen dieser Reise (Stornofrist, Abfahrt, Impftermin …) */
   reminders?: (trip: ReminderTrip, today: string) => Promise<Reminder[]>
   /** Fotos, die als Titelbild einer Reise in Frage kommen (z. B. aus dem Tagebuch) */
@@ -219,6 +241,18 @@ export function startModules(): void {
 export async function getMapOverlays(tripId: string): Promise<MapOverlay[]> {
   const lists = await Promise.all(getModules().map((m) => m.mapOverlays?.(tripId) ?? Promise.resolve([])))
   return lists.flat()
+}
+
+/** Fotos mit Aufnahmeort aller Module für die Karte. */
+export async function getMapPhotos(tripId: string): Promise<MapPhoto[]> {
+  const lists = await Promise.all(getModules().map((m) => m.mapPhotos?.(tripId) ?? Promise.resolve([])))
+  return lists.flat()
+}
+
+/** Ort eines Fotos von Hand setzen – das Modul, dem es gehört, speichert ihn. */
+export async function placePhoto(photoId: string, pos: { lat: number; lon: number } | null): Promise<boolean> {
+  for (const m of getModules()) if (await m.placePhoto?.(photoId, pos)) return true
+  return false
 }
 
 /** Verweise aller Module unter den Tagen im Tagebuch. */

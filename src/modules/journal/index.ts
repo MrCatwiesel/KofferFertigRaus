@@ -1,6 +1,7 @@
 import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
-import { journalStats } from './logic'
+import { journalStats, photosForMap } from './logic'
+import { routeRepository } from '@/modules/routes/public'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
@@ -29,5 +30,11 @@ export const journalModule: AppModule = {
   },
   coverPhotos: async (tripId) =>
     (await photoRepository.listByTrip(tripId)).map((p) => ({ id: p.id, thumb: p.thumb, full: p.full, caption: p.caption })),
+  // Fotos mit Aufnahmeort; ohne GPS-Daten aus den aufgezeichneten Touren zur Aufnahmezeit
+  async mapPhotos(tripId) {
+    const [photos, entries, routes] = await Promise.all([photoRepository.listByTrip(tripId), journalRepository.listByTrip(tripId), routeRepository.listByTrip(tripId)])
+    return photosForMap(tripId, photos, entries, routes.filter((r) => r.kind === 'track').map((r) => r.points))
+  },
+  placePhoto: (photoId, pos) => photoRepository.setPlace(photoId, pos),
   onTripDelete: (tripId) => journalRepository.removeByTrip(tripId)
 }

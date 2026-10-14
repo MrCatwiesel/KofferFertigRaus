@@ -5,6 +5,7 @@ import { formatDayShort } from '@/core/format'
 import { requestPersistentStorage } from '@/core/storage'
 import { getPhotoSources, notifyPhotosAdded, type AddedPhoto, type PhotoSource, type PickedPhoto } from '@/core/registry'
 import { processImage } from '@/services/images'
+import { readExif, type ExifInfo } from '@/services/exif'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { journalRepository, photoRepository, type NewPhoto } from '../repository'
 import { defaultEntryDate, emptyEntryDraft, moveItem, orderPhotos, takenAtFromFile, validateEntry } from '../logic'
@@ -67,6 +68,10 @@ function openSource(src: PhotoSource) {
   activeSource.value = defineAsyncComponent(src.component as () => Promise<Component>)
 }
 
+function placeFromExif(exif: ExifInfo | null): Pick<NewPhoto, 'lat' | 'lon' | 'placeSource'> {
+  return exif?.lat !== undefined && exif.lon !== undefined ? { lat: exif.lat, lon: exif.lon, placeSource: 'exif' } : {}
+}
+
 async function addPicked(picked: PickedPhoto[]) {
   activeSource.value = null
   photoError.value = ''
@@ -74,11 +79,12 @@ async function addPicked(picked: PickedPhoto[]) {
   for (const p of picked) {
     processing.value++
     try {
-      const img = await processImage(p.blob)
+      const [img, exif] = await Promise.all([processImage(p.blob), readExif(p.blob)])
       const fresh: NewPhoto = {
         full: img.full, thumb: img.thumb, width: img.width, height: img.height,
-        caption: p.caption, takenAt: p.takenAt || new Date().toISOString(),
-        externalRef: p.externalRef, externalUrl: p.externalUrl
+        caption: p.caption, takenAt: p.takenAt || exif?.takenAt || new Date().toISOString(),
+        externalRef: p.externalRef, externalUrl: p.externalUrl,
+        ...placeFromExif(exif)
       }
       items.value.push({ key: `tmp-${crypto.randomUUID()}`, url: URL.createObjectURL(img.thumb), full: img.full, caption: p.caption, fresh })
     } catch (e) {
@@ -100,8 +106,12 @@ async function addFiles(event: Event) {
   for (const file of files) {
     processing.value++
     try {
-      const img = await processImage(file)
-      const fresh: NewPhoto = { full: img.full, thumb: img.thumb, width: img.width, height: img.height, caption: '', takenAt: takenAtFromFile(file) }
+      // Ort und Zeit aus der Originaldatei – nach dem Verkleinern sind sie weg
+      const [img, exif] = await Promise.all([processImage(file), readExif(file)])
+      const fresh: NewPhoto = {
+        full: img.full, thumb: img.thumb, width: img.width, height: img.height, caption: '', takenAt: exif?.takenAt ?? takenAtFromFile(file),
+        ...placeFromExif(exif)
+      }
       items.value.push({ key: `tmp-${crypto.randomUUID()}`, url: URL.createObjectURL(img.thumb), full: img.full, caption: '', fresh, original: file })
     } catch (e) {
       photoError.value = `${file.name}: ${(e as Error).message}`

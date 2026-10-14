@@ -39,6 +39,11 @@ export interface Photo {
   externalRef?: string
   /** Link zum Foto in der Galerie */
   externalUrl?: string
+  /** Aufnahmeort (aus den GPS-Daten der Originaldatei oder von Hand gesetzt); fehlt bei älteren Fotos */
+  lat?: number
+  lon?: number
+  /** Woher der Ort stammt */
+  placeSource?: 'exif' | 'karte'
 }
 
 export const MOODS: { value: number; emoji: string; label: string }[] = [

@@ -49,6 +49,6 @@ export const TRANSPORT_LABELS: Record<Trip['transport'], string> = {
   auto: t('Auto'),
   bahn: t('Bahn'),
   flug: t('Flug'),
-  bus: 'Bus',
+  bus: t('Bus'),
   sonstiges: t('Sonstiges')
 }

@@ -55,7 +55,7 @@ export const TEMPLATES: PackingTemplate[] = [
       { name: t('Bequeme Schuhe'), category: 'kleidung', qty: 1, personal: true },
       { name: t('Zahnbürste & Zahnpasta'), category: 'hygiene', personal: true },
       { name: t('Duschgel & Shampoo'), category: 'hygiene' },
-      { name: 'Deo', category: 'hygiene', personal: true },
+      { name: t('Deo'), category: 'hygiene', personal: true },
       { name: t('Kamm / Bürste'), category: 'hygiene', personal: true },
       { name: t('Persönliche Medikamente'), category: 'gesundheit', essential: true, personal: true },
       { name: t('Pflaster & Schmerzmittel'), category: 'gesundheit' },

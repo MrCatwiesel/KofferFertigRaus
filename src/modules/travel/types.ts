@@ -41,7 +41,7 @@ export const MODE: Record<TravelMode, { label: string; icon: string }> = {
   auto: { label: t('Auto'), icon: 'car-front' },
   bahn: { label: t('Bahn'), icon: 'train-front' },
   flug: { label: t('Flug'), icon: 'airplane' },
-  bus: { label: 'Bus', icon: 'bus-front' },
+  bus: { label: t('Bus'), icon: 'bus-front' },
   faehre: { label: t('Fähre'), icon: 'water' },
   fahrrad: { label: t('Fahrrad'), icon: 'bicycle' },
   sonstiges: { label: t('Sonstiges'), icon: 'signpost-2' }

@@ -48,8 +48,8 @@ export function durationMinutes(departTime: string, arriveTime: string): number 
 
 /** "8:05 Std." bzw. "45 Min." */
 export function formatDuration(min: number): string {
-  if (min < 60) return `${min} Min.`
-  return `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')} Std.`
+  if (min < 60) return t('{n} Min.', { n: min })
+  return t('{time} Std.', { time: `${Math.floor(min / 60)}:${String(min % 60).padStart(2, '0')}` })
 }
 
 /** Spritkosten einer Autoetappe: km × Verbrauch/100 × Preis. */

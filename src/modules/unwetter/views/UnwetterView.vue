@@ -84,7 +84,7 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
         <div class="small fw-semibold mb-2">{{ t('Warnungen für') }}</div>
         <div class="btn-group flex-wrap mb-2" role="group" :aria-label="t('Warnungen für')">
           <button
-            v-for="o in ([['orte', t('Unsere Orte')], ['land', t('Ganzes Land')], ['aus', 'Aus']] as const)"
+            v-for="o in ([['orte', t('Unsere Orte')], ['land', t('Ganzes Land')], ['aus', t('Aus')]] as const)"
             :key="o[0]"
             type="button"
             class="btn btn-sm"

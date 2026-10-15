@@ -57,7 +57,7 @@ void load()
 const years = computed(() => yearsOf(trips.value))
 const s = computed(() => summarize(trips.value, extra.value, year.value, today))
 const km = (m: number) => `${Math.round(m / 1000).toLocaleString(intlLocale())} km`
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
+const MONTHS = Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(intlLocale(), { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2026, i, 15))).replace('.', ''))
 const maxMonth = computed(() => Math.max(1, ...s.value.months))
 const mapPoints = computed(() =>
   s.value.rows

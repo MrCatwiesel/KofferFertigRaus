@@ -15,6 +15,8 @@ export interface ServerInfo {
   group?: string
   /** Besitzer des Servers (darf Reisegruppen verwalten) */
   admin?: boolean
+  /** Verwalter der Gruppe (oder Gerät ohne Person) */
+  manager?: boolean
   /** Server kann Lese-Links */
   shares?: boolean
   /** Server kann Offline-Karten erstellen (Programm pmtiles vorhanden) */
@@ -25,7 +27,7 @@ export interface ServerInfo {
   device?: { id: string; name: string } | null
 }
 
-export type ServerError = Error & { status?: number; needPassword?: boolean }
+export type ServerError = Error & { status?: number; needPassword?: boolean; detail?: string }
 
 /**
  * Zugriff auf Zusatzdienste des eigenen Servers (Lese-Links, Reisegruppen, Piwigo)
@@ -55,13 +57,15 @@ export class ServerClient {
     }
     if (!res.ok) {
       let msg = t('Fehler {status}', { status: res.status })
+      let detail: string | undefined
       try {
-        const error = (await res.clone().json()).error
-        if (typeof error === 'string' && error) msg = t(error)
+        const body = await res.clone().json()
+        if (typeof body.error === 'string' && body.error) msg = t(body.error)
+        if (typeof body.detail === 'string' && body.detail) detail = body.detail
       } catch {
         /* keine JSON-Antwort */
       }
-      throw Object.assign(new Error(msg), { status: res.status }) as ServerError
+      throw Object.assign(new Error(msg), { status: res.status, detail }) as ServerError
     }
     return res
   }

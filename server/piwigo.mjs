@@ -76,7 +76,7 @@ export function createPiwigoClient(opts) {
         body
       })
     } catch {
-      throw new PiwigoError('Piwigo ist nicht erreichbar – Adresse in NWW_PIWIGO_URL prüfen.')
+      throw new PiwigoError('Piwigo ist nicht erreichbar – Adresse prüfen.')
     }
     keepCookies(res)
     const text = await res.text()

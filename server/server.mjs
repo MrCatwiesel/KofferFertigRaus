@@ -29,7 +29,7 @@ import { HASH_RE, createStore, sha256 } from './store.mjs'
 import { createGroups } from './groups.mjs'
 import { createShares } from './shares.mjs'
 import { createStatic } from './static.mjs'
-import { createPiwigoClient } from './piwigo.mjs'
+import { createPiwigoConfig } from './piwigo-config.mjs'
 import { createMaps } from './maps.mjs'
 import { createDevices } from './devices.mjs'
 import { checkPassword, createMembers } from './members.mjs'
@@ -41,14 +41,14 @@ import { createBenachrichtigungen } from './benachrichtigungen.mjs'
 import { createUnwetter } from './unwetter.mjs'
 
 export { spaceOf } from './store.mjs'
-export const VERSION = '1.21.0'
+export const VERSION = '1.22.0'
 
 const MAX_JSON = 30 * 1024 * 1024
 
 /**
  * Erzeugt den Server (für Start und Tests).
  * @param {{ keys: string[], dataDir: string, origins?: string[], maxBlobMb?: number,
- *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null,
+ *   piwigo?: { url: string, keyId: string, secret: string, publicUrl?: string, fetchImpl?: typeof fetch } | null, piwigoFetch?: typeof fetch,
  *   appDir?: string | null, deviceIdleDays?: number, routing?: { overpassUrl?: string, brouterUrl?: string, fetchImpl?: typeof fetch }, reiseinfo?: { url?: string, fetchImpl?: typeof fetch }, push?: { fetchImpl?: typeof fetch, subject?: string, hosts?: (RegExp|string)[], timer?: boolean }, unwetter?: { url?: string, fetchImpl?: typeof fetch }, maps?: { bin?: string, source?: string, fetchImpl?: typeof fetch } }} opts
  */
 export function createSyncServer(opts) {
@@ -74,7 +74,8 @@ export function createSyncServer(opts) {
     unwetter.start()
   }
   const app = opts.appDir ? createStatic(opts.appDir) : null
-  const piwigo = opts.piwigo?.url ? createPiwigoClient(opts.piwigo) : null
+  // Piwigo: in der App eingetragen (Vorrang) oder aus NWW_PIWIGO_* – änderbar ohne Neustart
+  const piwigoConfig = createPiwigoConfig(store, opts.piwigo, { fetchImpl: opts.piwigo?.fetchImpl ?? opts.piwigoFetch })
   const maps = createMaps(resolve(opts.dataDir), opts.maps ?? {})
   const cors = corsFor(opts.origins)
   const maxBlob = (opts.maxBlobMb ?? 30) * 1024 * 1024
@@ -89,7 +90,7 @@ export function createSyncServer(opts) {
     const path = url.pathname.replace(/\/+$/, '')
 
     if (req.method === 'GET' && (path === '/api/health' || (path === '' && !app))) {
-      return send(res, 200, { ok: true, app: 'koffer-fertig-raus-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true, unwetter: true })
+      return send(res, 200, { ok: true, app: 'koffer-fertig-raus-sync', version: VERSION, appHosted: !!app, shares: true, people: true, push: true, unwetter: true, piwigoSetup: true })
     }
 
     // Öffentlich: Lese-Links (ohne Schlüssel, streng gefiltert)
@@ -121,7 +122,7 @@ export function createSyncServer(opts) {
         // Kennung des Datenbestands: ändert sich nach dem Zurückspielen einer Sicherung (restore.sh)
         // → die Geräte gleichen dann einmal vollständig ab, damit nichts verloren geht
         epoch: store.secret('sync-epoch').slice(0, 16) + (auth.device?.epoch ?? ''),
-        piwigo: !!piwigo && group.piwigo,
+        piwigo: !!piwigoConfig.client() && group.piwigo,
         maps: maps.available,
         devices: true,
         device: auth.device,
@@ -219,10 +220,25 @@ export function createSyncServer(opts) {
       return handleGroups(req, res, path)
     }
 
+    if (path === '/api/admin/piwigo') {
+      if (!group.owner || !isAdmin) throw new HttpError(403, 'Nur der Besitzer des Servers richtet Piwigo ein.')
+      if (req.method === 'GET') return send(res, 200, await piwigoConfig.describe())
+      if (req.method === 'PUT') {
+        await piwigoConfig.save(await readJson(req))
+        return send(res, 200, await piwigoConfig.describe())
+      }
+      if (req.method === 'DELETE') {
+        piwigoConfig.reset()
+        return send(res, 200, await piwigoConfig.describe())
+      }
+      throw new HttpError(405, 'Nicht erlaubt')
+    }
+
     if (path === '/api/piwigo' || path.startsWith('/api/piwigo/')) {
+      const piwigo = piwigoConfig.client()
       if (!piwigo) throw new HttpError(404, 'Piwigo ist auf dem Server nicht eingerichtet.')
       if (!group.piwigo) throw new HttpError(403, 'Piwigo ist für diese Reisegruppe nicht freigegeben.')
-      return handlePiwigo(req, res, url, path)
+      return handlePiwigo(req, res, url, path, piwigo)
     }
 
     throw new HttpError(404, 'Unbekannte Adresse')
@@ -356,7 +372,7 @@ export function createSyncServer(opts) {
   }
 
   /** Piwigo-Brücke: Alben, Fotos, Hochladen. */
-  async function handlePiwigo(req, res, url, path) {
+  async function handlePiwigo(req, res, url, path, piwigo) {
     const sub = path.slice('/api/piwigo'.length)
 
     if (req.method === 'GET' && sub === '') return send(res, 200, { ok: true, ...(await piwigo.status()) })

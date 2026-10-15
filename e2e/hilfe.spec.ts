@@ -108,7 +108,7 @@ test('Hilfe: „?“ führt zum passenden Thema, Verweise, Suche, Was ist neu', 
   // Was ist neu
   await page.goto('/#/hilfe/neu')
   await expect(page.locator('[data-release]').first()).toContainText(`Version ${VERSION}`)
-  await expect(page.locator('[data-release]').filter({ hasText: 'Hilfe & Einführung' })).toHaveCount(1)
+  await expect(page.locator('[data-release]').first()).toContainText(LATEST)
 
   // Einstellungen → Hilfe
   await page.goto('/#/einstellungen')

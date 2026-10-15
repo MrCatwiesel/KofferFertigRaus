@@ -75,19 +75,23 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
 1. In Piwigo als **Administrator** anmelden → oben *Profil* → **API-Schlüssel** → neuen Schlüssel anlegen (z. B. „KofferFertigRaus“, Laufzeit 1 Jahr).
    Die **ID** (`pkid-…`) und das **Geheimnis** notieren. Das Geheimnis wird nur einmal angezeigt.
    (Die Profilseite gibt es nur mit dem Standard-Design der Galerie, nicht mit jedem Theme.)
-2. In den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/koffer-fertig-raus/sync.env`:
+2. **Am einfachsten in der App** (ab Server 1.22): *Einstellungen → Geräte-Abgleich → Piwigo-Galerie* – Adresse, öffentliche Adresse, Schlüssel-ID und Geheimnis eintragen, **Prüfen und speichern**. Der Server meldet sich zur Probe an und speichert nur, wenn das klappt; die Werte gelten sofort (ohne Neustart), liegen in der Server-Datenbank und gehen den Werten aus der Datei vor. Das Geheimnis gibt der Server nie wieder heraus. Weiter mit Schritt 4.
+
+   Oder wie bisher in den Einstellungen des Servers eintragen, also in `.env` oder bei Proxmox in `/etc/koffer-fertig-raus/sync.env`:
    ```
    NWW_PIWIGO_URL=http://192.168.5.40          # Piwigo im Heimnetz (mit Unterordner, falls vorhanden)
    NWW_PIWIGO_KEY_ID=pkid-20261011-…
    NWW_PIWIGO_SECRET=…
    NWW_PIWIGO_PUBLIC_URL=https://fotos.example.de   # für Links „In Piwigo öffnen“
    ```
-3. Den Server neu starten: `systemctl restart koffer-fertig-raus-sync` bzw. `docker compose up -d`.
+3. Nur bei Eintrag in der Datei: den Server neu starten: `systemctl restart koffer-fertig-raus-sync` bzw. `docker compose up -d`.
 4. In der App unter Reise → **Fotos in Piwigo** prüfen. Dort steht „Angemeldet in Piwigo als …“.
 
 **Wichtig:**
 - Die Upload-Grenze von PHP muss für Originalfotos reichen, z. B. `upload_max_filesize = 50M` und `post_max_size = 50M` in der `php.ini` des Piwigo-Servers. Liegt ein Reverse-Proxy davor, auch dort 50 MB erlauben.
-- Läuft der API-Schlüssel ab, schickt Piwigo vorher eine E-Mail. Dann einen neuen anlegen und in den Einstellungen tauschen.
+- Läuft der API-Schlüssel ab, schickt Piwigo vorher eine E-Mail. Dann einen neuen anlegen und in der App (oder in der Datei) tauschen.
+- Ändert sich nur die Adresse (z. B. neue Subdomain), in der App einfach die Adresse ändern und das Geheimnis leer lassen.
+- **Zurück zu den Server-Einstellungen** in der App löscht die dort eingetragenen Werte; dann gelten wieder die aus der Datei.
 - Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.
 - Piwigo nutzen darf nur der Besitzer (erster Schlüssel) und Gruppen, die er in der App freigibt.
 
@@ -192,7 +196,7 @@ docker compose up -d --build
 | `NWW_MAX_BLOB_MB` | Maximale Größe eines Fotos in MB (Standard 30) |
 | `NWW_HOST` | Nur an diese Adresse binden, z. B. `127.0.0.1` (Standard: alle) |
 | `NWW_APP_DIR` | Ordner mit der gebauten App (Inhalt von `koffer-fertig-raus-app.zip`); der Server liefert sie dann unter seiner Adresse aus |
-| `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo |
+| `NWW_PIWIGO_URL` | Piwigo-Adresse (im Heimnetz), leer = ohne Piwigo – in der App Eingetragenes geht vor |
 | `NWW_PIWIGO_KEY_ID` / `NWW_PIWIGO_SECRET` | Piwigo-API-Schlüssel eines Administrators |
 | `NWW_PIWIGO_PUBLIC_URL` | Öffentliche Piwigo-Adresse für Links in der App |
 | `NWW_DEVICE_IDLE_DAYS` | Geräte, die so viele Tage nicht abgeglichen haben, werden abgemeldet (Standard 180, `0` = nie) |
@@ -220,6 +224,7 @@ docker compose up -d --build
 | GET | `/api/public/<code>/photo/<id>?size=thumb\|full` | **ohne Schlüssel:** Foto eines freigegebenen Eintrags |
 | GET/POST | `/api/admin/groups` | Reisegruppen auflisten / anlegen (nur Besitzer) |
 | PATCH/DELETE | `/api/admin/groups/<id>` | Gruppe umbenennen, sperren, Piwigo freigeben / löschen (nur Besitzer) |
+| GET/PUT/DELETE | `/api/admin/piwigo` | Piwigo-Zugang anzeigen (ohne Geheimnis, mit Prüfung) / ändern `{ url, publicUrl, keyId, secret }` (leeres Geheimnis = bisheriges; nur nach erfolgreicher Anmeldung gespeichert) / App-Werte löschen (nur Besitzer) |
 | GET | `/api/piwigo` | Piwigo-Anmeldung prüfen |
 | GET/POST | `/api/piwigo/albums` | Alben auflisten / anlegen `{ name, parentId }` |
 | GET/POST | `/api/piwigo/albums/<id>/images` | Fotos eines Albums (`?page=&perPage=`) / Foto hochladen (Bilddaten, `?filename=&name=`) |

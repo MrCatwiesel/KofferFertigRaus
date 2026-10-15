@@ -78,6 +78,25 @@ async function fakeMeteoAlarm(url) {
   })
 }
 
+/** Nachgebautes Piwigo unter http://piwigo.example (nur Anmeldung) – für die Einrichtung in der App */
+export const PIWIGO_KEY_ID = 'pkid-20261015-klicktest0123456789a'
+export const PIWIGO_SECRET = 'klicktest-geheimnis-piwigo-1234567890'
+async function fakePiwigo(url, init = {}) {
+  const u = new URL(String(url))
+  if (u.hostname !== 'piwigo.example') throw new TypeError('fetch failed')
+  const method = u.searchParams.get('method')
+  const form = new URLSearchParams(init.body ? String(init.body) : '')
+  const loggedIn = String(init.headers?.Cookie ?? '').includes('pwg_id=ok')
+  if (method === 'pwg.session.login') {
+    if (form.get('username') === PIWIGO_KEY_ID && form.get('password') === PIWIGO_SECRET)
+      return new Response(JSON.stringify({ stat: 'ok', result: true }), { headers: { 'Content-Type': 'application/json', 'Set-Cookie': 'pwg_id=ok; path=/' } })
+    return json({ stat: 'fail', err: 999, message: 'Invalid username/password' })
+  }
+  if (method === 'pwg.session.getStatus')
+    return json({ stat: 'ok', result: loggedIn ? { username: 'denet', status: 'webmaster', pwg_token: 't', version: '16.4.0' } : { username: 'guest', status: 'guest' } })
+  return json({ stat: 'fail', err: 501, message: 'unbekannt' })
+}
+
 /** Nachgebauter Push-Dienst: nimmt jede Nachricht an (echte Dienste prüfen Abo und Schlüssel) */
 const fakePushDienst = async () => new Response(null, { status: 201 })
 
@@ -88,6 +107,7 @@ const server = createSyncServer({
   routing: { fetchImpl: fakeKartendienste },
   reiseinfo: { fetchImpl: fakeAuswaertigesAmt },
   push: { fetchImpl: fakePushDienst, hosts: ['push.example'] },
-  unwetter: { fetchImpl: fakeMeteoAlarm }
+  unwetter: { fetchImpl: fakeMeteoAlarm },
+  piwigoFetch: fakePiwigo
 })
 server.listen(port, () => console.log(`Klicktest-Server auf ${port}`))

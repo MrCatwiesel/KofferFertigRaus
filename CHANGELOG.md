@@ -1,5 +1,14 @@
 # Änderungsprotokoll
 
+## 1.41.0 – 2026-10-15 (Server 1.22.0)
+
+### Neu: Piwigo in der App einrichten
+- Neuer Punkt **Einstellungen → Geräte-Abgleich → Piwigo-Galerie** (nur für den Besitzer des Servers): Adresse von Piwigo, öffentliche Adresse für die Links „In Piwigo öffnen“ und API-Schlüssel direkt in der App eintragen oder ändern – ohne die Server-Datei und ohne Neustart
+- **Prüfen und speichern** meldet sich zur Probe bei Piwigo an; gespeichert wird nur, wenn das klappt. Zeigt, als wer der Server verbunden ist und welche Piwigo-Version läuft
+- Beim Ändern der Adresse kann das Geheimnis leer bleiben – der Server behält das bisherige und gibt es nie heraus
+- In der App Eingetragenes geht den Werten aus `sync.env` vor; „Zurück zu den Server-Einstellungen“ macht das rückgängig
+- Braucht Server 1.22 (update.sh); ältere Server zeigen einen Hinweis
+
 ## 1.40.0 – 2026-10-15
 
 ### Neu: Sprachführer

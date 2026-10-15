@@ -18,8 +18,23 @@ test('Sprachführer: Sprachen der Reise, Allergie-Karte, Groß zeigen, andere Sp
   await page.getByLabel('Gluten').check()
   await expect(page.locator('[data-allergy-text]')).toContainText('Imam alergiju na:')
   await expect(page.locator('[data-allergy-text]')).toContainText('kikiriki, gluten')
+
+  // Eingetippt: bekanntes Wort wird angehakt und übersetzt, unbekanntes kommt in die eigene Liste
+  await page.locator('#own-allergen').fill('Muscheln')
+  await page.locator('[data-add-allergen]').click()
+  await expect(page.locator('[data-add-note]')).toContainText('Weichtiere')
+  await expect(page.locator('[data-allergy-text]')).toContainText('mekušci')
+  await page.locator('#own-allergen').fill('Koriander')
+  await page.locator('#own-allergen').press('Enter')
+  await expect(page.locator('[data-own-allergens]')).toContainText('Koriander')
+  await expect(page.locator('[data-allergy-text]')).toContainText('Koriander')
+  await page.locator('[data-translate="Koriander"]').fill('korijander')
+  await expect(page.locator('[data-allergy-text]')).toContainText('korijander')
   await page.locator('[data-lang="it"]').click()
   await expect(page.locator('[data-allergy-text]')).toContainText('arachidi, glutine')
+  await expect(page.locator('[data-allergy-text]')).toContainText('Koriander') // auf Italienisch noch nicht übersetzt
+  await page.locator('[data-edit-allergens]').click() // Fertig
+  await expect(page.locator('[data-untranslated]')).toContainText('Koriander')
 
   // Groß zeigen und schließen
   await page.locator('[data-show-card]').click()
@@ -36,6 +51,8 @@ test('Sprachführer: Sprachen der Reise, Allergie-Karte, Groß zeigen, andere Sp
   await expect(page.locator('[data-phrase="thanks"]')).toContainText('Efcharistó')
   await page.reload()
   await expect(page.locator('[data-allergy-text]')).toContainText('αράπικα φιστίκια, γλουτένη')
+  await page.locator('[data-lang="hr"]').click() // eigene Übersetzung bleibt erhalten
+  await expect(page.locator('[data-allergy-text]')).toContainText('korijander')
 
   // Verweis aus dem Länder-Spickzettel
   await page.goto('/#/trip/t1/laender')

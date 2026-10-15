@@ -4,10 +4,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
 import { countryName, flag } from '@/core/countries'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
-import { ALLERGEN_IDS, ALLERGEN_SOURCE, GROUPS, SOURCE, type AllergenId, type PhraseId } from '../phrases'
+import { ALLERGEN_GROUPS, ALLERGEN_IDS, ALLERGEN_SOURCE, GROUPS, SOURCE, type AllergenId, type PhraseId } from '../phrases'
 import { LANGUAGES } from '../languages'
-import { allergyCard, languageName, nearbyNote, phrasesIn, tripLanguages } from '../logic'
-import { loadAllergens, saveAllergens } from '../settings'
+import { allergyCard, languageName, matchAllergen, nearbyNote, phrasesIn, tripLanguages } from '../logic'
+import { loadAllergens, loadCustomAllergens, saveAllergens, saveCustomAllergens, type CustomAllergen } from '../settings'
+import { newId } from '@/core/db'
 import { language, t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
@@ -38,11 +39,44 @@ const notes = computed(() => {
 
 // Allergien (nur auf diesem Gerät)
 const allergens = ref<AllergenId[]>([])
+const custom = ref<CustomAllergen[]>([])
 const editAllergens = ref(false)
-onMounted(async () => (allergens.value = await loadAllergens()))
+onMounted(async () => {
+  allergens.value = await loadAllergens()
+  custom.value = await loadCustomAllergens()
+})
 watch(allergens, (list) => void saveAllergens(list), { deep: true })
-const card = computed(() => (lang.value ? allergyCard(lang.value, allergens.value) : null))
-const cardSource = computed(() => [SOURCE.allergic, allergens.value.map((a) => ALLERGEN_SOURCE[a]).join(', '), SOURCE.without])
+watch(custom, (list) => void saveCustomAllergens(list), { deep: true })
+const hasAllergies = computed(() => allergens.value.length + custom.value.length > 0)
+const card = computed(() => (lang.value ? allergyCard(lang.value, current.value, ALLERGEN_IDS.filter((a) => allergens.value.includes(a)), custom.value) : null))
+const cardSource = computed(() => [
+  SOURCE.allergic,
+  [...ALLERGEN_IDS.filter((a) => allergens.value.includes(a)).map((a) => ALLERGEN_SOURCE[a]), ...custom.value.map((c) => c.text)].join(', '),
+  SOURCE.without
+])
+
+// Eigene Allergie eintippen: bekannte werden angehakt (und übersetzt), unbekannte kommen in die eigene Liste
+const newAllergen = ref('')
+const addNote = ref('')
+function addAllergen() {
+  const text = newAllergen.value.trim()
+  if (!text) return
+  const known = matchAllergen(text)
+  if (known) {
+    if (!allergens.value.includes(known)) allergens.value.push(known)
+    addNote.value = t('„{text}“ kennt die App als „{name}“ – angehakt und wird übersetzt.', { text, name: ALLERGEN_SOURCE[known] })
+  } else if (custom.value.some((c) => c.text.toLocaleLowerCase() === text.toLocaleLowerCase())) {
+    addNote.value = t('„{text}“ steht schon in deiner Liste.', { text })
+  } else {
+    custom.value.push({ id: newId(), text, tr: {} })
+    addNote.value = ''
+  }
+  newAllergen.value = ''
+}
+const removeCustom = (id: string) => (custom.value = custom.value.filter((c) => c.id !== id))
+function setTranslation(c: CustomAllergen, value: string) {
+  c.tr = { ...c.tr, [current.value]: value }
+}
 
 // Vorlesen (Stimmen des Geräts – auf iPad/iPhone meist auch offline)
 const canSpeak = typeof window !== 'undefined' && 'speechSynthesis' in window
@@ -103,19 +137,55 @@ function showCard() {
         <h2 class="h6 d-flex align-items-center gap-2 mb-2">
           <i class="bi bi-exclamation-triangle text-danger" aria-hidden="true"></i>{{ t('Allergie-Karte') }}
           <button type="button" class="btn btn-sm btn-link ms-auto p-0" data-edit-allergens @click="editAllergens = !editAllergens">
-            {{ allergens.length ? t('Ändern') : t('Allergien wählen') }}
+            {{ editAllergens ? t('Fertig') : hasAllergies ? t('Ändern') : t('Allergien wählen') }}
           </button>
         </h2>
-        <div v-if="editAllergens || !allergens.length" class="mb-2">
-          <p v-if="!allergens.length" class="small text-body-secondary mb-2">{{ t('Wähle, wogegen du allergisch bist – die App zeigt dann einen Satz zum Hinhalten im Restaurant. Die Auswahl bleibt nur auf diesem Gerät.') }}</p>
-          <div v-if="editAllergens" class="row row-cols-2 row-cols-md-3 g-1">
-            <div v-for="a in ALLERGEN_IDS" :key="a" class="col">
-              <div class="form-check">
-                <input :id="`allergen-${a}`" v-model="allergens" class="form-check-input" type="checkbox" :value="a" />
-                <label class="form-check-label small" :for="`allergen-${a}`">{{ ALLERGEN_SOURCE[a] }}</label>
+        <div v-if="editAllergens || !hasAllergies" class="mb-2">
+          <p v-if="!hasAllergies" class="small text-body-secondary mb-2">{{ t('Wähle, wogegen du allergisch bist – die App zeigt dann einen Satz zum Hinhalten im Restaurant. Die Auswahl bleibt nur auf diesem Gerät.') }}</p>
+          <template v-if="editAllergens">
+            <div v-for="grp in ALLERGEN_GROUPS" :key="grp.title" class="mb-2">
+              <div class="small fw-semibold text-body-secondary mb-1">{{ grp.title }}</div>
+              <div class="row row-cols-2 row-cols-md-3 g-1">
+                <div v-for="a in grp.ids" :key="a" class="col">
+                  <div class="form-check">
+                    <input :id="`allergen-${a}`" v-model="allergens" class="form-check-input" type="checkbox" :value="a" />
+                    <label class="form-check-label small" :for="`allergen-${a}`">{{ ALLERGEN_SOURCE[a] }}</label>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+
+            <!-- Eigene Allergien -->
+            <div class="small fw-semibold text-body-secondary mt-3 mb-1">{{ t('Weitere Allergie') }}</div>
+            <form class="input-group input-group-sm" @submit.prevent="addAllergen">
+              <input id="own-allergen" v-model="newAllergen" class="form-control" list="allergen-names" :placeholder="t('z. B. Koriander')" :aria-label="t('Weitere Allergie')" autocomplete="off" />
+              <button class="btn btn-outline-primary" type="submit" :disabled="!newAllergen.trim()" data-add-allergen>
+                <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Hinzufügen') }}
+              </button>
+            </form>
+            <datalist id="allergen-names">
+              <option v-for="a in ALLERGEN_IDS" :key="a" :value="ALLERGEN_SOURCE[a]" />
+            </datalist>
+            <div v-if="addNote" class="small text-success mt-1" data-add-note>{{ addNote }}</div>
+            <ul v-if="custom.length" class="list-group list-group-flush mt-2" data-own-allergens>
+              <li v-for="c in custom" :key="c.id" class="list-group-item px-0 py-2">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-semibold flex-grow-1">{{ c.text }}</span>
+                  <button type="button" class="btn btn-sm btn-link text-body-secondary p-0" :aria-label="t('{name} entfernen', { name: c.text })" @click="removeCustom(c.id)">
+                    <i class="bi bi-x-lg" aria-hidden="true"></i>
+                  </button>
+                </div>
+                <input
+                  class="form-control form-control-sm mt-1" :lang="current" :value="c.tr[current] ?? ''"
+                  :placeholder="t('Auf {language}: …', { language: languageName(current) })" :aria-label="t('{name} auf {language}', { name: c.text, language: languageName(current) })"
+                  :data-translate="c.text" @input="setTranslation(c, ($event.target as HTMLInputElement).value)"
+                />
+              </li>
+            </ul>
+            <p class="small text-body-secondary mt-2 mb-0">
+              {{ t('Wörter, die die App kennt, werden automatisch übersetzt. Für eigene Einträge kann die App ohne Internet nicht übersetzen – trag die Übersetzung je Sprache selbst ein (z. B. aus einer Übersetzungs-App oder vom Arzt). Ohne Übersetzung erscheint das Wort so, wie du es eingegeben hast.') }}
+            </p>
+          </template>
         </div>
         <template v-if="card">
           <div :lang="current" class="allergy-text" data-allergy-text>
@@ -123,6 +193,9 @@ function showCard() {
           </div>
           <div v-if="card.pron.length" class="small fst-italic text-body-secondary mt-1"><div v-for="(p, i) in card.pron" :key="i">{{ p }}</div></div>
           <div class="small text-body-secondary mt-1"><div v-for="(p, i) in cardSource" :key="i">{{ p }}</div></div>
+          <div v-if="card.untranslated.length && !editAllergens" class="small text-warning-emphasis mt-1" data-untranslated>
+            <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ t('Noch nicht auf {language} übersetzt: {list} – unter „Ändern“ eintragen.', { language: languageName(current), list: card.untranslated.join(', ') }) }}
+          </div>
           <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-danger" data-show-card @click="showCard"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i>{{ t('Groß zeigen') }}</button>
             <button v-if="canSpeak" type="button" class="btn btn-sm btn-outline-secondary" @click="speak(card.lines.join(' '))"><i class="bi bi-volume-up me-1" aria-hidden="true"></i>{{ t('Vorlesen') }}</button>

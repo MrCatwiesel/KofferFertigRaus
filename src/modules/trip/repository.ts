@@ -34,6 +34,11 @@ export const tripRepository = {
     await db.trips.update(id, { cover, coverY, updatedAt: now() })
   },
 
+  /** Durchreiseländer (Modul „Länder-Spickzettel“) */
+  async setTransit(id: string, transit: string[]): Promise<void> {
+    await db.trips.update(id, { transit: [...transit], updatedAt: now() })
+  },
+
   /** Einstellung der Unwetterwarnungen (Modul „Unwetter“) */
   async setWeatherAlerts(id: string, weatherAlerts: NonNullable<Trip['weatherAlerts']>): Promise<void> {
     await db.trips.update(id, { weatherAlerts: JSON.parse(JSON.stringify(weatherAlerts)), updatedAt: now() })

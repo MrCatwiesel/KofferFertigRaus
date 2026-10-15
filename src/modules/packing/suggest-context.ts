@@ -65,6 +65,7 @@ export async function suggestContext(trip: Trip, withWeather = true): Promise<Su
     travelers: trip.participants?.length || trip.travelers,
     participants: participantsOf(trip),
     countries: trip.countries ?? [],
+    transit: trip.transit ?? [],
     transport: trip.transport,
     legModes: legs.map((l) => l.mode),
     outlook: withWeather ? await outlookFor(trip) : null,

@@ -13,6 +13,8 @@ export interface SuggestContext {
   travelers: number
   participants: string[]
   countries: string[]
+  /** Durchreiseländer (nur für das Auto: Vignette) */
+  transit?: string[]
   /** Hauptanreise und alle Etappen */
   transport: string
   legModes: string[]
@@ -93,6 +95,12 @@ export function suggestItems(c: SuggestContext): Suggestion[] {
       if (cc === 'FR') add('critair', t('Crit\'Air-Umweltplakette'), 'dokumente', t('{country}: in vielen Städten Pflicht', { country: land }), { essential: true })
     }
   }
+  // --- Durchreise mit dem Auto: Vignette
+  if (c.transport === 'auto' || c.legModes.includes('auto'))
+    for (const cc of (c.transit ?? []).filter((x) => !c.countries.includes(x))) {
+      const v = vignetteFor(cc)
+      if (v) add(`vignette-${cc}`, t('Vignette {country}', { country: countryName(cc) }), 'dokumente', t('{country} (Durchreise): {vignette} – vor der ersten Autobahn kaufen', { country: `${flag(cc)} ${countryName(cc)}`, vignette: v }), { essential: true })
+    }
   const foreign = c.countries.some((cc) => cc !== 'DE')
   if (foreign && (c.transport === 'auto' || c.legModes.includes('auto')))
     add('warnweste', t('Warnwesten für alle im Auto'), 'unterwegs', t('im Ausland oft für jede Person Pflicht'), { quantity: Math.max(1, c.travelers) })

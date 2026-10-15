@@ -15,6 +15,7 @@ import { routesModule } from './routes'
 import { piwigoModule } from './piwigo'
 import { shareModule } from './share'
 import { reiseinfoModule } from './reiseinfo'
+import { laenderModule } from './laender'
 import { unwetterModule } from './unwetter'
 import { abstimmungModule } from './abstimmung'
 import { termineModule } from './termine'
@@ -37,6 +38,7 @@ export function registerAllModules(): void {
   registerModule(packingModule)
   registerModule(medsModule)
   registerModule(reiseinfoModule)
+  registerModule(laenderModule)
   registerModule(unwetterModule)
   registerModule(termineModule)
   registerModule(documentsModule)

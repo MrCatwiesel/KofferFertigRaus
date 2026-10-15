@@ -344,6 +344,30 @@ Sind bei der Reise **Zielländer** eingetragen, holt die App die Reise- und Sich
 `
     },
     {
+      id: 'laender',
+      title: 'Länder-Spickzettel',
+      icon: 'card-checklist',
+      group: 'vorbereiten',
+      summary: 'Steckdosen, Notruf, Uhrzeit, Trinkgeld, Leitungswasser und Verkehrsregeln je Land – offline.',
+      routes: ['laender'],
+      keywords: 'steckdose adapter strom volt notruf notrufnummer zeitzone zeitverschiebung trinkgeld leitungswasser trinkwasser tempolimit promille maut vignette linksverkehr durchreise transit roaming vorwahl',
+      body: `
+Für jedes **Zielland** der Reise zeigt der Spickzettel, was man vor Ort wissen sollte – ohne Internet:
+
+- **Notruf** mit Polizei, Rettung und Feuerwehr – ein Tipp ruft an
+- **Steckdose**: Typ, Spannung und ob deutsche Stecker passen
+- **Uhrzeit** vor Ort und der Unterschied zu zu Hause
+- **Geld & Trinkgeld**, **Handy** (Vorwahl, EU-Roaming), **Leitungswasser**
+- **Mit dem Auto**: Links- oder Rechtsverkehr, Tempo, Promillegrenze, Maut und Licht am Tag – bei Reisen mit dem Auto gleich aufgeklappt
+- **Gut zu wissen**: Besonderheiten wie Vignetten-Fristen, Umweltzonen oder Einreise-Genehmigungen
+
+## Durchreiseländer
+Fahrt ihr durch andere Länder (z. B. Österreich auf dem Weg nach Italien), füge sie unten als **Durchreiseländer** hinzu. Sie bekommen ebenfalls einen Spickzettel, und die [Packliste](#/hilfe/packliste) schlägt die nötige Vignette vor.
+
+> Die Angaben haben den Stand Oktober 2026 und sind ohne Gewähr – vor Ort gelten die Schilder. Einreise, Sicherheitslage und Impfungen stehen unter [Reisehinweise](#/hilfe/reisehinweise).
+`
+    },
+    {
       id: 'termine',
       title: 'Termine & Fristen',
       icon: 'calendar-event',

@@ -340,6 +340,30 @@ If **destination countries** are entered for the trip, the app fetches the trave
 `
     },
     {
+      id: 'laender',
+      title: 'Country cheat sheet',
+      icon: 'card-checklist',
+      group: 'vorbereiten',
+      summary: 'Sockets, emergency numbers, local time, tipping, tap water and traffic rules for each country – offline.',
+      routes: ['laender'],
+      keywords: 'socket plug adapter power voltage emergency number time zone time difference tipping tap water drinking water speed limit alcohol limit toll vignette drive on the left transit roaming dialling code',
+      body: `
+For every **destination country** of the trip, the cheat sheet shows what you need to know on the spot – without internet:
+
+- **Emergency numbers** for police, ambulance and fire – tap to call
+- **Sockets**: type, voltage and whether German plugs fit
+- **Local time** and the difference from home
+- **Money & tipping**, **Phone** (country code, EU roaming), **Tap water**
+- **By car**: which side of the road, speed limits, alcohol limit, tolls and daytime headlights – opened straight away for trips by car
+- **Good to know**: specifics such as vignette deadlines, low-emission zones or entry authorisations
+
+## Transit countries
+If you drive through other countries (e.g. Austria on the way to Italy), add them at the bottom as **transit countries**. They get a cheat sheet too, and the [packing list](#/hilfe/packliste) suggests the vignette you need.
+
+> The information is as of October 2026 and comes without guarantee – local signs always apply. Entry, safety and vaccinations are under [Travel advice](#/hilfe/reisehinweise).
+`
+    },
+    {
       id: 'termine',
       title: 'Dates & deadlines',
       icon: 'calendar-event',

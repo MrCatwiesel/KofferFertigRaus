@@ -194,7 +194,7 @@ async function remove() {
         <RouterLink to="/heute" class="quick quick-primary"><i class="bi bi-sun" aria-hidden="true"></i>{{ t('Heute') }}</RouterLink>
       </div>
       <div class="col-6">
-        <RouterLink :to="`/trip/${trip.id}/dokumente?tab=notfall`" class="quick quick-danger"><i class="bi bi-telephone" aria-hidden="true"></i>{{ t('Notfall') }}</RouterLink>
+        <RouterLink :to="`/trip/${trip.id}/sos`" class="quick quick-danger" data-quick-sos><i class="bi bi-heart-pulse" aria-hidden="true"></i>{{ t('Notfall') }}</RouterLink>
       </div>
     </div>
 

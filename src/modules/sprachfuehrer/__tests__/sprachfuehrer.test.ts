@@ -7,7 +7,7 @@ import { LANGUAGE_OF_COUNTRY, allergyCard, matchAllergen, nearbyNote, phrasebook
 describe('Sätze', () => {
   it('jede Gruppe nutzt bekannte Sätze, jeder Satz steht in einer Gruppe oder auf der Allergie-Karte', () => {
     const grouped = new Set(GROUPS.flatMap((g) => g.phrases))
-    for (const id of PHRASE_IDS) expect(grouped.has(id) || ['allergic', 'without', 'contains'].includes(id), id).toBe(true)
+    for (const id of PHRASE_IDS) expect(grouped.has(id) || ['allergic', 'without', 'contains', 'bloodType'].includes(id), id).toBe(true)
     for (const id of PHRASE_IDS) expect(SOURCE[id], id).toBeTruthy()
   })
   it.each(Object.entries(LANGUAGES))('%s ist vollständig', (code, l) => {

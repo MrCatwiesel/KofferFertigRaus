@@ -12,29 +12,36 @@ test('Sprachführer: Sprachen der Reise, Allergie-Karte, Groß zeigen, andere Sp
   await page.locator('[data-lang="hr"]').click()
   await expect(page.locator('[data-phrase="bill"]')).toContainText('Račun, molim.')
 
-  // Allergie-Karte
+  // Allergie-Karte: Allergien gehören zur Person (Gesundheit & Notfall)
+  await expect(page.locator('[data-allergy-card]')).toContainText('Allergien eintragen')
   await page.locator('[data-edit-allergens]').click()
+  await expect(page).toHaveURL(/#\/trip\/t1\/gesundheit\?person=Marco/)
   await page.getByLabel('Erdnüsse').check()
   await page.getByLabel('Gluten').check()
-  await expect(page.locator('[data-allergy-text]')).toContainText('Imam alergiju na:')
-  await expect(page.locator('[data-allergy-text]')).toContainText('kikiriki, gluten')
 
   // Eingetippt: bekanntes Wort wird angehakt und übersetzt, unbekanntes kommt in die eigene Liste
   await page.locator('#own-allergen').fill('Muscheln')
   await page.locator('[data-add-allergen]').click()
   await expect(page.locator('[data-add-note]')).toContainText('Weichtiere')
-  await expect(page.locator('[data-allergy-text]')).toContainText('mekušci')
+  await expect(page.getByLabel('Weichtiere (Muscheln, Tintenfisch)')).toBeChecked()
   await page.locator('#own-allergen').fill('Koriander')
   await page.locator('#own-allergen').press('Enter')
   await expect(page.locator('[data-own-allergens]')).toContainText('Koriander')
-  await expect(page.locator('[data-allergy-text]')).toContainText('Koriander')
-  await page.locator('[data-translate="Koriander"]').fill('korijander')
+  // Übersetzungsfelder für die Sprachen der Reise
+  await page.locator('[data-translate="Koriander"][data-lang="hr"]').fill('korijander')
+  await page.locator('[data-health-save]').click()
+  await expect(page).toHaveURL(/#\/trip\/t1\/sprachfuehrer/)
+  await page.locator('[data-lang="hr"]').click()
+  await expect(page.locator('[data-allergy-text]')).toContainText('Imam alergiju na:')
+  await expect(page.locator('[data-allergy-text]')).toContainText('kikiriki, gluten, mekušci')
   await expect(page.locator('[data-allergy-text]')).toContainText('korijander')
   await page.locator('[data-lang="it"]').click()
   await expect(page.locator('[data-allergy-text]')).toContainText('arachidi, glutine')
   await expect(page.locator('[data-allergy-text]')).toContainText('Koriander') // auf Italienisch noch nicht übersetzt
-  await page.locator('[data-edit-allergens]').click() // Fertig
-  await expect(page.locator('[data-untranslated]')).toContainText('Koriander')
+  await page.locator('[data-untranslated] [data-translate="Koriander"]').fill('coriandolo')
+  await page.locator('[data-untranslated] [data-translate="Koriander"]').press('Enter')
+  await expect(page.locator('[data-allergy-text]')).toContainText('coriandolo')
+  await expect(page.locator('[data-untranslated]')).toHaveCount(0)
 
   // Groß zeigen und schließen
   await page.locator('[data-show-card]').click()

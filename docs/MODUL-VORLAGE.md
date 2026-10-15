@@ -66,6 +66,7 @@ Weitere Andockpunkte (Beispiel: `src/modules/piwigo/index.ts`):
 | `onStart` | einmal nach dem App-Start (Hintergrund-Aufgaben) |
 | `mapOverlays` | Linien auf der Reisekarte (z. B. Routen) |
 | `dayLinks` | Verweise unter einem Tag im Tagebuch |
+| `headerAction` | kleiner Knopf in der Kopfzeile (Komponente, lädt erst bei Bedarf; z. B. Notfall-Herz von `gesundheit`) |
 
 Vollständige Beispiele: `src/modules/accommodation/index.ts` und `src/modules/activity/index.ts`. Für die Kopfzeile von Unterseiten `TripContextHeader` aus `@/modules/trip/public` verwenden.
 

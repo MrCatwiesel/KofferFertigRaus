@@ -342,13 +342,53 @@ Medikamente sind mit [Personen & Rechte](#/hilfe/personen) privat. Über **Wer d
 Läuft ein Dokument vor oder kurz nach der Reise ab, warnt die App – rechtzeitig, denn die Ausstellung kann Wochen dauern.
 
 ## Notfallnummern
-Der Knopf **Notfall** im Reiter „Unterwegs“ führt direkt hierher.
 - Die Nummern des Auswärtigen Amts (Notruf, Polizei, Botschaft) kommen automatisch, wenn Zielländer eingetragen sind.
 - **Eigene Nummern**: Notruf der Auslandskrankenversicherung, Pannendienst, Unterkunft, Hausarzt …
 
-Antippen ruft direkt an. Nummern immer mit Ländervorwahl eintragen.
+Antippen ruft direkt an. Nummern immer mit Ländervorwahl eintragen. **Notfall-Seite öffnen** zeigt alles Wichtige für den Ernstfall auf einen Blick – siehe [Gesundheit & Notfall](#/hilfe/gesundheit).
+
+## Gesundheit
+Im Reiter **Gesundheit** stehen die Allergien, Erkrankungen und Blutgruppen der Mitreisenden – mehr unter [Gesundheit & Notfall](#/hilfe/gesundheit).
 
 > Mit [Personen & Rechte](#/hilfe/personen) sind Dokumente privat; über **Wer darf das sehen?** lassen sie sich freigeben.
+`
+    },
+    {
+      id: 'gesundheit',
+      title: 'Gesundheit & Notfall',
+      icon: 'heart-pulse',
+      group: 'vorbereiten',
+      summary: 'Allergien, Erkrankungen und Blutgruppe je Person – Notfall-Seite in der Landessprache, Notfallkarte als PDF.',
+      routes: ['health-edit', 'emergency'],
+      keywords: 'allergie allergien erkrankung krankheit blutgruppe diabetes asthma herzschrittmacher blutverdünner notfall notruf notfallkarte notfallpass ausweis pdf sos arzt krankenhaus',
+      body: `
+## Angaben je Person
+Unter **Dokumente & Notfall → Gesundheit** (oder über die Kachel **Allergien & Gesundheit** auf der Reiseseite) trägst du für jede Person ein:
+- **Allergien** – rund 30 bekannte, dazu eigene. Kennt die App ein eingetipptes Wort (z. B. „Haselnüsse“), hakt sie das passende Allergen an; unbekannte (z. B. „Koriander“) kommen in eine eigene Liste, mit einem Feld für die Übersetzung je Sprache der Reise.
+- **Erkrankungen**: Blutverdünner, Diabetes, Asthma, Herzschrittmacher – diese übersetzt die App in alle Sprachen. Weitere Erkrankungen und **Hinweise für Helfer** stehen so da, wie du sie schreibst.
+- **Blutgruppe**.
+
+Die Angaben gehören zur Reise und werden mit den anderen Geräten abgeglichen. Bei der nächsten Reise holt **Übernehmen** sie aus der letzten Reise.
+
+## Wer sieht das?
+Standardmäßig alle Mitreisenden – im Notfall sollen sie helfen können. Ist ein Teilnehmer mit [Personen & Rechte](#/hilfe/personen) einem Konto verknüpft, legt nur diese Person selbst fest, wer ihre Angaben sieht, und nur sie kann sie ändern.
+
+## Notfall-Seite
+Während der Reise steht oben in der Kopfzeile ein rotes **Herz** – es öffnet die Notfall-Seite:
+- **Notruf** des Landes (aus dem [Länder-Spickzettel](#/hilfe/laender)) – antippen ruft an. Bei mehreren Ländern oben wählen.
+- Auch der große Knopf **Notfall** im Reiter „Unterwegs“ der Reiseseite führt hierher.
+- Für jede Person die Allergien, Erkrankungen und Blutgruppe **in der Landessprache**, mit Übersetzung darunter, dazu Dauer- und Notfallmedikamente aus der [Reiseapotheke](#/hilfe/apotheke).
+- **Groß zeigen** zum Hinhalten, **Vorlesen**, und die eigenen Notfallnummern.
+
+Im Tagesplan steht bei Restaurants ein Verweis auf die **Allergie-Karte** im [Sprachführer](#/hilfe/sprachfuehrer).
+
+## Notfallkarte als PDF
+**PDF erstellen** macht je Person eine Karte im Scheckkartenformat: vorne die Landessprache, hinten deine Sprache. Ausdrucken, ausschneiden, falten und zum Ausweis stecken.
+
+## Notfallpass des Telefons
+Ist die App gesperrt, kommen Helfer nicht an die Notfall-Seite. Trag das Wichtigste deshalb auch in den Notfallpass des Telefons ein (iPhone: App *Health* → *Notfallpass*) – der lässt sich am gesperrten Telefon öffnen. **Für den Notfallpass kopieren** legt den passenden Text in die Zwischenablage.
+
+> Die App ersetzt keine ärztliche Beratung. Übersetzungen ohne Gewähr – wichtige Angaben am besten vom Arzt bestätigen lassen.
 `
     },
     {
@@ -410,11 +450,11 @@ Für die **Zielländer** der Reise (auch Durchreiseländer) zeigt der Sprachfüh
 - Griechisch steht zusätzlich in lateinischer Umschrift da.
 
 ## Allergie-Karte
-Unter **Allergien wählen** hakst du an, wogegen du allergisch bist – rund 30 Allergene, von Erdnüssen, Gluten und Milch über Muscheln, Kiwi und Knoblauch bis zu Penicillin, Aspirin, Jod und Latex. Daraus entsteht ein Satz in der Landessprache: „Ich habe eine Allergie gegen: … Bitte ohne diese Zutaten – das ist für mich gefährlich.“ – am besten **Groß zeigen**. Die Auswahl bleibt nur auf diesem Gerät.
+Die Allergien stehen bei jeder Person unter [Gesundheit & Notfall](#/hilfe/gesundheit) – **Allergien eintragen** bzw. **Ändern** führt dorthin. Daraus entsteht ein Satz in der Landessprache: „Ich habe eine Allergie gegen: … Bitte ohne diese Zutaten – das ist für mich gefährlich.“ – am besten **Groß zeigen**. Haben mehrere Mitreisende Allergien, wählst du oben die Person.
 
-**Weitere Allergie** eintippen: Kennt die App das Wort (z. B. „Haselnüsse“ oder „Muscheln“), hakt sie das passende Allergen an und übersetzt es. Unbekannte Wörter (z. B. „Koriander“) landen in deiner eigenen Liste – darunter trägst du die Übersetzung für die gerade gewählte Sprache ein. Ohne Internet kann die App eigene Wörter nicht übersetzen; fehlt eine Übersetzung, steht das Wort so auf der Karte, wie du es eingegeben hast, und die App weist darauf hin.
+Eigene Allergien, die die App nicht kennt (z. B. „Koriander“), stehen so auf der Karte, wie sie eingegeben wurden. Fehlt die Übersetzung für die gewählte Sprache, kannst du sie direkt unter der Karte eintragen.
 
-> Bei Notfällen hilft der Satz „Ich nehme Blutverdünner.“ – zusammen mit Notrufnummern im [Länder-Spickzettel](#/hilfe/laender).
+> Für Notfälle: Die [Notfall-Seite](#/hilfe/gesundheit) zeigt Notruf, Allergien, Erkrankungen und Medikamente aller Mitreisenden in der Landessprache.
 `
     },
     {
@@ -756,7 +796,7 @@ Ohne Personen sieht und ändert jedes verbundene Gerät alles. Mit Personen beko
 Je Reise lässt sich das abweichend einstellen – bis **Kein Zugriff**: Dann kommt die Reise gar nicht erst auf die Geräte der Person.
 
 ## Privat
-Bei der Reise unter **Wer reist mit?** jeden Namen **mit Konto verknüpfen**. Dann sind **Packliste, Medikamente, Impfungen und Dokumente** dieser Person privat – nur sie sieht sie, auch Verwalter nicht. Einzelne Dokumente oder Medikamente gibt man über **Wer darf das sehen?** frei (z. B. den Allergiepass).
+Bei der Reise unter **Wer reist mit?** jeden Namen **mit Konto verknüpfen**. Dann sind **Packliste, Medikamente, Impfungen und Dokumente** dieser Person privat – nur sie sieht sie, auch Verwalter nicht. Einzelne Dokumente oder Medikamente gibt man über **Wer darf das sehen?** frei (z. B. den Allergiepass). Die Angaben unter [Gesundheit & Notfall](#/hilfe/gesundheit) (Allergien, Erkrankungen) sind ebenso geschützt, aber von Anfang an für alle freigegeben – für den Notfall.
 
 Nicht verknüpfte Namen (z. B. Kinder) sieht die ganze Gruppe.
 `

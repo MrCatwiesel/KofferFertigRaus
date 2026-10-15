@@ -170,6 +170,27 @@ test('Private Einträge: nur für verknüpfte Person sichtbar, Freigabe an alle'
   assert.ok(visible(await pullAll(s.lea), 'documents/d-inr'))
 })
 
+test('Gesundheit (Allergien) ist privat wie Medikamente – Freigabe an alle für den Notfall', async () => {
+  const r = await call('POST', '/api/push', s.birgit, {
+    changes: [
+      { tbl: 'healthProfiles', id: 'T1:gesundheit:Birgit', stamp: stamp(4), data: { id: 'T1:gesundheit:Birgit', tripId: 'T1', person: 'Birgit', allergens: ['peanuts'], sharedWith: [] } }
+    ]
+  })
+  assert.equal(r.body.accepted, 1)
+  assert.ok(!visible(await pullAll(s.marco), 'healthProfiles/T1:gesundheit:Birgit'))
+  await call('POST', '/api/push', s.birgit, {
+    changes: [
+      { tbl: 'healthProfiles', id: 'T1:gesundheit:Birgit', stamp: stamp(5), data: { id: 'T1:gesundheit:Birgit', tripId: 'T1', person: 'Birgit', allergens: ['peanuts'], sharedWith: ['*'] } }
+    ]
+  })
+  assert.ok(visible(await pullAll(s.marco), 'healthProfiles/T1:gesundheit:Birgit'))
+  // Ändern darf es trotzdem nur Birgit
+  const x = await call('POST', '/api/push', s.marco, {
+    changes: [{ tbl: 'healthProfiles', id: 'T1:gesundheit:Birgit', stamp: stamp(6), data: { id: 'T1:gesundheit:Birgit', tripId: 'T1', person: 'Birgit', allergens: [], sharedWith: ['*'] } }]
+  })
+  assert.equal(x.body.rejected[0]?.reason, 'privat')
+})
+
 test('Fremde private Einträge ändern/löschen → abgelehnt, Server-Fassung kommt zurück', async () => {
   const r = await call('POST', '/api/push', s.marco, {
     changes: [

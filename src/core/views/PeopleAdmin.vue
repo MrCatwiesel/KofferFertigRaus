@@ -314,7 +314,7 @@ function assignDevice(d: Device, memberId: string) {
       <ul class="mt-2">
         <li><strong>{{ t('Verwalter') }}</strong> {{ t('laden ein, vergeben Rollen und Rechte je Reise.') }} <strong>{{ t('Mitglieder') }}</strong> {{ t('bearbeiten alle Reisen,') }} <strong>{{ t('Nur lesen') }}</strong> {{ t('sieht alles, ändert nichts.') }}</li>
         <li>{{ t('Je Reise lässt sich das abweichend einstellen – bis „Kein Zugriff“: Dann kommt die Reise gar nicht erst auf die Geräte der Person.') }}</li>
-        <li><strong>{{ t('Privat:') }}</strong> {{ t('Packliste, Medikamente, Impfungen und Dokumente einer Person sieht nur sie selbst – sobald ihr Teilnehmer-Name an der Reise mit ihrem Konto verknüpft ist (Reise bearbeiten → „Wer reist mit?“). Auch Verwalter sehen sie nicht.') }}</li>
+        <li><strong>{{ t('Privat:') }}</strong> {{ t('Packliste, Medikamente, Impfungen und Dokumente einer Person sieht nur sie selbst – sobald ihr Teilnehmer-Name an der Reise mit ihrem Konto verknüpft ist (Reise bearbeiten → „Wer reist mit?“). Auch Verwalter sehen sie nicht. Allergien und Erkrankungen sind für den Notfall zunächst für alle freigegeben.') }}</li>
         <li>{{ t('Dokumente und Medikamente (z. B. Allergiepass, INR-Ausweis) kann die Person selbst freigeben – für alle oder ausgewählte Personen.') }}</li>
         <li>{{ t('Nicht verknüpfte Teilnehmer (z. B. Kinder) und Einträge „für alle“ sieht die ganze Gruppe.') }}</li>
         <li>{{ t('Der Server setzt die Rechte durch. Geräte ohne Person (Gruppenschlüssel) haben weiterhin vollen Zugriff – den Schlüssel also gut aufbewahren.') }}</li>

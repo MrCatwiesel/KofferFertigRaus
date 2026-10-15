@@ -32,7 +32,7 @@ export interface Trip {
   sample?: boolean
   /**
    * Teilnehmer-Name → Person beim Abgleich-Server (Personen & Rechte). Verknüpfte Teilnehmer haben private
-   * Packliste, Medikamente, Impfungen und Dokumente.
+   * Packliste, Medikamente, Impfungen, Dokumente und Gesundheit (Allergien; standardmäßig für alle freigegeben).
    */
   memberLinks?: Record<string, string>
   /** Unwetterwarnungen: für die Orte der Reise, das ganze Land oder aus; dazu von Hand beobachtete Regionen */

@@ -7,6 +7,7 @@ import { formatDate, formatDayShort } from '@/core/format'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
 import { DueReminders } from '@/modules/termine/public'
 import { WarningBanner } from '@/modules/unwetter/public'
+import { useAllergyLink } from '@/modules/gesundheit/public'
 import { CATEGORY, PRIORITY, SETTING, activityRepository, type Activity } from '@/modules/activity/public'
 import { describeCode, fetchDailyForecast, type Place } from '@/services/weather'
 import { weatherRepository } from '../repository'
@@ -23,6 +24,8 @@ const online = useOnline()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const activities = useLiveQuery(() => activityRepository.listByTrip(props.tripId), [] as Activity[])
 const cache = useLiveQuery(() => weatherRepository.get(props.tripId), undefined as WeatherCache | undefined)
+// Bei Restaurants: Verweis auf die Allergie-Karte (nur wenn jemand Allergien eingetragen hat)
+const allergyLink = useAllergyLink(props.tripId)
 
 const day = ref('')
 const changingPlace = ref(false)
@@ -198,6 +201,9 @@ const plannedCountByDate = computed(() => {
               <template v-if="p.activity.durationHours"> {{ t('· {durationHours} Std.', { durationHours: p.activity.durationHours }) }}</template>
               <template v-if="p.activity.openingHours"> · {{ p.activity.openingHours }}</template>
             </div>
+            <RouterLink v-if="allergyLink && p.activity.category === 'essen'" :to="allergyLink.to" class="small d-inline-block text-danger" data-allergy-hint>
+              <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ allergyLink.label }}
+            </RouterLink>
             <div v-for="w in p.warnings" :key="w" class="small text-danger">
               <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ w }}
             </div>

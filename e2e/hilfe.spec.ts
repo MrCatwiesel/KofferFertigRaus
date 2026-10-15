@@ -52,6 +52,7 @@ test('Willkommen: Beispielreise anlegen, ansehen und wieder löschen', async ({ 
   expect(await count(page, 'polls')).toBe(1)
   expect(await count(page, 'packingItems')).toBeGreaterThan(20)
   expect(await count(page, 'checklistItems')).toBeGreaterThan(14) // zu Hause + Auschecken aus der Ferienwohnung
+  expect(await count(page, 'healthProfiles')).toBe(2) // Anna (Erdnüsse), Ben (Blutverdünner)
 
   // Stichproben in den Bereichen
   await page.goto(`/#/trip/${tripId}/karte`)
@@ -74,7 +75,7 @@ test('Willkommen: Beispielreise anlegen, ansehen und wieder löschen', async ({ 
   await page.locator('[data-sample-note]').getByRole('button', { name: 'Beispielreise löschen' }).click()
   await expect(page).toHaveURL(/#\/trip$/)
   await expect(page.locator('[data-welcome]')).toBeVisible()
-  for (const t of ['trips', 'travelLegs', 'accommodations', 'activities', 'places', 'expenses', 'journalEntries', 'polls', 'pollVotes', 'packingItems', 'checklistItems', 'documents', 'emergencyContacts', 'weather'])
+  for (const t of ['trips', 'travelLegs', 'accommodations', 'activities', 'places', 'expenses', 'journalEntries', 'polls', 'pollVotes', 'packingItems', 'checklistItems', 'healthProfiles', 'documents', 'emergencyContacts', 'weather'])
     expect(await count(page, t), t).toBe(0)
 })
 

@@ -188,6 +188,8 @@ export interface AppModule {
   dayFacts?: (tripId: string, date: string) => Promise<DayFact[]>
   /** Beispiel-Einträge für die Beispielreise anlegen (Hilfe & Einführung) */
   sampleData?: (sample: SampleTrip) => Promise<void>
+  /** Kleiner Knopf in der Kopfzeile (z. B. Notfall während der Reise); die Komponente entscheidet selbst, ob sie etwas zeigt */
+  headerAction?: () => Promise<Component | { default: Component }>
 }
 
 const modules: AppModule[] = []
@@ -252,6 +254,13 @@ export async function notifyPhotosAdded(photos: AddedPhoto[]): Promise<void> {
       console.error(`[${m.id}] onPhotosAdded`, e)
     }
   }
+}
+
+/** Knöpfe der Module für die Kopfzeile */
+export function getHeaderActions(): { id: string; load: () => Promise<Component | { default: Component }> }[] {
+  return getModules()
+    .filter((m) => m.headerAction)
+    .map((m) => ({ id: m.id, load: m.headerAction! }))
 }
 
 /** Startet die Hintergrund-Aufgaben der Module. */

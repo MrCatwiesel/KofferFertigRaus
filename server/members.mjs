@@ -4,7 +4,7 @@
  *  - Personen (`members`) mit Rolle: verwalter (Personen und Rechte verwalten), mitglied (bearbeiten), leser (nur lesen).
  *    Anmelden per Einladung (legt das Passwort fest) oder mit Name + Passwort auf weiteren Geräten.
  *  - Je Reise abweichend: bearbeiten / lesen / kein (Reise wird gar nicht ausgeliefert). Verwalter haben immer Zugriff.
- *  - Private Einträge: Packliste, Medikamente, Impfungen und Dokumente einer Person, deren Teilnehmer-Name an der Reise
+ *  - Private Einträge: Packliste, Medikamente, Impfungen, Dokumente und Gesundheit (Allergien) einer Person, deren Teilnehmer-Name an der Reise
  *    mit ihrem Konto verknüpft ist (`trip.memberLinks[name] = memberId`). Sichtbar nur für sie selbst und für die
  *    Personen in `sharedWith` (`'*'` = alle). Nicht verknüpfte Teilnehmer und „für alle“ bleiben für die Gruppe sichtbar.
  *  - Abstimmungen: die Stimme (`pollVotes`) eines verknüpften Teilnehmers gibt nur die Person selbst ab – auch mit „nur lesen“.
@@ -19,7 +19,7 @@ import { HttpError } from './http.mjs'
 export const ROLES = ['verwalter', 'mitglied', 'leser']
 export const TRIP_ROLES = ['bearbeiten', 'lesen', 'kein']
 /** Tabellen mit persönlichen Einträgen (Feld `person`). */
-export const PRIVATE_TABLES = new Set(['packingItems', 'medications', 'vaccinations', 'documents'])
+export const PRIVATE_TABLES = new Set(['packingItems', 'medications', 'vaccinations', 'documents', 'healthProfiles'])
 
 const MIN_PASSWORD = 8
 
@@ -106,7 +106,7 @@ export function createMembers(store) {
     tripRecords: db.prepare(`SELECT tbl, id FROM records WHERE space = ? AND deleted = 0
       AND ((tbl = 'trips' AND id = ?) OR json_extract(data, '$.tripId') = ?)`),
     privateRecords: db.prepare(`SELECT tbl, id FROM records WHERE space = ? AND deleted = 0
-      AND tbl IN ('packingItems', 'medications', 'vaccinations', 'documents')
+      AND tbl IN ('packingItems', 'medications', 'vaccinations', 'documents', 'healthProfiles')
       AND (? IS NULL OR json_extract(data, '$.tripId') = ?)`)
   }
 

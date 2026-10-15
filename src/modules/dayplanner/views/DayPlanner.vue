@@ -13,6 +13,7 @@ import { weatherRepository } from '../repository'
 import { forecastAvailableFrom, initialDay, inForecastRange, isRainy, isStale, planDay, tripDates } from '../logic'
 import type { WeatherCache } from '../types'
 import PlaceSearch from '../components/PlaceSearch.vue'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const route = useRoute()
@@ -61,7 +62,7 @@ async function loadWeather(place: Place) {
     await weatherRepository.put({ tripId: props.tripId, place: { ...place }, fetchedAt: new Date().toISOString(), days })
     changingPlace.value = false
   } catch (e) {
-    weatherError.value = online.value ? (e as Error).message : 'Offline – es wird die zuletzt geladene Vorhersage gezeigt.'
+    weatherError.value = online.value ? (e as Error).message : t('Offline – es wird die zuletzt geladene Vorhersage gezeigt.')
   } finally {
     loadingWeather.value = false
   }
@@ -77,7 +78,7 @@ const ageText = computed(() => {
   // Ohne Abrufzeit (Ort gesetzt, Vorhersage noch nicht geladen – z. B. Beispielreise) kein Alter
   if (!cache.value?.fetchedAt) return ''
   const h = Math.round((Date.now() - Date.parse(cache.value.fetchedAt)) / 3_600_000)
-  return h < 1 ? 'gerade eben' : h < 24 ? `vor ${h} Std.` : `vor ${Math.round(h / 24)} Tagen`
+  return h < 1 ? t('gerade eben') : h < 24 ? t('vor {n} Std.', { n: h }) : t('vor {n} Tagen', { n: Math.round(h / 24) })
 })
 
 async function planIt(a: Activity) {
@@ -184,7 +185,7 @@ const plannedCountByDate = computed(() => {
       <li v-for="p in plan.planned" :key="p.activity.id" class="list-group-item">
         <div class="d-flex gap-2 align-items-start">
           <button type="button" class="btn btn-sm flex-none" :class="p.activity.status === 'erledigt' ? 'btn-success' : 'btn-outline-success'"
-                  :aria-label="p.activity.status === 'erledigt' ? 'Nicht erledigt' : 'Erledigt'" @click="toggleDone(p.activity)">
+                  :aria-label="p.activity.status === 'erledigt' ? t('Nicht erledigt') : t('Erledigt')" @click="toggleDone(p.activity)">
             <i class="bi bi-check-lg" aria-hidden="true"></i>
           </button>
           <div class="flex-grow-1 min-w-0">
@@ -255,7 +256,7 @@ const plannedCountByDate = computed(() => {
       </div>
     </div>
     <button v-if="plan.suggestions.length > 5" type="button" class="btn btn-link btn-sm px-0 mb-3" @click="showAllSuggestions = !showAllSuggestions">
-      {{ showAllSuggestions ? 'Weniger zeigen' : `Alle ${plan.suggestions.length} Vorschläge zeigen` }}
+      {{ showAllSuggestions ? t('Weniger zeigen') : t('Alle {n} Vorschläge zeigen', { n: plan.suggestions.length }) }}
     </button>
 
     <details v-if="plan.closed.length" class="small text-body-secondary mb-3">

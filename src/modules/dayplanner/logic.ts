@@ -2,6 +2,7 @@ import { addDays, diffDays, todayIso } from '../../core/dates'
 import { describeCode, FORECAST_DAYS, type DailyWeather } from '../../services/weather'
 import { formatRanges, openOn, WEEKDAY_NAMES, weekdayOf } from '../../services/openingHours'
 import type { Activity } from '../activity/types'
+import { t } from '@/i18n'
 
 /** Ab so vielen Stunden Programm gilt ein Tag als voll. */
 export const FULL_DAY_HOURS = 8
@@ -105,17 +106,17 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
       if (rainy) {
         if (a.setting === 'innen') {
           score += 25
-          reasons.push('Drinnen – gut bei Regen')
+          reasons.push(t('Drinnen – gut bei Regen'))
         } else if (a.setting === 'gemischt') {
           score += 5
         } else {
           score -= 40
-          reasons.push('Draußen – bei Regen ungünstig')
+          reasons.push(t('Draußen – bei Regen ungünstig'))
         }
       } else if (nice) {
         if (a.setting === 'aussen') {
           score += 15
-          reasons.push('Draußen – schönes Wetter')
+          reasons.push(t('Draußen – schönes Wetter'))
         } else if (a.setting === 'innen') {
           score -= 5
         }
@@ -124,13 +125,13 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
 
     if (open.state === 'offen') {
       score += 5
-      reasons.push(`geöffnet ${formatRanges(open.hours)}`)
+      reasons.push(t('geöffnet {formatRanges}', { formatRanges: formatRanges(open.hours) }))
     }
     if (a.durationHours && plannedHours + a.durationHours > FULL_DAY_HOURS) {
       score -= 10
-      notes.push('Tag würde sehr voll')
+      notes.push(t('Tag würde sehr voll'))
     }
-    if (a.bookingRequired) notes.push('Reservierung nötig')
+    if (a.bookingRequired) notes.push(t('Reservierung nötig'))
     suggestions.push({ activity: a, score, reasons, notes })
   }
 
@@ -144,7 +145,7 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
       const open = openOn(a.openingHours, date)
       if (open.state === 'geschlossen') warnings.push(`Am ${weekday} geschlossen`)
       if (rainy && a.setting === 'aussen') {
-        warnings.push('Regen erwartet')
+        warnings.push(t('Regen erwartet'))
         alternative = indoorAlternatives[0]?.activity
       }
     }
@@ -152,8 +153,8 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
   })
 
   const dayWarnings: string[] = []
-  if (plannedHours > FULL_DAY_HOURS) dayWarnings.push(`Über ${FULL_DAY_HOURS} Stunden Programm – Pausen einplanen`)
-  if (weather && weather.tempMax >= 32) dayWarnings.push('Sehr heiß – Programm in den Morgen oder Abend legen, viel trinken')
+  if (plannedHours > FULL_DAY_HOURS) dayWarnings.push(t('Über {FULL_DAY_HOURS} Stunden Programm – Pausen einplanen', { FULL_DAY_HOURS }))
+  if (weather && weather.tempMax >= 32) dayWarnings.push(t('Sehr heiß – Programm in den Morgen oder Abend legen, viel trinken'))
 
   return { planned, suggestions, closed, plannedHours, dayWarnings }
 }

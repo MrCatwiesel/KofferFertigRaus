@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { formatMoney } from '@/core/format'
+import { formatDate, formatMoney } from '@/core/format'
 import { resizeBlob } from '@/services/images'
 import { TripContextHeader, participantsOf, tripRepository, type Trip } from '@/modules/trip/public'
 import { expenseRepository } from '../repository'
@@ -11,6 +11,7 @@ import { currencyName, currencyOf } from '@/core/countries'
 import { todayIso } from '@/core/dates'
 import { getMeta, setMeta } from '@/core/meta'
 import { getRate, type Rate } from '@/services/exchange'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -48,11 +49,11 @@ async function loadRate(force = false) {
 }
 watch(() => [draft.currency, draft.date], () => ready.value && void loadRate())
 const rateHint = computed(() => {
-  if (rateState.value === 'laedt') return 'Kurs wird abgefragt …'
-  if (rateState.value === 'fehlt') return `Kein EZB-Kurs für ${draft.currency} verfügbar – bitte Kurs eintragen (z. B. vom Kontoauszug oder Wechselbeleg).`
+  if (rateState.value === 'laedt') return t('Kurs wird abgefragt …')
+  if (rateState.value === 'fehlt') return t('Kein EZB-Kurs für {currency} verfügbar – bitte Kurs eintragen (z. B. vom Kontoauszug oder Wechselbeleg).', { currency: draft.currency })
   if (rateTouched.value || !rateInfo.value) return ''
-  const d = rateInfo.value.date.split('-').reverse().join('.')
-  return `EZB-Referenzkurs vom ${d}${rateInfo.value.cached ? ' (gespeichert, offline)' : ''}`
+  const d = formatDate(rateInfo.value.date)
+  return rateInfo.value.cached ? t('EZB-Referenzkurs vom {date} (gespeichert, offline)', { date: d }) : t('EZB-Referenzkurs vom {date}', { date: d })
 })
 
 onMounted(async () => {
@@ -134,14 +135,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm('Diese Ausgabe löschen?')) return
+  if (!props.id || !confirm(t('Diese Ausgabe löschen?'))) return
   await expenseRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Ausgabe bearbeiten' : 'Neue Ausgabe'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Ausgabe bearbeiten') : t('Neue Ausgabe')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-7 col-md-4">
@@ -197,7 +198,7 @@ async function remove() {
         <div class="btn-group flex-wrap" role="group" :aria-label="t('Bezahlt von')">
           <template v-for="p in ['', ...people]" :key="p || '-'">
             <input :id="`pb-${p || '-'}`" v-model="draft.paidBy" type="radio" class="btn-check" :value="p" />
-            <label class="btn btn-outline-primary" :for="`pb-${p || '-'}`">{{ p || 'gemeinsame Kasse' }}</label>
+            <label class="btn btn-outline-primary" :for="`pb-${p || '-'}`">{{ p || t('gemeinsame Kasse') }}</label>
           </template>
         </div>
       </div>
@@ -221,7 +222,7 @@ async function remove() {
       </div>
       <label class="btn btn-outline-secondary">
         <span v-if="receiptBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-        <i v-else class="bi bi-camera me-1" aria-hidden="true"></i>{{ draft.receipt ? 'Anderes Foto' : 'Beleg fotografieren' }}
+        <i v-else class="bi bi-camera me-1" aria-hidden="true"></i>{{ draft.receipt ? t('Anderes Foto') : t('Beleg fotografieren') }}
         <input type="file" accept="image/*" capture="environment" class="d-none" @change="addReceipt" />
       </label>
     </div>

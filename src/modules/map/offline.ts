@@ -6,6 +6,7 @@
 import { db } from '@/core/db'
 import { ServerClient } from '@/core/sync/client'
 import { requestPersistentStorage } from '@/core/storage'
+import { t } from '@/i18n'
 
 /** [West, Süd, Ost, Nord] in Grad */
 export type Bbox = [number, number, number, number]
@@ -35,9 +36,9 @@ export interface ServerMap {
 }
 
 export const DETAIL_LEVELS = [
-  { zoom: 13, label: 'Übersicht', hint: 'Straßen, Orte – kleinste Datei' },
-  { zoom: 14, label: 'Normal', hint: 'dazu Gebäude und Nebenstraßen' },
-  { zoom: 15, label: 'Wandern', hint: 'alle Wege und Hütten – größte Datei' }
+  { zoom: 13, label: t('Übersicht'), hint: t('Straßen, Orte – kleinste Datei') },
+  { zoom: 14, label: t('Normal'), hint: t('dazu Gebäude und Nebenstraßen') },
+  { zoom: 15, label: t('Wandern'), hint: t('alle Wege und Hütten – größte Datei') }
 ] as const
 
 /** Größter Ausschnitt, den der Server annimmt (Grad je Richtung). */
@@ -114,7 +115,7 @@ export class MapsApi {
     for (;;) {
       const m = await this.get(id)
       if (m.status === 'fertig') return m
-      if (m.status === 'fehler') throw new Error(m.error || 'Der Server konnte die Karte nicht erstellen.')
+      if (m.status === 'fehler') throw new Error(m.error || t('Der Server konnte die Karte nicht erstellen.'))
       if (signal?.aborted) throw new Error('Abgebrochen.')
       onTick?.(Math.round((Date.now() - started) / 1000))
       await new Promise((r) => setTimeout(r, 2000))

@@ -4,9 +4,11 @@
  */
 import L from 'leaflet'
 import type { OfflineMap } from './offline'
+import { t } from '@/i18n'
 
 export const OFFLINE_ATTRIBUTION =
-  '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © <a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+  '<a href="https://protomaps.com" target="_blank" rel="noopener">Protomaps</a> © ' +
+  t('{osm}-Mitwirkende', { osm: '<a href="https://openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
 
 /** Eine Ebene je Karte, jeweils auf ihren Ausschnitt begrenzt (mehrere Karten ergänzen sich). */
 export async function createOfflineLayers(maps: OfflineMap[], dark: boolean): Promise<L.Layer[]> {

@@ -116,8 +116,9 @@ const badge = (level: string) => (level === 'danger' ? 'text-bg-danger' : level 
               </ul>
             </details>
             <div class="small text-body-secondary">
-              {{ t('Botschaft{mainMissions} und Honorarkonsuln am Reiseziel stehen auch unter', { mainMissions: mainMissions(infoOf(c)!).length > 1 ? 'en' : '' }) }}
-              <RouterLink :to="`/trip/${tripId}/dokumente?tab=notfall`">{{ t('Notfallnummern') }}</RouterLink>.
+              <Tx :text="mainMissions(infoOf(c)!).length > 1 ? tk('Botschaften und Honorarkonsuln am Reiseziel stehen auch unter {link}.') : tk('Botschaft und Honorarkonsuln am Reiseziel stehen auch unter {link}.')">
+                <template #link><RouterLink :to="`/trip/${tripId}/dokumente?tab=notfall`">{{ t('Notfallnummern') }}</RouterLink></template>
+              </Tx>
             </div>
           </div>
           <details v-for="s in infoOf(c)!.sections" :key="s.title" class="info-section" @toggle="seen(infoOf(c)!)">

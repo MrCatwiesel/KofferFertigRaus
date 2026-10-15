@@ -176,8 +176,11 @@ async function remove() {
       <button type="button" class="btn btn-outline-danger ms-auto" @click="remove"><i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}</button>
     </div>
     <p class="small text-body-secondary">
-      {{ t('GPX aufs Gerät:') }} <strong>{{ t('GPSMap') }}</strong> {{ t('per USB in den Ordner') }} <code>Garmin/GPX</code> {{ t('kopieren (oder Basecamp);') }}
-      <strong>{{ t('Fenix') }}</strong> {{ t('über Garmin Connect → Training & Planung → Strecken → „Strecke importieren“ und dann ans Gerät senden.') }}
+      <Tx text="GPX aufs Gerät: {gpsmap} per USB in den Ordner {folder} kopieren (oder Basecamp); {fenix} über Garmin Connect → Training & Planung → Strecken → „Strecke importieren“ und dann ans Gerät senden.">
+        <template #gpsmap><strong>GPSMap</strong></template>
+        <template #folder><code>Garmin/GPX</code></template>
+        <template #fenix><strong>Fenix</strong></template>
+      </Tx>
     </p>
   </template>
 </template>

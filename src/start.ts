@@ -12,7 +12,7 @@ import { startModules } from './core/registry'
 import { startAppearance } from './ui/appearance'
 import { startLock } from './core/lock'
 import { startPush } from './core/push'
-import { intlLocale, t, tn } from './i18n'
+import { intlLocale, t, tk, tn } from './i18n'
 import Tx from './i18n/Tx'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
@@ -27,6 +27,7 @@ const app = createApp(App)
 // Übersetzen in jeder Vorlage ohne Import: {{ t('…') }}
 app.config.globalProperties.t = t
 app.config.globalProperties.tn = tn
+app.config.globalProperties.tk = tk
 app.config.globalProperties.intlLocale = intlLocale
 // Sätze mit Link/Code darin: <Tx text="… {link} …"><template #link>…</template></Tx>
 app.component('Tx', Tx)

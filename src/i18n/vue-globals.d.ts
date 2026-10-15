@@ -8,6 +8,7 @@ declare module 'vue' {
   interface ComponentCustomProperties {
     t: typeof import('./index').t
     tn: typeof import('./index').tn
+    tk: typeof import('./index').tk
     intlLocale: typeof import('./index').intlLocale
   }
 }

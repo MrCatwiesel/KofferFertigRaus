@@ -137,8 +137,8 @@ function touchEnd(e: TouchEvent) {
           <template v-else-if="hint === 'ios'">
             <p>{{ t('Auf dem iPad oder iPhone gehört die App auf den Home-Bildschirm. Dann behält Safari die Daten zuverlässig, und Face ID und Benachrichtigungen funktionieren.') }}</p>
             <ol class="mb-0">
-              <li>{{ t('In Safari auf') }} <strong>{{ t('Teilen') }}</strong> {{ t('tippen') }} <i class="bi bi-box-arrow-up" aria-hidden="true"></i></li>
-              <li><strong>{{ t('Zum Home-Bildschirm') }}</strong> {{ t('wählen') }}</li>
+              <li><Tx text="In Safari auf {share} tippen"><template #share><strong>{{ t('Teilen') }}</strong> <i class="bi bi-box-arrow-up" aria-hidden="true"></i></template></Tx></li>
+              <li><Tx text="{item} wählen"><template #item><strong>{{ t('Zum Home-Bildschirm') }}</strong></template></Tx></li>
               <li>{{ t('Die App ab jetzt über das neue Symbol öffnen') }}</li>
             </ol>
           </template>

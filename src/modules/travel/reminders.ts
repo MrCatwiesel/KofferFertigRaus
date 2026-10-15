@@ -1,8 +1,8 @@
-import { shiftDate, type Reminder, type ReminderTrip } from '@/core/reminders'
+import type { Reminder, ReminderTrip } from '@/core/reminders'
 import { MODE, type TravelLeg } from './types'
 import { t } from '@/i18n'
 
-/** Abfahrt jeder Etappe; bei Flügen zusätzlich der Online-Check-in (meist 24–48 h vorher möglich) */
+/** Abfahrt jeder Etappe (den Online-Check-in vor Flügen liefert das Modul „Abreise-Checklisten“) */
 export function travelReminders(legs: TravelLeg[], trip: ReminderTrip): Reminder[] {
   const out: Reminder[] = []
   for (const l of legs) {
@@ -14,8 +14,6 @@ export function travelReminders(legs: TravelLeg[], trip: ReminderTrip): Reminder
       kind: 'termin', title: `${MODE[l.mode].label}: ${route}`, location: l.from || undefined, detail: l.bookingRef ? t('Buchung {bookingRef}', { bookingRef: l.bookingRef }) : undefined,
       alarmMinutes: l.mode === 'flug' ? 180 : l.departTime ? 120 : undefined, to
     })
-    if (l.mode === 'flug')
-      out.push({ id: `leg:${l.id}:checkin`, tripId: trip.id, date: shiftDate(l.date, -1), time: l.departTime || undefined, kind: 'frist', title: t('Online-Check-in: {route}', { route }), alarmMinutes: 0, to })
   }
   return out
 }

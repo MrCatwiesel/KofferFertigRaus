@@ -275,6 +275,32 @@ Also handy: **Take over from another trip**.
 `
     },
     {
+      id: 'checklisten',
+      title: 'Departure checklists',
+      icon: 'clipboard-check',
+      group: 'vorbereiten',
+      summary: 'At home before leaving, online check-in and checking out of your accommodation – tick off.',
+      routes: ['checklists'],
+      keywords: 'checklist departure leaving home hob windows plants post check-out accommodation key safe online check-in flight boarding pass forget',
+      body: `
+Three lists so nothing is forgotten at the last minute:
+
+- **Before you go** – at home: hob off, windows closed, plants, post … The first time, tap **Use suggestions**, add your own items and remove anything that doesn't fit with the **×**. For your next trip you can **copy** the list with one tap – including your own items.
+- **Online check-in** – for every flight from [Getting there & back](#/hilfe/anreise), to tick off.
+- **Check-out** – a list for every booked [accommodation](#/hilfe/unterkuenfte), with suggestions to suit the type: safe and minibar in a hotel, rubbish and dishes in a holiday flat, electricity and gas bottle at the campsite.
+
+**More suggestions** shows what else the app offers; **Remove all ticks** resets a list.
+
+## Reminders
+Open items appear under [Today](#/hilfe/heute) and in the [dates list](#/hilfe/termine) – also as notifications and in the calendar subscription:
+- home the day before departure,
+- online check-in the day before the flight,
+- check-out on the day you leave the accommodation.
+
+Once everything is ticked off, the reminder disappears.
+`
+    },
+    {
       id: 'apotheke',
       title: 'Medicine kit and vaccinations',
       icon: 'capsule',

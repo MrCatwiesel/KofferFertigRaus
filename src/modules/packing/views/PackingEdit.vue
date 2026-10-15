@@ -5,6 +5,7 @@ import { PersonSelect, TripContextHeader } from '@/modules/trip/public'
 import { packingRepository } from '../repository'
 import { emptyPackingDraft, validatePacking } from '../logic'
 import { CATEGORY, type PackingDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id: string }>()
 const router = useRouter()
@@ -30,7 +31,7 @@ async function save() {
 }
 
 async function remove() {
-  if (!confirm(`„${draft.name}“ von der Liste nehmen?`)) return
+  if (!confirm(t('„{name}“ von der Liste nehmen?', { name: draft.name }))) return
   await packingRepository.remove(props.id)
   router.replace(listPath.value)
 }

@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type DocType =
   | 'ausweis'
   | 'reisepass'
@@ -56,26 +57,26 @@ export interface EmergencyContact {
 export type EmergencyContactDraft = Omit<EmergencyContact, 'id' | 'tripId' | 'createdAt' | 'updatedAt' | 'source'>
 
 export const DOC_TYPE: Record<DocType, { label: string; icon: string }> = {
-  ausweis: { label: 'Personalausweis', icon: 'person-vcard' },
-  reisepass: { label: 'Reisepass', icon: 'passport' },
-  visum: { label: 'Visum / Einreise', icon: 'globe2' },
-  fuehrerschein: { label: 'Führerschein', icon: 'car-front' },
-  fahrzeug: { label: 'Fahrzeugpapiere', icon: 'file-earmark-text' },
-  versicherung: { label: 'Versicherung', icon: 'shield-check' },
-  ticket: { label: 'Ticket', icon: 'ticket-perforated' },
-  buchung: { label: 'Buchung', icon: 'receipt' },
-  gesundheit: { label: 'Gesundheit', icon: 'heart-pulse' },
-  sonstiges: { label: 'Sonstiges', icon: 'file-earmark' }
+  ausweis: { label: t('Personalausweis'), icon: 'person-vcard' },
+  reisepass: { label: t('Reisepass'), icon: 'passport' },
+  visum: { label: t('Visum / Einreise'), icon: 'globe2' },
+  fuehrerschein: { label: t('Führerschein'), icon: 'car-front' },
+  fahrzeug: { label: t('Fahrzeugpapiere'), icon: 'file-earmark-text' },
+  versicherung: { label: t('Versicherung'), icon: 'shield-check' },
+  ticket: { label: t('Ticket'), icon: 'ticket-perforated' },
+  buchung: { label: t('Buchung'), icon: 'receipt' },
+  gesundheit: { label: t('Gesundheit'), icon: 'heart-pulse' },
+  sonstiges: { label: t('Sonstiges'), icon: 'file-earmark' }
 }
 
 export const DOC_STATUS: Record<DocStatus, { label: string; badge: string }> = {
-  fehlt: { label: 'Fehlt', badge: 'text-bg-danger' },
-  beantragt: { label: 'Beantragt', badge: 'text-bg-warning' },
-  vorhanden: { label: 'Vorhanden', badge: 'text-bg-success' }
+  fehlt: { label: t('Fehlt'), badge: 'text-bg-danger' },
+  beantragt: { label: t('Beantragt'), badge: 'text-bg-warning' },
+  vorhanden: { label: t('Vorhanden'), badge: 'text-bg-success' }
 }
 
 /** Allgemeine Notrufnummern, die immer angezeigt werden. */
 export const STANDARD_NUMBERS = [
-  { label: 'Notruf in der EU', phone: '112', note: 'Polizei, Feuerwehr, Rettung – in allen EU-Ländern' },
-  { label: 'Sperr-Notruf (Karten, Handy)', phone: '+49116116', note: 'Bank- und Kreditkarten sperren, aus dem Ausland mit +49' }
+  { label: t('Notruf in der EU'), phone: '112', note: t('Polizei, Feuerwehr, Rettung – in allen EU-Ländern') },
+  { label: t('Sperr-Notruf (Karten, Handy)'), phone: '+49116116', note: t('Bank- und Kreditkarten sperren, aus dem Ausland mit +49') }
 ]

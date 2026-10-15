@@ -8,6 +8,7 @@ import { packingRepository } from '../repository'
 import { draftsFromOtherTrip, draftsFromTemplates } from '../logic'
 import { TEMPLATES } from '../templates'
 import { CATEGORY, type PackingItem } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -66,7 +67,7 @@ const preview = computed(() =>
 /** Vorschau je Person: "Ich 34 · Anna 34 · Gemeinsam 20" */
 const previewByPerson = computed(() => {
   const m = new Map<string, number>()
-  for (const d of preview.value) m.set(d.person || 'Gemeinsam', (m.get(d.person || 'Gemeinsam') ?? 0) + 1)
+  for (const d of preview.value) m.set(d.person || t('Gemeinsam'), (m.get(d.person || t('Gemeinsam')) ?? 0) + 1)
   return [...m.entries()]
 })
 const previewByCategory = computed(() => {
@@ -101,7 +102,7 @@ async function addFromOther() {
   <section class="mb-4">
     <h2 class="h5">{{ t('Vorlagen') }}</h2>
     <p class="small text-body-secondary">
-      {{ t('Mengen für {days} {x} und {x2} {x3}. Doppeltes wird zusammengefasst, Vorhandenes übersprungen.', { days, x: days === 1 ? 'Tag' : 'Tage', x2: trip?.travelers ?? 1, x3: (trip?.travelers ?? 1) === 1 ? 'Person' : 'Personen' }) }}
+      {{ t('Mengen für {days} und {people}. Doppeltes wird zusammengefasst, Vorhandenes übersprungen.', { days: tn(days, '1 Tag', '{n} Tage'), people: tn(trip?.travelers ?? 1, '1 Person', '{n} Personen') }) }}
     </p>
     <div v-if="participants.length" class="mb-3">
       <div class="small fw-semibold mb-1">{{ t('Persönliches anlegen für:') }}</div>
@@ -148,7 +149,7 @@ async function addFromOther() {
         <option v-for="tpl in otherTrips" :key="tpl.id" :value="tpl.id">{{ tpl.title }} ({{ formatDate(tpl.startDate) }})</option>
       </select>
       <button type="button" class="btn btn-outline-primary" :disabled="busy || !fromOther.length" @click="addFromOther">
-        {{ sourceTrip ? `${fromOther.length} übernehmen` : 'Übernehmen' }}
+        {{ sourceTrip ? t('{n} übernehmen', { n: fromOther.length }) : t('Übernehmen') }}
       </button>
     </div>
     <div v-if="sourceTrip && sourceItems.length === 0" class="form-text">{{ t('Diese Reise hat keine Packliste.') }}</div>

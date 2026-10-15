@@ -5,6 +5,7 @@ import { PersonSelect, TripContextHeader, VisibilitySelect, tripRepository, type
 import { documentRepository } from '../repository'
 import { VALIDITY_TEXT, emptyDocumentDraft, validateDocument, validity } from '../logic'
 import { DOC_STATUS, DOC_TYPE, type TravelDocumentDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -52,14 +53,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.title}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{title}“ löschen?', { title: draft.title }))) return
   await documentRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Dokument bearbeiten' : 'Neues Dokument'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Dokument bearbeiten') : t('Neues Dokument')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-6">

@@ -6,6 +6,7 @@ import { PersonSelect, TripContextHeader, VisibilitySelect, tripRepository, type
 import { medicationRepository } from '../repository'
 import { DEFAULT_RESERVE_DAYS, emptyMedicationDraft, normalizeTimes, stockStatus, unitsNeeded, validateMedication } from '../logic'
 import { KIND, type MedicationDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -60,14 +61,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{name}“ löschen?', { name: draft.name }))) return
   await medicationRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Medikament bearbeiten' : 'Neues Medikament'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Medikament bearbeiten') : t('Neues Medikament')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
@@ -117,7 +118,7 @@ async function remove() {
         <label class="form-label d-block">{{ t('Einnahmezeiten') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <div v-for="(time, i) in draft.times" :key="i" class="input-group w-auto">
-            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="`Einnahmezeit ${i + 1}`" />
+            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="t('Einnahmezeit {x}', { x: i + 1 })" />
             <button type="button" class="btn btn-outline-secondary" :aria-label="t('Zeit entfernen')" @click="removeTime(i)">
               <i class="bi bi-x" aria-hidden="true"></i>
             </button>

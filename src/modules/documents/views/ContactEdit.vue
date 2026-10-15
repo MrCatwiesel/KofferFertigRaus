@@ -5,6 +5,7 @@ import { TripContextHeader } from '@/modules/trip/public'
 import { contactRepository } from '../repository'
 import { emptyContactDraft, validateContact } from '../logic'
 import type { EmergencyContactDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -35,14 +36,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.label}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{label}“ löschen?', { label: draft.label }))) return
   await contactRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Nummer bearbeiten' : 'Neue Notfallnummer'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Nummer bearbeiten') : t('Neue Notfallnummer')" />
 
   <div v-if="source" class="alert alert-info small py-2">
     <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('Automatisch aus den Reisehinweisen des Auswärtigen Amts. Ändert sich dort etwas, wird diese Nummer beim nächsten Aktualisieren angepasst; nimmst du das Land aus der Reise, verschwindet sie.') }}

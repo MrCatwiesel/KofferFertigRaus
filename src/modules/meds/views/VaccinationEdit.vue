@@ -5,6 +5,7 @@ import { PersonSelect, TripContextHeader } from '@/modules/trip/public'
 import { vaccinationRepository } from '../repository'
 import { emptyVaccinationDraft, validateVaccination } from '../logic'
 import { VACC_STATUS, type VaccinationDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -33,14 +34,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{name}“ löschen?', { name: draft.name }))) return
   await vaccinationRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Impfung bearbeiten' : 'Neue Impfung'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Impfung bearbeiten') : t('Neue Impfung')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
@@ -63,7 +64,7 @@ async function remove() {
       </div>
     </div>
     <div class="col-6">
-      <label for="date" class="form-label">{{ draft.status === 'erledigt' ? 'Geimpft am' : 'Termin' }}</label>
+      <label for="date" class="form-label">{{ draft.status === 'erledigt' ? t('Geimpft am') : t('Termin') }}</label>
       <input id="date" v-model="draft.date" type="date" class="form-control" />
     </div>
     <div class="col-6">

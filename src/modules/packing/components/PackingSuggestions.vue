@@ -9,6 +9,7 @@ import { packingRepository } from '../repository'
 import { draftsFromSuggestions, newSuggestions, suggestItems, type Suggestion } from '../suggest'
 import { suggestContext } from '../suggest-context'
 import { CATEGORY, type PackingItem } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; items: PackingItem[] }>()
 const online = useOnline()
@@ -79,8 +80,9 @@ async function restore() {
 const weatherLine = computed(() => {
   const o = outlook.value
   if (!o) return ''
-  const src = o.source === 'vorhersage' ? 'Vorhersage' : `so war es dort in den Jahren ${o.years.join(', ')}`
-  return `${o.minTemp} bis ${o.maxTemp} °C, Regen an ${Math.round(o.rainShare * 100)} % der Tage${o.snow ? ', Schnee möglich' : ''} (${src})`
+  const src = o.source === 'vorhersage' ? t('Vorhersage') : t('so war es dort in den Jahren {years}', { years: o.years.join(', ') })
+  const temp = t('{min} bis {max} °C, Regen an {rain} % der Tage', { min: o.minTemp, max: o.maxTemp, rain: Math.round(o.rainShare * 100) })
+  return `${temp}${o.snow ? t(', Schnee möglich') : ''} (${src})`
 })
 </script>
 

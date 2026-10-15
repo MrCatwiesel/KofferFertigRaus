@@ -3,7 +3,6 @@ import { accommodationRepository } from '@/modules/accommodation/public'
 import { activityRepository } from '@/modules/activity/public'
 import { placeRepository } from './repository'
 import { offlineMapRepository } from './offline'
-import { mapSample } from './sample'
 
 /** Modul "Karte". */
 export const mapModule: AppModule = {
@@ -32,5 +31,6 @@ export const mapModule: AppModule = {
     await placeRepository.removeByTrip(tripId)
     await offlineMapRepository.removeByTrip(tripId)
   },
-  sampleData: mapSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.mapSample(s))
 }

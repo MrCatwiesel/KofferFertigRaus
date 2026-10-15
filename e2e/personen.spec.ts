@@ -50,6 +50,8 @@ test('Personen einladen, private Dokumente freigeben, nur lesen, Anmeldung mit P
 
   // Marcos Allergiepass – privat
   await marco.goto(`/#/trip/${tripId}/dokumente/neu`)
+  // Bis die Reise geladen ist, steht dort ein Textfeld – erst die Auswahl der Teilnehmer abwarten
+  await expect(marco.locator('select#person')).toBeVisible()
   await marco.locator('#person').selectOption('Marco')
   await expect(marco.locator('[data-private]')).toContainText('Privat')
   await expect(marco.locator('[data-visibility]')).toContainText('Nur ich')

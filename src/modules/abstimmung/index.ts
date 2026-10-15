@@ -5,7 +5,6 @@ import { myParticipant, people } from '@/core/people'
 import { tripRepository } from '@/modules/trip/public'
 import { isOpen, summaryText } from './logic'
 import { pollRepository } from './repository'
-import { pollSample } from './sample'
 
 /** Modul „Abstimmungen“: gemeinsam entscheiden – jede Person stimmt auf ihrem Gerät ab. */
 export const abstimmungModule: AppModule = {
@@ -35,5 +34,6 @@ export const abstimmungModule: AppModule = {
       .filter((p) => p.deadline && isOpen(p, today))
       .map((p) => ({ id: `poll:${p.id}:ende`, tripId: trip.id, date: p.deadline, kind: 'frist' as const, title: `Abstimmung endet: ${p.question}`, to: `/trip/${trip.id}/abstimmungen` })),
   onTripDelete: (tripId) => pollRepository.removeByTrip(tripId),
-  sampleData: pollSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.pollSample(s))
 }

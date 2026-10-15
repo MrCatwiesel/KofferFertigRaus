@@ -2,7 +2,6 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
 import { journalStats, photosForMap } from './logic'
 import { routeRepository } from '@/modules/routes/public'
-import { journalSample } from './sample'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
@@ -38,5 +37,6 @@ export const journalModule: AppModule = {
   },
   placePhoto: (photoId, pos) => photoRepository.setPlace(photoId, pos),
   onTripDelete: (tripId) => journalRepository.removeByTrip(tripId),
-  sampleData: journalSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.journalSample(s))
 }

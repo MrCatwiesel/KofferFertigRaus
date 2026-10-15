@@ -5,6 +5,9 @@ const plus = localDate
 
 test('Termine & Fristen: Übersicht, Heute, Kalender-Abo', async ({ page, request }) => {
   await connect(page, KEY, 'iPad Marco')
+  // Erst den ersten Abgleich abwarten – sonst überschreibt die Reise t1 anderer Tests (gleiche Gruppe) die Testdaten
+  await expect(page.locator('.spin')).toHaveCount(0)
+  await expect(page.getByText('Abgeglichen gerade eben')).toBeVisible()
   await seed(page, {
     trips: [trip({ startDate: plus(20), endDate: plus(25) })],
     accommodations: [accommodation({ checkIn: plus(20), checkOut: plus(23), cancelUntil: plus(3) })],

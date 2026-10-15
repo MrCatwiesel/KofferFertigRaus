@@ -4,7 +4,6 @@ import { formatMoney } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { expenseRepository } from './repository'
 import { summarize } from './logic'
-import { expensesSample } from './sample'
 
 /** Modul "Ausgaben" (unterwegs). */
 export const expensesModule: AppModule = {
@@ -36,5 +35,6 @@ export const expensesModule: AppModule = {
     return trip ? expenseDayFacts(list, date, trip.currency) : []
   },
   onTripDelete: (tripId) => expenseRepository.removeByTrip(tripId),
-  sampleData: expensesSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.expensesSample(s))
 }

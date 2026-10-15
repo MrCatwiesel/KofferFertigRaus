@@ -6,7 +6,6 @@ import { activityRepository } from '@/modules/activity/public'
 import { describeCode } from '@/services/weather'
 import { weatherRepository } from './repository'
 import { initialDay } from './logic'
-import { dayplannerSample } from './sample'
 
 /** Modul "Tagesplaner" (Meilenstein M3). */
 export const dayplannerModule: AppModule = {
@@ -43,5 +42,6 @@ export const dayplannerModule: AppModule = {
   },
   dayFacts: async (tripId, date) => weatherDayFacts((await weatherRepository.get(tripId))?.days, date),
   onTripDelete: (tripId) => weatherRepository.remove(tripId),
-  sampleData: dayplannerSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.dayplannerSample(s))
 }

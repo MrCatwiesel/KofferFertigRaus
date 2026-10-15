@@ -2,7 +2,6 @@ import type { AppModule } from '@/core/registry'
 import { packingRepository } from './repository'
 import { progress } from './logic'
 import { packingReminders } from './reminders'
-import { packingSample } from './sample'
 
 /** Modul "Packliste" (Meilenstein M2). */
 export const packingModule: AppModule = {
@@ -29,5 +28,6 @@ export const packingModule: AppModule = {
     }
   },
   onTripDelete: (tripId) => packingRepository.removeByTrip(tripId),
-  sampleData: packingSample
+  // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
+  sampleData: (s) => import('./sample').then((m) => m.packingSample(s))
 }

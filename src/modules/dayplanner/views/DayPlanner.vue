@@ -105,7 +105,7 @@ const plannedCountByDate = computed(() => {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Tagesplaner" />
+  <TripContextHeader :trip-id="tripId" :title="t('Tagesplaner')" />
   <DueReminders :trip-id="tripId" />
   <WarningBanner :trip-id="tripId" :day="day" />
 
@@ -113,7 +113,7 @@ const plannedCountByDate = computed(() => {
   <div class="day-strip d-flex gap-2 overflow-auto pb-2 mb-3">
     <button v-for="d in dates" :key="d" type="button" class="btn day-chip flex-none"
             :class="d === day ? 'btn-primary' : 'btn-outline-secondary'" @click="selectDay(d)">
-      <div class="small">{{ formatDayShort(d) }}<span v-if="d === todayIso()"> · heute</span></div>
+      <div class="small">{{ formatDayShort(d) }}<span v-if="d === todayIso()"> {{ t('· heute') }}</span></div>
       <div v-if="weatherByDate.get(d)" class="fw-semibold">
         <i :class="`bi bi-${describeCode(weatherByDate.get(d)!.code).icon}`" aria-hidden="true"></i>
         {{ Math.round(weatherByDate.get(d)!.tempMax) }}°
@@ -129,10 +129,10 @@ const plannedCountByDate = computed(() => {
   <section class="card mb-3">
     <div class="card-body">
       <template v-if="!cache || changingPlace">
-        <h2 class="h6"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>Ort für die Wettervorhersage</h2>
+        <h2 class="h6"><i class="bi bi-geo-alt me-1" aria-hidden="true"></i>{{ t('Ort für die Wettervorhersage') }}</h2>
         <PlaceSearch :initial-query="cache?.place.name ?? trip?.destination" @select="loadWeather" />
-        <div v-if="loadingWeather" class="small mt-2"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade Vorhersage …</div>
-        <button v-if="cache" type="button" class="btn btn-link btn-sm px-0 mt-2" @click="changingPlace = false">Abbrechen</button>
+        <div v-if="loadingWeather" class="small mt-2"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade Vorhersage …') }}</div>
+        <button v-if="cache" type="button" class="btn btn-link btn-sm px-0 mt-2" @click="changingPlace = false">{{ t('Abbrechen') }}</button>
       </template>
 
       <template v-else>
@@ -142,27 +142,27 @@ const plannedCountByDate = computed(() => {
             <div class="fw-semibold">{{ describeCode(weather.code).label }}, {{ Math.round(weather.tempMin) }}–{{ Math.round(weather.tempMax) }} °C</div>
             <div class="small text-body-secondary">
               <i class="bi bi-umbrella me-1" aria-hidden="true"></i>
-              {{ weather.precipitationProbability ?? '–' }} % · {{ weather.precipitation.toFixed(1) }} mm
+              {{ t('{x} % · {toFixed} mm', { x: weather.precipitationProbability ?? '–', toFixed: weather.precipitation.toFixed(1) }) }}
               <template v-if="weather.windMax !== null"> · <i class="bi bi-wind" aria-hidden="true"></i> {{ Math.round(weather.windMax) }} km/h</template>
             </div>
-            <span v-if="isRainy(weather)" class="badge text-bg-info mt-1">Regentag – Drinnen-Ideen werden bevorzugt</span>
+            <span v-if="isRainy(weather)" class="badge text-bg-info mt-1">{{ t('Regentag – Drinnen-Ideen werden bevorzugt') }}</span>
           </div>
         </div>
         <div v-else class="small text-body-secondary">
           <i class="bi bi-calendar2-week me-1" aria-hidden="true"></i>
           <template v-if="!inForecastRange(day)">
-            Vorhersage für {{ formatDate(day) }} gibt es ab {{ formatDate(forecastAvailableFrom(day)) }}.
+            {{ t('Vorhersage für {day} gibt es ab {forecastAvailableFrom}.', { day: formatDate(day), forecastAvailableFrom: formatDate(forecastAvailableFrom(day)) }) }}
           </template>
-          <template v-else>Für diesen Tag liegt noch keine Vorhersage vor – bitte aktualisieren.</template>
+          <template v-else>{{ t('Für diesen Tag liegt noch keine Vorhersage vor – bitte aktualisieren.') }}</template>
         </div>
 
         <div class="d-flex align-items-center gap-2 small text-body-secondary mt-2 flex-wrap">
           <span><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ cache.place.name }}</span>
-          <span>· Stand {{ ageText }}</span>
+          <span>{{ t('· Stand {ageText}', { ageText }) }}</span>
           <button type="button" class="btn btn-sm btn-link p-0" :disabled="!online || loadingWeather" @click="loadWeather(cache.place)">
-            <i class="bi bi-arrow-clockwise" :class="{ spin: loadingWeather }" aria-hidden="true"></i> aktualisieren
+            <i class="bi bi-arrow-clockwise" :class="{ spin: loadingWeather }" aria-hidden="true"></i> {{ t('aktualisieren') }}
           </button>
-          <button type="button" class="btn btn-sm btn-link p-0" @click="changingPlace = true">Ort ändern</button>
+          <button type="button" class="btn btn-sm btn-link p-0" @click="changingPlace = true">{{ t('Ort ändern') }}</button>
         </div>
       </template>
       <div v-if="weatherError" class="small text-warning-emphasis mt-2">{{ weatherError }}</div>
@@ -176,10 +176,10 @@ const plannedCountByDate = computed(() => {
 
     <!-- Geplant -->
     <h2 class="h6 text-body-secondary d-flex justify-content-between">
-      <span>Geplant am {{ formatDayShort(day) }}</span>
-      <span v-if="plan.plannedHours">{{ plan.plannedHours }} Std.</span>
+      <span>{{ t('Geplant am {day}', { day: formatDayShort(day) }) }}</span>
+      <span v-if="plan.plannedHours">{{ t('{plannedHours} Std.', { plannedHours: plan.plannedHours }) }}</span>
     </h2>
-    <p v-if="plan.planned.length === 0" class="small text-body-secondary">Noch nichts geplant – unten passende Vorschläge.</p>
+    <p v-if="plan.planned.length === 0" class="small text-body-secondary">{{ t('Noch nichts geplant – unten passende Vorschläge.') }}</p>
     <ul class="list-group mb-4">
       <li v-for="p in plan.planned" :key="p.activity.id" class="list-group-item">
         <div class="d-flex gap-2 align-items-start">
@@ -194,23 +194,23 @@ const plannedCountByDate = computed(() => {
             </RouterLink>
             <div class="small text-body-secondary">
               {{ SETTING[p.activity.setting].label }}
-              <template v-if="p.activity.durationHours"> · {{ p.activity.durationHours }} Std.</template>
+              <template v-if="p.activity.durationHours"> {{ t('· {durationHours} Std.', { durationHours: p.activity.durationHours }) }}</template>
               <template v-if="p.activity.openingHours"> · {{ p.activity.openingHours }}</template>
             </div>
             <div v-for="w in p.warnings" :key="w" class="small text-danger">
               <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ w }}
             </div>
             <div v-if="p.alternative" class="small mt-1">
-              Alternative: <strong>{{ p.alternative.title }}</strong> (drinnen)
-              <button type="button" class="btn btn-sm btn-outline-primary py-0 ms-1" @click="swap(p.activity, p.alternative)">tauschen</button>
+              {{ t('Alternative:') }} <strong>{{ p.alternative.title }}</strong> {{ t('(drinnen)') }}
+              <button type="button" class="btn btn-sm btn-outline-primary py-0 ms-1" @click="swap(p.activity, p.alternative)">{{ t('tauschen') }}</button>
             </div>
           </div>
           <div class="dropdown flex-none">
-            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-label="Verschieben">
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="t('Verschieben')">
               <i class="bi bi-calendar2-range" aria-hidden="true"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><h6 class="dropdown-header">Verschieben auf</h6></li>
+              <li><h6 class="dropdown-header">{{ t('Verschieben auf') }}</h6></li>
               <li v-for="d in dates.filter((x) => x !== day)" :key="d">
                 <button class="dropdown-item" @click="moveTo(p.activity, d)">
                   {{ formatDayShort(d) }}
@@ -218,7 +218,7 @@ const plannedCountByDate = computed(() => {
                 </button>
               </li>
               <li><hr class="dropdown-divider" /></li>
-              <li><button class="dropdown-item" @click="unplan(p.activity)">Zurück zu den Ideen</button></li>
+              <li><button class="dropdown-item" @click="unplan(p.activity)">{{ t('Zurück zu den Ideen') }}</button></li>
             </ul>
           </div>
         </div>
@@ -226,10 +226,10 @@ const plannedCountByDate = computed(() => {
     </ul>
 
     <!-- Vorschläge -->
-    <h2 class="h6 text-body-secondary">Vorschläge für diesen Tag</h2>
+    <h2 class="h6 text-body-secondary">{{ t('Vorschläge für diesen Tag') }}</h2>
     <p v-if="plan.suggestions.length === 0" class="small text-body-secondary">
-      Keine offenen Ideen.
-      <RouterLink :to="`/trip/${tripId}/unternehmungen/neu`">Unternehmung hinzufügen</RouterLink>
+      {{ t('Keine offenen Ideen.') }}
+      <RouterLink :to="`/trip/${tripId}/unternehmungen/neu`">{{ t('Unternehmung hinzufügen') }}</RouterLink>
     </p>
     <div class="vstack gap-2 mb-3">
       <div v-for="s in visibleSuggestions" :key="s.activity.id" class="card" :class="{ 'opacity-75': s.score < 0 }">
@@ -240,7 +240,7 @@ const plannedCountByDate = computed(() => {
             </div>
             <div class="small text-body-secondary">
               {{ PRIORITY[s.activity.priority] }} · {{ SETTING[s.activity.setting].label }}
-              <template v-if="s.activity.durationHours"> · {{ s.activity.durationHours }} Std.</template>
+              <template v-if="s.activity.durationHours"> {{ t('· {durationHours} Std.', { durationHours: s.activity.durationHours }) }}</template>
             </div>
             <div class="d-flex flex-wrap gap-1 mt-1">
               <span v-for="r in s.reasons" :key="r" class="badge"
@@ -249,7 +249,7 @@ const plannedCountByDate = computed(() => {
             </div>
           </div>
           <button type="button" class="btn btn-sm btn-primary flex-none" @click="planIt(s.activity)">
-            <i class="bi bi-plus-lg" aria-hidden="true"></i> Einplanen
+            <i class="bi bi-plus-lg" aria-hidden="true"></i> {{ t('Einplanen') }}
           </button>
         </div>
       </div>
@@ -259,7 +259,7 @@ const plannedCountByDate = computed(() => {
     </button>
 
     <details v-if="plan.closed.length" class="small text-body-secondary mb-3">
-      <summary>{{ plan.closed.length }} an diesem Tag geschlossen</summary>
+      <summary>{{ t('{n} an diesem Tag geschlossen', { n: plan.closed.length }) }}</summary>
       <ul class="mb-0 mt-1">
         <li v-for="c in plan.closed" :key="c.activity.id">{{ c.activity.title }} – {{ c.reason }}</li>
       </ul>
@@ -267,8 +267,7 @@ const plannedCountByDate = computed(() => {
   </template>
 
   <p class="small text-body-secondary border-top pt-2">
-    Wetterdaten: <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo.com</a> (CC BY 4.0).
-    Öffnungszeiten werden aus deinem Text erkannt, z. B. „Di–So 10–18“.
+    {{ t('Wetterdaten:') }} <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">{{ t('Open-Meteo.com') }}</a> {{ t('(CC BY 4.0). Öffnungszeiten werden aus deinem Text erkannt, z. B. „Di–So 10–18“.') }}
   </p>
 </template>
 

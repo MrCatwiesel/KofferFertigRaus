@@ -61,18 +61,18 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Routen & Touren" />
+  <TripContextHeader :trip-id="tripId" :title="t('Routen & Touren')" />
 
   <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
     <label class="btn btn-primary mb-0" :class="{ disabled: busy }">
       <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-      <i v-else class="bi bi-upload me-1" aria-hidden="true"></i>Datei importieren
+      <i v-else class="bi bi-upload me-1" aria-hidden="true"></i>{{ t('Datei importieren') }}
       <input type="file" :accept="ACCEPT" multiple class="d-none" @change="importFiles" />
     </label>
-    <RouterLink :to="`/trip/${tripId}/routen/planen`" class="btn btn-outline-primary"><i class="bi bi-signpost-split me-1" aria-hidden="true"></i>Strecke planen</RouterLink>
-    <RouterLink :to="`/trip/${tripId}/routen/planen?tab=wanderwege`" class="btn btn-outline-primary"><i class="bi bi-compass me-1" aria-hidden="true"></i>Wanderwege suchen</RouterLink>
+    <RouterLink :to="`/trip/${tripId}/routen/planen`" class="btn btn-outline-primary"><i class="bi bi-signpost-split me-1" aria-hidden="true"></i>{{ t('Strecke planen') }}</RouterLink>
+    <RouterLink :to="`/trip/${tripId}/routen/planen?tab=wanderwege`" class="btn btn-outline-primary"><i class="bi bi-compass me-1" aria-hidden="true"></i>{{ t('Wanderwege suchen') }}</RouterLink>
   </div>
-  <p class="small text-body-secondary">Importieren: GPX, FIT (Garmin), TCX, KML/KMZ (Google My Maps), GeoJSON</p>
+  <p class="small text-body-secondary">{{ t('Importieren: GPX, FIT (Garmin), TCX, KML/KMZ (Google My Maps), GeoJSON') }}</p>
 
   <div v-if="result" class="alert py-2" :class="result.errors.length ? 'alert-warning' : 'alert-success'">
     <div v-if="result.ok">{{ result.ok }}</div>
@@ -80,21 +80,20 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
   </div>
 
   <details class="small mb-3">
-    <summary class="text-primary">Woher bekomme ich die Dateien?</summary>
+    <summary class="text-primary">{{ t('Woher bekomme ich die Dateien?') }}</summary>
     <ul class="mt-2 mb-0">
-      <li><strong>Garmin Connect</strong> (im Browser): Aktivität öffnen → Zahnrad → „In GPX exportieren“ oder „Original exportieren“ (FIT).</li>
-      <li><strong>Garmin-Gerät per USB</strong> am Computer: GPSMap → Ordner <code>Garmin/GPX</code>, Fenix → <code>Garmin/Activity</code> (*.fit).</li>
-      <li><strong>Fertige Routen</strong> (z. B. Großglockner Hochalpenstraße): bei Outdooractive, Komoot, Bergfex o. Ä. als GPX herunterladen.</li>
-      <li><strong>Google</strong>: Route in „Google My Maps“ zeichnen → Menü → „Als KML/KMZ exportieren“. (Normale Google-Maps-Routen lassen sich nicht exportieren.)</li>
-      <li>Auf iPhone/iPad liegen heruntergeladene Dateien in der Dateien-App.</li>
+      <li><strong>{{ t('Garmin Connect') }}</strong> {{ t('(im Browser): Aktivität öffnen → Zahnrad → „In GPX exportieren“ oder „Original exportieren“ (FIT).') }}</li>
+      <li><strong>{{ t('Garmin-Gerät per USB') }}</strong> {{ t('am Computer: GPSMap → Ordner') }} <code>Garmin/GPX</code>{{ t(', Fenix →') }} <code>Garmin/Activity</code> (*.fit).</li>
+      <li><strong>{{ t('Fertige Routen') }}</strong> {{ t('(z. B. Großglockner Hochalpenstraße): bei Outdooractive, Komoot, Bergfex o. Ä. als GPX herunterladen.') }}</li>
+      <li><strong>{{ t('Google') }}</strong>{{ t(': Route in „Google My Maps“ zeichnen → Menü → „Als KML/KMZ exportieren“. (Normale Google-Maps-Routen lassen sich nicht exportieren.)') }}</li>
+      <li>{{ t('Auf iPhone/iPad liegen heruntergeladene Dateien in der Dateien-App.') }}</li>
     </ul>
   </details>
 
   <template v-if="routes.length">
     <RouteMap :lines="lines" height="280px" class="mb-2" @select="(id) => $router.push(`/trip/${tripId}/routen/${id}`)" />
     <p v-if="totals.n" class="small text-body-secondary">
-      {{ totals.n }} {{ totals.n === 1 ? 'Tour' : 'Touren' }} aufgezeichnet · {{ (totals.km / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 }) }} km ·
-      ↗ {{ totals.up.toLocaleString('de-DE') }} m
+      {{ t('{n} {x} aufgezeichnet · {x2} km · ↗ {toLocaleString} m', { n: totals.n, x: totals.n === 1 ? 'Tour' : 'Touren', x2: (totals.km / 1000).toLocaleString(intlLocale(), { maximumFractionDigits: 1 }), toLocaleString: totals.up.toLocaleString(intlLocale()) }) }}
     </p>
 
     <RouterLink v-for="r in sorted" :key="r.id" :to="`/trip/${tripId}/routen/${r.id}`" class="card mb-2 text-decoration-none text-body route-card">
@@ -105,13 +104,13 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
             <i :class="`bi bi-${r.kind === 'track' ? 'person-walking' : 'signpost-2'} me-1`" :style="{ color: r.color }" aria-hidden="true"></i>{{ r.name }}
           </div>
           <div class="small text-body-secondary">{{ r.date ? formatDayShort(r.date) : 'ohne Tag' }} · {{ statsLine(r.stats) }}</div>
-          <div v-if="r.showInShare" class="small text-success"><i class="bi bi-eye me-1" aria-hidden="true"></i>auf Webseite/Lese-Link</div>
+          <div v-if="r.showInShare" class="small text-success"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('auf Webseite/Lese-Link') }}</div>
         </div>
         <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
       </div>
     </RouterLink>
   </template>
-  <p v-else class="text-body-secondary">Noch keine Routen. Importiere eine aufgezeichnete Tour oder eine geplante Strecke.</p>
+  <p v-else class="text-body-secondary">{{ t('Noch keine Routen. Importiere eine aufgezeichnete Tour oder eine geplante Strecke.') }}</p>
 </template>
 
 <style scoped>

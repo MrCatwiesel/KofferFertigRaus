@@ -4,11 +4,12 @@ import { computed, ref } from 'vue'
 import { getTripSections, type TripPhase } from '@/core/registry'
 import { PHASES, moveInTab, phasesOf, sectionsIn, togglePlacement, unplaced } from '@/core/trip-layout'
 import { appearance, resetSettings } from './appearance'
+import { t } from '@/i18n'
 
 const TAB_LABEL: Record<TripPhase, { label: string; icon: string }> = {
-  planung: { label: 'Planung', icon: 'clipboard-check' },
-  unterwegs: { label: 'Unterwegs', icon: 'compass' },
-  danach: { label: 'Danach', icon: 'stars' },
+  planung: { label: t('Planung'), icon: 'clipboard-check' },
+  unterwegs: { label: t('Unterwegs'), icon: 'compass' },
+  danach: { label: t('Danach'), icon: 'stars' },
   teilen: { label: 'Teilen & Archiv', icon: 'send' }
 }
 
@@ -39,7 +40,7 @@ const where = (id: string) =>
     .join(', ')
 
 function reset() {
-  if (confirm('Reiseseite auf die ursprüngliche Aufteilung zurücksetzen?')) resetSettings('reiseseite')
+  if (confirm(t('Reiseseite auf die ursprüngliche Aufteilung zurücksetzen?'))) resetSettings('reiseseite')
 }
 </script>
 
@@ -48,84 +49,83 @@ function reset() {
     <!-- Darstellung -->
     <div class="row g-3 mb-3">
       <div class="col-12 col-md-6">
-        <label class="form-label small fw-semibold" for="lv">Bereiche zeigen als</label>
+        <label class="form-label small fw-semibold" for="lv">{{ t('Bereiche zeigen als') }}</label>
         <select id="lv" v-model="appearance.layout.view" class="form-select">
-          <option value="kacheln">Kacheln</option>
-          <option value="gross">Große Kacheln</option>
-          <option value="liste">Kompakte Liste</option>
+          <option value="kacheln">{{ t('Kacheln') }}</option>
+          <option value="gross">{{ t('Große Kacheln') }}</option>
+          <option value="liste">{{ t('Kompakte Liste') }}</option>
         </select>
       </div>
       <div class="col-12 col-md-6">
-        <label class="form-label small fw-semibold" for="lh">Titelbild</label>
+        <label class="form-label small fw-semibold" for="lh">{{ t('Titelbild') }}</label>
         <select id="lh" v-model="appearance.layout.hero" class="form-select">
-          <option value="gross">Groß</option>
-          <option value="mittel">Mittel</option>
-          <option value="klein">Klein</option>
-          <option value="aus">Kein Titelbild</option>
+          <option value="gross">{{ t('Groß') }}</option>
+          <option value="mittel">{{ t('Mittel') }}</option>
+          <option value="klein">{{ t('Klein') }}</option>
+          <option value="aus">{{ t('Kein Titelbild') }}</option>
         </select>
       </div>
       <div class="col-12">
         <div class="form-check form-switch">
           <input id="lt" v-model="appearance.layout.tabs" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="lt">Reiter (Planung · Unterwegs · Danach · Teilen) – sonst alles untereinander</label>
+          <label class="form-check-label" for="lt">{{ t('Reiter (Planung · Unterwegs · Danach · Teilen) – sonst alles untereinander') }}</label>
         </div>
         <div class="form-check form-switch">
           <input id="la" v-model="appearance.layout.autoTab" class="form-check-input" type="checkbox" role="switch" :disabled="!appearance.layout.tabs" />
-          <label class="form-check-label" for="la">Passenden Reiter nach Datum öffnen (sonst immer „Planung“)</label>
+          <label class="form-check-label" for="la">{{ t('Passenden Reiter nach Datum öffnen (sonst immer „Planung“)') }}</label>
         </div>
         <div class="form-check form-switch">
           <input id="ls" v-model="appearance.layout.summaries" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="ls">Kurze Zusammenfassung unter jedem Bereich</label>
+          <label class="form-check-label" for="ls">{{ t('Kurze Zusammenfassung unter jedem Bereich') }}</label>
         </div>
         <div class="form-check form-switch">
           <input id="lf" v-model="appearance.layout.facts" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="lf">Eckdaten (Zeitraum, Personen, Anreise, Budget)</label>
+          <label class="form-check-label" for="lf">{{ t('Eckdaten (Zeitraum, Personen, Anreise, Budget)') }}</label>
         </div>
         <div class="form-check form-switch">
           <input id="lq" v-model="appearance.layout.quick" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label" for="lq">Unterwegs: große Knöpfe „Heute“ und „Notfall“</label>
+          <label class="form-check-label" for="lq">{{ t('Unterwegs: große Knöpfe „Heute“ und „Notfall“') }}</label>
         </div>
       </div>
     </div>
 
     <!-- Zuordnung und Reihenfolge -->
-    <div class="fw-semibold small mb-2">Welche Bereiche stehen wo?</div>
-    <div class="btn-group btn-group-sm flex-wrap mb-2" role="group" aria-label="Reiter wählen">
+    <div class="fw-semibold small mb-2">{{ t('Welche Bereiche stehen wo?') }}</div>
+    <div class="btn-group btn-group-sm flex-wrap mb-2" role="group" :aria-label="t('Reiter wählen')">
       <button v-for="p in PHASES" :key="p" type="button" class="btn" :class="tab === p ? 'btn-primary' : 'btn-outline-primary'" :aria-pressed="tab === p" @click="tab = p">
         <i :class="`bi bi-${TAB_LABEL[p].icon} me-1`" aria-hidden="true"></i>{{ TAB_LABEL[p].label }}
       </button>
     </div>
-    <ul class="list-group mb-2" :aria-label="`Bereiche im Reiter ${TAB_LABEL[tab].label}`">
+    <ul class="list-group mb-2" :aria-label="t('Bereiche im Reiter {x}', { x: TAB_LABEL[tab].label })">
       <li v-for="(s, k) in inTab" :key="s.moduleId" class="list-group-item d-flex align-items-center gap-2 py-2" :data-edit-section="s.moduleId">
         <i :class="`bi bi-${s.icon} text-primary`" aria-hidden="true"></i>
         <span class="flex-grow-1 min-w-0">
           <span class="d-block">{{ s.title }}</span>
-          <span v-if="where(s.moduleId)" class="d-block small text-body-secondary">auch in: {{ where(s.moduleId) }}</span>
+          <span v-if="where(s.moduleId)" class="d-block small text-body-secondary">{{ t('auch in: {where}', { where: where(s.moduleId) }) }}</span>
         </span>
-        <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="k === 0" :aria-label="`${s.title} nach oben`" @click="move(s.moduleId, -1)">
+        <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="k === 0" :aria-label="t('{title} nach oben', { title: s.title })" @click="move(s.moduleId, -1)">
           <i class="bi bi-arrow-up" aria-hidden="true"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="k === inTab.length - 1" :aria-label="`${s.title} nach unten`" @click="move(s.moduleId, 1)">
+        <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="k === inTab.length - 1" :aria-label="t('{title} nach unten', { title: s.title })" @click="move(s.moduleId, 1)">
           <i class="bi bi-arrow-down" aria-hidden="true"></i>
         </button>
-        <button type="button" class="btn btn-sm btn-outline-danger" :aria-label="`${s.title} aus diesem Reiter nehmen`" @click="removeSection(s.moduleId)">
+        <button type="button" class="btn btn-sm btn-outline-danger" :aria-label="t('{title} aus diesem Reiter nehmen', { title: s.title })" @click="removeSection(s.moduleId)">
           <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
       </li>
-      <li v-if="!inTab.length" class="list-group-item small text-body-secondary">Dieser Reiter ist leer.</li>
+      <li v-if="!inTab.length" class="list-group-item small text-body-secondary">{{ t('Dieser Reiter ist leer.') }}</li>
     </ul>
     <div v-if="notInTab.length" class="input-group input-group-sm mb-3">
-      <select v-model="add" class="form-select" aria-label="Bereich hinzufügen">
-        <option value="">Bereich hinzufügen …</option>
+      <select v-model="add" class="form-select" :aria-label="t('Bereich hinzufügen')">
+        <option value="">{{ t('Bereich hinzufügen …') }}</option>
         <option v-for="s in notInTab" :key="s.moduleId" :value="s.moduleId">{{ s.title }}</option>
       </select>
-      <button type="button" class="btn btn-outline-primary" :disabled="!add" @click="addSection">Hinzufügen</button>
+      <button type="button" class="btn btn-outline-primary" :disabled="!add" @click="addSection">{{ t('Hinzufügen') }}</button>
     </div>
     <p v-if="nowhere.length" class="small text-body-secondary">
-      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>In keinem Reiter: {{ nowhere.map((s) => s.title).join(', ') }} – bleibt auf der Reiseseite unter
-      „Weitere Bereiche“ erreichbar.
+      <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('In keinem Reiter: {map} – bleibt auf der Reiseseite unter „Weitere Bereiche“ erreichbar.', { map: nowhere.map((s) => s.title).join(', ') }) }}
     </p>
-    <button type="button" class="btn btn-link btn-sm px-0" @click="reset">Ursprüngliche Aufteilung wiederherstellen</button>
+    <button type="button" class="btn btn-link btn-sm px-0" @click="reset">{{ t('Ursprüngliche Aufteilung wiederherstellen') }}</button>
   </div>
 </template>
 

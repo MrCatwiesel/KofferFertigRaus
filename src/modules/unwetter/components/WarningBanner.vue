@@ -20,7 +20,7 @@ onMounted(() => void refreshIfStale(props.tripId).catch(() => undefined))
       <span><strong>{{ (LEVELS[w.level] ?? LEVELS[2]).label }}: {{ w.typeName }}</strong> · {{ w.match?.area }} · {{ period(w.onset, w.expires) }}</span>
       <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
     </div>
-    <div v-if="list.length > 3" class="card-body py-1 small text-body-secondary">und {{ list.length - 3 }} weitere</div>
+    <div v-if="list.length > 3" class="card-body py-1 small text-body-secondary">{{ t('und {x} weitere', { x: list.length - 3 }) }}</div>
   </RouterLink>
 </template>
 

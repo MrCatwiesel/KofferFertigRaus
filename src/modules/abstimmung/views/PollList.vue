@@ -60,28 +60,28 @@ async function remove(p: Poll) {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Abstimmungen" />
+  <TripContextHeader :trip-id="tripId" :title="t('Abstimmungen')" />
 
   <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
     <RouterLink v-if="editable" :to="`/trip/${tripId}/abstimmungen/neu`" class="btn btn-primary" data-new-poll>
-      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Neue Abstimmung
+      <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Neue Abstimmung') }}
     </RouterLink>
     <div class="d-flex align-items-center gap-2 ms-auto" data-voter>
-      <label for="voter" class="small text-nowrap on-bg">Ich stimme ab als</label>
+      <label for="voter" class="small text-nowrap on-bg">{{ t('Ich stimme ab als') }}</label>
       <select v-if="participants.length" id="voter" v-model="voter" class="form-select form-select-sm w-auto" :disabled="!!linkedMe">
-        <option value="" disabled>– bitte wählen –</option>
+        <option value="" disabled>{{ t('– bitte wählen –') }}</option>
         <option v-for="p in participants" :key="p" :value="p" :disabled="foreign(p)">{{ p }}{{ foreign(p) ? ' (eigenes Konto)' : '' }}</option>
       </select>
-      <input v-else id="voter" v-model.trim="voter" class="form-control form-control-sm w-auto" placeholder="Name" />
+      <input v-else id="voter" v-model.trim="voter" class="form-control form-control-sm w-auto" :placeholder="t('Name')" />
     </div>
   </div>
-  <div v-if="!voter && polls.length" class="alert alert-info small py-2">Zum Abstimmen oben deinen Namen wählen.</div>
+  <div v-if="!voter && polls.length" class="alert alert-info small py-2">{{ t('Zum Abstimmen oben deinen Namen wählen.') }}</div>
 
   <div v-if="!polls.length" class="text-center py-5 on-bg" data-polls-empty>
     <i class="bi bi-hand-thumbs-up display-4 text-primary d-block mb-3" aria-hidden="true"></i>
-    <p class="mb-1">Noch keine Abstimmung.</p>
+    <p class="mb-1">{{ t('Noch keine Abstimmung.') }}</p>
     <p class="text-body-secondary small">
-      Wohin am Sonntag? Welcher Tag für die Gletschertour? Pizza oder Knödel? – Frage stellen, alle stimmen auf ihrem Gerät ab.
+      {{ t('Wohin am Sonntag? Welcher Tag für die Gletschertour? Pizza oder Knödel? – Frage stellen, alle stimmen auf ihrem Gerät ab.') }}
     </p>
   </div>
 

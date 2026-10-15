@@ -2,6 +2,7 @@
  * Reine Abgleich-Logik ohne Datenbank und ohne Netzwerk – einfach testbar.
  */
 import { stampOf } from '../merge'
+import { t } from '@/i18n'
 
 export interface RemoteChange {
   seq?: number
@@ -91,11 +92,11 @@ export function inviteLink(appUrl: string, server: string, code: string): string
 export function defaultDeviceName(ua: string, touchPoints = 0): string {
   if (/iPad/.test(ua) || (/Macintosh/.test(ua) && touchPoints > 1)) return 'iPad'
   if (/iPhone/.test(ua)) return 'iPhone'
-  if (/Android/.test(ua)) return /Mobile/.test(ua) ? 'Android-Handy' : 'Android-Tablet'
+  if (/Android/.test(ua)) return /Mobile/.test(ua) ? t('Android-Handy') : t('Android-Tablet')
   if (/Macintosh|Mac OS X/.test(ua)) return 'Mac'
-  if (/Windows/.test(ua)) return 'Windows-PC'
-  if (/Linux/.test(ua)) return 'Linux-PC'
-  return 'Gerät'
+  if (/Windows/.test(ua)) return t('Windows-PC')
+  if (/Linux/.test(ua)) return t('Linux-PC')
+  return t('Gerät')
 }
 
 /** Teilt eine Liste in Stücke (für Uploads in Portionen). */
@@ -107,10 +108,10 @@ export function chunk<T>(list: T[], size: number): T[][] {
 
 /** "vor 5 Min." usw. */
 export function ago(iso: string | null, now: Date = new Date()): string {
-  if (!iso) return 'noch nie'
+  if (!iso) return t('noch nie')
   const s = Math.round((now.getTime() - Date.parse(iso)) / 1000)
-  if (s < 60) return 'gerade eben'
-  if (s < 3600) return `vor ${Math.round(s / 60)} Min.`
-  if (s < 86400) return `vor ${Math.round(s / 3600)} Std.`
-  return `vor ${Math.round(s / 86400)} Tagen`
+  if (s < 60) return t('gerade eben')
+  if (s < 3600) return t('vor {n} Min.', { n: Math.round(s / 60) })
+  if (s < 86400) return t('vor {n} Std.', { n: Math.round(s / 3600) })
+  return t('vor {n} Tagen', { n: Math.round(s / 86400) })
 }

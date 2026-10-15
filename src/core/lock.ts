@@ -5,6 +5,7 @@
  * Gespeichert in localStorage dieses Geräts (wird nicht abgeglichen): Salz + PBKDF2-Prüfwert des Codes, Kennung des Schlüssels.
  */
 import { reactive } from 'vue'
+import { t } from '@/i18n'
 
 const KEY = 'nww-sperre'
 const ITERATIONS = 150_000
@@ -27,11 +28,11 @@ interface Attempts {
 }
 
 export const LOCK_TIMEOUTS = [
-  { min: 0, label: 'Sofort beim Verlassen der App' },
-  { min: 1, label: 'Nach 1 Minute' },
-  { min: 5, label: 'Nach 5 Minuten' },
-  { min: 15, label: 'Nach 15 Minuten' },
-  { min: 60, label: 'Nach 1 Stunde' }
+  { min: 0, label: t('Sofort beim Verlassen der App') },
+  { min: 1, label: t('Nach 1 Minute') },
+  { min: 5, label: t('Nach {n} Minuten', { n: 5 }) },
+  { min: 15, label: t('Nach {n} Minuten', { n: 15 }) },
+  { min: 60, label: t('Nach 1 Stunde') }
 ]
 
 const b64 = (buf: ArrayBuffer | Uint8Array) => btoa(String.fromCharCode(...new Uint8Array(buf as ArrayBuffer))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
@@ -77,7 +78,7 @@ export const validPin = (pin: string) => /^\d{4,8}$/.test(pin)
 
 /** Sperre einrichten oder Code ändern */
 export async function setPin(pin: string, timeoutMin = lock.timeoutMin): Promise<void> {
-  if (!validPin(pin)) throw new Error('Der Code braucht 4 bis 8 Ziffern.')
+  if (!validPin(pin)) throw new Error(t('Der Code braucht 4 bis 8 Ziffern.'))
   const salt = random(16)
   const old = readConfig()
   writeConfig({ salt: b64(salt), hash: await pinHash(pin, salt), iterations: ITERATIONS, length: pin.length, credentialId: old?.credentialId ?? null, timeoutMin })
@@ -135,7 +136,7 @@ export async function biometricAvailable(): Promise<boolean> {
 /** Face ID / Touch ID einrichten (legt auf dem Gerät einen Schlüssel nur für diese App an) */
 export async function enableBiometric(): Promise<void> {
   const c = readConfig()
-  if (!c) throw new Error('Zuerst einen Code festlegen.')
+  if (!c) throw new Error(t('Zuerst einen Code festlegen.'))
   const cred = (await navigator.credentials.create({
     publicKey: {
       rp: { name: 'KofferFertigRaus', id: location.hostname },

@@ -105,75 +105,73 @@ async function discardQueue() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Fotos in Piwigo" />
+  <TripContextHeader :trip-id="tripId" :title="t('Fotos in Piwigo')" />
 
-  <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" aria-label="Lädt"></span></div>
+  <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
 
   <div v-else-if="state === 'no-sync'" class="alert alert-info">
-    Piwigo läuft über deinen eigenen Abgleich-Server. Richte zuerst den
-    <RouterLink to="/abgleich">Geräte-Abgleich</RouterLink> ein.
+    {{ t('Piwigo läuft über deinen eigenen Abgleich-Server. Richte zuerst den') }}
+    <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('ein.') }}
   </div>
 
   <div v-else-if="state === 'no-piwigo'" class="alert alert-info">
-    Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet
-    (<code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code> – Anleitung in <code>server/README.md</code>),
-    oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).
+    {{ t('Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet (') }}<code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code> {{ t('– Anleitung in') }} <code>server/README.md</code>{{ t('), oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).') }}
   </div>
 
   <template v-else>
     <div v-if="state === 'error'" class="alert alert-warning d-flex align-items-start gap-2">
       <span class="flex-grow-1">{{ message }}</span>
-      <button type="button" class="btn btn-sm btn-outline-secondary" @click="load">Erneut</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" @click="load">{{ t('Erneut') }}</button>
     </div>
     <p v-else-if="status" class="small text-body-secondary">
-      Angemeldet in Piwigo als <strong>{{ status.user }}</strong>.
-      <span v-if="!status.admin" class="text-danger">Dieser Benutzer ist kein Administrator – Hochladen und Alben anlegen gehen nur mit einem Administrator-Schlüssel.</span>
+      {{ t('Angemeldet in Piwigo als') }} <strong>{{ status.user }}</strong>.
+      <span v-if="!status.admin" class="text-danger">{{ t('Dieser Benutzer ist kein Administrator – Hochladen und Alben anlegen gehen nur mit einem Administrator-Schlüssel.') }}</span>
     </p>
 
     <!-- Album der Reise -->
     <section class="card mb-3">
       <div class="card-body">
-        <h2 class="h6 card-title"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>Album dieser Reise</h2>
+        <h2 class="h6 card-title"><i class="bi bi-folder2-open me-1" aria-hidden="true"></i>{{ t('Album dieser Reise') }}</h2>
         <template v-if="link">
           <p class="mb-2">
             <strong>{{ link.albumName }}</strong>
-            <a v-if="link.albumUrl" :href="link.albumUrl" target="_blank" rel="noopener" class="ms-2 small">In Piwigo öffnen <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
+            <a v-if="link.albumUrl" :href="link.albumUrl" target="_blank" rel="noopener" class="ms-2 small">{{ t('In Piwigo öffnen') }} <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i></a>
           </p>
           <div class="form-check form-switch mb-2">
             <input id="pwg-auto" class="form-check-input" type="checkbox" role="switch" :checked="link.autoUpload" @change="setAuto" />
-            <label class="form-check-label" for="pwg-auto">Neue Fotos aus dem Tagebuch automatisch hochladen (Original)</label>
+            <label class="form-check-label" for="pwg-auto">{{ t('Neue Fotos aus dem Tagebuch automatisch hochladen (Original)') }}</label>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary" @click="unlink">Anderes Album wählen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" @click="unlink">{{ t('Anderes Album wählen') }}</button>
         </template>
         <template v-else>
           <p class="small text-body-secondary">
-            Noch kein Album verbunden. Beim ersten Hochladen wird automatisch eines angelegt – oder du legst es hier fest.
+            {{ t('Noch kein Album verbunden. Beim ersten Hochladen wird automatisch eines angelegt – oder du legst es hier fest.') }}
           </p>
           <div v-if="state === 'ready'" class="row g-2">
             <div class="col-12 col-md-6">
-              <label for="pwg-new" class="form-label small">Neues Album</label>
+              <label for="pwg-new" class="form-label small">{{ t('Neues Album') }}</label>
               <input id="pwg-new" v-model="newName" class="form-control" />
             </div>
             <div class="col-12 col-md-6">
-              <label for="pwg-parent" class="form-label small">anlegen in</label>
+              <label for="pwg-parent" class="form-label small">{{ t('anlegen in') }}</label>
               <select id="pwg-parent" v-model="parentAlbum" class="form-select">
-                <option :value="null">– oberste Ebene –</option>
+                <option :value="null">{{ t('– oberste Ebene –') }}</option>
                 <option v-for="a in sorted" :key="a.id" :value="a.id">{{ a.name }}</option>
               </select>
             </div>
             <div class="col-12">
               <button type="button" class="btn btn-primary btn-sm" :disabled="busy || !newName.trim()" @click="createNew">
-                <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>Album anlegen (privat)
+                <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>{{ t('Album anlegen (privat)') }}
               </button>
             </div>
             <div class="col-12 mt-3">
-              <label for="pwg-existing" class="form-label small">oder vorhandenes Album verbinden</label>
+              <label for="pwg-existing" class="form-label small">{{ t('oder vorhandenes Album verbinden') }}</label>
               <div class="input-group">
                 <select id="pwg-existing" v-model="chooseId" class="form-select">
-                  <option :value="null">– Album wählen –</option>
+                  <option :value="null">{{ t('– Album wählen –') }}</option>
                   <option v-for="a in sorted" :key="a.id" :value="a.id">{{ a.name }} ({{ a.images }})</option>
                 </select>
-                <button type="button" class="btn btn-outline-primary" :disabled="!chooseId" @click="chooseExisting">Verbinden</button>
+                <button type="button" class="btn btn-outline-primary" :disabled="!chooseId" @click="chooseExisting">{{ t('Verbinden') }}</button>
               </div>
             </div>
           </div>
@@ -185,23 +183,22 @@ async function discardQueue() {
     <!-- Warteschlange -->
     <section class="card mb-3">
       <div class="card-body">
-        <h2 class="h6 card-title"><i class="bi bi-cloud-upload me-1" aria-hidden="true"></i>Hochladen</h2>
-        <p v-if="!queue.length" class="mb-0 text-body-secondary small">Alle Fotos dieses Geräts sind in Piwigo.</p>
+        <h2 class="h6 card-title"><i class="bi bi-cloud-upload me-1" aria-hidden="true"></i>{{ t('Hochladen') }}</h2>
+        <p v-if="!queue.length" class="mb-0 text-body-secondary small">{{ t('Alle Fotos dieses Geräts sind in Piwigo.') }}</p>
         <template v-else>
-          <p class="mb-2">{{ describeQueue(queue) }}<span v-if="uploadState.current"> – lade „{{ uploadState.current }}“ …</span></p>
+          <p class="mb-2">{{ describeQueue(queue) }}<span v-if="uploadState.current"> {{ t('– lade „{current}“ …', { current: uploadState.current }) }}</span></p>
           <ul v-if="errors.length" class="small text-danger ps-3">
             <li v-for="u in errors.slice(0, 5)" :key="u.id">{{ u.filename }}: {{ u.error }}</li>
           </ul>
           <div class="d-flex gap-2">
             <button type="button" class="btn btn-sm btn-primary" :disabled="uploadState.running || !online" @click="uploadNow">
-              <span v-if="uploadState.running" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Jetzt hochladen
+              <span v-if="uploadState.running" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Jetzt hochladen') }}
             </button>
-            <button type="button" class="btn btn-sm btn-outline-danger" :disabled="uploadState.running" @click="discardQueue">Verwerfen</button>
+            <button type="button" class="btn btn-sm btn-outline-danger" :disabled="uploadState.running" @click="discardQueue">{{ t('Verwerfen') }}</button>
           </div>
         </template>
         <p class="small text-body-secondary mt-2 mb-0">
-          Hochgeladen wird das Original vom Gerät, auf dem das Foto hinzugefügt wurde. Im Tagebuch bleibt eine verkleinerte Fassung,
-          damit es auch offline funktioniert. Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.
+          {{ t('Hochgeladen wird das Original vom Gerät, auf dem das Foto hinzugefügt wurde. Im Tagebuch bleibt eine verkleinerte Fassung, damit es auch offline funktioniert. Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.') }}
         </p>
       </div>
     </section>

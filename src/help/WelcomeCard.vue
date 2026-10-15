@@ -15,8 +15,8 @@ const { creating, error, create: sample } = useSampleTrip()
       <div class="d-flex align-items-center gap-3 mb-3">
         <AppLogo :size="48" />
         <div>
-          <h2 class="h4 mb-0">Willkommen!</h2>
-          <div class="text-body-secondary">Plane deine erste Reise – oder schau dich erst einmal um.</div>
+          <h2 class="h4 mb-0">{{ t('Willkommen!') }}</h2>
+          <div class="text-body-secondary">{{ t('Plane deine erste Reise – oder schau dich erst einmal um.') }}</div>
         </div>
       </div>
 
@@ -24,26 +24,26 @@ const { creating, error, create: sample } = useSampleTrip()
         <div v-if="canCreateTrips()" class="col-12 col-sm-6">
           <RouterLink to="/trip/neu" class="choice choice-primary" data-welcome-new>
             <i class="bi bi-plus-circle" aria-hidden="true"></i>
-            <span><strong>Erste Reise planen</strong><small>Name, Ziel und Zeitraum genügen.</small></span>
+            <span><strong>{{ t('Erste Reise planen') }}</strong><small>{{ t('Name, Ziel und Zeitraum genügen.') }}</small></span>
           </RouterLink>
         </div>
         <div v-if="canCreateTrips()" class="col-12 col-sm-6">
           <button type="button" class="choice" :disabled="creating" data-welcome-sample @click="sample">
             <span v-if="creating" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
             <i v-else class="bi bi-suitcase2" aria-hidden="true"></i>
-            <span><strong>Beispielreise ansehen</strong><small>Eine fertige Reise zum Ausprobieren.</small></span>
+            <span><strong>{{ t('Beispielreise ansehen') }}</strong><small>{{ t('Eine fertige Reise zum Ausprobieren.') }}</small></span>
           </button>
         </div>
         <div class="col-12 col-sm-6">
           <RouterLink to="/willkommen" class="choice" data-welcome-intro>
             <i class="bi bi-play-circle" aria-hidden="true"></i>
-            <span><strong>Kurze Einführung</strong><small>Was kann die App? In einer Minute.</small></span>
+            <span><strong>{{ t('Kurze Einführung') }}</strong><small>{{ t('Was kann die App? In einer Minute.') }}</small></span>
           </RouterLink>
         </div>
         <div class="col-12 col-sm-6">
           <RouterLink to="/abgleich" class="choice">
             <i class="bi bi-cloud-arrow-down" aria-hidden="true"></i>
-            <span><strong>Schon Reisen auf einem anderen Gerät?</strong><small>Mit deinem Server verbinden – oder unter Einstellungen eine Sicherung einlesen.</small></span>
+            <span><strong>{{ t('Schon Reisen auf einem anderen Gerät?') }}</strong><small>{{ t('Mit deinem Server verbinden – oder unter Einstellungen eine Sicherung einlesen.') }}</small></span>
           </RouterLink>
         </div>
       </div>
@@ -52,7 +52,7 @@ const { creating, error, create: sample } = useSampleTrip()
 
       <div v-if="showInstall" class="alert alert-info small mt-3 mb-0 d-flex gap-2" data-welcome-install>
         <i class="bi bi-phone" aria-hidden="true"></i>
-        <span>Tipp: In Safari über <strong>Teilen → Zum Home-Bildschirm</strong> wird KofferFertigRaus zur App – dann bleiben die Daten zuverlässig erhalten. <RouterLink to="/hilfe/installieren">Mehr dazu</RouterLink></span>
+        <span>{{ t('Tipp: In Safari über') }} <strong>{{ t('Teilen → Zum Home-Bildschirm') }}</strong> {{ t('wird KofferFertigRaus zur App – dann bleiben die Daten zuverlässig erhalten.') }} <RouterLink to="/hilfe/installieren">{{ t('Mehr dazu') }}</RouterLink></span>
       </div>
     </div>
   </div>

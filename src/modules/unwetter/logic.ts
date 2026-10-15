@@ -1,6 +1,7 @@
 /** Reine Funktionen der Unwetterwarnungen (ohne Datenbank, ohne Vue). */
 import { addDays } from '@/core/dates'
 import type { AlertScope, WarningCache, Watch, WeatherAlertSettings, WeatherWarning } from './types'
+import { intlLocale } from '@/i18n'
 
 export const DEFAULT_SETTINGS: WeatherAlertSettings = { scope: 'orte', regions: [] }
 
@@ -100,7 +101,7 @@ export function localWhen(iso: string, timeZone?: string): string {
   const t = Date.parse(iso)
   if (!iso || Number.isNaN(t)) return ''
   const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
+    new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
       .formatToParts(new Date(t))
       .map((p) => [p.type, p.value])
   )

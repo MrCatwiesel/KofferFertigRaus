@@ -125,20 +125,20 @@ async function take() {
     <div class="modal-dialog modal-fullscreen-sm-down modal-xl modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
-          <h2 id="pwg-title" class="modal-title h5"><i class="bi bi-images me-2" aria-hidden="true"></i>Aus Piwigo</h2>
-          <button type="button" class="btn-close" aria-label="Schließen" @click="emit('close')"></button>
+          <h2 id="pwg-title" class="modal-title h5"><i class="bi bi-images me-2" aria-hidden="true"></i>{{ t('Aus Piwigo') }}</h2>
+          <button type="button" class="btn-close" :aria-label="t('Schließen')" @click="emit('close')"></button>
         </div>
         <div class="modal-body">
-          <label for="pwg-album" class="form-label">Album</label>
+          <label for="pwg-album" class="form-label">{{ t('Album') }}</label>
           <select id="pwg-album" v-model="albumId" class="form-select mb-3" :disabled="!albums.length">
-            <option :value="null">– Album wählen –</option>
+            <option :value="null">{{ t('– Album wählen –') }}</option>
             <option v-for="a in sorted" :key="a.id" :value="a.id">
               {{ a.name }} ({{ a.images }}){{ a.id === tripAlbumId ? ' · Album dieser Reise' : '' }}
             </option>
           </select>
 
           <div v-if="error" class="alert alert-warning py-2">{{ error }}</div>
-          <p v-if="albumId && !loading && !images.length && !error" class="text-body-secondary">Keine Fotos in diesem Album.</p>
+          <p v-if="albumId && !loading && !images.length && !error" class="text-body-secondary">{{ t('Keine Fotos in diesem Album.') }}</p>
 
           <div class="pwg-grid">
             <button v-for="img in images" :key="img.id" type="button" class="pwg-item"
@@ -151,16 +151,16 @@ async function take() {
           </div>
 
           <div v-if="hasMore" class="text-center mt-3">
-            <button type="button" class="btn btn-outline-secondary" :disabled="loading" @click="loadPage(page + 1)">Weitere Fotos laden</button>
+            <button type="button" class="btn btn-outline-secondary" :disabled="loading" @click="loadPage(page + 1)">{{ t('Weitere Fotos laden') }}</button>
           </div>
-          <div v-if="loading && !progress" class="text-center my-3"><span class="spinner-border text-primary" aria-label="Lädt"></span></div>
+          <div v-if="loading && !progress" class="text-center my-3"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
         </div>
         <div class="modal-footer">
           <span class="me-auto small text-body-secondary">{{ progress || (selected.length ? `${selected.length} ausgewählt` : 'Fotos antippen zum Auswählen') }}</span>
-          <button type="button" class="btn btn-outline-secondary" @click="emit('close')">Abbrechen</button>
+          <button type="button" class="btn btn-outline-secondary" @click="emit('close')">{{ t('Abbrechen') }}</button>
           <button type="button" class="btn btn-primary" :disabled="!selected.length || loading" @click="take">
             <span v-if="progress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-            Übernehmen
+            {{ t('Übernehmen') }}
           </button>
         </div>
       </div>

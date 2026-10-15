@@ -28,10 +28,10 @@ function close() {
   <div v-if="versions" class="alert alert-success d-flex gap-2 align-items-start" role="status" data-whats-new>
     <i class="bi bi-stars fs-5" aria-hidden="true"></i>
     <div class="flex-grow-1 small">
-      <strong>Neu in Version {{ APP_VERSION }}{{ versions > 1 ? ' und davor' : '' }}{{ items.length ? ':' : '' }}</strong>
+      <strong>{{ t('Neu in Version {APP_VERSION}{x}{x2}', { APP_VERSION, x: versions > 1 ? ' und davor' : '', x2: items.length ? ':' : '' }) }}</strong>
       {{ items.join(' · ') }}
-      <RouterLink to="/hilfe/neu" class="ms-1" @click="close">Mehr erfahren</RouterLink>
+      <RouterLink to="/hilfe/neu" class="ms-1" @click="close">{{ t('Mehr erfahren') }}</RouterLink>
     </div>
-    <button type="button" class="btn-close" aria-label="Hinweis schließen" @click="close"></button>
+    <button type="button" class="btn-close" :aria-label="t('Hinweis schließen')" @click="close"></button>
   </div>
 </template>

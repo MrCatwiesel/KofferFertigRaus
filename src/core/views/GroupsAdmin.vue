@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { formatBytes } from '../storage'
 import { ServerClient } from '../sync/client'
 import { ago, pairingLink } from '../sync/logic'
+import { t } from '@/i18n'
 
 /** Reisegruppen auf dem eigenen Server verwalten (nur für den Besitzer des Servers). */
 interface Group {
@@ -38,7 +39,7 @@ async function load() {
   const info = await client.info()
   if (!info) {
     state.value = 'error'
-    message.value = 'Server nicht erreichbar.'
+    message.value = t('Server nicht erreichbar.')
     return
   }
   if (!info.admin) return (state.value = 'not-admin')
@@ -79,13 +80,13 @@ async function patch(g: Group, change: Partial<Pick<Group, 'piwigo' | 'disabled'
 }
 
 async function rename(g: Group) {
-  const name = prompt('Neuer Name der Reisegruppe:', g.name)
+  const name = prompt(t('Neuer Name der Reisegruppe:'), g.name)
   if (name?.trim()) await patch(g, { name: name.trim() })
 }
 
 /** Neuer Schlüssel: der alte gilt sofort nicht mehr, angemeldete Geräte der Gruppe bleiben angemeldet. */
 async function rotate(g: Group) {
-  if (!client || !confirm(`Neuen Schlüssel für „${g.name}“ erzeugen? Der alte gilt dann nicht mehr. Geräte mit eigenem Zugang bleiben angemeldet.`)) return
+  if (!client || !confirm(t('Neuen Schlüssel für „{name}“ erzeugen? Der alte gilt dann nicht mehr. Geräte mit eigenem Zugang bleiben angemeldet.', { name: g.name }))) return
   try {
     const r = await client.json<{ key: string; group: Group }>(`/api/admin/groups/${g.space}`, 'PATCH', { newKey: true })
     invite.value = { name: r.group.name, key: r.key, link: pairingLink(location.href, client.server, r.key) }
@@ -96,7 +97,7 @@ async function rotate(g: Group) {
 
 async function remove(g: Group) {
   if (!client) return
-  const really = prompt(`„${g.name}“ mit ALLEN Reisen und Fotos auf dem Server löschen? Zum Bestätigen den Namen eintippen:`)
+  const really = prompt(t('„{name}“ mit ALLEN Reisen und Fotos auf dem Server löschen? Zum Bestätigen den Namen eintippen:', { name: g.name }))
   if (really?.trim() !== g.name) return
   try {
     await client.json(`/api/admin/groups/${g.space}`, 'DELETE')
@@ -113,14 +114,14 @@ async function copyInvite() {
     copied.value = true
     setTimeout(() => (copied.value = false), 2000)
   } catch {
-    prompt('Einladungslink kopieren:', invite.value.link)
+    prompt(t('Einladungslink kopieren:'), invite.value.link)
   }
 }
 
 async function shareInvite() {
   if (!invite.value) return
   try {
-    await navigator.share({ title: `KofferFertigRaus – ${invite.value.name}`, text: 'Einladung zu deiner eigenen Reisegruppe:', url: invite.value.link })
+    await navigator.share({ title: `KofferFertigRaus – ${invite.value.name}`, text: t('Einladung zu deiner eigenen Reisegruppe:'), url: invite.value.link })
   } catch {
     /* abgebrochen */
   }
@@ -130,49 +131,48 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
 <template>
   <div class="mb-3">
-    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Geräte-Abgleich</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Reisegruppen</h1>
+    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ t('Geräte-Abgleich') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ t('Reisegruppen') }}</h1>
   </div>
   <p class="text-body-secondary small">
-    Jede Reisegruppe hat ihren eigenen Schlüssel und sieht nur ihre eigenen Reisen. Freunde, die die App selbst nutzen möchten,
-    bekommen hier eine eigene Gruppe. Piwigo ist nur für Gruppen nutzbar, die du freigibst.
+    {{ t('Jede Reisegruppe hat ihren eigenen Schlüssel und sieht nur ihre eigenen Reisen. Freunde, die die App selbst nutzen möchten, bekommen hier eine eigene Gruppe. Piwigo ist nur für Gruppen nutzbar, die du freigibst.') }}
   </p>
 
-  <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" aria-label="Lädt"></span></div>
-  <div v-else-if="state === 'no-sync'" class="alert alert-info">Zuerst den <RouterLink to="/abgleich">Geräte-Abgleich</RouterLink> einrichten.</div>
-  <div v-else-if="state === 'not-admin'" class="alert alert-info">Reisegruppen verwaltet nur der Besitzer des Servers.</div>
+  <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
+  <div v-else-if="state === 'no-sync'" class="alert alert-info">{{ t('Zuerst den') }} <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('einrichten.') }}</div>
+  <div v-else-if="state === 'not-admin'" class="alert alert-info">{{ t('Reisegruppen verwaltet nur der Besitzer des Servers.') }}</div>
   <div v-else-if="state === 'error'" class="alert alert-warning d-flex gap-2">
     <span class="flex-grow-1">{{ message }}</span>
-    <button type="button" class="btn btn-sm btn-outline-secondary" @click="load">Erneut</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" @click="load">{{ t('Erneut') }}</button>
   </div>
 
   <template v-else>
     <div v-if="message" class="alert alert-danger">{{ message }}</div>
 
     <div v-if="invite" class="alert alert-success">
-      <div class="fw-semibold mb-1"><i class="bi bi-person-plus me-1" aria-hidden="true"></i>Gruppe „{{ invite.name }}“ angelegt</div>
+      <div class="fw-semibold mb-1"><i class="bi bi-person-plus me-1" aria-hidden="true"></i>{{ t('Gruppe „{name}“ angelegt', { name: invite.name }) }}</div>
       <p class="small mb-2">
-        Schick den Einladungslink an deine Freunde. Sie öffnen ihn, installieren die App und tippen auf „Verbinden“.
-        <strong>Der Schlüssel wird nur jetzt angezeigt.</strong>
+        {{ t('Schick den Einladungslink an deine Freunde. Sie öffnen ihn, installieren die App und tippen auf „Verbinden“.') }}
+        <strong>{{ t('Der Schlüssel wird nur jetzt angezeigt.') }}</strong>
       </p>
-      <div class="small text-break mb-2">Schlüssel: <code>{{ invite.key }}</code></div>
+      <div class="small text-break mb-2">{{ t('Schlüssel:') }} <code>{{ invite.key }}</code></div>
       <div class="d-flex flex-wrap gap-2">
-        <button v-if="canShare" type="button" class="btn btn-sm btn-success" @click="shareInvite"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>Einladung teilen</button>
-        <button type="button" class="btn btn-sm btn-outline-success" @click="copyInvite"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied ? 'Kopiert' : 'Link kopieren' }}</button>
-        <button type="button" class="btn btn-sm btn-link" @click="invite = null">Schließen</button>
+        <button v-if="canShare" type="button" class="btn btn-sm btn-success" @click="shareInvite"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>{{ t('Einladung teilen') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-success" @click="copyInvite"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied ? t('Kopiert') : t('Link kopieren') }}</button>
+        <button type="button" class="btn btn-sm btn-link" @click="invite = null">{{ t('Schließen') }}</button>
       </div>
     </div>
 
     <section class="card mb-3">
       <div class="card-body">
-        <h2 class="h6 card-title"><i class="bi bi-people me-1" aria-hidden="true"></i>Neue Reisegruppe</h2>
+        <h2 class="h6 card-title"><i class="bi bi-people me-1" aria-hidden="true"></i>{{ t('Neue Reisegruppe') }}</h2>
         <div class="input-group mb-2">
-          <input v-model="newName" class="form-control" maxlength="80" placeholder="z. B. Familie Müller" aria-label="Name der Gruppe" @keyup.enter="create" />
-          <button type="button" class="btn btn-primary" :disabled="busy || !newName.trim()" @click="create">Anlegen</button>
+          <input v-model="newName" class="form-control" maxlength="80" :placeholder="t('z. B. Familie Müller')" :aria-label="t('Name der Gruppe')" @keyup.enter="create" />
+          <button type="button" class="btn btn-primary" :disabled="busy || !newName.trim()" @click="create">{{ t('Anlegen') }}</button>
         </div>
         <div class="form-check form-switch">
           <input id="g-piwigo" v-model="newPiwigo" class="form-check-input" type="checkbox" role="switch" />
-          <label class="form-check-label small" for="g-piwigo">Darf deine Piwigo-Galerie nutzen</label>
+          <label class="form-check-label small" for="g-piwigo">{{ t('Darf deine Piwigo-Galerie nutzen') }}</label>
         </div>
       </div>
     </section>
@@ -183,15 +183,15 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
           <div class="flex-grow-1 min-w-0">
             <div class="fw-semibold">
               {{ g.name }}
-              <span v-if="g.owner" class="badge text-bg-primary ms-1">Du</span>
-              <span v-if="g.disabled" class="badge text-bg-secondary ms-1">gesperrt</span>
+              <span v-if="g.owner" class="badge text-bg-primary ms-1">{{ t('Du') }}</span>
+              <span v-if="g.disabled" class="badge text-bg-secondary ms-1">{{ t('gesperrt') }}</span>
             </div>
             <div class="small text-body-secondary">
-              {{ g.records }} Einträge · {{ formatBytes(g.bytes) }} Fotos · zuletzt aktiv {{ ago(g.lastSeen) }}
-              <span v-if="g.source === 'env'"> · fest eingetragen</span>
+              {{ t('{records} Einträge · {formatBytes} Fotos · zuletzt aktiv {ago}', { records: g.records, formatBytes: formatBytes(g.bytes), ago: ago(g.lastSeen) }) }}
+              <span v-if="g.source === 'env'"> {{ t('· fest eingetragen') }}</span>
             </div>
           </div>
-          <button type="button" class="btn btn-sm btn-outline-secondary" aria-label="Umbenennen" @click="rename(g)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" :aria-label="t('Umbenennen')" @click="rename(g)"><i class="bi bi-pencil" aria-hidden="true"></i></button>
         </div>
         <div v-if="!g.owner" class="d-flex flex-wrap align-items-center gap-3 mt-2">
           <div class="form-check form-switch mb-0">
@@ -200,13 +200,13 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
           </div>
           <div class="form-check form-switch mb-0">
             <input :id="`d-${g.space}`" class="form-check-input" type="checkbox" role="switch" :checked="!g.disabled" @change="patch(g, { disabled: !g.disabled })" />
-            <label class="form-check-label small" :for="`d-${g.space}`">Zugang aktiv</label>
+            <label class="form-check-label small" :for="`d-${g.space}`">{{ t('Zugang aktiv') }}</label>
           </div>
           <button v-if="g.source === 'app'" type="button" class="btn btn-sm btn-outline-secondary ms-auto" @click="rotate(g)">
-            <i class="bi bi-key me-1" aria-hidden="true"></i>Neuer Schlüssel
+            <i class="bi bi-key me-1" aria-hidden="true"></i>{{ t('Neuer Schlüssel') }}
           </button>
           <button v-if="g.source === 'app'" type="button" class="btn btn-sm btn-outline-danger" @click="remove(g)">
-            <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+            <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
           </button>
         </div>
       </div>
@@ -214,7 +214,7 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
 
     <p class="small text-body-secondary mt-3">
       <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-      Die Daten aller Gruppen liegen auf deinem Server. Technisch kannst du als Betreiber sie einsehen – sag das deinen Freunden ehrlich.
+      {{ t('Die Daten aller Gruppen liegen auf deinem Server. Technisch kannst du als Betreiber sie einsehen – sag das deinen Freunden ehrlich.') }}
     </p>
   </template>
 </template>

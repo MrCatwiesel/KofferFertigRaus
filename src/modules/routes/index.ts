@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { routeDayFacts } from './day-facts'
 import { statsLine } from './logic'
 import { routeRepository } from './repository'
+import { intlLocale } from '@/i18n'
 
 /** Modul "Routen & Touren": GPX/FIT/KML importieren, Karte, Höhenprofil, Export für Garmin. */
 export const routesModule: AppModule = {
@@ -23,7 +24,7 @@ export const routesModule: AppModule = {
       const list = await routeRepository.listByTrip(tripId)
       if (!list.length) return 'GPX, Garmin (FIT), Google My Maps (KML)'
       const km = list.reduce((s, r) => s + r.stats.distance, 0) / 1000
-      return `${list.length} ${list.length === 1 ? 'Route' : 'Routen'} · ${km.toLocaleString('de-DE', { maximumFractionDigits: 0 })} km`
+      return `${list.length} ${list.length === 1 ? 'Route' : 'Routen'} · ${km.toLocaleString(intlLocale(), { maximumFractionDigits: 0 })} km`
     }
   },
   async mapOverlays(tripId) {

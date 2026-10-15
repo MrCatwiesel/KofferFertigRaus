@@ -70,8 +70,8 @@ function touchEnd(e: TouchEvent) {
 <template>
   <div class="intro mx-auto" data-intro @touchstart.passive="touchStart" @touchend.passive="touchEnd">
     <div class="d-flex justify-content-between align-items-center mb-2">
-      <span class="small text-body-secondary on-bg">Schritt {{ index + 1 }} von {{ steps.length }}</span>
-      <button v-if="!last" type="button" class="btn btn-link btn-sm text-decoration-none" @click="finish('/trip')">Überspringen</button>
+      <span class="small text-body-secondary on-bg">{{ t('Schritt {x} von {n}', { x: index + 1, n: steps.length }) }}</span>
+      <button v-if="!last" type="button" class="btn btn-link btn-sm text-decoration-none" @click="finish('/trip')">{{ t('Überspringen') }}</button>
     </div>
 
     <div class="card intro-card">
@@ -83,86 +83,86 @@ function touchEnd(e: TouchEvent) {
         <h1 class="h3 mb-3" data-intro-title>{{ step.id === 'willkommen' ? 'Willkommen bei KofferFertigRaus' : step.title }}</h1>
 
         <template v-if="step.id === 'willkommen'">
-          <p class="lead">Deine Reise an einem Ort – von der ersten Idee bis zur Erinnerung.</p>
+          <p class="lead">{{ t('Deine Reise an einem Ort – von der ersten Idee bis zur Erinnerung.') }}</p>
           <div class="phases">
-            <div><i class="bi bi-map" aria-hidden="true"></i><span>Planen</span></div>
-            <div><i class="bi bi-list-check" aria-hidden="true"></i><span>Vorbereiten</span></div>
-            <div><i class="bi bi-compass" aria-hidden="true"></i><span>Unterwegs</span></div>
-            <div><i class="bi bi-journal-richtext" aria-hidden="true"></i><span>Erinnern</span></div>
+            <div><i class="bi bi-map" aria-hidden="true"></i><span>{{ t('Planen') }}</span></div>
+            <div><i class="bi bi-list-check" aria-hidden="true"></i><span>{{ t('Vorbereiten') }}</span></div>
+            <div><i class="bi bi-compass" aria-hidden="true"></i><span>{{ t('Unterwegs') }}</span></div>
+            <div><i class="bi bi-journal-richtext" aria-hidden="true"></i><span>{{ t('Erinnern') }}</span></div>
           </div>
-          <p class="mt-3 mb-0 text-body-secondary">Kostenlos, ohne Werbung und ohne Konto. Alles funktioniert auch ohne Internet.</p>
+          <p class="mt-3 mb-0 text-body-secondary">{{ t('Kostenlos, ohne Werbung und ohne Konto. Alles funktioniert auch ohne Internet.') }}</p>
         </template>
 
         <template v-else-if="step.id === 'planen'">
           <ul class="intro-list">
-            <li><i class="bi bi-car-front" aria-hidden="true"></i><span><strong>Anreise und Unterkünfte</strong> mit Zeiten, Kosten und Stornofristen – Bestätigungsmails liest die App selbst ein.</span></li>
-            <li><i class="bi bi-star" aria-hidden="true"></i><span><strong>Ideen sammeln</strong> für Ausflüge und Restaurants, gemeinsam per Abstimmung entscheiden.</span></li>
-            <li><i class="bi bi-backpack" aria-hidden="true"></i><span><strong>Packliste</strong> aus Vorlagen – Mengen passend zu Reisedauer und Personen.</span></li>
-            <li><i class="bi bi-passport" aria-hidden="true"></i><span><strong>Dokumente, Reiseapotheke, Reisehinweise</strong> – mit Ablaufdaten und Erinnerungen.</span></li>
+            <li><i class="bi bi-car-front" aria-hidden="true"></i><span><strong>{{ t('Anreise und Unterkünfte') }}</strong> {{ t('mit Zeiten, Kosten und Stornofristen – Bestätigungsmails liest die App selbst ein.') }}</span></li>
+            <li><i class="bi bi-star" aria-hidden="true"></i><span><strong>{{ t('Ideen sammeln') }}</strong> {{ t('für Ausflüge und Restaurants, gemeinsam per Abstimmung entscheiden.') }}</span></li>
+            <li><i class="bi bi-backpack" aria-hidden="true"></i><span><strong>{{ t('Packliste') }}</strong> {{ t('aus Vorlagen – Mengen passend zu Reisedauer und Personen.') }}</span></li>
+            <li><i class="bi bi-passport" aria-hidden="true"></i><span><strong>{{ t('Dokumente, Reiseapotheke, Reisehinweise') }}</strong> {{ t('– mit Ablaufdaten und Erinnerungen.') }}</span></li>
           </ul>
         </template>
 
         <template v-else-if="step.id === 'unterwegs'">
           <ul class="intro-list">
-            <li><i class="bi bi-sun" aria-hidden="true"></i><span><strong>Heute</strong> zeigt den Tag mit Wetter und schlägt passende Ideen vor – bei Regen die für drinnen.</span></li>
-            <li><i class="bi bi-map" aria-hidden="true"></i><span><strong>Karte</strong> mit Unterkünften, Ideen, Touren und Fotos – auch offline.</span></li>
-            <li><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>Ausgaben</strong> in Sekunden erfassen; am Ende rechnet die App aus, wer wem was schuldet.</span></li>
-            <li><i class="bi bi-telephone" aria-hidden="true"></i><span><strong>Notfall</strong> – die wichtigen Nummern mit einem Tipp.</span></li>
+            <li><i class="bi bi-sun" aria-hidden="true"></i><span><strong>{{ t('Heute') }}</strong> {{ t('zeigt den Tag mit Wetter und schlägt passende Ideen vor – bei Regen die für drinnen.') }}</span></li>
+            <li><i class="bi bi-map" aria-hidden="true"></i><span><strong>{{ t('Karte') }}</strong> {{ t('mit Unterkünften, Ideen, Touren und Fotos – auch offline.') }}</span></li>
+            <li><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>{{ t('Ausgaben') }}</strong> {{ t('in Sekunden erfassen; am Ende rechnet die App aus, wer wem was schuldet.') }}</span></li>
+            <li><i class="bi bi-telephone" aria-hidden="true"></i><span><strong>{{ t('Notfall') }}</strong> {{ t('– die wichtigen Nummern mit einem Tipp.') }}</span></li>
           </ul>
         </template>
 
         <template v-else-if="step.id === 'erinnern'">
           <ul class="intro-list">
-            <li><i class="bi bi-journal-richtext" aria-hidden="true"></i><span><strong>Tagebuch</strong> mit Fotos und Sprachnotizen – auf Wunsch mit fertigem Entwurf aus dem Tag.</span></li>
-            <li><i class="bi bi-book" aria-hidden="true"></i><span><strong>Reisebericht und Fotobuch</strong> als PDF-Datei.</span></li>
-            <li><i class="bi bi-window" aria-hidden="true"></i><span><strong>Reise-Webseite</strong> oder ein Link für Freunde und Familie.</span></li>
+            <li><i class="bi bi-journal-richtext" aria-hidden="true"></i><span><strong>{{ t('Tagebuch') }}</strong> {{ t('mit Fotos und Sprachnotizen – auf Wunsch mit fertigem Entwurf aus dem Tag.') }}</span></li>
+            <li><i class="bi bi-book" aria-hidden="true"></i><span><strong>{{ t('Reisebericht und Fotobuch') }}</strong> {{ t('als PDF-Datei.') }}</span></li>
+            <li><i class="bi bi-window" aria-hidden="true"></i><span><strong>{{ t('Reise-Webseite') }}</strong> {{ t('oder ein Link für Freunde und Familie.') }}</span></li>
           </ul>
         </template>
 
         <template v-else-if="step.id === 'daten'">
-          <p>Alles, was du einträgst, liegt <strong>nur auf diesem Gerät</strong>. Kein fremder Server, keine Werbung.</p>
+          <p>{{ t('Alles, was du einträgst, liegt') }} <strong>{{ t('nur auf diesem Gerät') }}</strong>{{ t('. Kein fremder Server, keine Werbung.') }}</p>
           <ul class="intro-list">
-            <li><i class="bi bi-download" aria-hidden="true"></i><span>Sichere deine Reisen ab und zu unter <strong>Einstellungen → Datensicherung</strong>.</span></li>
-            <li><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Mehrere Geräte oder Mitreisende? Mit dem <strong>Geräte-Abgleich</strong> über deinen eigenen Server bleiben alle auf demselben Stand.</span></li>
+            <li><i class="bi bi-download" aria-hidden="true"></i><span>{{ t('Sichere deine Reisen ab und zu unter') }} <strong>{{ t('Einstellungen → Datensicherung') }}</strong>.</span></li>
+            <li><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>{{ t('Mehrere Geräte oder Mitreisende? Mit dem') }} <strong>{{ t('Geräte-Abgleich') }}</strong> {{ t('über deinen eigenen Server bleiben alle auf demselben Stand.') }}</span></li>
           </ul>
         </template>
 
         <template v-else-if="step.id === 'installieren'">
           <template v-if="hint === 'installiert'">
-            <p class="mb-0"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>Die App liegt schon auf deinem Home-Bildschirm – bestens.</p>
+            <p class="mb-0"><i class="bi bi-check-circle-fill text-success me-1" aria-hidden="true"></i>{{ t('Die App liegt schon auf deinem Home-Bildschirm – bestens.') }}</p>
           </template>
           <template v-else-if="hint === 'ios'">
-            <p>Auf dem iPad oder iPhone gehört die App auf den Home-Bildschirm. Dann behält Safari die Daten zuverlässig, und Face ID und Benachrichtigungen funktionieren.</p>
+            <p>{{ t('Auf dem iPad oder iPhone gehört die App auf den Home-Bildschirm. Dann behält Safari die Daten zuverlässig, und Face ID und Benachrichtigungen funktionieren.') }}</p>
             <ol class="mb-0">
-              <li>In Safari auf <strong>Teilen</strong> tippen <i class="bi bi-box-arrow-up" aria-hidden="true"></i></li>
-              <li><strong>Zum Home-Bildschirm</strong> wählen</li>
-              <li>Die App ab jetzt über das neue Symbol öffnen</li>
+              <li>{{ t('In Safari auf') }} <strong>{{ t('Teilen') }}</strong> {{ t('tippen') }} <i class="bi bi-box-arrow-up" aria-hidden="true"></i></li>
+              <li><strong>{{ t('Zum Home-Bildschirm') }}</strong> {{ t('wählen') }}</li>
+              <li>{{ t('Die App ab jetzt über das neue Symbol öffnen') }}</li>
             </ol>
           </template>
           <template v-else-if="hint === 'android'">
-            <p>Leg die App auf den Startbildschirm – dann startet sie wie jede andere App:</p>
-            <p class="mb-0">Chrome-Menü (drei Punkte) → <strong>App installieren</strong>.</p>
+            <p>{{ t('Leg die App auf den Startbildschirm – dann startet sie wie jede andere App:') }}</p>
+            <p class="mb-0">{{ t('Chrome-Menü (drei Punkte) →') }} <strong>{{ t('App installieren') }}</strong>.</p>
           </template>
           <template v-else>
-            <p>Die App lässt sich installieren und startet dann im eigenen Fenster – oder du nutzt sie einfach im Browser.</p>
-            <p class="mb-0">Chrome oder Edge: in der Adressleiste auf <strong>Installieren</strong> klicken. Auf iPad und iPhone: Safari → Teilen → <strong>Zum Home-Bildschirm</strong>.</p>
+            <p>{{ t('Die App lässt sich installieren und startet dann im eigenen Fenster – oder du nutzt sie einfach im Browser.') }}</p>
+            <p class="mb-0">{{ t('Chrome oder Edge: in der Adressleiste auf') }} <strong>{{ t('Installieren') }}</strong> {{ t('klicken. Auf iPad und iPhone: Safari → Teilen →') }} <strong>{{ t('Zum Home-Bildschirm') }}</strong>.</p>
           </template>
         </template>
 
         <template v-else-if="step.id === 'los'">
-          <p>Womit möchtest du anfangen?</p>
+          <p>{{ t('Womit möchtest du anfangen?') }}</p>
           <div class="d-grid gap-2">
             <button v-if="canCreateTrips()" type="button" class="btn btn-primary" data-intro-new @click="finish('/trip/neu')">
-              <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Erste Reise planen
+              <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Erste Reise planen') }}
             </button>
             <button v-if="canCreateTrips()" type="button" class="btn btn-outline-primary" :disabled="creating" data-intro-sample @click="startSample">
               <span v-if="creating" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-              <i v-else class="bi bi-suitcase2 me-1" aria-hidden="true"></i>Beispielreise ansehen
+              <i v-else class="bi bi-suitcase2 me-1" aria-hidden="true"></i>{{ t('Beispielreise ansehen') }}
             </button>
             <button type="button" class="btn btn-outline-secondary" @click="finish('/abgleich')">
-              <i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>Mit meinem Server verbinden
+              <i class="bi bi-cloud-arrow-down me-1" aria-hidden="true"></i>{{ t('Mit meinem Server verbinden') }}
             </button>
-            <button type="button" class="btn btn-link" @click="finish('/hilfe')">Zur Hilfe</button>
+            <button type="button" class="btn btn-link" @click="finish('/hilfe')">{{ t('Zur Hilfe') }}</button>
           </div>
           <div v-if="error" class="alert alert-danger mt-3 mb-0">{{ error }}</div>
         </template>
@@ -171,9 +171,9 @@ function touchEnd(e: TouchEvent) {
 
     <div class="d-flex align-items-center justify-content-between mt-3">
       <button type="button" class="btn btn-outline-secondary" :disabled="index === 0" @click="go(-1)">
-        <i class="bi bi-chevron-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">Zurück</span>
+        <i class="bi bi-chevron-left" aria-hidden="true"></i><span class="d-none d-sm-inline ms-1">{{ t('Zurück') }}</span>
       </button>
-      <div class="dots" role="tablist" aria-label="Schritte">
+      <div class="dots" role="tablist" :aria-label="t('Schritte')">
         <button
           v-for="(s, i) in steps"
           :key="s.id"
@@ -186,9 +186,9 @@ function touchEnd(e: TouchEvent) {
         ></button>
       </div>
       <button v-if="!last" type="button" class="btn btn-primary" data-intro-next @click="go(1)">
-        <span class="d-none d-sm-inline me-1">Weiter</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline me-1">{{ t('Weiter') }}</span><i class="bi bi-chevron-right" aria-hidden="true"></i>
       </button>
-      <button v-else type="button" class="btn btn-outline-primary" @click="finish('/trip')">Fertig</button>
+      <button v-else type="button" class="btn btn-outline-primary" @click="finish('/trip')">{{ t('Fertig') }}</button>
     </div>
   </div>
 </template>

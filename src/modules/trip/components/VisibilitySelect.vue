@@ -31,11 +31,11 @@ function toggle(id: string, on: boolean) {
 
 <template>
   <div v-if="visible" class="border rounded p-2" data-visibility>
-    <label for="visibility" class="form-label small fw-semibold mb-1"><i class="bi bi-person-lock me-1" aria-hidden="true"></i>Wer darf das sehen?</label>
+    <label for="visibility" class="form-label small fw-semibold mb-1"><i class="bi bi-person-lock me-1" aria-hidden="true"></i>{{ t('Wer darf das sehen?') }}</label>
     <select id="visibility" class="form-select form-select-sm" :value="mode" @change="setMode(($event.target as HTMLSelectElement).value)">
-      <option value="ich">Nur ich</option>
-      <option value="alle">Alle in der Reisegruppe</option>
-      <option v-if="others.length" value="auswahl">Ausgewählte Personen …</option>
+      <option value="ich">{{ t('Nur ich') }}</option>
+      <option value="alle">{{ t('Alle in der Reisegruppe') }}</option>
+      <option v-if="others.length" value="auswahl">{{ t('Ausgewählte Personen …') }}</option>
     </select>
     <div v-if="mode === 'auswahl'" class="d-flex flex-wrap gap-3 mt-2">
       <div v-for="o in others" :key="o.id" class="form-check">
@@ -43,6 +43,6 @@ function toggle(id: string, on: boolean) {
         <label class="form-check-label small" :for="`vis-${o.id}`">{{ o.name }}</label>
       </div>
     </div>
-    <div class="form-text mt-1">{{ sharedLabel(people, model) }}. Z. B. Allergiepass oder INR-Ausweis für die Mitreisenden freigeben – für den Notfall.</div>
+    <div class="form-text mt-1">{{ t('{sharedLabel}. Z. B. Allergiepass oder INR-Ausweis für die Mitreisenden freigeben – für den Notfall.', { sharedLabel: sharedLabel(people, model) }) }}</div>
   </div>
 </template>

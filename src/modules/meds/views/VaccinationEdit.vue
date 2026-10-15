@@ -44,18 +44,18 @@ async function remove() {
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
-      <label for="name" class="form-label">Impfung</label>
+      <label for="name" class="form-label">{{ t('Impfung') }}</label>
       <input id="name" v-model="draft.name" class="form-control" :class="{ 'is-invalid': submitted && errors.name }"
-             placeholder="z. B. Tetanus, Hepatitis A" />
+             :placeholder="t('z. B. Tetanus, Hepatitis A')" />
       <div class="invalid-feedback">{{ errors.name }}</div>
     </div>
     <div class="col-12 col-md-4">
-      <label for="person" class="form-label">Für wen?</label>
+      <label for="person" class="form-label">{{ t('Für wen?') }}</label>
       <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
     </div>
     <div class="col-12">
-      <label class="form-label d-block">Status</label>
-      <div class="btn-group flex-wrap" role="group" aria-label="Status">
+      <label class="form-label d-block">{{ t('Status') }}</label>
+      <div class="btn-group flex-wrap" role="group" :aria-label="t('Status')">
         <template v-for="(s, key) in VACC_STATUS" :key="key">
           <input :id="`vs-${key}`" v-model="draft.status" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`vs-${key}`">{{ s.label }}</label>
@@ -67,18 +67,18 @@ async function remove() {
       <input id="date" v-model="draft.date" type="date" class="form-control" />
     </div>
     <div class="col-6">
-      <label for="valid" class="form-label">Schutz gültig bis</label>
+      <label for="valid" class="form-label">{{ t('Schutz gültig bis') }}</label>
       <input id="valid" v-model="draft.validUntil" type="date" class="form-control" />
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
-      <textarea id="notes" v-model="draft.notes" rows="2" class="form-control" placeholder="Arzt, Impfpass, Folgetermin …"></textarea>
+      <label for="notes" class="form-label">{{ t('Notizen') }}</label>
+      <textarea id="notes" v-model="draft.notes" rows="2" class="form-control" :placeholder="t('Arzt, Impfpass, Folgetermin …')"></textarea>
     </div>
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

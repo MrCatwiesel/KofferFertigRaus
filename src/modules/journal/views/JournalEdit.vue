@@ -225,22 +225,22 @@ async function remove() {
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-6 col-md-4">
-      <label for="date" class="form-label">Tag</label>
+      <label for="date" class="form-label">{{ t('Tag') }}</label>
       <input id="date" v-model="draft.date" type="date" class="form-control" :class="{ 'is-invalid': submitted && errors.date }" />
       <div class="form-text">{{ draft.date ? formatDayShort(draft.date) : '' }}</div>
     </div>
     <div class="col-6 col-md-8">
-      <label for="loc" class="form-label">Wo?</label>
-      <input id="loc" v-model="draft.location" class="form-control" placeholder="z. B. Malcesine" />
+      <label for="loc" class="form-label">{{ t('Wo?') }}</label>
+      <input id="loc" v-model="draft.location" class="form-control" :placeholder="t('z. B. Malcesine')" />
     </div>
     <div class="col-12">
-      <label for="title" class="form-label">Überschrift</label>
-      <input id="title" v-model="draft.title" class="form-control" placeholder="z. B. Mit der Seilbahn auf den Monte Baldo" />
+      <label for="title" class="form-label">{{ t('Überschrift') }}</label>
+      <input id="title" v-model="draft.title" class="form-control" :placeholder="t('z. B. Mit der Seilbahn auf den Monte Baldo')" />
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Wie war der Tag?</label>
-      <div class="d-flex flex-wrap gap-1" role="radiogroup" aria-label="Stimmung">
+      <label class="form-label d-block">{{ t('Wie war der Tag?') }}</label>
+      <div class="d-flex flex-wrap gap-1" role="radiogroup" :aria-label="t('Stimmung')">
         <button v-for="m in MOODS" :key="m.value" type="button" class="btn mood-btn"
                 :class="draft.mood === m.value ? 'btn-primary' : 'btn-outline-secondary'" :aria-pressed="draft.mood === m.value"
                 :title="m.label" @click="draft.mood = draft.mood === m.value ? 0 : m.value">
@@ -251,46 +251,46 @@ async function remove() {
 
     <div class="col-12">
       <div class="d-flex flex-wrap align-items-end justify-content-between gap-2 mb-2">
-        <label for="text" class="form-label mb-0">Erlebt</label>
+        <label for="text" class="form-label mb-0">{{ t('Erlebt') }}</label>
         <button type="button" class="btn btn-sm btn-outline-primary" :disabled="drafting || !draft.date" data-day-draft @click="fillFromDay">
           <span v-if="drafting" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-          <i v-else class="bi bi-magic me-1" aria-hidden="true"></i>Entwurf aus dem Tag
+          <i v-else class="bi bi-magic me-1" aria-hidden="true"></i>{{ t('Entwurf aus dem Tag') }}
         </button>
       </div>
       <div v-if="draftNote" class="small mb-2" :class="draftNote.ok ? 'text-success' : 'text-body-secondary'" role="status" data-draft-note>{{ draftNote.text }}</div>
       <textarea id="text" v-model="draft.text" rows="7" class="form-control"
-                placeholder="Was habt ihr gemacht? Was war besonders, lustig, lecker?"></textarea>
+                :placeholder="t('Was habt ihr gemacht? Was war besonders, lustig, lecker?')"></textarea>
     </div>
 
     <!-- Sprachnotizen -->
     <div class="col-12">
-      <label class="form-label d-block">Sprachnotizen</label>
+      <label class="form-label d-block">{{ t('Sprachnotizen') }}</label>
       <VoiceNotesEditor v-model="voices" @removed="onVoiceRemoved" />
     </div>
 
     <!-- Fotos -->
     <div class="col-12">
-      <label class="form-label d-block">Fotos</label>
+      <label class="form-label d-block">{{ t('Fotos') }}</label>
       <div class="photo-grid mb-2">
         <figure v-for="(it, i) in items" :key="it.key" class="photo-item m-0">
           <button type="button" class="photo-thumb" :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightboxStart = i">
             <img :src="it.url" alt="" />
-            <span v-if="i === 0" class="badge text-bg-primary cover">Titelbild</span>
-            <span v-if="(it.existing ?? it.fresh)?.externalRef" class="badge text-bg-light external" title="Original liegt in der Galerie">
+            <span v-if="i === 0" class="badge text-bg-primary cover">{{ t('Titelbild') }}</span>
+            <span v-if="(it.existing ?? it.fresh)?.externalRef" class="badge text-bg-light external" :title="t('Original liegt in der Galerie')">
               <i class="bi bi-cloud-check" aria-hidden="true"></i>
             </span>
           </button>
-          <input v-model="it.caption" class="form-control form-control-sm mt-1" placeholder="Bildunterschrift" :aria-label="`Bildunterschrift ${i + 1}`" />
+          <input v-model="it.caption" class="form-control form-control-sm mt-1" :placeholder="t('Bildunterschrift')" :aria-label="`Bildunterschrift ${i + 1}`" />
           <div class="d-flex justify-content-between mt-1">
             <div class="btn-group btn-group-sm">
-              <button type="button" class="btn btn-outline-secondary" :disabled="i === 0" aria-label="Nach vorn" @click="move(i, -1)">
+              <button type="button" class="btn btn-outline-secondary" :disabled="i === 0" :aria-label="t('Nach vorn')" @click="move(i, -1)">
                 <i class="bi bi-chevron-left" aria-hidden="true"></i>
               </button>
-              <button type="button" class="btn btn-outline-secondary" :disabled="i === items.length - 1" aria-label="Nach hinten" @click="move(i, 1)">
+              <button type="button" class="btn btn-outline-secondary" :disabled="i === items.length - 1" :aria-label="t('Nach hinten')" @click="move(i, 1)">
                 <i class="bi bi-chevron-right" aria-hidden="true"></i>
               </button>
             </div>
-            <button type="button" class="btn btn-sm btn-outline-danger" aria-label="Foto entfernen" @click="removePhoto(i)">
+            <button type="button" class="btn btn-sm btn-outline-danger" :aria-label="t('Foto entfernen')" @click="removePhoto(i)">
               <i class="bi bi-trash" aria-hidden="true"></i>
             </button>
           </div>
@@ -299,11 +299,11 @@ async function remove() {
         <label class="photo-add">
           <template v-if="processing">
             <span class="spinner-border text-primary" aria-hidden="true"></span>
-            <span class="small mt-2">Bereite {{ processing }} vor …</span>
+            <span class="small mt-2">{{ t('Bereite {processing} vor …', { processing }) }}</span>
           </template>
           <template v-else>
             <i class="bi bi-camera fs-2" aria-hidden="true"></i>
-            <span class="small mt-1">Fotos hinzufügen</span>
+            <span class="small mt-1">{{ t('Fotos hinzufügen') }}</span>
           </template>
           <input type="file" accept="image/*" multiple class="d-none" @change="addFiles" />
         </label>
@@ -314,13 +314,13 @@ async function remove() {
         </button>
       </div>
       <div v-if="photoError" class="small text-danger">{{ photoError }}</div>
-      <div class="form-text">Fotos werden verkleinert gespeichert (max. 2048 px) – spart Platz auf dem Gerät.</div>
+      <div class="form-text">{{ t('Fotos werden verkleinert gespeichert (max. 2048 px) – spart Platz auf dem Gerät.') }}</div>
     </div>
 
     <div class="col-12">
       <div class="form-check form-switch">
         <input id="hl" v-model="draft.highlight" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="hl"><i class="bi bi-star-fill text-warning me-1" aria-hidden="true"></i>Highlight – kommt auf die Reise-Webseite</label>
+        <label class="form-check-label" for="hl"><i class="bi bi-star-fill text-warning me-1" aria-hidden="true"></i>{{ t('Highlight – kommt auf die Reise-Webseite') }}</label>
       </div>
     </div>
 
@@ -329,11 +329,11 @@ async function remove() {
     <div class="col-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary" :disabled="saving || processing > 0">
         <span v-if="saving" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-        <i v-else class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern
+        <i v-else class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}
       </button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

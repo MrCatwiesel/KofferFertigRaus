@@ -8,6 +8,7 @@ import { safeBlobType } from '../blob-types'
 import { asRemote, markRemote } from './tracking'
 import { applyAction, defaultDeviceName, isBlobRef, isInviteCode, normalizeInviteCode, uploadStamp, type RemoteChange } from './logic'
 import Dexie from 'dexie'
+import { t } from '@/i18n'
 
 /** Sichtbarer Zustand des Abgleichs (für Anzeige in der App). */
 export const syncState = reactive({
@@ -174,7 +175,7 @@ async function encodeForUpload(api: SyncApi, tbl: string, row: Record<string, un
     // Zu große Datei: ohne sie abgleichen (bleibt auf diesem Gerät) – sonst stünde der ganze Abgleich still
     if (v.size > MAX_BLOB_BYTES) {
       out[k] = null
-      warn(`„${label(tbl, row)}“: Datei zu groß (${Math.round(v.size / 1048576)} MB) – bleibt nur auf diesem Gerät.`)
+      warn(t('„{name}“: Datei zu groß ({mb} MB) – bleibt nur auf diesem Gerät.', { name: label(tbl, row), mb: Math.round(v.size / 1048576) }))
       continue
     }
     const hash = await hashBlob(v)
@@ -184,7 +185,7 @@ async function encodeForUpload(api: SyncApi, tbl: string, row: Record<string, un
       } catch (e) {
         if (!(e instanceof SyncHttpError && e.permanent)) throw e
         out[k] = null
-        warn(`„${label(tbl, row)}“: ${e.message} – bleibt nur auf diesem Gerät.`)
+        warn(t('„{name}“: {error} – bleibt nur auf diesem Gerät.', { name: label(tbl, row), error: e.message }))
         continue
       }
       uploaded.add(hash)
@@ -207,7 +208,7 @@ async function decodeFromServer(api: SyncApi, tbl: string, data: Record<string, 
       // vorhandene Fassung hier behalten – sonst bliebe der Abgleich für alle Geräte an dieser Stelle hängen
       if (!(e instanceof SyncHttpError && e.permanent)) throw e
       out[k] = local?.[k] instanceof Blob ? local[k] : null
-      warn(`„${label(tbl, data)}“: Datei fehlt auf dem Server.`)
+      warn(t('„{name}“: Datei fehlt auf dem Server.', { name: label(tbl, data) }))
     }
   }
   return out
@@ -224,10 +225,10 @@ async function applyRejected(api: SyncApi, rejected: RejectedChange[]): Promise<
   for (const r of list) {
     const local = (await db.table(r.tbl).get(r.id)) as Record<string, unknown> | undefined
     const data = r.current.deleted || !r.current.data ? null : await decodeFromServer(api, r.tbl, r.current.data, local)
-    if (data && r.reason === 'nur-lesen') warn(`„${label(r.tbl, data)}“: nur Leserecht – Änderung zurückgenommen.`)
-    else if (data && r.reason === 'privat') warn(`„${label(r.tbl, data)}“ gehört einer anderen Person – Änderung zurückgenommen.`)
-    else if (data && r.reason === 'verknuepfung') warn('Die Verknüpfung eines Teilnehmers kann nur die Person selbst lösen – zurückgenommen.')
-    else if (!data && local && r.reason === 'nur-lesen' && r.current.stamp === '') warn(`„${label(r.tbl, local)}“: nur Leserecht – nicht gespeichert.`)
+    if (data && r.reason === 'nur-lesen') warn(t('„{name}“: nur Leserecht – Änderung zurückgenommen.', { name: label(r.tbl, data) }))
+    else if (data && r.reason === 'privat') warn(t('„{name}“ gehört einer anderen Person – Änderung zurückgenommen.', { name: label(r.tbl, data) }))
+    else if (data && r.reason === 'verknuepfung') warn(t('Die Verknüpfung eines Teilnehmers kann nur die Person selbst lösen – zurückgenommen.'))
+    else if (!data && local && r.reason === 'nur-lesen' && r.current.stamp === '') warn(t('„{name}“: nur Leserecht – nicht gespeichert.', { name: label(r.tbl, local) }))
     plan.push({ r, data })
   }
   const tables = [...new Set(plan.map((p) => p.r.tbl))].map((t) => db.table(t))
@@ -254,7 +255,7 @@ async function pushOutbox(api: SyncApi): Promise<void> {
       if (!syncTables.has(e.tbl)) continue
       const row = (await db.table(e.tbl).get(e.id)) as Record<string, unknown> | undefined
       if (row) {
-        if (Object.values(row).some((v) => v instanceof Blob)) syncState.progress = `Lade Fotos hoch (${++photos}) …`
+        if (Object.values(row).some((v) => v instanceof Blob)) syncState.progress = t('Lade Fotos hoch ({n}) …', { n: ++photos })
         changes.push({ tbl: e.tbl, id: e.id, stamp: uploadStamp(row, e.at), deleted: false, data: await encodeForUpload(api, e.tbl, row, uploaded) })
       } else {
         changes.push({ tbl: e.tbl, id: e.id, stamp: e.at, deleted: true, data: null })
@@ -272,7 +273,7 @@ async function pushOutbox(api: SyncApi): Promise<void> {
             rejected.push(...((await api.push([c])).rejected ?? []))
           } catch (e1) {
             if (!(e1 instanceof SyncHttpError && e1.permanent)) throw e1
-            warn(`Eintrag in „${c.tbl}“ vom Server abgelehnt – bleibt nur auf diesem Gerät.`)
+            warn(t('Eintrag in „{table}“ vom Server abgelehnt – bleibt nur auf diesem Gerät.', { table: c.tbl }))
           }
         }
       }
@@ -283,7 +284,7 @@ async function pushOutbox(api: SyncApi): Promise<void> {
       const done = batch.filter((e, i) => current[i]?.at === e.at).map((e) => e.key)
       await db.outbox.bulkDelete(done)
       // Sicherheitsnetz gegen Endlosschleife: wurde nichts erledigt, abbrechen
-      if (!done.length) throw new Error('Änderungen während des Hochladens – wird beim nächsten Abgleich fortgesetzt.')
+      if (!done.length) throw new Error(t('Änderungen während des Hochladens – wird beim nächsten Abgleich fortgesetzt.'))
     })
     // Nur zurücknehmen, was seither nicht erneut geändert wurde (das versucht der nächste Abgleich)
     if (rejected.length) {
@@ -307,7 +308,7 @@ async function pullChanges(api: SyncApi): Promise<number> {
       const action = applyAction(local, c)
       if (action === 'skip') continue
       if (action === 'put') {
-        if (Object.values(c.data ?? {}).some(isBlobRef)) syncState.progress = 'Lade Fotos …'
+        if (Object.values(c.data ?? {}).some(isBlobRef)) syncState.progress = t('Lade Fotos …')
         plan.push({ change: c, action, data: await decodeFromServer(api, c.tbl, c.data ?? {}, local) })
       } else plan.push({ change: c, action })
     }
@@ -385,7 +386,7 @@ export function syncNow(): Promise<void> {
     if (!c) return
     if (syncState.revoked) return
     if (!navigator.onLine) {
-      syncState.lastError = 'Offline – wird nachgeholt, sobald Internet da ist.'
+      syncState.lastError = t('Offline – wird nachgeholt, sobald Internet da ist.')
       return
     }
     syncState.running = true
@@ -393,15 +394,15 @@ export function syncNow(): Promise<void> {
     try {
       const api = await checkServerReset(new SyncApi(c.server, c.key))
       if (!(await getMeta(META.initialized, false))) {
-        syncState.progress = 'Bereite ersten Abgleich vor …'
+        syncState.progress = t('Bereite ersten Abgleich vor …')
         await enqueueAll()
         await setMeta(META.initialized, true)
       }
-      syncState.progress = 'Lade Änderungen hoch …'
+      syncState.progress = t('Lade Änderungen hoch …')
       await refreshPending()
       api.pending = syncState.pending
       await pushOutbox(api)
-      syncState.progress = 'Hole Änderungen …'
+      syncState.progress = t('Hole Änderungen …')
       await refreshPending()
       api.pending = syncState.pending
       await pullChanges(api)
@@ -412,7 +413,7 @@ export function syncNow(): Promise<void> {
       syncState.lastError = (e as Error).message
       if (e instanceof DeviceRevokedError) {
         // Abgemeldet: Abgleich ruht, bis neu verbunden wird (kein ständiges Anklopfen beim Server)
-        const text = `${e.message}${e.reason ? ` (${e.reason})` : ''} Mit Einladungscode oder Schlüssel neu verbinden – die Daten auf diesem Gerät bleiben erhalten.`
+        const text = `${t(e.message)}${e.reason ? ` (${e.reason})` : ''} ${t('Mit Einladungscode oder Schlüssel neu verbinden – die Daten auf diesem Gerät bleiben erhalten.')}`
         syncState.revoked = text
         syncState.lastError = text
         await setMeta(META.revoked, text)

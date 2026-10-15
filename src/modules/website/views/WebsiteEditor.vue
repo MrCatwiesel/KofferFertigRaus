@@ -267,42 +267,42 @@ function resetTexts() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Reise-Webseite" />
+  <TripContextHeader :trip-id="tripId" :title="t('Reise-Webseite')" />
 
   <div class="row g-4">
     <!-- Einstellungen -->
     <div class="col-12 col-lg-5">
       <div v-if="entries.length === 0" class="alert alert-info small">
-        Noch keine Tagebuch-Einträge. Die Webseite entsteht aus deinem
-        <RouterLink :to="`/trip/${tripId}/tagebuch`">Reisetagebuch</RouterLink>.
+        {{ t('Noch keine Tagebuch-Einträge. Die Webseite entsteht aus deinem') }}
+        <RouterLink :to="`/trip/${tripId}/tagebuch`">{{ t('Reisetagebuch') }}</RouterLink>.
       </div>
       <div v-else-if="settings.onlyHighlights && highlightCount === 0" class="alert alert-warning small">
-        Noch keine Highlights. Markiere Einträge im Tagebuch mit ⭐ – oder schalte „Nur Highlights“ aus.
+        {{ t('Noch keine Highlights. Markiere Einträge im Tagebuch mit ⭐ – oder schalte „Nur Highlights“ aus.') }}
       </div>
 
-      <h2 class="h6">Vorlage</h2>
+      <h2 class="h6">{{ t('Vorlage') }}</h2>
       <div class="vstack gap-2 mb-3">
-        <template v-for="(t, key) in TEMPLATE_INFO" :key="key">
+        <template v-for="(tpl, key) in TEMPLATE_INFO" :key="key">
           <input :id="`tpl-${key}`" v-model="settings.template" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary text-start" :for="`tpl-${key}`">
-            <i :class="`bi bi-${t.icon} me-2`" aria-hidden="true"></i><strong>{{ t.title }}</strong>
-            <span class="d-block small opacity-75">{{ t.description }}</span>
+            <i :class="`bi bi-${tpl.icon} me-2`" aria-hidden="true"></i><strong>{{ tpl.title }}</strong>
+            <span class="d-block small opacity-75">{{ tpl.description }}</span>
           </label>
         </template>
       </div>
 
-      <h2 class="h6">Aussehen</h2>
+      <h2 class="h6">{{ t('Aussehen') }}</h2>
       <div class="mb-2">
-        <label class="form-label small mb-1">Akzentfarbe</label>
+        <label class="form-label small mb-1">{{ t('Akzentfarbe') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <button v-for="c in ACCENT_PRESETS" :key="c" type="button" class="swatch" :style="{ background: c }"
                   :class="{ active: settings.accent === c }" :aria-label="`Farbe ${c}`" @click="settings.accent = c"></button>
-          <input v-model="settings.accent" type="color" class="form-control form-control-color" aria-label="Eigene Farbe" />
+          <input v-model="settings.accent" type="color" class="form-control form-control-color" :aria-label="t('Eigene Farbe')" />
         </div>
       </div>
       <div class="row g-2 mb-2">
         <div class="col-7">
-          <label for="font" class="form-label small mb-1">Schrift</label>
+          <label for="font" class="form-label small mb-1">{{ t('Schrift') }}</label>
           <select id="font" v-model="settings.font" class="form-select form-select-sm">
             <optgroup v-for="g in FONT_GROUPS" :key="g.group" :label="g.group">
               <option v-for="f in g.fonts" :key="f.id" :value="f.id">{{ f.label }}</option>
@@ -312,41 +312,41 @@ function resetTexts() {
         <div class="col-5 d-flex align-items-end">
           <div class="form-check form-switch mb-1">
             <input id="dark" v-model="settings.dark" class="form-check-input" type="checkbox" role="switch" />
-            <label class="form-check-label small" for="dark">Dunkel</label>
+            <label class="form-check-label small" for="dark">{{ t('Dunkel') }}</label>
           </div>
         </div>
       </div>
 
       <h2 class="h6 mt-3 d-flex justify-content-between">
-        Texte
-        <button type="button" class="btn btn-link btn-sm p-0" @click="resetTexts">aus Reise übernehmen</button>
+        {{ t('Texte') }}
+        <button type="button" class="btn btn-link btn-sm p-0" @click="resetTexts">{{ t('aus Reise übernehmen') }}</button>
       </h2>
       <div class="mb-2">
-        <label for="title" class="form-label small mb-1">Titel</label>
+        <label for="title" class="form-label small mb-1">{{ t('Titel') }}</label>
         <input id="title" v-model="settings.title" class="form-control form-control-sm" />
       </div>
       <div class="mb-2">
-        <label for="sub" class="form-label small mb-1">Untertitel</label>
+        <label for="sub" class="form-label small mb-1">{{ t('Untertitel') }}</label>
         <input id="sub" v-model="settings.subtitle" class="form-control form-control-sm" />
       </div>
       <div class="mb-2">
-        <label for="intro" class="form-label small mb-1">Einleitung</label>
+        <label for="intro" class="form-label small mb-1">{{ t('Einleitung') }}</label>
         <textarea id="intro" v-model="settings.intro" rows="3" class="form-control form-control-sm"
-                  placeholder="Ein paar Sätze vorweg – worum ging es auf dieser Reise?"></textarea>
+                  :placeholder="t('Ein paar Sätze vorweg – worum ging es auf dieser Reise?')"></textarea>
       </div>
       <div class="mb-3">
-        <label for="author" class="form-label small mb-1">Von</label>
-        <input id="author" v-model="settings.author" class="form-control form-control-sm" placeholder="z. B. Anna & Tom" />
+        <label for="author" class="form-label small mb-1">{{ t('Von') }}</label>
+        <input id="author" v-model="settings.author" class="form-control form-control-sm" :placeholder="t('z. B. Anna & Tom')" />
       </div>
 
-      <h2 class="h6">Inhalt</h2>
-      <div class="btn-group btn-group-sm w-100 mb-2" role="group" aria-label="Tagebuch">
+      <h2 class="h6">{{ t('Inhalt') }}</h2>
+      <div class="btn-group btn-group-sm w-100 mb-2" role="group" :aria-label="t('Tagebuch')">
         <input id="oh-yes" v-model="settings.onlyHighlights" type="radio" class="btn-check" :value="true" />
-        <label class="btn btn-outline-primary" for="oh-yes"><i class="bi bi-star me-1" aria-hidden="true"></i>Nur Highlights ({{ highlightCount }})</label>
+        <label class="btn btn-outline-primary" for="oh-yes"><i class="bi bi-star me-1" aria-hidden="true"></i>{{ t('Nur Highlights ({highlightCount})', { highlightCount }) }}</label>
         <input id="oh-no" v-model="settings.onlyHighlights" type="radio" class="btn-check" :value="false" />
-        <label class="btn btn-outline-primary" for="oh-no"><i class="bi bi-journal-text me-1" aria-hidden="true"></i>Ganzes Tagebuch ({{ entries.length }})</label>
+        <label class="btn btn-outline-primary" for="oh-no"><i class="bi bi-journal-text me-1" aria-hidden="true"></i>{{ t('Ganzes Tagebuch ({n})', { n: entries.length }) }}</label>
       </div>
-      <div class="small text-body-secondary mb-1">Was soll auf die Seite?</div>
+      <div class="small text-body-secondary mb-1">{{ t('Was soll auf die Seite?') }}</div>
       <div class="d-flex flex-wrap gap-2 mb-2">
         <template v-for="b in sectionButtons" :key="b.key">
           <input :id="`sec-${b.key}`" v-model="settings[b.key]" type="checkbox" class="btn-check" autocomplete="off" />
@@ -357,25 +357,25 @@ function resetTexts() {
       </div>
       <div v-if="settings.showRoutes && hiddenRoutes.length" class="alert alert-light border small py-2 mb-2" data-hidden-routes>
         <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>
-        {{ hiddenRoutes.length === 1 ? '1 Route ist' : `${hiddenRoutes.length} Routen sind` }} nicht für die Webseite freigegeben
+        {{ t('{x} nicht für die Webseite freigegeben', { x: hiddenRoutes.length === 1 ? '1 Route ist' : `${hiddenRoutes.length} Routen sind` }) }}
         <template v-if="hiddenRoutes.length <= 3">({{ hiddenRoutes.map((r) => r.name).join(', ') }})</template>.
-        <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="showAllRoutes">Alle zeigen</button>
+        <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="showAllRoutes">{{ t('Alle zeigen') }}</button>
       </div>
       <div v-if="settings.showRoutes && shared.length" class="small mb-2" :class="mapState === 'fehlt' ? 'text-warning-emphasis' : 'text-body-secondary'" data-map-state>
-        <template v-if="mapState === 'laden'"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade Kartenbilder …</template>
-        <template v-else-if="mapState === 'fehlt'"><i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Kartenbilder brauchen Internet – ohne sie zeigt die Seite nur die Strecke. <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="loadMaps">Noch einmal versuchen</button></template>
-        <template v-else-if="mapState === 'fertig'"><i class="bi bi-map me-1" aria-hidden="true"></i>Routen mit Karte (© OpenStreetMap-Mitwirkende){{ shared.length > 1 ? ' und Übersichtskarte' : '' }}.</template>
+        <template v-if="mapState === 'laden'"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade Kartenbilder …') }}</template>
+        <template v-else-if="mapState === 'fehlt'"><i class="bi bi-wifi-off me-1" aria-hidden="true"></i>{{ t('Kartenbilder brauchen Internet – ohne sie zeigt die Seite nur die Strecke.') }} <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="loadMaps">{{ t('Noch einmal versuchen') }}</button></template>
+        <template v-else-if="mapState === 'fertig'"><i class="bi bi-map me-1" aria-hidden="true"></i>{{ t('Routen mit Karte (© OpenStreetMap-Mitwirkende){x}.', { x: shared.length > 1 ? ' und Übersichtskarte' : '' }) }}</template>
       </div>
       <div v-if="settings.showStays" class="form-check form-switch">
         <input id="stay-details" v-model="settings.showStayDetails" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="stay-details">Adresse und Link der Unterkünfte zeigen</label>
+        <label class="form-check-label small" for="stay-details">{{ t('Adresse und Link der Unterkünfte zeigen') }}</label>
       </div>
       <p class="small text-body-secondary mb-2">
-        Preise, Buchungsnummern und Notizen kommen nie auf die Seite.
-        <template v-if="settings.showStays && accs.some((a) => a.status === 'gebucht')">Es werden nur gebuchte Unterkünfte gezeigt.</template>
+        {{ t('Preise, Buchungsnummern und Notizen kommen nie auf die Seite.') }}
+        <template v-if="settings.showStays && accs.some((a) => a.status === 'gebucht')">{{ t('Es werden nur gebuchte Unterkünfte gezeigt.') }}</template>
         <template v-if="settings.showActivities">{{ ' ' }}{{ doneActivities ? 'Unternehmungen: nur erledigte.' : 'Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.' }}</template>
       </p>
-      <label for="size" class="form-label small mb-1">Bildgröße</label>
+      <label for="size" class="form-label small mb-1">{{ t('Bildgröße') }}</label>
       <select id="size" v-model="settings.imageSize" class="form-select form-select-sm mb-3">
         <option v-for="(s, key) in IMAGE_EDGE" :key="key" :value="key">{{ s.label }}</option>
       </select>
@@ -383,14 +383,14 @@ function resetTexts() {
       <!-- Export -->
       <div class="card border-primary">
         <div class="card-body">
-          <h2 class="h6">Webseite erstellen</h2>
-          <p class="small text-body-secondary">Eine einzige HTML-Datei mit allen Fotos – funktioniert ohne Internet und in jedem Browser.</p>
+          <h2 class="h6">{{ t('Webseite erstellen') }}</h2>
+          <p class="small text-body-secondary">{{ t('Eine einzige HTML-Datei mit allen Fotos – funktioniert ohne Internet und in jedem Browser.') }}</p>
           <button type="button" class="btn btn-primary w-100" :disabled="exporting || !(site?.days.length || site?.stays.length || site?.activities.length)" @click="buildFile">
             <template v-if="exporting">
               <span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-              Fotos {{ progress.done }} / {{ progress.total }}
+              {{ t('Fotos {done} / {total}', { done: progress.done, total: progress.total }) }}
             </template>
-            <template v-else><i class="bi bi-magic me-1" aria-hidden="true"></i>Datei erstellen</template>
+            <template v-else><i class="bi bi-magic me-1" aria-hidden="true"></i>{{ t('Datei erstellen') }}</template>
           </button>
           <div v-if="exportError" class="small text-danger mt-2">{{ exportError }}</div>
 
@@ -398,32 +398,32 @@ function resetTexts() {
             <div class="small mb-2">
               <i class="bi bi-file-earmark-code me-1" aria-hidden="true"></i><strong>{{ exported.file.name }}</strong> · {{ formatBytes(exported.file.size) }}
               <span v-if="exported.file.size > 25 * 1024 * 1024" class="d-block text-warning-emphasis">
-                Recht groß für E-Mails – „Bildgröße: Klein“ macht die Datei kleiner.
+                {{ t('Recht groß für E-Mails – „Bildgröße: Klein“ macht die Datei kleiner.') }}
               </span>
             </div>
             <div class="d-flex flex-wrap gap-2">
               <button v-if="canShare" type="button" class="btn btn-success" @click="share">
-                <i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>Teilen
+                <i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>{{ t('Teilen') }}
               </button>
               <a :href="exported.url" :download="exported.file.name" class="btn btn-outline-primary">
-                <i class="bi bi-download me-1" aria-hidden="true"></i>Herunterladen
+                <i class="bi bi-download me-1" aria-hidden="true"></i>{{ t('Herunterladen') }}
               </a>
               <a :href="exported.url" target="_blank" rel="noopener" class="btn btn-outline-secondary">
-                <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>Öffnen
+                <i class="bi bi-box-arrow-up-right me-1" aria-hidden="true"></i>{{ t('Öffnen') }}
               </a>
             </div>
-            <DonationHint class="mt-3 mb-0" text="Schön geworden? Die App ist kostenlos – über eine kleine Spende freue ich mich." />
+            <DonationHint class="mt-3 mb-0" :text="t('Schön geworden? Die App ist kostenlos – über eine kleine Spende freue ich mich.')" />
           </div>
 
           <details class="small mt-3">
-            <summary>Wie bringe ich die Seite ins Internet?</summary>
+            <summary>{{ t('Wie bringe ich die Seite ins Internet?') }}</summary>
             <ol class="mt-2 ps-3 mb-0">
-              <li>Auf github.com ein neues <strong>öffentliches</strong> Repository anlegen, z. B. „reise-gardasee“.</li>
-              <li>„Add file → Upload files“: die Datei hochladen und in <code>index.html</code> umbenennen.</li>
-              <li>Settings → Pages → „Deploy from a branch“, Branch <code>main</code>, Speichern.</li>
-              <li>Nach 1–2 Minuten ist sie erreichbar unter <code>https://&lt;name&gt;.github.io/reise-gardasee/</code>.</li>
+              <li>{{ t('Auf github.com ein neues') }} <strong>{{ t('öffentliches') }}</strong> {{ t('Repository anlegen, z. B. „reise-gardasee“.') }}</li>
+              <li>{{ t('„Add file → Upload files“: die Datei hochladen und in') }} <code>index.html</code> {{ t('umbenennen.') }}</li>
+              <li>{{ t('Settings → Pages → „Deploy from a branch“, Branch') }} <code>main</code>{{ t(', Speichern.') }}</li>
+              <li>{{ t('Nach 1–2 Minuten ist sie erreichbar unter') }} <code>https://&lt;name&gt;.github.io/reise-gardasee/</code>.</li>
             </ol>
-            <p class="mt-2 mb-0">Ohne Internet-Adresse geht es auch: Datei per AirDrop, Mail oder Messenger schicken – sie öffnet sich in jedem Browser.</p>
+            <p class="mt-2 mb-0">{{ t('Ohne Internet-Adresse geht es auch: Datei per AirDrop, Mail oder Messenger schicken – sie öffnet sich in jedem Browser.') }}</p>
           </details>
         </div>
       </div>
@@ -432,9 +432,9 @@ function resetTexts() {
     <!-- Vorschau -->
     <div class="col-12 col-lg-7">
       <div class="preview-frame shadow-sm">
-        <div class="preview-bar small text-body-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>Vorschau</div>
+        <div class="preview-bar small text-body-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('Vorschau') }}</div>
         <!-- sandbox: in der Vorschau läuft kein Skript (Schutz vor eingeschleusten Inhalten); Fotos laden trotzdem -->
-        <iframe v-if="previewHtml" :srcdoc="previewHtml" sandbox="allow-same-origin" title="Vorschau der Reise-Webseite" class="preview"></iframe>
+        <iframe v-if="previewHtml" :srcdoc="previewHtml" sandbox="allow-same-origin" :title="t('Vorschau der Reise-Webseite')" class="preview"></iframe>
       </div>
     </div>
   </div>

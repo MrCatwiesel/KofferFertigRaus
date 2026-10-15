@@ -55,29 +55,29 @@ async function quickAdd() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Ausgaben" />
+  <TripContextHeader :trip-id="tripId" :title="t('Ausgaben')" />
 
   <!-- Überblick -->
   <div v-if="summary && list.length" class="card mb-3">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-baseline flex-wrap gap-2">
         <div>
-          <div class="small text-body-secondary">Ausgegeben</div>
+          <div class="small text-body-secondary">{{ t('Ausgegeben') }}</div>
           <div class="fs-3 fw-semibold">{{ formatMoney(summary.total, currency) }}</div>
         </div>
         <div class="text-end small">
-          <div>Ø {{ formatMoney(summary.perDay, currency) }} pro Tag</div>
-          <div class="text-body-secondary">Hochgerechnet: {{ formatMoney(summary.projected, currency) }}</div>
+          <div>{{ t('Ø {perDay} pro Tag', { perDay: formatMoney(summary.perDay, currency) }) }}</div>
+          <div class="text-body-secondary">{{ t('Hochgerechnet: {projected}', { projected: formatMoney(summary.projected, currency) }) }}</div>
         </div>
       </div>
       <template v-if="trip?.budget && budgetPct !== null">
-        <div class="progress mt-2" style="height: 10px" role="progressbar" :aria-valuenow="budgetPct" aria-valuemin="0" aria-valuemax="100" aria-label="Budget">
+        <div class="progress mt-2" style="height: 10px" role="progressbar" :aria-valuenow="budgetPct" aria-valuemin="0" aria-valuemax="100" :aria-label="t('Budget')">
           <div class="progress-bar" :class="budgetPct > 100 ? 'bg-danger' : budgetPct > 85 ? 'bg-warning' : 'bg-success'"
                :style="{ width: `${Math.min(100, budgetPct)}%` }"></div>
         </div>
         <div class="small mt-1" :class="summary.projected > trip.budget ? 'text-danger' : 'text-body-secondary'">
-          {{ budgetPct }} % von {{ formatMoney(trip.budget, currency) }}
-          <template v-if="summary.projected > trip.budget"> – bei diesem Tempo wird das Budget überschritten</template>
+          {{ t('{budgetPct} % von {budget}', { budgetPct, budget: formatMoney(trip.budget, currency) }) }}
+          <template v-if="summary.projected > trip.budget"> {{ t('– bei diesem Tempo wird das Budget überschritten') }}</template>
         </div>
       </template>
     </div>
@@ -87,8 +87,8 @@ async function quickAdd() {
   <form class="card mb-3" @submit.prevent="quickAdd">
     <div class="card-body">
       <div class="input-group mb-2">
-        <input v-model="quick" class="form-control" inputmode="text" placeholder="z. B. „23,50 Pizza“" aria-label="Betrag und Beschreibung" />
-        <button class="btn btn-primary" type="submit" aria-label="Hinzufügen"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+        <input v-model="quick" class="form-control" inputmode="text" :placeholder="t('z. B. „23,50 Pizza“')" :aria-label="t('Betrag und Beschreibung')" />
+        <button class="btn btn-primary" type="submit" :aria-label="t('Hinzufügen')"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
       </div>
       <div class="d-flex flex-wrap gap-1 mb-1">
         <template v-for="(c, key) in EXPENSE_CATEGORY" :key="key">
@@ -99,7 +99,7 @@ async function quickAdd() {
         </template>
       </div>
       <div v-if="people.length" class="d-flex flex-wrap gap-1 align-items-center small">
-        <span class="text-body-secondary me-1">Bezahlt von:</span>
+        <span class="text-body-secondary me-1">{{ t('Bezahlt von:') }}</span>
         <template v-for="p in ['', ...people]" :key="p || '-'">
           <input :id="`qp-${p || '-'}`" v-model="quickPayer" type="radio" class="btn-check" :value="p" />
           <label class="btn btn-sm btn-outline-secondary py-0" :for="`qp-${p || '-'}`">{{ p || '–' }}</label>
@@ -107,18 +107,18 @@ async function quickAdd() {
       </div>
       <div v-if="quickError" class="small text-danger mt-1">{{ quickError }}</div>
       <div class="d-flex justify-content-end mt-1">
-        <RouterLink :to="`/trip/${tripId}/ausgaben/neu`" class="small">Mit Beleg, Fremdwährung oder Aufteilung …</RouterLink>
+        <RouterLink :to="`/trip/${tripId}/ausgaben/neu`" class="small">{{ t('Mit Beleg, Fremdwährung oder Aufteilung …') }}</RouterLink>
       </div>
     </div>
   </form>
 
   <p v-if="list.length === 0" class="text-body-secondary small">
-    Tipp: Betrag und Stichwort eintippen, Kategorie antippen, fertig. Mit Teilnehmern rechnet die App am Ende aus, wer wem was schuldet.
+    {{ t('Tipp: Betrag und Stichwort eintippen, Kategorie antippen, fertig. Mit Teilnehmern rechnet die App am Ende aus, wer wem was schuldet.') }}
   </p>
 
   <!-- Kategorien -->
   <section v-if="summary && summary.byCategory.length" class="mb-3">
-    <h2 class="h6 text-body-secondary">Nach Kategorie</h2>
+    <h2 class="h6 text-body-secondary">{{ t('Nach Kategorie') }}</h2>
     <div v-for="c in summary.byCategory" :key="c.category" class="mb-1">
       <div class="d-flex justify-content-between small">
         <span><i :class="`bi bi-${EXPENSE_CATEGORY[c.category].icon} me-1`" aria-hidden="true"></i>{{ EXPENSE_CATEGORY[c.category].label }}</span>
@@ -131,9 +131,9 @@ async function quickAdd() {
   <!-- Ausgleich -->
   <section v-if="people.length > 1 && hasPayers" class="card mb-3">
     <div class="card-body">
-      <h2 class="h6">Ausgleich</h2>
+      <h2 class="h6">{{ t('Ausgleich') }}</h2>
       <table class="table table-sm small mb-2">
-        <thead><tr><th>Person</th><th class="text-end">bezahlt</th><th class="text-end">Anteil</th><th class="text-end">Saldo</th></tr></thead>
+        <thead><tr><th>{{ t('Person') }}</th><th class="text-end">{{ t('bezahlt') }}</th><th class="text-end">{{ t('Anteil') }}</th><th class="text-end">{{ t('Saldo') }}</th></tr></thead>
         <tbody>
           <tr v-for="b in bal" :key="b.person">
             <td>{{ b.person }}</td>
@@ -143,10 +143,10 @@ async function quickAdd() {
           </tr>
         </tbody>
       </table>
-      <div v-if="transfers.length === 0" class="small text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>Alle sind quitt.</div>
-      <div v-for="t in transfers" :key="`${t.from}-${t.to}`" class="small">
+      <div v-if="transfers.length === 0" class="small text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('Alle sind quitt.') }}</div>
+      <div v-for="tr in transfers" :key="`${tr.from}-${tr.to}`" class="small">
         <i class="bi bi-arrow-right-circle me-1 text-primary" aria-hidden="true"></i>
-        <strong>{{ t.from }}</strong> gibt <strong>{{ t.to }}</strong> {{ formatMoney(t.amount, currency) }}
+        <strong>{{ tr.from }}</strong> {{ t('gibt') }} <strong>{{ tr.to }}</strong> {{ formatMoney(tr.amount, currency) }}
       </div>
     </div>
   </section>
@@ -166,9 +166,9 @@ async function quickAdd() {
         <div class="flex-grow-1 min-w-0">
           <div class="text-truncate">{{ e.description || EXPENSE_CATEGORY[e.category].label }}</div>
           <div class="small text-body-secondary">
-            <template v-if="e.paidBy">{{ e.paidBy }} hat bezahlt</template>
-            <template v-if="e.splitAmong.length"> · für {{ e.splitAmong.join(', ') }}</template>
-            <i v-if="e.receipt" class="bi bi-receipt ms-1" title="Beleg vorhanden" aria-label="Beleg vorhanden"></i>
+            <template v-if="e.paidBy">{{ t('{paidBy} hat bezahlt', { paidBy: e.paidBy }) }}</template>
+            <template v-if="e.splitAmong.length"> {{ t('· für {join}', { join: e.splitAmong.join(', ') }) }}</template>
+            <i v-if="e.receipt" class="bi bi-receipt ms-1" :title="t('Beleg vorhanden')" :aria-label="t('Beleg vorhanden')"></i>
           </div>
         </div>
         <div class="text-end">

@@ -63,28 +63,28 @@ async function remove() {
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-6">
-      <label for="type" class="form-label">Art</label>
+      <label for="type" class="form-label">{{ t('Art') }}</label>
       <select id="type" v-model="draft.type" class="form-select" @change="onTypeChange">
-        <option v-for="(t, key) in DOC_TYPE" :key="key" :value="key">{{ t.label }}</option>
+        <option v-for="(dt, key) in DOC_TYPE" :key="key" :value="key">{{ dt.label }}</option>
       </select>
     </div>
     <div class="col-12 col-md-6">
-      <label for="person" class="form-label">Für wen?</label>
+      <label for="person" class="form-label">{{ t('Für wen?') }}</label>
       <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
     </div>
     <div class="col-12">
       <VisibilitySelect v-model="draft.sharedWith" :trip-id="tripId" :person="draft.person" />
     </div>
     <div class="col-12">
-      <label for="title" class="form-label">Bezeichnung</label>
+      <label for="title" class="form-label">{{ t('Bezeichnung') }}</label>
       <input id="title" v-model="draft.title" class="form-control" :class="{ 'is-invalid': submitted && errors.title }"
              @input="titleTouched = true" />
       <div class="invalid-feedback">{{ errors.title }}</div>
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Status</label>
-      <div class="btn-group" role="group" aria-label="Status">
+      <label class="form-label d-block">{{ t('Status') }}</label>
+      <div class="btn-group" role="group" :aria-label="t('Status')">
         <template v-for="(s, key) in DOC_STATUS" :key="key">
           <input :id="`ds-${key}`" v-model="draft.status" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`ds-${key}`">{{ s.label }}</label>
@@ -93,12 +93,12 @@ async function remove() {
     </div>
 
     <div class="col-12 col-md-6">
-      <label for="number" class="form-label">Nummer</label>
-      <input id="number" v-model="draft.number" class="form-control" autocomplete="off" placeholder="optional" />
-      <div class="form-text">Bleibt nur auf diesem Gerät.</div>
+      <label for="number" class="form-label">{{ t('Nummer') }}</label>
+      <input id="number" v-model="draft.number" class="form-control" autocomplete="off" :placeholder="t('optional')" />
+      <div class="form-text">{{ t('Bleibt nur auf diesem Gerät.') }}</div>
     </div>
     <div class="col-12 col-md-6">
-      <label for="valid" class="form-label">Gültig bis</label>
+      <label for="valid" class="form-label">{{ t('Gültig bis') }}</label>
       <input id="valid" v-model="draft.validUntil" type="date" class="form-control" />
       <div v-if="warn" class="small mt-1" :class="warn.cls"><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ warn.text }}</div>
     </div>
@@ -106,24 +106,24 @@ async function remove() {
     <div class="col-12 d-flex flex-wrap gap-4">
       <div class="form-check form-switch">
         <input id="copy" v-model="draft.hasCopy" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="copy">Kopie / Foto abgelegt</label>
+        <label class="form-check-label" for="copy">{{ t('Kopie / Foto abgelegt') }}</label>
       </div>
       <div class="form-check form-switch">
         <input id="packed" v-model="draft.packed" class="form-check-input" type="checkbox" role="switch" :disabled="draft.status !== 'vorhanden'" />
-        <label class="form-check-label" for="packed">Eingepackt</label>
+        <label class="form-check-label" for="packed">{{ t('Eingepackt') }}</label>
       </div>
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
+      <label for="notes" class="form-label">{{ t('Notizen') }}</label>
       <textarea id="notes" v-model="draft.notes" rows="2" class="form-control"
-                placeholder="z. B. Termin Bürgeramt, Hotline der Versicherung, wo die Kopie liegt"></textarea>
+                :placeholder="t('z. B. Termin Bürgeramt, Hotline der Versicherung, wo die Kopie liegt')"></textarea>
     </div>
 
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

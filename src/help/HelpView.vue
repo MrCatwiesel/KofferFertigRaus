@@ -52,12 +52,12 @@ function back() {
 <template>
   <!-- Ein Thema -->
   <article v-if="current" class="help-page" data-help-topic>
-    <nav class="mb-2 small" aria-label="Pfad">
+    <nav class="mb-2 small" :aria-label="t('Pfad')">
       <button type="button" class="btn btn-link btn-sm px-0 text-decoration-none" @click="back">
-        <i class="bi bi-chevron-left" aria-hidden="true"></i>Zurück
+        <i class="bi bi-chevron-left" aria-hidden="true"></i>{{ t('Zurück') }}
       </button>
       <span class="text-body-secondary mx-1 on-bg">·</span>
-      <RouterLink to="/hilfe" class="text-decoration-none">Hilfe</RouterLink>
+      <RouterLink to="/hilfe" class="text-decoration-none">{{ t('Hilfe') }}</RouterLink>
       <span class="text-body-secondary on-bg"> › {{ groupTitle }}</span>
     </nav>
     <div class="card">
@@ -67,24 +67,24 @@ function back() {
         </h1>
 
         <template v-if="current.id === 'neu'">
-          <p class="text-body-secondary small">Du nutzt Version {{ APP_VERSION }}.</p>
-          <div v-if="!notes" class="text-body-secondary small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade …</div>
+          <p class="text-body-secondary small">{{ t('Du nutzt Version {APP_VERSION}.', { APP_VERSION }) }}</p>
+          <div v-if="!notes" class="text-body-secondary small"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade …') }}</div>
           <section v-for="n in shownNotes" :key="n.version" class="release" data-release>
-            <h2 class="h5 mb-1">Version {{ n.version }}</h2>
+            <h2 class="h5 mb-1">{{ t('Version {version}', { version: n.version }) }}</h2>
             <div class="small text-body-secondary mb-2">{{ n.label }}</div>
             <div v-html="renderMarkdown(n.body)"></div>
           </section>
-          <button v-if="notes && notes.length > 5 && !showAll" type="button" class="btn btn-sm btn-outline-secondary" @click="showAll = true">Ältere Versionen zeigen</button>
+          <button v-if="notes && notes.length > 5 && !showAll" type="button" class="btn btn-sm btn-outline-secondary" @click="showAll = true">{{ t('Ältere Versionen zeigen') }}</button>
         </template>
         <div v-else v-html="html"></div>
       </div>
     </div>
 
     <section v-if="related.length" class="mt-4">
-      <h2 class="h6 text-body-secondary text-uppercase small on-bg">Mehr zu „{{ groupTitle }}“</h2>
+      <h2 class="h6 text-body-secondary text-uppercase small on-bg">{{ t('Mehr zu „{groupTitle}“', { groupTitle }) }}</h2>
       <div class="d-flex flex-wrap gap-2">
-        <RouterLink v-for="t in related" :key="t.id" :to="`/hilfe/${t.id}`" class="btn btn-sm btn-outline-primary">
-          <i :class="`bi bi-${t.icon} me-1`" aria-hidden="true"></i>{{ t.title }}
+        <RouterLink v-for="topic in related" :key="topic.id" :to="`/hilfe/${topic.id}`" class="btn btn-sm btn-outline-primary">
+          <i :class="`bi bi-${topic.icon} me-1`" aria-hidden="true"></i>{{ topic.title }}
         </RouterLink>
       </div>
     </section>
@@ -92,11 +92,11 @@ function back() {
 
   <!-- Übersicht -->
   <div v-else-if="!topic && !fromPage">
-    <h1 class="h3 mb-3">Hilfe</h1>
+    <h1 class="h3 mb-3">{{ t('Hilfe') }}</h1>
 
     <div class="input-group mb-3">
       <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-      <input v-model="query" type="search" class="form-control" placeholder="Suchen, z. B. Packliste, offline, Fotos …" aria-label="Hilfe durchsuchen" data-help-search />
+      <input v-model="query" type="search" class="form-control" :placeholder="t('Suchen, z. B. Packliste, offline, Fotos …')" :aria-label="t('Hilfe durchsuchen')" data-help-search />
     </div>
 
     <!-- Suchergebnisse -->
@@ -111,7 +111,7 @@ function back() {
         </RouterLink>
       </div>
       <div v-else class="card card-body text-body-secondary mb-4">
-        Nichts gefunden. Versuch ein anderes Wort – oder schau unten in den Bereichen.
+        {{ t('Nichts gefunden. Versuch ein anderes Wort – oder schau unten in den Bereichen.') }}
       </div>
     </template>
 
@@ -121,8 +121,8 @@ function back() {
           <RouterLink to="/willkommen" class="card h-100 text-decoration-none text-body start-card">
             <div class="card-body">
               <i class="bi bi-play-circle fs-3 text-primary" aria-hidden="true"></i>
-              <div class="fw-semibold mt-1">Einführung</div>
-              <div class="small text-body-secondary">In einer Minute: was die App kann und wie es losgeht.</div>
+              <div class="fw-semibold mt-1">{{ t('Einführung') }}</div>
+              <div class="small text-body-secondary">{{ t('In einer Minute: was die App kann und wie es losgeht.') }}</div>
             </div>
           </RouterLink>
         </div>
@@ -131,9 +131,9 @@ function back() {
             <div class="card-body">
               <i class="bi bi-suitcase2 fs-3 text-primary" aria-hidden="true"></i>
               <div class="fw-semibold mt-1">
-                Beispielreise anlegen<span v-if="creating" class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
+                {{ t('Beispielreise anlegen') }}<span v-if="creating" class="spinner-border spinner-border-sm ms-2" aria-hidden="true"></span>
               </div>
-              <div class="small text-body-secondary">Eine fertige Reise an den Gardasee zum Ausprobieren – mit einem Tipp wieder weg.</div>
+              <div class="small text-body-secondary">{{ t('Eine fertige Reise an den Gardasee zum Ausprobieren – mit einem Tipp wieder weg.') }}</div>
             </div>
           </button>
         </div>
@@ -141,8 +141,8 @@ function back() {
           <RouterLink to="/hilfe/neu" class="card h-100 text-decoration-none text-body start-card">
             <div class="card-body">
               <i class="bi bi-stars fs-3 text-primary" aria-hidden="true"></i>
-              <div class="fw-semibold mt-1">Was ist neu?</div>
-              <div class="small text-body-secondary">Version {{ APP_VERSION }} und die Neuerungen davor.</div>
+              <div class="fw-semibold mt-1">{{ t('Was ist neu?') }}</div>
+              <div class="small text-body-secondary">{{ t('Version {APP_VERSION} und die Neuerungen davor.', { APP_VERSION }) }}</div>
             </div>
           </RouterLink>
         </div>
@@ -154,11 +154,11 @@ function back() {
           <i :class="`bi bi-${g.icon} me-1`" aria-hidden="true"></i>{{ g.title }}
         </h2>
         <div class="list-group">
-          <RouterLink v-for="t in g.topics" :key="t.id" :to="`/hilfe/${t.id}`" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
-            <i :class="`bi bi-${t.icon} fs-5 text-primary`" aria-hidden="true"></i>
+          <RouterLink v-for="topic in g.topics" :key="topic.id" :to="`/hilfe/${topic.id}`" class="list-group-item list-group-item-action d-flex align-items-center gap-3">
+            <i :class="`bi bi-${topic.icon} fs-5 text-primary`" aria-hidden="true"></i>
             <span class="flex-grow-1 min-w-0">
-              <span class="d-block fw-semibold">{{ t.title }}</span>
-              <span class="d-block small text-body-secondary">{{ t.summary }}</span>
+              <span class="d-block fw-semibold">{{ topic.title }}</span>
+              <span class="d-block small text-body-secondary">{{ topic.summary }}</span>
             </span>
             <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
           </RouterLink>
@@ -169,8 +169,8 @@ function back() {
 
   <!-- Unbekanntes Thema (alter Link) -->
   <div v-else-if="topic" class="card card-body">
-    <p class="mb-2">Dieses Hilfe-Thema gibt es nicht (mehr).</p>
-    <div><RouterLink to="/hilfe" class="btn btn-outline-primary btn-sm">Zur Hilfe-Übersicht</RouterLink></div>
+    <p class="mb-2">{{ t('Dieses Hilfe-Thema gibt es nicht (mehr).') }}</p>
+    <div><RouterLink to="/hilfe" class="btn btn-outline-primary btn-sm">{{ t('Zur Hilfe-Übersicht') }}</RouterLink></div>
   </div>
 </template>
 

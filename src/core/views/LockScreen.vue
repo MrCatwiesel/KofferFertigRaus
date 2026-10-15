@@ -3,6 +3,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import AppLogo from '@/ui/AppLogo.vue'
 import { lock, unlockWithBiometric, unlockWithPin } from '../lock'
+import { t } from '@/i18n'
 
 const pin = ref('')
 const error = ref('')
@@ -39,7 +40,7 @@ function back() {
 }
 async function bio() {
   error.value = ''
-  if (!(await unlockWithBiometric())) error.value = 'Nicht erkannt – bitte Code eingeben.'
+  if (!(await unlockWithBiometric())) error.value = t('Nicht erkannt – bitte Code eingeben.')
 }
 function key(e: KeyboardEvent) {
   if (/^\d$/.test(e.key)) press(e.key)
@@ -52,38 +53,37 @@ const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
 </script>
 
 <template>
-  <div class="lock-screen" role="dialog" aria-modal="true" aria-label="App gesperrt">
+  <div class="lock-screen" role="dialog" aria-modal="true" :aria-label="t('App gesperrt')">
     <div class="lock-inner">
       <AppLogo :size="56" class="mx-auto mb-3" />
       <h1 class="h4 mb-1">KofferFertigRaus</h1>
-      <p class="text-body-secondary small mb-3">Gesperrt – Code eingeben</p>
+      <p class="text-body-secondary small mb-3">{{ t('Gesperrt – Code eingeben') }}</p>
 
-      <div class="dots mb-2" :class="{ shake }" aria-live="polite" :aria-label="`${pin.length} von ${lock.length} Ziffern`">
+      <div class="dots mb-2" :class="{ shake }" aria-live="polite" :aria-label="t('{n} von {n2} Ziffern', { n: pin.length, n2: lock.length })">
         <span v-for="i in lock.length" :key="i" class="dot" :class="{ filled: i <= pin.length }"></span>
       </div>
       <div class="msg small mb-2" role="alert">
-        <span v-if="waitSec" class="text-danger">Zu viele Fehlversuche – bitte {{ waitSec }} s warten.</span>
+        <span v-if="waitSec" class="text-danger">{{ t('Zu viele Fehlversuche – bitte {waitSec} s warten.', { waitSec }) }}</span>
         <span v-else-if="error" class="text-danger">{{ error }}</span>
       </div>
 
-      <div class="pad" role="group" aria-label="Ziffern">
+      <div class="pad" role="group" :aria-label="t('Ziffern')">
         <button v-for="k in keys" :key="k" type="button" class="pad-key" :disabled="!!waitSec" @click="press(k)">{{ k }}</button>
-        <button v-if="lock.biometric" type="button" class="pad-key pad-icon" aria-label="Mit Face ID oder Touch ID entsperren" @click="bio">
+        <button v-if="lock.biometric" type="button" class="pad-key pad-icon" :aria-label="t('Mit Face ID oder Touch ID entsperren')" @click="bio">
           <i class="bi bi-person-bounding-box" aria-hidden="true"></i>
         </button>
         <span v-else></span>
         <button type="button" class="pad-key" :disabled="!!waitSec" @click="press('0')">0</button>
-        <button type="button" class="pad-key pad-icon" aria-label="Löschen" @click="back"><i class="bi bi-backspace" aria-hidden="true"></i></button>
+        <button type="button" class="pad-key pad-icon" :aria-label="t('Löschen')" @click="back"><i class="bi bi-backspace" aria-hidden="true"></i></button>
       </div>
 
       <button v-if="lock.biometric" type="button" class="btn btn-primary mt-3" @click="bio">
-        <i class="bi bi-person-bounding-box me-1" aria-hidden="true"></i>Mit Face ID / Touch ID entsperren
+        <i class="bi bi-person-bounding-box me-1" aria-hidden="true"></i>{{ t('Mit Face ID / Touch ID entsperren') }}
       </button>
       <div class="mt-3">
-        <button type="button" class="btn btn-link btn-sm" @click="forgot = !forgot">Code vergessen?</button>
+        <button type="button" class="btn btn-link btn-sm" @click="forgot = !forgot">{{ t('Code vergessen?') }}</button>
         <p v-if="forgot" class="small text-body-secondary text-start mx-auto" style="max-width: 22rem">
-          Der Code lässt sich nicht wiederherstellen. Ausweg: die Daten dieser App auf dem Gerät löschen (iPad/iPhone: App vom Home-Bildschirm
-          entfernen bzw. Einstellungen → Safari → Erweitert → Websitedaten). Mit Geräte-Abgleich kommen alle Reisen danach vom eigenen Server zurück.
+          {{ t('Der Code lässt sich nicht wiederherstellen. Ausweg: die Daten dieser App auf dem Gerät löschen (iPad/iPhone: App vom Home-Bildschirm entfernen bzw. Einstellungen → Safari → Erweitert → Websitedaten). Mit Geräte-Abgleich kommen alle Reisen danach vom eigenen Server zurück.') }}
         </p>
       </div>
     </div>

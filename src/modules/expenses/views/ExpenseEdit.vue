@@ -145,23 +145,23 @@ async function remove() {
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-7 col-md-4">
-      <label for="amount" class="form-label">Betrag</label>
+      <label for="amount" class="form-label">{{ t('Betrag') }}</label>
       <input id="amount" v-model.number="draft.amount" type="number" inputmode="decimal" min="0" step="0.01" class="form-control form-control-lg"
              :class="{ 'is-invalid': submitted && errors.amount }" />
       <div class="invalid-feedback">{{ errors.amount }}</div>
     </div>
     <div class="col-5 col-md-3">
-      <label for="cur" class="form-label">Währung</label>
+      <label for="cur" class="form-label">{{ t('Währung') }}</label>
       <select id="cur" v-model="draft.currency" class="form-select form-select-lg">
         <option v-for="c in currencyOptions" :key="c" :value="c">{{ c }}{{ localCurrencies.includes(c) ? ` – ${currencyName(c)}` : '' }}</option>
       </select>
     </div>
     <div v-if="draft.currency !== tripCurrency" class="col-12 col-md-5">
-      <label for="rate" class="form-label">Kurs: 1 {{ draft.currency }} = … {{ tripCurrency }}</label>
+      <label for="rate" class="form-label">{{ t('Kurs: 1 {currency} = … {tripCurrency}', { currency: draft.currency, tripCurrency }) }}</label>
       <div class="input-group">
         <input id="rate" v-model.number="draft.rate" type="number" inputmode="decimal" min="0" step="0.000001" class="form-control"
                :class="{ 'is-invalid': submitted && errors.rate }" @input="rateTouched = true" />
-        <button type="button" class="btn btn-outline-secondary" title="EZB-Kurs für diesen Tag holen" aria-label="EZB-Kurs holen" @click="loadRate(true)">
+        <button type="button" class="btn btn-outline-secondary" :title="t('EZB-Kurs für diesen Tag holen')" :aria-label="t('EZB-Kurs holen')" @click="loadRate(true)">
           <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
         </button>
       </div>
@@ -171,16 +171,16 @@ async function remove() {
     </div>
 
     <div class="col-12 col-md-8">
-      <label for="desc" class="form-label">Wofür?</label>
-      <input id="desc" v-model="draft.description" class="form-control" placeholder="z. B. Abendessen am Hafen" />
+      <label for="desc" class="form-label">{{ t('Wofür?') }}</label>
+      <input id="desc" v-model="draft.description" class="form-control" :placeholder="t('z. B. Abendessen am Hafen')" />
     </div>
     <div class="col-12 col-md-4">
-      <label for="date" class="form-label">Tag</label>
+      <label for="date" class="form-label">{{ t('Tag') }}</label>
       <input id="date" v-model="draft.date" type="date" class="form-control" :class="{ 'is-invalid': submitted && errors.date }" />
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Kategorie</label>
+      <label class="form-label d-block">{{ t('Kategorie') }}</label>
       <div class="d-flex flex-wrap gap-2">
         <template v-for="(c, key) in EXPENSE_CATEGORY" :key="key">
           <input :id="`c-${key}`" v-model="draft.category" type="radio" class="btn-check" :value="key" />
@@ -193,8 +193,8 @@ async function remove() {
 
     <template v-if="people.length">
       <div class="col-12 col-md-6">
-        <label class="form-label d-block">Bezahlt von</label>
-        <div class="btn-group flex-wrap" role="group" aria-label="Bezahlt von">
+        <label class="form-label d-block">{{ t('Bezahlt von') }}</label>
+        <div class="btn-group flex-wrap" role="group" :aria-label="t('Bezahlt von')">
           <template v-for="p in ['', ...people]" :key="p || '-'">
             <input :id="`pb-${p || '-'}`" v-model="draft.paidBy" type="radio" class="btn-check" :value="p" />
             <label class="btn btn-outline-primary" :for="`pb-${p || '-'}`">{{ p || 'gemeinsame Kasse' }}</label>
@@ -202,7 +202,7 @@ async function remove() {
         </div>
       </div>
       <div class="col-12 col-md-6">
-        <label class="form-label d-block">Für wen? <span class="small text-body-secondary">(nichts gewählt = alle)</span></label>
+        <label class="form-label d-block">{{ t('Für wen?') }} <span class="small text-body-secondary">{{ t('(nichts gewählt = alle)') }}</span></label>
         <div class="d-flex flex-wrap gap-2">
           <template v-for="p in people" :key="p">
             <input :id="`sp-${p}`" type="checkbox" class="btn-check" :checked="draft.splitAmong.includes(p)" @change="toggleSplit(p)" />
@@ -213,11 +213,11 @@ async function remove() {
     </template>
 
     <div class="col-12">
-      <label class="form-label d-block">Beleg</label>
+      <label class="form-label d-block">{{ t('Beleg') }}</label>
       <div v-if="receiptUrl" class="d-flex align-items-start gap-2 mb-2">
-        <a v-if="receiptViewable" :href="receiptUrl" target="_blank" rel="noopener"><img :src="receiptUrl" alt="Beleg" class="receipt" /></a>
-        <a v-else :href="receiptUrl" download="beleg" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1" aria-hidden="true"></i>Beleg herunterladen</a>
-        <button type="button" class="btn btn-sm btn-outline-danger" @click="draft.receipt = null">Entfernen</button>
+        <a v-if="receiptViewable" :href="receiptUrl" target="_blank" rel="noopener"><img :src="receiptUrl" :alt="t('Beleg')" class="receipt" /></a>
+        <a v-else :href="receiptUrl" download="beleg" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1" aria-hidden="true"></i>{{ t('Beleg herunterladen') }}</a>
+        <button type="button" class="btn btn-sm btn-outline-danger" @click="draft.receipt = null">{{ t('Entfernen') }}</button>
       </div>
       <label class="btn btn-outline-secondary">
         <span v-if="receiptBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
@@ -227,10 +227,10 @@ async function remove() {
     </div>
 
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary" :disabled="receiptBusy"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary" :disabled="receiptBusy"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

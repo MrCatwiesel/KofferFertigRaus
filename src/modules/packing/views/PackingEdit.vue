@@ -37,49 +37,49 @@ async function remove() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Eintrag bearbeiten" />
+  <TripContextHeader :trip-id="tripId" :title="t('Eintrag bearbeiten')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
-      <label for="name" class="form-label">Was?</label>
+      <label for="name" class="form-label">{{ t('Was?') }}</label>
       <input id="name" v-model="draft.name" class="form-control" :class="{ 'is-invalid': submitted && errors.name }" />
       <div class="invalid-feedback">{{ errors.name }}</div>
     </div>
     <div class="col-12 col-md-4">
-      <label for="qty" class="form-label">Menge</label>
+      <label for="qty" class="form-label">{{ t('Menge') }}</label>
       <input id="qty" v-model.number="draft.quantity" type="number" min="1" step="1" class="form-control"
              :class="{ 'is-invalid': submitted && errors.quantity }" />
       <div class="invalid-feedback">{{ errors.quantity }}</div>
     </div>
     <div class="col-12 col-md-6">
-      <label for="cat" class="form-label">Kategorie</label>
+      <label for="cat" class="form-label">{{ t('Kategorie') }}</label>
       <select id="cat" v-model="draft.category" class="form-select">
         <option v-for="(c, key) in CATEGORY" :key="key" :value="key">{{ c.label }}</option>
       </select>
     </div>
     <div class="col-12 col-md-6">
-      <label for="person" class="form-label">Für wen?</label>
+      <label for="person" class="form-label">{{ t('Für wen?') }}</label>
       <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
     </div>
     <div class="col-12 d-flex flex-wrap gap-4">
       <div class="form-check form-switch">
         <input id="essential" v-model="draft.essential" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="essential">Wichtig – darf nicht fehlen</label>
+        <label class="form-check-label" for="essential">{{ t('Wichtig – darf nicht fehlen') }}</label>
       </div>
       <div class="form-check form-switch">
         <input id="packed" v-model="draft.packed" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="packed">Eingepackt</label>
+        <label class="form-check-label" for="packed">{{ t('Eingepackt') }}</label>
       </div>
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notiz</label>
-      <input id="notes" v-model="draft.notes" class="form-control" placeholder="z. B. im Handgepäck" />
+      <label for="notes" class="form-label">{{ t('Notiz') }}</label>
+      <input id="notes" v-model="draft.notes" class="form-control" :placeholder="t('z. B. im Handgepäck')" />
     </div>
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

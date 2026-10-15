@@ -99,7 +99,7 @@ async function remove() {
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">
-      <div class="btn-group" role="group" aria-label="Richtung">
+      <div class="btn-group" role="group" :aria-label="t('Richtung')">
         <template v-for="(label, key) in DIRECTION" :key="key">
           <input :id="`dir-${key}`" v-model="draft.direction" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`dir-${key}`">{{ label }}</label>
@@ -108,7 +108,7 @@ async function remove() {
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Verkehrsmittel</label>
+      <label class="form-label d-block">{{ t('Verkehrsmittel') }}</label>
       <div class="d-flex flex-wrap gap-2">
         <template v-for="(m, key) in MODE" :key="key">
           <input :id="`mode-${key}`" v-model="draft.mode" type="radio" class="btn-check" :value="key" />
@@ -120,71 +120,71 @@ async function remove() {
     </div>
 
     <div class="col-12 col-md">
-      <label for="from" class="form-label">Von</label>
+      <label for="from" class="form-label">{{ t('Von') }}</label>
       <input id="from" v-model="draft.from" class="form-control" :class="{ 'is-invalid': invalid('from') }"
-             placeholder="Ort, Bahnhof, Flughafen" autocomplete="off" />
+             :placeholder="t('Ort, Bahnhof, Flughafen')" autocomplete="off" />
       <div class="invalid-feedback">{{ errors.from }}</div>
     </div>
     <div class="col-12 col-md-auto d-flex align-items-end justify-content-center">
-      <button type="button" class="btn btn-outline-secondary" aria-label="Start und Ziel tauschen" @click="swap">
+      <button type="button" class="btn btn-outline-secondary" :aria-label="t('Start und Ziel tauschen')" @click="swap">
         <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
       </button>
     </div>
     <div class="col-12 col-md">
-      <label for="to" class="form-label">Nach</label>
+      <label for="to" class="form-label">{{ t('Nach') }}</label>
       <input id="to" v-model="draft.to" class="form-control" :class="{ 'is-invalid': invalid('to') }" autocomplete="off" />
       <div class="invalid-feedback">{{ errors.to }}</div>
     </div>
 
     <div class="col-12 col-md-4">
-      <label for="date" class="form-label">Datum</label>
+      <label for="date" class="form-label">{{ t('Datum') }}</label>
       <input id="date" v-model="draft.date" type="date" class="form-control" />
     </div>
     <div class="col-6 col-md-4">
-      <label for="dep" class="form-label">Abfahrt</label>
+      <label for="dep" class="form-label">{{ t('Abfahrt') }}</label>
       <input id="dep" v-model="draft.departTime" type="time" class="form-control" :class="{ 'is-invalid': invalid('departTime') }" />
       <div class="invalid-feedback">{{ errors.departTime }}</div>
     </div>
     <div class="col-6 col-md-4">
-      <label for="arr" class="form-label">Ankunft</label>
+      <label for="arr" class="form-label">{{ t('Ankunft') }}</label>
       <input id="arr" v-model="draft.arriveTime" type="time" class="form-control" :class="{ 'is-invalid': invalid('arriveTime') }" />
       <div class="invalid-feedback">{{ errors.arriveTime }}</div>
     </div>
     <div v-if="duration !== null" class="col-12 small text-body-secondary">
-      <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ formatDuration(duration) }} unterwegs
-      <template v-if="overnight"> (Ankunft am Folgetag)</template>
-      <template v-if="breaks > 0"> · {{ breaks }} {{ breaks === 1 ? 'Pause' : 'Pausen' }} einplanen</template>
+      <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ t('{formatDuration} unterwegs', { formatDuration: formatDuration(duration) }) }}
+      <template v-if="overnight"> {{ t('(Ankunft am Folgetag)') }}</template>
+      <template v-if="breaks > 0"> {{ t('· {breaks} {x} einplanen', { breaks, x: breaks === 1 ? 'Pause' : 'Pausen' }) }}</template>
     </div>
 
     <div class="col-12 col-md-4">
-      <label for="km" class="form-label">Entfernung (km)</label>
+      <label for="km" class="form-label">{{ t('Entfernung (km)') }}</label>
       <input id="km" v-model.number="draft.distanceKm" type="number" min="0" step="1" class="form-control"
-             :class="{ 'is-invalid': invalid('distanceKm') }" placeholder="optional" />
+             :class="{ 'is-invalid': invalid('distanceKm') }" :placeholder="t('optional')" />
       <div class="invalid-feedback">{{ errors.distanceKm }}</div>
     </div>
 
     <!-- Kostenrechner nur fürs Auto -->
     <template v-if="draft.mode === 'auto'">
       <div class="col-6 col-md-4">
-        <label for="cons" class="form-label">Verbrauch (l/100 km)</label>
+        <label for="cons" class="form-label">{{ t('Verbrauch (l/100 km)') }}</label>
         <input id="cons" v-model.number="draft.consumption" type="number" min="0" step="0.1" class="form-control"
                :class="{ 'is-invalid': invalid('consumption') }" placeholder="z. B. 6,5" />
         <div class="invalid-feedback">{{ errors.consumption }}</div>
       </div>
       <div class="col-6 col-md-4">
-        <label for="fuel" class="form-label">Preis pro Liter</label>
+        <label for="fuel" class="form-label">{{ t('Preis pro Liter') }}</label>
         <input id="fuel" v-model.number="draft.fuelPrice" type="number" min="0" step="0.01" class="form-control"
                :class="{ 'is-invalid': invalid('fuelPrice') }" placeholder="z. B. 1,75" />
         <div class="invalid-feedback">{{ errors.fuelPrice }}</div>
       </div>
       <div class="col-12 col-md-4">
-        <label for="tolls" class="form-label">Maut / Vignette</label>
+        <label for="tolls" class="form-label">{{ t('Maut / Vignette') }}</label>
         <input id="tolls" v-model.number="draft.tolls" type="number" min="0" step="0.5" class="form-control"
-               :class="{ 'is-invalid': invalid('tolls') }" placeholder="optional" />
+               :class="{ 'is-invalid': invalid('tolls') }" :placeholder="t('optional')" />
         <div class="invalid-feedback">{{ errors.tolls }}</div>
       </div>
       <div v-if="fuel !== null" class="col-12 col-md-8 d-flex align-items-end small text-body-secondary">
-        <span><i class="bi bi-fuel-pump me-1" aria-hidden="true"></i>Sprit ca. {{ formatMoney(fuel, draft.currency) }}</span>
+        <span><i class="bi bi-fuel-pump me-1" aria-hidden="true"></i>{{ t('Sprit ca. {fuel}', { fuel: formatMoney(fuel, draft.currency) }) }}</span>
       </div>
     </template>
 
@@ -194,33 +194,33 @@ async function remove() {
         <input id="cost" v-model.number="draft.cost" type="number" min="0" step="0.5" class="form-control"
                :class="{ 'is-invalid': invalid('cost') }"
                :placeholder="computedCost !== null ? `berechnet: ${formatMoney(computedCost, draft.currency)}` : 'optional'" />
-        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" aria-label="Währung">
-          <option>EUR</option><option>CHF</option><option>USD</option><option>GBP</option>
+        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" :aria-label="t('Währung')">
+          <option>{{ t('EUR') }}</option><option>{{ t('CHF') }}</option><option>{{ t('USD') }}</option><option>{{ t('GBP') }}</option>
         </select>
         <div class="invalid-feedback">{{ errors.cost }}</div>
       </div>
     </div>
     <div class="col-12 col-md-6">
-      <label for="ref" class="form-label">Buchungsnummer</label>
-      <input id="ref" v-model="draft.bookingRef" class="form-control" placeholder="Ticket, Flugnummer …" />
+      <label for="ref" class="form-label">{{ t('Buchungsnummer') }}</label>
+      <input id="ref" v-model="draft.bookingRef" class="form-control" :placeholder="t('Ticket, Flugnummer …')" />
     </div>
     <div class="col-12">
-      <label for="url" class="form-label">Link</label>
-      <input id="url" v-model="draft.url" type="url" class="form-control" placeholder="https://…" />
+      <label for="url" class="form-label">{{ t('Link') }}</label>
+      <input id="url" v-model="draft.url" type="url" class="form-control" :placeholder="t('https://…')" />
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
+      <label for="notes" class="form-label">{{ t('Notizen') }}</label>
       <textarea id="notes" v-model="draft.notes" rows="2" class="form-control"
-                placeholder="Gleis, Sitzplatz, Raststätte, Gepäck …"></textarea>
+                :placeholder="t('Gleis, Sitzplatz, Raststätte, Gepäck …')"></textarea>
     </div>
 
     <div class="col-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary" :disabled="saving">
-        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern
+        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}
       </button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

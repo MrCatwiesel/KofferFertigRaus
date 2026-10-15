@@ -1,4 +1,5 @@
 import { syncCredentials } from './engine'
+import { t } from '@/i18n'
 
 /** Was der eigene Server über sich und die Reisegruppe sagt (GET /api/info). */
 export interface ServerInfo {
@@ -50,10 +51,10 @@ export class ServerClient {
         headers: { Authorization: `Bearer ${this.key}`, ...(init.headers as Record<string, string>) }
       })
     } catch {
-      throw new Error(navigator.onLine ? 'Server nicht erreichbar.' : 'Offline.')
+      throw new Error(navigator.onLine ? t('Server nicht erreichbar.') : t('Offline.'))
     }
     if (!res.ok) {
-      let msg = `Fehler ${res.status}`
+      let msg = t('Fehler {status}', { status: res.status })
       try {
         msg = (await res.clone().json()).error ?? msg
       } catch {

@@ -2,6 +2,7 @@
 import { onMounted, ref } from 'vue'
 import qrcode from 'qrcode-generator'
 import { inviteLink } from '../sync/logic'
+import { t, intlLocale } from '@/i18n'
 
 /** Einladung anzeigen: QR-Code, Code zum Abtippen, Teilen. */
 const props = defineProps<{ server: string; code: string; expires: string; person?: string; reset?: boolean }>()
@@ -33,10 +34,10 @@ onMounted(async () => {
 async function share() {
   const intro = props.person
     ? props.reset
-      ? `${props.person}, hier kannst du ein neues Passwort für „KofferFertigRaus“ festlegen (gilt einmal, 24 Stunden):`
-      : `${props.person}, du bist zu „KofferFertigRaus“ eingeladen (gilt einmal, 24 Stunden):`
-    : 'Einladung zu „KofferFertigRaus“ (gilt einmal, 24 Stunden):'
-  const text = `${intro}\n${link.value}\nOder in der App unter „Geräte-Abgleich“ eingeben: ${props.code}`
+      ? t('{person}, hier kannst du ein neues Passwort für „KofferFertigRaus“ festlegen (gilt einmal, 24 Stunden):', { person: props.person })
+      : t('{person}, du bist zu „KofferFertigRaus“ eingeladen (gilt einmal, 24 Stunden):', { person: props.person })
+    : t('Einladung zu „KofferFertigRaus“ (gilt einmal, 24 Stunden):')
+  const text = t('{intro}\n{link}\nOder in der App unter „Geräte-Abgleich“ eingeben: {code}', { intro, link: link.value, code: props.code })
   try {
     if (navigator.share) await navigator.share({ title: 'KofferFertigRaus – Einladung', text })
     else {
@@ -48,18 +49,18 @@ async function share() {
   }
 }
 
-const until = (iso: string) => new Intl.DateTimeFormat('de-DE', { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
+const until = (iso: string) => new Intl.DateTimeFormat(intlLocale(), { weekday: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 </script>
 
 <template>
   <div class="border rounded p-3 text-center" data-invite>
-    <div v-if="person" class="fw-semibold mb-2">{{ reset ? `Neues Passwort für ${person}` : `Einladung für ${person}` }}</div>
-    <div class="qr mx-auto mb-2" role="img" aria-label="QR-Code der Einladung" v-html="svg"></div>
-    <div class="small mb-1">Mit der Kamera scannen – oder in der App unter „Geräte-Abgleich“ eingeben:</div>
+    <div v-if="person" class="fw-semibold mb-2">{{ reset ? t('Neues Passwort für {person}', { person }) : t('Einladung für {person}', { person }) }}</div>
+    <div class="qr mx-auto mb-2" role="img" :aria-label="t('QR-Code der Einladung')" v-html="svg"></div>
+    <div class="small mb-1">{{ t('Mit der Kamera scannen – oder in der App unter „Geräte-Abgleich“ eingeben:') }}</div>
     <div class="fs-4 font-monospace fw-semibold mb-1 user-select-all" data-invite-code>{{ code }}</div>
-    <div class="small text-body-secondary mb-2">Gilt einmal, bis {{ until(expires) }}.<template v-if="person"> Dabei wird das Passwort festgelegt.</template></div>
-    <button type="button" class="btn btn-outline-primary btn-sm" @click="share"><i class="bi bi-share me-1" aria-hidden="true"></i>Einladung teilen</button>
-    <span v-if="copied" class="small text-success ms-2">Kopiert</span>
+    <div class="small text-body-secondary mb-2">{{ t('Gilt einmal, bis {until}.', { until: until(expires) }) }}<template v-if="person"> {{ t('Dabei wird das Passwort festgelegt.') }}</template></div>
+    <button type="button" class="btn btn-outline-primary btn-sm" @click="share"><i class="bi bi-share me-1" aria-hidden="true"></i>{{ t('Einladung teilen') }}</button>
+    <span v-if="copied" class="small text-success ms-2">{{ t('Kopiert') }}</span>
   </div>
 </template>
 

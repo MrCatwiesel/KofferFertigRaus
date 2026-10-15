@@ -6,6 +6,7 @@ import { exportTrip, importBackup } from '../backup'
 import { describeStats } from '../merge'
 import { formatBytes } from '../storage'
 import { fileSlug } from '@/services/share-file'
+import { t } from '@/i18n'
 
 /** Eine Reise als Datei teilen und die Datei der Mitreisenden wieder einlesen (ohne Server). */
 const props = defineProps<{ tripId: string }>()
@@ -55,7 +56,7 @@ const canShare = computed(() => {
 async function share() {
   if (!file.value) return
   try {
-    await navigator.share({ files: [file.value], title: `Reise: ${title.value}` })
+    await navigator.share({ files: [file.value], title: t('Reise: {value}', { value: title.value }) })
   } catch {
     /* abgebrochen */
   }
@@ -70,11 +71,11 @@ async function readBack(event: Event) {
   try {
     const result = await importBackup(
       f,
-      (meta) => !meta.scope || meta.scope.tripId === props.tripId || confirm(`Diese Datei gehört zur Reise „${meta.scope.title}“, nicht zu „${title.value}“. Trotzdem einlesen?`)
+      (meta) => !meta.scope || meta.scope.tripId === props.tripId || confirm(t('Diese Datei gehört zur Reise „{title}“, nicht zu „{value}“. Trotzdem einlesen?', { title: meta.scope.title, value: title.value }))
     )
     if (result) message.value = { type: 'success', text: `Abgeglichen: ${describeStats(result.stats)}.` }
   } catch (e) {
-    message.value = { type: 'danger', text: `Einlesen fehlgeschlagen: ${(e as Error).message}` }
+    message.value = { type: 'danger', text: t('Einlesen fehlgeschlagen: {x}', { x: (e as Error).message }) }
   } finally {
     busy.value = false
   }
@@ -83,32 +84,31 @@ async function readBack(event: Event) {
 
 <template>
   <div class="mb-3">
-    <RouterLink :to="`/trip/${tripId}`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ title || 'Zurück' }}</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Mit Mitreisenden teilen</h1>
+    <RouterLink :to="`/trip/${tripId}`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ title || t('Zurück') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ t('Mit Mitreisenden teilen') }}</h1>
   </div>
 
   <div v-if="message" class="alert" :class="`alert-${message.type}`">{{ message.text }}</div>
 
   <div class="card mb-3">
     <div class="card-body">
-      <h2 class="h6"><span class="badge text-bg-primary me-1">1</span> Reise als Datei verschicken</h2>
+      <h2 class="h6"><span class="badge text-bg-primary me-1">1</span> {{ t('Reise als Datei verschicken') }}</h2>
       <p class="small text-body-secondary">
-        Die Datei enthält die ganze Reise: Planung, Packliste, Apotheke, Dokumente, Tagebuch, Ausgaben, Karte.
-        Schick sie per AirDrop oder Nachricht an das andere Gerät.
+        {{ t('Die Datei enthält die ganze Reise: Planung, Packliste, Apotheke, Dokumente, Tagebuch, Ausgaben, Karte. Schick sie per AirDrop oder Nachricht an das andere Gerät.') }}
       </p>
       <div class="form-check form-switch mb-2">
         <input id="photos" v-model="includePhotos" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label small" for="photos">Tagebuch-Fotos mitschicken (Datei wird größer)</label>
+        <label class="form-check-label small" for="photos">{{ t('Tagebuch-Fotos mitschicken (Datei wird größer)') }}</label>
       </div>
       <button type="button" class="btn btn-primary" :disabled="busy" @click="create">
         <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-        <i v-else class="bi bi-file-earmark-arrow-up me-1" aria-hidden="true"></i>Datei erstellen
+        <i v-else class="bi bi-file-earmark-arrow-up me-1" aria-hidden="true"></i>{{ t('Datei erstellen') }}
       </button>
       <div v-if="file" class="mt-3">
         <div class="small mb-2"><strong>{{ file.name }}</strong> · {{ formatBytes(file.size) }}</div>
         <div class="d-flex flex-wrap gap-2">
-          <button v-if="canShare" type="button" class="btn btn-success" @click="share"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>Teilen</button>
-          <a :href="fileUrl" :download="file.name" class="btn btn-outline-primary"><i class="bi bi-download me-1" aria-hidden="true"></i>Herunterladen</a>
+          <button v-if="canShare" type="button" class="btn btn-success" @click="share"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>{{ t('Teilen') }}</button>
+          <a :href="fileUrl" :download="file.name" class="btn btn-outline-primary"><i class="bi bi-download me-1" aria-hidden="true"></i>{{ t('Herunterladen') }}</a>
         </div>
       </div>
     </div>
@@ -116,13 +116,12 @@ async function readBack(event: Event) {
 
   <div class="card mb-3">
     <div class="card-body">
-      <h2 class="h6"><span class="badge text-bg-primary me-1">2</span> Auf dem anderen Gerät einlesen</h2>
+      <h2 class="h6"><span class="badge text-bg-primary me-1">2</span> {{ t('Auf dem anderen Gerät einlesen') }}</h2>
       <p class="small text-body-secondary">
-        Dort die App öffnen → Einstellungen → „Backup oder geteilte Reise einlesen“ (oder hier, wenn die Reise schon da ist).
-        Neues kommt dazu, bei Unterschieden gewinnt die neuere Änderung.
+        {{ t('Dort die App öffnen → Einstellungen → „Backup oder geteilte Reise einlesen“ (oder hier, wenn die Reise schon da ist). Neues kommt dazu, bei Unterschieden gewinnt die neuere Änderung.') }}
       </p>
       <label class="btn btn-outline-primary" :class="{ disabled: busy }">
-        <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>Datei der Mitreisenden einlesen
+        <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i>{{ t('Datei der Mitreisenden einlesen') }}
         <input type="file" accept="application/json,.json" class="d-none" @change="readBack" />
       </label>
     </div>
@@ -130,7 +129,6 @@ async function readBack(event: Event) {
 
   <div class="alert alert-light border small">
     <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
-    Gut zu wissen: Gelöschtes wird nicht übertragen – was auf einem Gerät gelöscht wurde, bleibt auf dem anderen erhalten.
-    Am besten abwechselnd abgleichen: A schickt an B, B liest ein und schickt zurück.
+    {{ t('Gut zu wissen: Gelöschtes wird nicht übertragen – was auf einem Gerät gelöscht wurde, bleibt auf dem anderen erhalten. Am besten abwechselnd abgleichen: A schickt an B, B liest ein und schickt zurück.') }}
   </div>
 </template>

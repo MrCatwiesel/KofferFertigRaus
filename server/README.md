@@ -124,6 +124,7 @@ Die App spricht dabei nie direkt mit Piwigo, sondern immer über diesen Server. 
   Weitere Geräte meldet sie danach mit **Name + Passwort** an. Passwort vergessen → Verwalter: *Passwort zurücksetzen* (neue Einladung).
 - **Privat:** Packliste, Medikamente, Impfungen und Dokumente eines Teilnehmers, der an der Reise mit einem Konto verknüpft ist,
   sieht nur diese Person – auch Verwalter nicht. Dokumente und Medikamente kann sie freigeben (alle oder ausgewählte Personen).
+  Gesundheitsangaben (Allergien, Erkrankungen – Tabelle `healthProfiles`, ab Server 1.23) sind ebenso geschützt, aber standardmäßig für alle freigegeben.
   Nicht verknüpfte Teilnehmer und Einträge „für alle“ sieht die ganze Gruppe.
 - Der Server setzt das durch: Nicht Sichtbares kommt als Löschung beim Gerät an, unerlaubte Änderungen werden abgelehnt
   (die App nimmt sie zurück), Fotos gibt es nur, wenn ein sichtbarer Eintrag darauf verweist, Lese-Links nur mit Bearbeiten-Recht.

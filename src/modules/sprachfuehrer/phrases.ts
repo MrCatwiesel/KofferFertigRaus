@@ -5,8 +5,8 @@ export const PHRASE_IDS = [
   'hello', 'morning', 'evening', 'bye', 'please', 'thanks', 'thanksMuch', 'yes', 'no', 'sorry', 'english', 'notUnderstand', 'price', 'toilet',
   'table', 'menu', 'water', 'beer', 'coffee', 'bill', 'card', 'vegetarian', 'delicious',
   'station', 'ticket', 'open', 'left', 'right', 'straight',
-  'help', 'ambulance', 'doctor', 'hospital', 'pharmacy', 'police', 'bloodThinner',
-  'allergic', 'without', 'contains'
+  'help', 'ambulance', 'doctor', 'hospital', 'pharmacy', 'police', 'bloodThinner', 'diabetes', 'asthma', 'pacemaker',
+  'allergic', 'without', 'contains', 'bloodType'
 ] as const
 export type PhraseId = (typeof PHRASE_IDS)[number]
 
@@ -57,9 +57,13 @@ export const SOURCE: Record<PhraseId, string> = {
   pharmacy: t('Wo ist eine Apotheke?'),
   police: t('Rufen Sie die Polizei!'),
   bloodThinner: t('Ich nehme Blutverdünner.'),
+  diabetes: t('Ich habe Diabetes.'),
+  asthma: t('Ich habe Asthma.'),
+  pacemaker: t('Ich habe einen Herzschrittmacher.'),
   allergic: t('Ich habe eine Allergie gegen:'),
   without: t('Bitte ohne diese Zutaten – das ist für mich gefährlich.'),
-  contains: t('Ist davon etwas enthalten?')
+  contains: t('Ist davon etwas enthalten?'),
+  bloodType: t('Blutgruppe:')
 }
 
 export const ALLERGEN_SOURCE: Record<AllergenId, string> = {
@@ -129,5 +133,5 @@ export const GROUPS: PhraseGroup[] = [
   { id: 'grundlagen', title: t('Das Wichtigste'), icon: 'chat-heart', phrases: ['hello', 'morning', 'evening', 'bye', 'please', 'thanks', 'thanksMuch', 'yes', 'no', 'sorry', 'english', 'notUnderstand', 'price', 'toilet'] },
   { id: 'essen', title: t('Im Restaurant'), icon: 'cup-hot', phrases: ['table', 'menu', 'water', 'beer', 'coffee', 'bill', 'card', 'vegetarian', 'delicious'] },
   { id: 'unterwegs', title: t('Unterwegs'), icon: 'signpost-split', phrases: ['station', 'ticket', 'open', 'left', 'right', 'straight'] },
-  { id: 'notfall', title: t('Notfall'), icon: 'heart-pulse', phrases: ['help', 'ambulance', 'doctor', 'hospital', 'pharmacy', 'police', 'bloodThinner'] }
+  { id: 'notfall', title: t('Notfall'), icon: 'heart-pulse', phrases: ['help', 'ambulance', 'doctor', 'hospital', 'pharmacy', 'police', 'bloodThinner', 'diabetes', 'asthma', 'pacemaker'] }
 ]

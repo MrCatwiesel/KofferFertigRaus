@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, defineAsyncComponent, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
 import { formatDate } from '@/core/format'
@@ -9,6 +9,8 @@ import { VALIDITY_TEXT, maskNumber, needsRenewalSoon, sortDocs, suggestDocuments
 import { DOC_STATUS, DOC_TYPE, STANDARD_NUMBERS, type EmergencyContact, type TravelDocument } from '../types'
 
 const props = defineProps<{ tripId: string }>()
+// Gesundheit (Allergien) liefert ein eigenes Modul – erst beim Öffnen des Reiters laden
+const HealthList = defineAsyncComponent(() => import('@/modules/gesundheit/public').then((m) => m.HealthList))
 
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
 const docs = useLiveQuery(() => documentRepository.listByTrip(props.tripId), [] as TravelDocument[])
@@ -18,7 +20,8 @@ const contacts = computed(() =>
   [...contactsRaw.value].sort((a, b) => Number(!!a.source) - Number(!!b.source) || (a.source && b.source ? a.label.localeCompare(b.label, 'de') : 0))
 )
 
-const tab = ref<'dokumente' | 'notfall'>(useRoute().query.tab === 'notfall' ? 'notfall' : 'dokumente')
+const queryTab = useRoute().query.tab
+const tab = ref<'dokumente' | 'notfall' | 'gesundheit'>(queryTab === 'notfall' || queryTab === 'gesundheit' ? queryTab : 'dokumente')
 const showNumbers = ref(false)
 
 const sorted = computed(() => (trip.value ? sortDocs(docs.value, trip.value.endDate) : docs.value))
@@ -48,6 +51,7 @@ async function addSuggestions() {
 
   <ul class="nav nav-pills mb-3">
     <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'dokumente' }" @click="tab = 'dokumente'">{{ t('Dokumente') }}</button></li>
+    <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'gesundheit' }" data-tab="gesundheit" @click="tab = 'gesundheit'">{{ t('Gesundheit') }}</button></li>
     <li class="nav-item"><button class="nav-link" :class="{ active: tab === 'notfall' }" @click="tab = 'notfall'">{{ t('Notfallnummern') }}</button></li>
   </ul>
 
@@ -114,8 +118,14 @@ async function addSuggestions() {
     </p>
   </template>
 
+  <!-- Gesundheit (Allergien, Erkrankungen) -->
+  <HealthList v-else-if="tab === 'gesundheit'" :trip-id="tripId" />
+
   <!-- Notfall -->
   <template v-else>
+    <RouterLink :to="`/trip/${tripId}/sos`" class="btn btn-danger mb-3" data-sos-link>
+      <i class="bi bi-heart-pulse me-1" aria-hidden="true"></i>{{ t('Notfall-Seite öffnen') }}
+    </RouterLink>
     <div class="list-group mb-3">
       <a v-for="n in STANDARD_NUMBERS" :key="n.phone" :href="telHref(n.phone) ?? undefined"
          class="list-group-item list-group-item-action d-flex align-items-center gap-3">

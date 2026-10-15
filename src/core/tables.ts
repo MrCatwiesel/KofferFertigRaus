@@ -26,5 +26,6 @@ export const DATA_TABLES = [
   'voiceNotes',
   'polls',
   'pollVotes',
-  'checklistItems'
+  'checklistItems',
+  'healthProfiles'
 ] as const

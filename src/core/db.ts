@@ -20,6 +20,7 @@ import type { OfflineMap } from '@/modules/map/offline'
 import type { ChecklistItem } from '@/modules/checklisten/types'
 import type { CountryInfo } from '@/modules/reiseinfo/types'
 import type { Poll, PollVote } from '@/modules/abstimmung/types'
+import type { HealthProfile } from '@/modules/gesundheit/types'
 
 /**
  * Lokale Datenbank (IndexedDB) – die einzige Stelle, an der das Schema steht.
@@ -54,6 +55,7 @@ export class NixDb extends Dexie {
   polls!: Table<Poll, string>
   pollVotes!: Table<PollVote, string>
   checklistItems!: Table<ChecklistItem, string>
+  healthProfiles!: Table<HealthProfile, string>
   /** Nur auf diesem Gerät: gespeicherte Offline-Karten (große Dateien, werden nicht abgeglichen) */
   offlineMaps!: Table<OfflineMap, string>
   /** Nur auf diesem Gerät: Originalfotos, die noch nach Piwigo müssen */
@@ -186,7 +188,12 @@ export class NixDb extends Dexie {
       checklistItems: 'id, tripId'
     })
 
-    // Nächste Änderung: this.version(22).stores({ … })
+    // v22: Gesundheit & Notfall (Allergien, Erkrankungen je Person)
+    this.version(22).stores({
+      healthProfiles: 'id, tripId'
+    })
+
+    // Nächste Änderung: this.version(23).stores({ … })
 
     // Jede lokale Änderung in Nutzertabellen für den Abgleich vormerken
     this.use(changeTracking(DATA_TABLES, queueOutbox))

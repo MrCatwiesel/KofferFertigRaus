@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, defineAsyncComponent } from 'vue'
 import { useRoute } from 'vue-router'
-import { getNavItems } from '@/core/registry'
+import { getHeaderActions, getNavItems } from '@/core/registry'
 import { useOnline } from '@/core/composables'
 import { syncState } from '@/core/sync/engine'
 import AppLogo from '@/ui/AppLogo.vue'
@@ -9,6 +9,7 @@ import LockScreen from '@/core/views/LockScreen.vue'
 import { lock } from '@/core/lock'
 
 const navItems = getNavItems()
+const headerActions = getHeaderActions().map((a) => ({ id: a.id, component: defineAsyncComponent(a.load) }))
 const online = useOnline()
 const route = useRoute()
 /** „?“ führt zur Hilfe passend zur aktuellen Seite (auf den Hilfeseiten selbst nicht nötig) */
@@ -24,6 +25,7 @@ const helpTo = computed(() => ({ path: '/hilfe', query: route.name ? { seite: St
         <AppLogo :size="30" />KofferFertigRaus
       </RouterLink>
       <div class="d-flex align-items-center gap-3 ms-auto me-md-3">
+        <component :is="a.component" v-for="a in headerActions" :key="a.id" />
         <!-- Abgleich-Status (nur wenn eingerichtet) -->
         <RouterLink v-if="syncState.configured" to="/abgleich" class="sync-badge text-decoration-none"
                     :title="syncState.lastError || (syncState.pending ? t('{pending} Änderungen warten', { pending: syncState.pending }) : t('Abgeglichen'))"

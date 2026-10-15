@@ -338,13 +338,53 @@ With [People & permissions](#/hilfe/personen), medicines are private. Use **Who 
 If a document expires before or shortly after the trip, the app warns you – in good time, since issuing can take weeks.
 
 ## Emergency numbers
-The **Emergency** button in the “On the road” tab leads straight here.
 - The German Federal Foreign Office's numbers (emergency, police, embassy) are added automatically when destination countries are entered.
 - **Own numbers**: travel health insurance emergency line, breakdown service, accommodation, family doctor …
 
-Tap to call directly. Always enter numbers with the country code.
+Tap to call directly. Always enter numbers with the country code. **Open emergency page** shows everything important at a glance – see [Health & emergency](#/hilfe/gesundheit).
+
+## Health
+The **Health** tab lists the allergies, conditions and blood types of your fellow travellers – more under [Health & emergency](#/hilfe/gesundheit).
 
 > With [People & permissions](#/hilfe/personen), documents are private; use **Who may see this?** to share them.
+`
+    },
+    {
+      id: 'gesundheit',
+      title: 'Health & emergency',
+      icon: 'heart-pulse',
+      group: 'vorbereiten',
+      summary: 'Allergies, conditions and blood type per person – emergency page in the local language, emergency card as a PDF.',
+      routes: ['health-edit', 'emergency'],
+      keywords: 'allergy allergies condition illness blood type diabetes asthma pacemaker blood thinner emergency emergency number emergency card medical id pdf sos doctor hospital',
+      body: `
+## Details per person
+Under **Documents & emergency → Health** (or via the **Allergies & health** tile on the trip page) you enter for each person:
+- **Allergies** – about 30 known ones plus your own. If the app knows a word you type (e.g. “hazelnuts”), it ticks the matching allergen; unknown ones (e.g. “coriander”) go on a separate list with a field for the translation in each language of the trip.
+- **Conditions**: blood thinners, diabetes, asthma, pacemaker – the app translates these into all languages. Other conditions and **Notes for helpers** appear as you write them.
+- **Blood type**.
+
+The details belong to the trip and are synced with your other devices. On your next trip, **Copy** brings them over from the last one.
+
+## Who sees this?
+By default all fellow travellers – in an emergency they should be able to help. If a traveller is linked to an account via [People & permissions](#/hilfe/personen), only that person decides who sees their details, and only they can change them.
+
+## Emergency page
+During the trip a red **heart** appears in the header – it opens the emergency page:
+- The country's **emergency numbers** (from the [Country cheat sheet](#/hilfe/laender)) – tap to call. With several countries, choose at the top.
+- The large **Emergency** button in the “On the road” tab of the trip page also leads here.
+- For each person the allergies, conditions and blood type **in the local language**, with a translation underneath, plus regular and emergency medication from the [travel pharmacy](#/hilfe/apotheke).
+- **Show large** to hold up, **Read aloud**, and your own emergency numbers.
+
+In the day plan, restaurants show a link to the **allergy card** in the [phrasebook](#/hilfe/sprachfuehrer).
+
+## Emergency card as a PDF
+**Create PDF** makes one credit-card-sized card per person: the local language on the front, your language on the back. Print, cut out, fold and keep with your ID.
+
+## Your phone's Medical ID
+If the app is locked, helpers cannot reach the emergency page. So also add the essentials to your phone's Medical ID (iPhone: *Health* app → *Medical ID*) – it can be opened on a locked phone. **Copy for Medical ID** puts the matching text on the clipboard.
+
+> The app is no substitute for medical advice. Translations without guarantee – ideally have important details confirmed by a doctor.
 `
     },
     {
@@ -406,11 +446,11 @@ For the trip's **destination countries** (including transit countries), the phra
 - Greek is also shown in Latin transliteration.
 
 ## Allergy card
-Under **Choose allergies**, tick what you are allergic to – around 30 allergens, from peanuts, gluten and milk to mussels, kiwi and garlic, as well as penicillin, aspirin, iodine and latex. This creates a sentence in the local language: “I am allergic to: … Please make it without these – they are dangerous for me.” – best used with **Show large**. Your choice stays on this device only.
+Allergies are entered for each person under [Health & emergency](#/hilfe/gesundheit) – **Add allergies** or **Change** takes you there. This creates a sentence in the local language: “I am allergic to: … Please make it without these – they are dangerous for me.” – best used with **Show large**. If several travellers have allergies, choose the person at the top.
 
-Type **Another allergy**: if the app knows the word (e.g. “hazelnuts” or “mussels”), it ticks the matching allergen and translates it. Unknown words (e.g. “coriander”) go on your own list – underneath you enter the translation for the language currently selected. Without internet the app cannot translate your own words; if a translation is missing, the word appears on the card as you typed it and the app points this out.
+Your own allergies that the app doesn't know (e.g. “coriander”) appear on the card as they were entered. If the translation for the selected language is missing, you can enter it right below the card.
 
-> In an emergency the phrase “I take blood thinners.” helps – together with the emergency numbers in the [Country cheat sheet](#/hilfe/laender).
+> For emergencies: the [emergency page](#/hilfe/gesundheit) shows emergency numbers, allergies, conditions and medication of all travellers in the local language.
 `
     },
     {
@@ -754,7 +794,7 @@ Without people, every connected device sees and changes everything. With people,
 This can be set differently per trip – down to **No access**: then the trip never even reaches that person's devices.
 
 ## Private
-On the trip, under **Who's coming?**, **link** each name **to an account**. Then that person's **packing list, medicines, vaccinations and documents** are private – only they can see them, not even admins. Individual documents or medicines can be shared via **Who may see this?** (e.g. the allergy card).
+On the trip, under **Who's coming?**, **link** each name **to an account**. Then that person's **packing list, medicines, vaccinations and documents** are private – only they can see them, not even admins. Individual documents or medicines can be shared via **Who may see this?** (e.g. the allergy card). The details under [Health & emergency](#/hilfe/gesundheit) (allergies, conditions) are protected the same way but shared with everyone from the start – for emergencies.
 
 Names that aren't linked (e.g. children) are visible to the whole group.
 `

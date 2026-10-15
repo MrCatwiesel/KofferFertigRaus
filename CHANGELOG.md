@@ -1,5 +1,17 @@
 # Änderungsprotokoll
 
+## 1.43.0 – 2026-10-15 (Server 1.23.0)
+
+### Neu: Gesundheit & Notfall
+- **Allergien, Erkrankungen und Blutgruppe je Person** – im neuen Reiter **Dokumente & Notfall → Gesundheit** und als Kachel „Allergien & Gesundheit“ auf der Reiseseite. Die Angaben werden mit den anderen Geräten abgeglichen und lassen sich aus der letzten Reise übernehmen
+- Erkrankungen zum Anhaken (Blutverdünner, Diabetes, Asthma, Herzschrittmacher) erscheinen in allen 17 Sprachen; dazu freie Felder für weitere Erkrankungen und Hinweise für Helfer
+- **Sichtbar für alle Mitreisenden** – für den Notfall. Wer mit einem Konto verknüpft ist, kann seine Angaben privat stellen oder nur einzelnen freigeben (Server 1.23)
+- **Notfall-Seite:** Während der Reise öffnet das rote Herz in der Kopfzeile (und der Knopf „Notfall“ auf der Reiseseite) Notruf des Landes, Allergien, Erkrankungen, Blutgruppe und Medikamente aller Mitreisenden in der Landessprache – mit „Groß zeigen“, Vorlesen und den eigenen Notfallnummern
+- **Notfallkarte als PDF:** je Person eine Karte im Scheckkartenformat zum Ausschneiden und Falten – vorne die Landessprache, hinten die eigene
+- **Für den Notfallpass kopieren:** Text für den Notfallpass des Telefons, der auch am gesperrten iPhone lesbar ist
+- Der **Sprachführer** nutzt jetzt die Allergien der Personen (mit Auswahl, wenn mehrere welche haben); bisher nur auf dem Gerät gespeicherte Allergien lassen sich einmal einer Person zuordnen. Neue Sätze im Notfall-Teil: Diabetes, Asthma, Herzschrittmacher
+- Im **Tagesplan** steht bei Restaurants ein Verweis auf die Allergie-Karte
+
 ## 1.42.0 – 2026-10-15
 
 ### Neu: Eigene Allergien im Sprachführer

@@ -77,9 +77,9 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
       </h2>
 
       <template v-if="factsOf(c.code)">
-        <div class="row row-cols-1 row-cols-md-2 g-3">
+        <div class="row g-2 g-md-3">
           <!-- Notruf -->
-          <div class="col">
+          <div class="col-12 col-md-6">
             <div class="fact h-100" data-fact="notruf">
               <div class="fact-title"><i class="bi bi-telephone-plus text-danger me-1" aria-hidden="true"></i>{{ t('Notruf') }}</div>
               <div class="d-flex flex-wrap gap-2">
@@ -90,7 +90,7 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </div>
           </div>
           <!-- Strom -->
-          <div class="col">
+          <div class="col-6">
             <div class="fact h-100" data-fact="strom">
               <div class="fact-title"><i class="bi bi-plug me-1" aria-hidden="true"></i>{{ t('Steckdose') }}</div>
               <div>{{ t('Typ {types} · {volt} V', { types: factsOf(c.code)!.plugs.split(' ').join('/'), volt: factsOf(c.code)!.volt }) }}</div>
@@ -99,7 +99,7 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </div>
           </div>
           <!-- Uhrzeit -->
-          <div class="col">
+          <div class="col-6">
             <div class="fact h-100" data-fact="zeit">
               <div class="fact-title"><i class="bi bi-clock me-1" aria-hidden="true"></i>{{ t('Uhrzeit') }}</div>
               <template v-if="factsOf(c.code)!.tz">
@@ -110,7 +110,7 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </div>
           </div>
           <!-- Geld -->
-          <div class="col">
+          <div class="col-6">
             <div class="fact h-100" data-fact="geld">
               <div class="fact-title"><i class="bi bi-cash-coin me-1" aria-hidden="true"></i>{{ t('Geld & Trinkgeld') }}</div>
               <div v-if="currencyOf(c.code)">{{ currencyName(currencyOf(c.code)!) }} ({{ currencyOf(c.code) }})</div>
@@ -118,7 +118,7 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </div>
           </div>
           <!-- Handy -->
-          <div class="col">
+          <div class="col-6">
             <div class="fact h-100" data-fact="handy">
               <div class="fact-title"><i class="bi bi-phone me-1" aria-hidden="true"></i>{{ t('Handy') }}</div>
               <div>{{ t('Vorwahl +{dial}', { dial: factsOf(c.code)!.dial }) }}</div>
@@ -128,7 +128,7 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </div>
           </div>
           <!-- Wasser -->
-          <div class="col">
+          <div class="col-12 col-md-6">
             <div class="fact h-100" data-fact="wasser">
               <div class="fact-title"><i class="bi bi-droplet me-1" aria-hidden="true"></i>{{ t('Leitungswasser') }}</div>
               <div class="small"><i class="bi me-1" :class="waterIcon[factsOf(c.code)!.water]" aria-hidden="true"></i>{{ waterText(factsOf(c.code)!.water) }}</div>
@@ -146,14 +146,15 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
             </li>
             <li v-if="speedRows(factsOf(c.code)!).length" class="mt-1">
               <span class="text-body-secondary">{{ t('Tempo (Pkw):') }}</span>
-              <span v-for="(r, i) in speedRows(factsOf(c.code)!)" :key="r.label" class="text-nowrap">{{ i ? ' · ' : ' ' }}{{ r.label }} <strong>{{ r.value }}</strong></span>
+              <span class="d-inline-flex flex-wrap column-gap-3">
+                <span v-for="r in speedRows(factsOf(c.code)!)" :key="r.label" class="text-nowrap">{{ r.label }} <strong>{{ r.value }}</strong></span>
+              </span>
             </li>
             <li v-if="alcoholText(factsOf(c.code)!)" class="mt-1">
               <span class="text-body-secondary">{{ t('Promillegrenze:') }}</span> <strong>{{ alcoholText(factsOf(c.code)!) }}</strong>
             </li>
             <li v-if="factsOf(c.code)!.toll" class="mt-1">
-              <span class="text-body-secondary">{{ t('Maut:') }}</span> <strong>{{ tollText(factsOf(c.code)!.toll!) }}</strong>
-              <template v-if="factsOf(c.code)!.tollNote"> – {{ factsOf(c.code)!.tollNote }}</template>
+              <span class="text-body-secondary">{{ t('Maut:') }}</span> <span>{{ factsOf(c.code)!.tollNote || tollText(factsOf(c.code)!.toll!) }}</span>
             </li>
           </ul>
         </details>

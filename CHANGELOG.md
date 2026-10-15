@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.38.0 – 2026-10-15
+
+### Neu: Länder-Spickzettel
+- Neuer Bereich **Länder-Spickzettel** auf der Reiseseite (Planung und Unterwegs): Für jedes Zielland steht auf einen Blick, was man vor Ort wissen sollte – auch ohne Internet
+- **Notruf** (Polizei, Rettung, Feuerwehr – ein Tipp ruft an), **Steckdose** mit Spannung und dem Hinweis, ob deutsche Stecker passen, **Uhrzeit** vor Ort samt Zeitunterschied, **Geld & Trinkgeld**, **Handy** (Vorwahl, EU-Roaming) und **Leitungswasser**
+- **Mit dem Auto:** Links-/Rechtsverkehr, Tempolimits, Promillegrenze (auch für Fahranfänger), Maut oder Vignette, Licht am Tag – bei Reisen mit dem Auto gleich aufgeklappt
+- **Gut zu wissen:** Besonderheiten wie die 18-Tage-Frist der österreichischen Online-Vignette, ZTL-Zonen in Italien, ETA für Großbritannien oder ESTA für die USA
+- Rund 70 Länder: ganz Europa samt Balkan und Türkei sowie beliebte Fernreiseziele
+- **Durchreiseländer:** Länder, durch die ihr nur fahrt (z. B. Österreich auf dem Weg an den Gardasee), lassen sich dazunehmen – sie bekommen einen Spickzettel, und die Packlisten-Vorschläge nennen die nötige Vignette
+- Die Beispielreise fährt jetzt durch Österreich
+
 ## 1.37.0 – 2026-10-15 (Server 1.21.0)
 
 ### Neu: Englisch

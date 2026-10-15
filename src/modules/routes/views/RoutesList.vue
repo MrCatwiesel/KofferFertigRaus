@@ -93,7 +93,7 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
   <template v-if="routes.length">
     <RouteMap :lines="lines" height="280px" class="mb-2" @select="(id) => $router.push(`/trip/${tripId}/routen/${id}`)" />
     <p v-if="totals.n" class="small text-body-secondary">
-      {{ t('{n} {x} aufgezeichnet · {x2} km · ↗ {toLocaleString} m', { n: totals.n, x: totals.n === 1 ? 'Tour' : 'Touren', x2: (totals.km / 1000).toLocaleString(intlLocale(), { maximumFractionDigits: 1 }), toLocaleString: totals.up.toLocaleString(intlLocale()) }) }}
+      {{ tn(totals.n, '1 Tour aufgezeichnet', '{n} Touren aufgezeichnet') }} · {{ (totals.km / 1000).toLocaleString(intlLocale(), { maximumFractionDigits: 1 }) }} km · ↗ {{ totals.up.toLocaleString(intlLocale()) }} m
     </p>
 
     <RouterLink v-for="r in sorted" :key="r.id" :to="`/trip/${tripId}/routen/${r.id}`" class="card mb-2 text-decoration-none text-body route-card">

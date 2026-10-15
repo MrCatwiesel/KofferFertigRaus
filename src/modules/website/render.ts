@@ -1,6 +1,7 @@
 import { esc, rgbOf, safeColor } from './logic'
 import { TEMPLATES } from './templates'
 import { FONT_INFO, type SiteData, type WebsiteSettingsDraft } from './types'
+import { language } from '@/i18n'
 
 /** Winzige Fotoansicht ohne Bibliothek: Klick auf ein Bild öffnet es groß, Klick/Esc schließt. */
 const LIGHTBOX_JS = `
@@ -58,7 +59,7 @@ export function renderSite(site: SiteData, settings: WebsiteSettingsDraft, boots
   const description = site.subtitle || site.destination
 
   return `<!doctype html>
-<html lang="de" data-bs-theme="${settings.dark ? 'dark' : 'light'}">
+<html lang="${language()}" data-bs-theme="${settings.dark ? 'dark' : 'light'}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

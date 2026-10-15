@@ -20,7 +20,7 @@ import { DEFAULT_PDF_OPTIONS, type PdfInput, type PdfOptions } from '../pdf-doc'
 import { PAGE_FORMATS, type PageFormat } from '../pdf-layout'
 import type { PdfProgress } from '../pdf'
 import { fileSlug, shareOrDownload } from '@/services/share-file'
-import { intlLocale } from '@/i18n'
+import { t, tn, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -49,9 +49,9 @@ const urls = new Map<string, string>()
 const loading = ref(true)
 
 async function load() {
-  const t = await tripRepository.get(props.tripId)
-  if (!t) return
-  trip.value = t
+  const tr = await tripRepository.get(props.tripId)
+  if (!tr) return
+  trip.value = tr
   ;[entries.value, photos.value, routes.value, stays.value, expenses.value] = await Promise.all([
     journalRepository.listByTrip(props.tripId),
     photoRepository.listByTrip(props.tripId),
@@ -168,33 +168,33 @@ function accentColor(): string {
   return /^#[0-9a-f]{6}$/i.test(v) ? v : '#0d6efd'
 }
 
-function pdfInput(t: Trip): PdfInput {
+function pdfInput(tr: Trip): PdfInput {
   const st = stats.value
-  const coverPhoto = t.cover ? null : pickCover(entries.value, photos.value)
+  const coverPhoto = tr.cover ? null : pickCover(entries.value, photos.value)
   const routeMap = (r: Route) => (mapBlobs.has(`map:${r.id}`) ? { map: { id: `map:${r.id}`, ...ROUTE_MAP } } : {})
   const r2 = (r: Route) => ({ ...routeMap(r), id: r.id, name: r.name, color: r.color, statsText: statsLine(r.stats), trackSvg: trackSvg(r.preview, { width: 600, height: 380, color: r.color, stroke: 3.5 }), profileSvg: profileSvg(r.points, { width: 600, height: 150, color: r.color }) })
   return {
     options: { ...po, layout: o.layout },
     accent: accentColor(),
-    trip: { title: t.title, destination: t.destination, countryNames: (t.countries ?? []).map(countryName).join(', '), startDate: t.startDate, endDate: t.endDate, participants: t.participants ?? [] },
-    cover: t.cover ? { id: 'cover', width: 4000, height: 4000, focusY: t.coverY ?? 50 } : coverPhoto ? { id: coverPhoto.id, width: coverPhoto.width, height: coverPhoto.height, focusY: 50 } : null,
+    trip: { title: tr.title, destination: tr.destination, countryNames: (tr.countries ?? []).map(countryName).join(', '), startDate: tr.startDate, endDate: tr.endDate, participants: tr.participants ?? [] },
+    cover: tr.cover ? { id: 'cover', width: 4000, height: 4000, focusY: tr.coverY ?? 50 } : coverPhoto ? { id: coverPhoto.id, width: coverPhoto.width, height: coverPhoto.height, focusY: 50 } : null,
     stats: o.stats && st
       ? [
-          { value: String(st.days), label: 'Tage' },
-          ...(st.entries ? [{ value: String(st.entries), label: 'Tagebuch-Einträge' }] : []),
-          ...(st.photos ? [{ value: String(st.photos), label: 'Fotos' }] : []),
-          ...(st.routes ? [{ value: km(st.distance), label: `auf ${st.routes} ${st.routes === 1 ? 'Tour' : 'Touren'}` }] : []),
-          ...(st.ascent ? [{ value: `${st.ascent.toLocaleString(intlLocale())} m`, label: 'bergauf' }] : [])
+          { value: String(st.days), label: t('Tage') },
+          ...(st.entries ? [{ value: String(st.entries), label: t('Tagebuch-Einträge') }] : []),
+          ...(st.photos ? [{ value: String(st.photos), label: t('Fotos') }] : []),
+          ...(st.routes ? [{ value: km(st.distance), label: tn(st.routes, 'auf 1 Tour', 'auf {n} Touren') }] : []),
+          ...(st.ascent ? [{ value: `${st.ascent.toLocaleString(intlLocale())} m`, label: t('bergauf') }] : [])
         ]
       : [],
     overviewSvg: overview.value,
     overviewMap: o.routes && mapBlobs.has(OVERVIEW.id) ? OVERVIEW : undefined,
     legend: o.routes ? routes.value.map((r) => ({ name: r.name, color: r.color })) : [],
-    stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, `${nights(s)} ${nights(s) === 1 ? 'Nacht' : 'Nächte'}`].filter(Boolean).join(' · ')) : [],
+    stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, tn(nights(s), '1 Nacht', '{n} Nächte')].filter(Boolean).join(' · ')) : [],
     money: o.expenses && money.value
       ? [
-          `${formatMoney(money.value.total, t.currency)} insgesamt · ${formatMoney(money.value.perDay, t.currency)} pro Tag`,
-          money.value.byCategory.map((c) => `${EXPENSE_CATEGORY[c.category].label}: ${formatMoney(c.amount, t.currency)}`).join(' · ')
+          `${formatMoney(money.value.total, tr.currency)} ${t('insgesamt · {perDay} pro Tag', { perDay: formatMoney(money.value.perDay, tr.currency) })}`,
+          money.value.byCategory.map((c) => `${EXPENSE_CATEGORY[c.category].label}: ${formatMoney(c.amount, tr.currency)}`).join(' · ')
         ]
       : [],
     days: built.value.days.map((d) => ({
@@ -212,8 +212,8 @@ function pdfInput(t: Trip): PdfInput {
 }
 
 async function makePdf() {
-  const t = trip.value
-  if (!t) return
+  const tr = trip.value
+  if (!tr) return
   pdfError.value = ''
   pdfDone.value = ''
   pdfFile.value = null
@@ -223,13 +223,13 @@ async function makePdf() {
     const byId = new Map(photos.value.map((p) => [p.id, p]))
     await loadMaps()
     const blob = await createPdf(
-      pdfInput(t),
-      (id) => (id === 'cover' ? t.cover : id.startsWith('map:') ? mapBlobs.get(id) : (byId.get(id)?.full ?? byId.get(id)?.thumb)),
+      pdfInput(tr),
+      (id) => (id === 'cover' ? tr.cover : id.startsWith('map:') ? mapBlobs.get(id) : (byId.get(id)?.full ?? byId.get(id)?.thumb)),
       (p) => (pdfBusy.value = p)
     )
-    pdfFile.value = new File([blob], `${fileSlug(t.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
+    pdfFile.value = new File([blob], `${fileSlug(tr.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
   } catch (e) {
-    pdfError.value = `PDF konnte nicht erstellt werden: ${(e as Error).message}`
+    pdfError.value = t('PDF konnte nicht erstellt werden: {error}', { error: (e as Error).message })
   } finally {
     pdfBusy.value = null
   }
@@ -238,7 +238,7 @@ async function makePdf() {
 async function sharePdf() {
   if (!pdfFile.value) return
   const r = await shareOrDownload(pdfFile.value)
-  pdfDone.value = r === 'heruntergeladen' ? 'Die PDF-Datei wurde heruntergeladen.' : r === 'geteilt' ? 'Geteilt.' : ''
+  pdfDone.value = r === 'heruntergeladen' ? t('Die PDF-Datei wurde heruntergeladen.') : r === 'geteilt' ? t('Geteilt.') : ''
 }
 
 const printing = ref(false)
@@ -254,7 +254,7 @@ async function print() {
 
 <template>
   <div class="no-print mb-3">
-    <RouterLink :to="`/trip/${tripId}?bereich=danach`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ trip?.title ?? 'Zurück' }}</RouterLink>
+    <RouterLink :to="`/trip/${tripId}?bereich=danach`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ trip?.title ?? t('Zurück') }}</RouterLink>
     <h1 class="h3 mb-1 mt-1">{{ t('Reisebericht') }}</h1>
     <p class="small text-body-secondary mb-2">
       {{ t('„PDF-Datei erstellen“ macht eine fertige Datei zum Verschicken oder Sichern. Das Fotobuch lässt sich in Druckqualität bei vielen Fotobuch-Anbietern hochladen (Format passend wählen, ggf. mit Beschnitt). Die Vorschau unten zeigt den Inhalt.') }}
@@ -318,7 +318,7 @@ async function print() {
             <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="retryMaps">{{ t('Noch einmal versuchen') }}</button>
           </div>
           <div v-if="pdfBusy" class="small text-body-secondary mt-2" data-pdf-progress>
-            {{ pdfBusy.step === 'fotos' ? `Fotos vorbereiten … ${pdfBusy.done} / ${pdfBusy.total}` : 'PDF wird zusammengesetzt …' }}
+            {{ pdfBusy.step === 'fotos' ? t('Fotos vorbereiten … {done} / {total}', { done: pdfBusy.done, total: pdfBusy.total }) : t('PDF wird zusammengesetzt …') }}
             <div class="progress mt-1" style="height: 6px" role="progressbar" :aria-label="t('Fortschritt')">
               <div class="progress-bar" :style="{ width: `${pdfBusy.step === 'fotos' ? (pdfBusy.done / Math.max(1, pdfBusy.total)) * 90 : 95}%` }"></div>
             </div>
@@ -335,7 +335,7 @@ async function print() {
             <span v-if="printing" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
             <i v-else class="bi bi-printer me-1" aria-hidden="true"></i>{{ t('Drucken') }}
           </button>
-          <span class="small text-body-secondary ms-2">{{ t('{n} Tage · {n2} Fotos', { n: built.days.length, n2: photos.length }) }}</span>
+          <span class="small text-body-secondary ms-2">{{ tn(built.days.length, '1 Tag', '{n} Tage') }} · {{ tn(photos.length, '1 Foto', '{n} Fotos') }}</span>
         </div>
       </div>
     </div>
@@ -377,7 +377,7 @@ async function print() {
       <div v-if="o.stays && bookedStays.length" class="r-block">
         <h3 class="r-h3">{{ t('Unterkünfte') }}</h3>
         <p v-for="s in bookedStays" :key="s.id" class="mb-1">
-          <b>{{ s.name }}</b><template v-if="s.address"> · {{ s.address }}</template> · {{ nights(s) }} {{ nights(s) === 1 ? 'Nacht' : 'Nächte' }}
+          <b>{{ s.name }}</b><template v-if="s.address"> · {{ s.address }}</template> · {{ tn(nights(s), '1 Nacht', '{n} Nächte') }}
         </p>
       </div>
       <div v-if="o.expenses && money" class="r-block">
@@ -392,11 +392,11 @@ async function print() {
     <!-- Tage -->
     <section v-for="d in built.days" :key="d.date" class="r-day">
       <header class="r-day-head">
-        <span v-if="d.dayNo" class="r-dayno">{{ t('Tag {dayNo}', { dayNo: d.dayNo }) }}</span>
+        <span v-if="d.dayNo" class="r-dayno">{{ t('Tag {n}', { n: d.dayNo }) }}</span>
         <span class="r-daydate">{{ dateLong(d.date) }}</span>
       </header>
       <div v-for="e in d.entries" :key="e.id" class="r-entry">
-        <h2 class="r-h2">{{ e.title || 'Ohne Titel' }} <span v-if="e.mood" class="r-mood">{{ mood(e.mood) }}</span></h2>
+        <h2 class="r-h2">{{ e.title || t('Ohne Titel') }} <span v-if="e.mood" class="r-mood">{{ mood(e.mood) }}</span></h2>
         <div v-if="e.location" class="r-loc"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ e.location }}</div>
         <p v-for="(p, k) in paras(e.text)" :key="k" class="r-text">{{ p }}</p>
         <div v-if="e.photos.length" class="r-photos" :style="{ gridTemplateColumns: `repeat(${photoColumns(e.photos.length, o.layout)}, 1fr)` }">
@@ -410,7 +410,7 @@ async function print() {
         <h3 class="r-h3"><i class="bi bi-signpost-2" aria-hidden="true"></i> {{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="t('Karte: {name}', { name: r.name })" class="r-mapimg r-track-map" />
           <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>
@@ -423,7 +423,7 @@ async function print() {
         <h3 class="r-h3">{{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="t('Karte: {name}', { name: r.name })" class="r-mapimg r-track-map" />
           <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>

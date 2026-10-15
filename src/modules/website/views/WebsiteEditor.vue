@@ -19,6 +19,7 @@ import { buildSiteData, defaultSettings, fileNameFor, type EntryInput, type Extr
 import { renderSite } from '../render'
 import { embeddedFontCss, fontFaceCss } from '../fonts'
 import { ACCENT_PRESETS, FONT_GROUPS, IMAGE_EDGE, TEMPLATE_INFO, type SitePhoto, type WebsiteSettingsDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -106,13 +107,13 @@ const doneActivities = computed(() => acts.value.some((a) => a.status === 'erled
 /** Auswahlknöpfe für die Bereiche der Seite */
 type SectionKey = 'showPhotos' | 'showRoutes' | 'showStays' | 'showActivities' | 'showParticipants' | 'showMood' | 'showLocation'
 const sectionButtons = computed<{ key: SectionKey; label: string; icon: string; count?: number }[]>(() => [
-  { key: 'showPhotos', label: 'Fotos', icon: 'images', count: photos.value.length },
-  { key: 'showRoutes', label: 'Routen', icon: 'signpost-split', count: routeInputs.value.length },
-  { key: 'showStays', label: 'Unterkünfte', icon: 'building', count: stayInputs.value.length },
-  { key: 'showActivities', label: 'Unternehmungen', icon: 'flag', count: activityInputs.value.length },
-  { key: 'showParticipants', label: 'Mitreisende', icon: 'people', count: trip.value?.participants.length ?? 0 },
-  { key: 'showLocation', label: 'Orte', icon: 'geo-alt' },
-  { key: 'showMood', label: 'Stimmung', icon: 'emoji-smile' }
+  { key: 'showPhotos', label: t('Fotos'), icon: 'images', count: photos.value.length },
+  { key: 'showRoutes', label: t('Routen'), icon: 'signpost-split', count: routeInputs.value.length },
+  { key: 'showStays', label: t('Unterkünfte'), icon: 'building', count: stayInputs.value.length },
+  { key: 'showActivities', label: t('Unternehmungen'), icon: 'flag', count: activityInputs.value.length },
+  { key: 'showParticipants', label: t('Mitreisende'), icon: 'people', count: trip.value?.participants.length ?? 0 },
+  { key: 'showLocation', label: t('Orte'), icon: 'geo-alt' },
+  { key: 'showMood', label: t('Stimmung'), icon: 'emoji-smile' }
 ])
 
 const previewUrls = useObjectUrls(photos, (p) => p.id, (p) => p.full)
@@ -296,7 +297,7 @@ function resetTexts() {
         <label class="form-label small mb-1">{{ t('Akzentfarbe') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
           <button v-for="c in ACCENT_PRESETS" :key="c" type="button" class="swatch" :style="{ background: c }"
-                  :class="{ active: settings.accent === c }" :aria-label="`Farbe ${c}`" @click="settings.accent = c"></button>
+                  :class="{ active: settings.accent === c }" :aria-label="t('Farbe {color}', { color: c })" @click="settings.accent = c"></button>
           <input v-model="settings.accent" type="color" class="form-control form-control-color" :aria-label="t('Eigene Farbe')" />
         </div>
       </div>
@@ -304,7 +305,7 @@ function resetTexts() {
         <div class="col-7">
           <label for="font" class="form-label small mb-1">{{ t('Schrift') }}</label>
           <select id="font" v-model="settings.font" class="form-select form-select-sm">
-            <optgroup v-for="g in FONT_GROUPS" :key="g.group" :label="g.group">
+            <optgroup v-for="g in FONT_GROUPS" :key="g.group" :label="t(g.group)">
               <option v-for="f in g.fonts" :key="f.id" :value="f.id">{{ f.label }}</option>
             </optgroup>
           </select>
@@ -357,14 +358,14 @@ function resetTexts() {
       </div>
       <div v-if="settings.showRoutes && hiddenRoutes.length" class="alert alert-light border small py-2 mb-2" data-hidden-routes>
         <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>
-        {{ t('{x} nicht für die Webseite freigegeben', { x: hiddenRoutes.length === 1 ? '1 Route ist' : `${hiddenRoutes.length} Routen sind` }) }}
+        {{ tn(hiddenRoutes.length, '1 Route ist nicht für die Webseite freigegeben', '{n} Routen sind nicht für die Webseite freigegeben') }}
         <template v-if="hiddenRoutes.length <= 3">({{ hiddenRoutes.map((r) => r.name).join(', ') }})</template>.
         <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="showAllRoutes">{{ t('Alle zeigen') }}</button>
       </div>
       <div v-if="settings.showRoutes && shared.length" class="small mb-2" :class="mapState === 'fehlt' ? 'text-warning-emphasis' : 'text-body-secondary'" data-map-state>
         <template v-if="mapState === 'laden'"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade Kartenbilder …') }}</template>
         <template v-else-if="mapState === 'fehlt'"><i class="bi bi-wifi-off me-1" aria-hidden="true"></i>{{ t('Kartenbilder brauchen Internet – ohne sie zeigt die Seite nur die Strecke.') }} <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="loadMaps">{{ t('Noch einmal versuchen') }}</button></template>
-        <template v-else-if="mapState === 'fertig'"><i class="bi bi-map me-1" aria-hidden="true"></i>{{ t('Routen mit Karte (© OpenStreetMap-Mitwirkende){x}.', { x: shared.length > 1 ? ' und Übersichtskarte' : '' }) }}</template>
+        <template v-else-if="mapState === 'fertig'"><i class="bi bi-map me-1" aria-hidden="true"></i>{{ shared.length > 1 ? t('Routen mit Karte (© OpenStreetMap-Mitwirkende) und Übersichtskarte.') : t('Routen mit Karte (© OpenStreetMap-Mitwirkende).') }}</template>
       </div>
       <div v-if="settings.showStays" class="form-check form-switch">
         <input id="stay-details" v-model="settings.showStayDetails" class="form-check-input" type="checkbox" role="switch" />
@@ -373,7 +374,7 @@ function resetTexts() {
       <p class="small text-body-secondary mb-2">
         {{ t('Preise, Buchungsnummern und Notizen kommen nie auf die Seite.') }}
         <template v-if="settings.showStays && accs.some((a) => a.status === 'gebucht')">{{ t('Es werden nur gebuchte Unterkünfte gezeigt.') }}</template>
-        <template v-if="settings.showActivities">{{ ' ' }}{{ doneActivities ? 'Unternehmungen: nur erledigte.' : 'Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.' }}</template>
+        <template v-if="settings.showActivities">{{ ' ' }}{{ doneActivities ? t('Unternehmungen: nur erledigte.') : t('Unternehmungen: noch keine erledigt – es werden die geplanten gezeigt.') }}</template>
       </p>
       <label for="size" class="form-label small mb-1">{{ t('Bildgröße') }}</label>
       <select id="size" v-model="settings.imageSize" class="form-select form-select-sm mb-3">

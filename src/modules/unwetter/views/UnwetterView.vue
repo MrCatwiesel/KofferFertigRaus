@@ -97,8 +97,8 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
         </div>
         <p class="small text-body-secondary mb-0">
           <template v-if="settings.scope === 'orte'">
-            {{ t('Erkannt an {x} Ort{x2} auf der Karte und {x3} Ortsnamen (Unterkünfte, Unternehmungen, Wetter-Ort, Reiseziel)', { x: watch?.points.length ?? 0, x2: watch?.points.length === 1 ? '' : 'en', x3: watch?.names.length ?? 0 }) }}<template v-if="settings.regions.length">
-              {{ t('und {n} beobachteten Region{x}', { n: settings.regions.length, x: settings.regions.length === 1 ? '' : 'en' }) }}</template>.
+            {{ t('Erkannt an {places} auf der Karte und {names} Ortsnamen (Unterkünfte, Unternehmungen, Wetter-Ort, Reiseziel)', { places: tn(watch?.points.length ?? 0, '1 Ort', '{n} Orten'), names: watch?.names.length ?? 0 }) }}<template v-if="settings.regions.length">
+              {{ tn(settings.regions.length, 'und 1 beobachteten Region', 'und {n} beobachteten Regionen') }}</template>.
             <details v-if="watch?.names.length" class="d-inline">
               <summary class="d-inline text-decoration-underline">{{ t('Welche?') }}</summary>
               <span class="d-block">{{ watch.names.join(' · ') }}</span>

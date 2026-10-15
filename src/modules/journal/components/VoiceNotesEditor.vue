@@ -6,7 +6,7 @@
 import { onUnmounted, ref } from 'vue'
 import { canRecord, formatSeconds, startRecording, type Recording } from '@/services/recorder'
 import { requestPersistentStorage } from '@/core/storage'
-import { intlLocale } from '@/i18n'
+import { t, intlLocale } from '@/i18n'
 
 export interface VoiceItem {
   key: string
@@ -58,7 +58,7 @@ async function stop() {
   seconds.value = 0
   level.value = 0
   if (!blob.size || duration < 0.5) {
-    error.value = 'Die Aufnahme war leer – bitte noch einmal.'
+    error.value = t('Die Aufnahme war leer – bitte noch einmal.')
     return
   }
   items.value = [
@@ -69,7 +69,7 @@ async function stop() {
 
 function remove(i: number) {
   const it = items.value[i]
-  if (!confirm(`Sprachnotiz ${it.title ? `„${it.title}“ ` : ''}löschen?`)) return
+  if (!confirm(it.title ? t('Sprachnotiz „{title}“ löschen?', { title: it.title }) : t('Sprachnotiz löschen?'))) return
   items.value = items.value.filter((_, k) => k !== i)
   emit('removed', it)
 }
@@ -90,10 +90,10 @@ onUnmounted(() => {
         <input
           v-model="it.title"
           class="form-control form-control-sm"
-          :placeholder="`Sprachnotiz ${timeOf(it.recordedAt)} · ${formatSeconds(it.duration)}`"
-          :aria-label="`Titel der Sprachnotiz ${i + 1}`"
+          :placeholder="t('Sprachnotiz {timeOf} · {formatSeconds}', { timeOf: timeOf(it.recordedAt), formatSeconds: formatSeconds(it.duration) })"
+          :aria-label="t('Titel der Sprachnotiz {x}', { x: i + 1 })"
         />
-        <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="`Sprachnotiz ${i + 1} löschen`" @click="remove(i)">
+        <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="t('Sprachnotiz {x} löschen', { x: i + 1 })" @click="remove(i)">
           <i class="bi bi-trash" aria-hidden="true"></i>
         </button>
       </div>

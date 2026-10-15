@@ -105,7 +105,7 @@ const tiles = computed(() =>
         </div>
       </div>
     </div>
-    <p v-if="s.planned" class="small text-body-secondary on-bg">{{ t('Dazu {planned} geplante {x}.', { planned: s.planned, x: s.planned === 1 ? 'Reise' : 'Reisen' }) }}</p>
+    <p v-if="s.planned" class="small text-body-secondary on-bg">{{ tn(s.planned, 'Dazu 1 geplante Reise.', 'Dazu {n} geplante Reisen.') }}</p>
 
     <section v-if="s.countries.length" class="card mb-3">
       <div class="card-body">

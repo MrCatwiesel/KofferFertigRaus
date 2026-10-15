@@ -385,7 +385,7 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
         <div v-if="planned && plannedStats && !planning" class="card mb-2">
           <div class="card-body py-2">
             <div class="fw-semibold">{{ statsLine({ ...plannedStats, duration: null }) }}</div>
-            <div v-if="plannedTime" class="small text-body-secondary">{{ t('Dauer ca. {formatDuration}{x}', { formatDuration: formatDuration(plannedTime), x: profile === 'hiking-mountain' ? ' (Gehzeit nach DIN 33466, ohne Pausen)' : '' }) }}</div>
+            <div v-if="plannedTime" class="small text-body-secondary">{{ profile === 'hiking-mountain' ? t('Dauer ca. {duration} (Gehzeit nach DIN 33466, ohne Pausen)', { duration: formatDuration(plannedTime) }) : t('Dauer ca. {duration}', { duration: formatDuration(plannedTime) }) }}</div>
           </div>
         </div>
       </template>

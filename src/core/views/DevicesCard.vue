@@ -165,7 +165,7 @@ const until = (iso: string) =>
 
       <div v-if="!loading && devices.length > 1" class="small mb-2" :class="notReady.length ? 'text-warning-emphasis' : 'text-success'">
         <i class="bi" :class="notReady.length ? 'bi-exclamation-triangle' : 'bi-check2-all'" aria-hidden="true"></i>
-        <template v-if="notReady.length">{{ t('{map} {x} noch nicht auf dem neuesten Stand.', { map: notReady.map((d) => d.name).join(', '), x: notReady.length === 1 ? 'ist' : 'sind' }) }}</template>
+        <template v-if="notReady.length">{{ tn(notReady.length, '{names} ist noch nicht auf dem neuesten Stand.', '{names} sind noch nicht auf dem neuesten Stand.', { names: notReady.map((d) => d.name).join(', ') }) }}</template>
         <template v-else>{{ t('Alle Geräte sind auf dem neuesten Stand.') }}</template>
       </div>
       <div v-if="error" class="alert alert-danger small py-2">{{ error }}</div>
@@ -180,7 +180,7 @@ const until = (iso: string) =>
               {{ d.name }} <span v-if="d.current" class="badge text-bg-primary ms-1">{{ t('dieses Gerät') }}</span>
             </div>
             <div class="small text-body-secondary text-truncate">
-              {{ t('{x} · zuletzt {ago}', { x: d.agent || 'unbekannt', ago: ago(d.synced ?? d.lastSeen ?? d.created) }) }}
+              {{ t('{agent} · zuletzt {ago}', { agent: d.agent || t('unbekannt'), ago: ago(d.synced ?? d.lastSeen ?? d.created) }) }}
             </div>
             <div class="small" :class="{ 'text-success': syncInfo(d).level === 'ok', 'text-warning-emphasis': syncInfo(d).level === 'warn', 'text-body-secondary': syncInfo(d).level === 'unknown' }">
               <i class="bi" :class="syncInfo(d).level === 'ok' ? 'bi-check2' : syncInfo(d).level === 'warn' ? 'bi-hourglass-split' : 'bi-question-circle'" aria-hidden="true"></i>

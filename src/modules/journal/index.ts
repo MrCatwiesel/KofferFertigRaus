@@ -2,11 +2,12 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
 import { journalStats, photosForMap } from './logic'
 import { routeRepository } from '@/modules/routes/public'
+import { t, tn } from '@/i18n'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
   id: 'journal',
-  title: 'Tagebuch',
+  title: t('Tagebuch'),
   icon: 'journal-richtext',
   order: 60,
   routes: [
@@ -16,15 +17,15 @@ export const journalModule: AppModule = {
   ],
   tripSection: {
     phases: ['unterwegs', 'danach', 'teilen'],
-    title: 'Reisetagebuch',
+    title: t('Reisetagebuch'),
     icon: 'journal-richtext',
     to: (tripId) => `/trip/${tripId}/tagebuch`,
     async summary(tripId) {
       const [entries, photos] = await Promise.all([journalRepository.listByTrip(tripId), photoRepository.countByTrip(tripId)])
-      if (entries.length === 0) return 'Noch keine Einträge'
+      if (entries.length === 0) return t('Noch keine Einträge')
       const s = journalStats(entries, photos)
-      const parts = [`${s.entries} ${s.entries === 1 ? 'Eintrag' : 'Einträge'}`, `${s.photos} Fotos`]
-      if (s.highlights) parts.push(`${s.highlights} Highlights`)
+      const parts = [tn(s.entries, '1 Eintrag', '{n} Einträge'), tn(s.photos, '1 Foto', '{n} Fotos')]
+      if (s.highlights) parts.push(t('{n} Highlights', { n: s.highlights }))
       return parts.join(' · ')
     }
   },

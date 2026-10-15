@@ -11,7 +11,7 @@ import { useObjectUrls } from '../composables'
 import type { JournalEntry, Photo, VoiceNote } from '../types'
 import { formatSeconds } from '@/services/recorder'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
-import { intlLocale } from '@/i18n'
+import { t, tn, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -27,7 +27,7 @@ const voicesByEntry = computed(() => {
   return m
 })
 const voiceLabel = (v: VoiceNote) =>
-  v.title || `Sprachnotiz ${new Date(v.recordedAt).toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' })}`
+  v.title || t('Sprachnotiz {time}', { time: new Date(v.recordedAt).toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' }) })
 // Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
 const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])
 const linksByDay = computed(() => {
@@ -63,8 +63,11 @@ function toggleHighlight(e: JournalEntry) {
 
 async function removeEntry(e: JournalEntry) {
   const n = photosByEntry.value.get(e.id)?.length ?? 0
-  const what = `„${e.title || 'Eintrag ohne Titel'}“${n ? ` mit ${n} ${n === 1 ? 'Foto' : 'Fotos'}` : ''}`
-  if (!confirm(`${what} löschen? Das lässt sich nicht rückgängig machen.`)) return
+  const title = e.title || t('Eintrag ohne Titel')
+  const question = n
+    ? tn(n, '„{title}“ mit 1 Foto löschen? Das lässt sich nicht rückgängig machen.', '„{title}“ mit {n} Fotos löschen? Das lässt sich nicht rückgängig machen.', { title })
+    : t('„{title}“ löschen? Das lässt sich nicht rückgängig machen.', { title })
+  if (!confirm(question)) return
   await journalRepository.remove(e.id)
 }
 </script>
@@ -121,7 +124,7 @@ async function removeEntry(e: JournalEntry) {
       <article v-for="e in d.entries" :key="e.id" class="card mb-2">
         <div v-if="photosByEntry.get(e.id)?.length" class="photo-strip">
           <button v-for="(p, i) in photosByEntry.get(e.id)!.slice(0, 4)" :key="p.id" type="button" class="photo-btn"
-                  :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
+                  :aria-label="t('Foto {x} groß anzeigen', { x: i + 1 })" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
             <img :src="thumbs.get(p.id)" :alt="p.caption || ''" loading="lazy" />
             <span v-if="i === 3 && photosByEntry.get(e.id)!.length > 4" class="more">+{{ photosByEntry.get(e.id)!.length - 4 }}</span>
           </button>
@@ -130,10 +133,10 @@ async function removeEntry(e: JournalEntry) {
           <div class="d-flex justify-content-between gap-2">
             <RouterLink :to="`/trip/${tripId}/tagebuch/${e.id}`" class="fw-semibold text-body text-decoration-none">
               <span v-if="moodOf(e.mood)" class="me-1" :title="moodOf(e.mood)!.label">{{ moodOf(e.mood)!.emoji }}</span>
-              {{ e.title || 'Ohne Titel' }}
+              {{ e.title || t('Ohne Titel') }}
             </RouterLink>
             <div class="d-flex align-items-start gap-1 flex-none">
-              <button type="button" class="btn btn-sm p-0" :aria-label="e.highlight ? 'Highlight entfernen' : 'Als Highlight markieren'"
+              <button type="button" class="btn btn-sm p-0" :aria-label="e.highlight ? t('Highlight entfernen') : t('Als Highlight markieren')"
                       @click="toggleHighlight(e)">
                 <i class="bi fs-5" :class="e.highlight ? 'bi-star-fill text-warning' : 'bi-star text-body-secondary'" aria-hidden="true"></i>
               </button>

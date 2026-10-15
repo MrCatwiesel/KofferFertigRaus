@@ -28,7 +28,7 @@ function close() {
   <div v-if="versions" class="alert alert-success d-flex gap-2 align-items-start" role="status" data-whats-new>
     <i class="bi bi-stars fs-5" aria-hidden="true"></i>
     <div class="flex-grow-1 small">
-      <strong>{{ t('Neu in Version {APP_VERSION}{x}{x2}', { APP_VERSION, x: versions > 1 ? ' und davor' : '', x2: items.length ? ':' : '' }) }}</strong>
+      <strong>{{ versions > 1 ? t('Neu in Version {version} und davor', { version: APP_VERSION }) : t('Neu in Version {version}', { version: APP_VERSION }) }}{{ items.length ? ':' : '' }}</strong>
       {{ items.join(' · ') }}
       <RouterLink to="/hilfe/neu" class="ms-1" @click="close">{{ t('Mehr erfahren') }}</RouterLink>
     </div>

@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository } from '@/modules/journal/public'
 import { websiteRepository } from './repository'
 import { TEMPLATE_INFO } from './types'
+import { t } from '@/i18n'
 
 /** Modul "Reise-Webseite" (Meilenstein M5). */
 export const websiteModule: AppModule = {
@@ -20,9 +21,9 @@ export const websiteModule: AppModule = {
     async summary(tripId) {
       const [settings, entries] = await Promise.all([websiteRepository.get(tripId), journalRepository.listByTrip(tripId)])
       const highlights = entries.filter((e) => e.highlight).length
-      if (entries.length === 0) return 'Entsteht aus dem Tagebuch'
-      const tpl = settings ? TEMPLATE_INFO[settings.template].title : 'noch nicht eingerichtet'
-      return `Vorlage: ${tpl} · ${highlights} Highlights`
+      if (entries.length === 0) return t('Entsteht aus dem Tagebuch')
+      const tpl = settings ? TEMPLATE_INFO[settings.template].title : t('noch nicht eingerichtet')
+      return t('Vorlage: {template} · {n} Highlights', { template: tpl, n: highlights })
     }
   },
   onTripDelete: (tripId) => websiteRepository.remove(tripId)

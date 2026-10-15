@@ -66,7 +66,7 @@ onUnmounted(() => {
     <button v-if="photos.length > 1" type="button" class="btn btn-dark lb-nav lb-prev" :aria-label="t('Vorheriges Foto')" @click="go(-1)">
       <i class="bi bi-chevron-left" aria-hidden="true"></i>
     </button>
-    <img v-if="url" :src="url" :alt="current?.caption || 'Foto'" class="lb-img" />
+    <img v-if="url" :src="url" :alt="current?.caption || t('Foto')" class="lb-img" />
     <button v-if="photos.length > 1" type="button" class="btn btn-dark lb-nav lb-next" :aria-label="t('Nächstes Foto')" @click="go(1)">
       <i class="bi bi-chevron-right" aria-hidden="true"></i>
     </button>

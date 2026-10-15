@@ -100,7 +100,7 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat(intlLocale()
           <div class="flex-grow-1">
             <div class="fw-semibold">{{ abo ? t('Eingeschaltet') : t('Ausgeschaltet') }}</div>
             <div class="small text-body-secondary">
-              <template v-if="abo && status.geplant">{{ t('{geplant} Erinnerung{x} geplant · nächste {when}', { geplant: status.geplant, x: status.geplant === 1 ? '' : 'en', when: when(status.naechste) }) }}</template>
+              <template v-if="abo && status.geplant">{{ tn(status.geplant, '1 Erinnerung geplant · nächste {when}', '{n} Erinnerungen geplant · nächste {when}', { when: when(status.naechste) }) }}</template>
               <template v-else-if="abo">{{ t('Gerade nichts geplant') }}</template>
               <template v-else>{{ t('Auf diesem Gerät kommen keine Benachrichtigungen.') }}</template>
             </div>

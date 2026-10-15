@@ -213,7 +213,7 @@ function addLeg() {
       </div>
       <button type="button" class="btn btn-outline-secondary btn-sm mb-2" @click="addLeg"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Etappe') }}</button>
       <div class="small text-body-secondary">
-        {{ t('Buchungsnummer: {x} · Preis: {x2}', { x: guess.bookingRef || '–', x2: guess.price !== null ? `${guess.price.toLocaleString(intlLocale(), { minimumFractionDigits: 2 })} ${guess.currency}` : '–' }) }}
+        {{ t('Buchungsnummer: {ref} · Preis: {price}', { ref: guess.bookingRef || '–', price: guess.price !== null ? `${guess.price.toLocaleString(intlLocale(), { minimumFractionDigits: 2 })} ${guess.currency}` : '–' }) }}
       </div>
     </section>
 

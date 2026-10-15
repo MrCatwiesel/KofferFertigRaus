@@ -15,6 +15,7 @@ import VoiceNotesEditor, { type VoiceItem } from '../components/VoiceNotesEditor
 import { defaultEntryDate, emptyEntryDraft, moveItem, orderPhotos, takenAtFromFile, validateEntry } from '../logic'
 import { MOODS, type JournalEntryDraft, type Photo } from '../types'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -84,11 +85,11 @@ async function fillFromDay() {
     const facts = await getDayFacts(props.tripId, draft.date)
     const d = composeDayDraft(facts, { dayNo: diffDays(trip.value.startDate, draft.date) + 1, destination: trip.value.destination })
     if (!d.facts) {
-      draftNote.value = { ok: false, text: `Für den ${formatDate(draft.date)} ist noch nichts gespeichert – keine Tour, Unternehmung, Anreise oder Wettervorhersage.` }
+      draftNote.value = { ok: false, text: t('Für den {date} ist noch nichts gespeichert – keine Tour, Unternehmung, Anreise oder Wettervorhersage.', { date: formatDate(draft.date) }) }
       return
     }
     Object.assign(draft, applyDayDraft(draft, d))
-    draftNote.value = { ok: true, text: 'Entwurf eingefügt – jetzt mit eigenen Worten ergänzen: Was war besonders, lustig, lecker?' }
+    draftNote.value = { ok: true, text: t('Entwurf eingefügt – jetzt mit eigenen Worten ergänzen: Was war besonders, lustig, lecker?') }
   } finally {
     drafting.value = false
   }
@@ -214,14 +215,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm('Diesen Eintrag mit allen Fotos löschen?')) return
+  if (!props.id || !confirm(t('Diesen Eintrag mit allen Fotos löschen?'))) return
   await journalRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Eintrag bearbeiten' : 'Neuer Eintrag'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Eintrag bearbeiten') : t('Neuer Eintrag')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-6 col-md-4">
@@ -273,14 +274,14 @@ async function remove() {
       <label class="form-label d-block">{{ t('Fotos') }}</label>
       <div class="photo-grid mb-2">
         <figure v-for="(it, i) in items" :key="it.key" class="photo-item m-0">
-          <button type="button" class="photo-thumb" :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightboxStart = i">
+          <button type="button" class="photo-thumb" :aria-label="t('Foto {x} groß anzeigen', { x: i + 1 })" @click="lightboxStart = i">
             <img :src="it.url" alt="" />
             <span v-if="i === 0" class="badge text-bg-primary cover">{{ t('Titelbild') }}</span>
             <span v-if="(it.existing ?? it.fresh)?.externalRef" class="badge text-bg-light external" :title="t('Original liegt in der Galerie')">
               <i class="bi bi-cloud-check" aria-hidden="true"></i>
             </span>
           </button>
-          <input v-model="it.caption" class="form-control form-control-sm mt-1" :placeholder="t('Bildunterschrift')" :aria-label="`Bildunterschrift ${i + 1}`" />
+          <input v-model="it.caption" class="form-control form-control-sm mt-1" :placeholder="t('Bildunterschrift')" :aria-label="t('Bildunterschrift {x}', { x: i + 1 })" />
           <div class="d-flex justify-content-between mt-1">
             <div class="btn-group btn-group-sm">
               <button type="button" class="btn btn-outline-secondary" :disabled="i === 0" :aria-label="t('Nach vorn')" @click="move(i, -1)">

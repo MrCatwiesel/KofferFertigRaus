@@ -4,7 +4,7 @@ import { useLiveQuery } from '@/core/composables'
 import { getMeta } from '@/core/meta'
 import { refreshIfStale } from '../api'
 import { overlapsDay, period, relevantWarnings } from '../logic'
-import { LEVELS, TYPE_ICONS, type WarningCache } from '../types'
+import { LEVELS, TYPE_ICONS, typeLabel, type WarningCache } from '../types'
 
 /** Kurzer Hinweis auf Unwetterwarnungen (z. B. im Tagesplaner) – nur, wenn es welche gibt. `day`: nur die dieses Tages */
 const props = defineProps<{ tripId: string; day?: string }>()
@@ -17,7 +17,7 @@ onMounted(() => void refreshIfStale(props.tripId).catch(() => undefined))
   <RouterLink v-if="list.length" :to="`/trip/${tripId}/unwetter`" class="card mb-3 text-decoration-none banner" data-warning-banner>
     <div v-for="w in list.slice(0, 3)" :key="w.id" class="card-body py-2 d-flex align-items-center gap-2 small" :style="{ borderLeft: `0.4rem solid ${(LEVELS[w.level] ?? LEVELS[2]).bg}` }">
       <i :class="`bi bi-${TYPE_ICONS[w.type] ?? 'exclamation-triangle'} fs-5`" aria-hidden="true"></i>
-      <span><strong>{{ (LEVELS[w.level] ?? LEVELS[2]).label }}: {{ w.typeName }}</strong> · {{ w.match?.area }} · {{ period(w.onset, w.expires) }}</span>
+      <span><strong>{{ (LEVELS[w.level] ?? LEVELS[2]).label }}: {{ typeLabel(w) }}</strong> · {{ w.match?.area }} · {{ period(w.onset, w.expires) }}</span>
       <i class="bi bi-chevron-right ms-auto" aria-hidden="true"></i>
     </div>
     <div v-if="list.length > 3" class="card-body py-1 small text-body-secondary">{{ t('und {x} weitere', { x: list.length - 3 }) }}</div>

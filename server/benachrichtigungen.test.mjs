@@ -88,6 +88,10 @@ test('Texte für Änderungen anderer', () => {
   assert.equal(changeSummary({ journalEntries: { neu: 1, geaendert: 0 }, photos: { neu: 5, geaendert: 0 } }), 'Neu: ein Tagebucheintrag, 5 Fotos')
   assert.equal(changeSummary({ activities: { neu: 1, geaendert: 2 }, expenses: { neu: 0, geaendert: 1 } }), 'Neu: eine Unternehmung · 3 Änderungen')
   assert.equal(changeSummary({ routes: { neu: 0, geaendert: 1 } }), '1 Änderung')
+  // Sprache des Geräts (prefs.lang)
+  assert.equal(changeSummary({ journalEntries: { neu: 1, geaendert: 0 }, photos: { neu: 5, geaendert: 2 } }, 'en'), 'New: a journal entry, 5 photos · 2 changes')
+  assert.equal(changeSummary({ routes: { neu: 0, geaendert: 1 } }, 'en'), '1 change')
+  assert.equal(changeSummary({ routes: { neu: 0, geaendert: 1 } }, 'xx'), '1 Änderung')
 })
 
 // ---------------------------------------------------------------- Ablauf mit Server
@@ -163,7 +167,7 @@ test('Abo nur mit Geräte-Anmeldung und nur für Push-Dienste', async () => {
   assert.equal((await call('PUT', '/api/benachrichtigungen/abo', s.marco, { ...s.ipad, keys: { p256dh: 'AAAA', auth: 'AAAA' } })).status, 400)
   const r = await call('PUT', '/api/benachrichtigungen/abo', s.marco, s.ipad)
   assert.equal(r.status, 200)
-  assert.deepEqual(r.body.prefs, { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3 })
+  assert.deepEqual(r.body.prefs, { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3, lang: 'de' })
   const st = (await call('GET', '/api/benachrichtigungen', s.marco)).body
   assert.equal(st.abo.endpointHost, 'push.example')
   assert.equal(st.geraete, 1)

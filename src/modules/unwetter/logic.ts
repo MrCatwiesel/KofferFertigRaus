@@ -1,7 +1,7 @@
 /** Reine Funktionen der Unwetterwarnungen (ohne Datenbank, ohne Vue). */
 import { addDays } from '@/core/dates'
-import type { AlertScope, WarningCache, Watch, WeatherAlertSettings, WeatherWarning } from './types'
-import { t, tn, intlLocale } from '@/i18n'
+import { typeLabel, type AlertScope, type WarningCache, type Watch, type WeatherAlertSettings, type WeatherWarning } from './types'
+import { t, tn, intlLocale, language } from '@/i18n'
 
 export const DEFAULT_SETTINGS: WeatherAlertSettings = { scope: 'orte', regions: [] }
 
@@ -89,7 +89,7 @@ export function summaryText(cache: WarningCache | null | undefined, now = Date.n
   const list = relevantWarnings(cache, now)
   if (!list.length) return t('Keine Warnungen für eure Orte')
   const top = list[0]
-  const types = [...new Set(list.filter((w) => w.level === top.level).map((w) => w.typeName))].slice(0, 2).join(', ')
+  const types = [...new Set(list.filter((w) => w.level === top.level).map(typeLabel))].slice(0, 2).join(', ')
   return `⚠️ ${tn(list.length, '1 Warnung', '{n} Warnungen')} · ${LEVEL_WORD[top.level] ?? ''}: ${types}`
 }
 
@@ -105,6 +105,7 @@ export function localWhen(iso: string, timeZone?: string): string {
       .formatToParts(new Date(t))
       .map((p) => [p.type, p.value])
   )
+  if (language() !== 'de') return `${parts.weekday} ${parts.day}/${parts.month} ${parts.hour}:${parts.minute}`
   return `${String(parts.weekday).replace('.', '')} ${parts.day}.${parts.month}. ${parts.hour}:${parts.minute}`
 }
 
@@ -112,9 +113,10 @@ export function localWhen(iso: string, timeZone?: string): string {
 export function period(onset: string, expires: string, timeZone?: string): string {
   const a = localWhen(onset, timeZone)
   const b = localWhen(expires, timeZone)
-  if (!a) return b ? `bis ${b}` : ''
-  if (!b) return `ab ${a}`
-  return a.slice(0, 9) === b.slice(0, 9) ? `${a} – ${b.slice(10)}` : `${a} – ${b}`
+  if (!a) return b ? t('bis {time}', { time: b }) : ''
+  if (!b) return t('ab {time}', { time: a })
+  const day = (s: string) => s.slice(0, s.lastIndexOf(' '))
+  return day(a) === day(b) ? `${a} – ${b.slice(b.lastIndexOf(' ') + 1)}` : `${a} – ${b}`
 }
 
 /** Betrifft die Warnung diesen Tag (YYYY-MM-DD, Zeitzone des Geräts)? */

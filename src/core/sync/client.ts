@@ -56,7 +56,8 @@ export class ServerClient {
     if (!res.ok) {
       let msg = t('Fehler {status}', { status: res.status })
       try {
-        msg = (await res.clone().json()).error ?? msg
+        const error = (await res.clone().json()).error
+        if (typeof error === 'string' && error) msg = t(error)
       } catch {
         /* keine JSON-Antwort */
       }

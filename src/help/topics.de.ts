@@ -8,7 +8,7 @@ import type { HelpContent } from './types'
  * Neue Seite in der App: ihren Routen-Namen bei einem Thema unter `routes` eintragen
  * (ein Test prüft, dass jede Seite ein Thema hat).
  */
-export const helpDe: HelpContent = {
+export const help: HelpContent = {
   groups: [
     { id: 'start', title: 'Erste Schritte', icon: 'flag' },
     { id: 'planen', title: 'Planen', icon: 'map' },

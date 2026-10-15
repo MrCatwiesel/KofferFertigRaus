@@ -9,6 +9,7 @@ import { appearance } from '@/ui/appearance'
 import { getTheme } from '@/ui/themes'
 import { lock } from '../lock'
 import { t } from '@/i18n'
+import LanguageSelect from '@/i18n/LanguageSelect.vue'
 
 const message = ref<{ type: 'success' | 'danger'; text: string } | null>(null)
 const includePhotos = ref(false)
@@ -89,6 +90,13 @@ async function persist() {
       <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
     </div>
   </RouterLink>
+
+  <section class="card mb-3">
+    <div class="card-body">
+      <LanguageSelect />
+      <div class="form-text">{{ t('Gilt für dieses Gerät. Beim Wechsel lädt die App kurz neu.') }}</div>
+    </div>
+  </section>
 
   <RouterLink to="/einstellungen/sperre" class="card mb-3 text-decoration-none text-body">
     <div class="card-body d-flex align-items-center gap-3">

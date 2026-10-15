@@ -7,7 +7,7 @@
 import { reactive } from 'vue'
 import { getMeta, setMeta } from './meta'
 import { ServerClient } from './sync/client'
-import { t } from '@/i18n'
+import { t, language } from '@/i18n'
 
 export interface PushPrefs {
   erinnerungen: boolean
@@ -16,6 +16,8 @@ export interface PushPrefs {
   unwetter?: boolean
   /** ab Stufe 2 gelb, 3 orange, 4 rot */
   unwetterStufe?: 2 | 3 | 4
+  /** Sprache der Texte, die der Server schickt (ab Server 1.21) */
+  lang?: string
 }
 
 /** Antwort von GET /api/benachrichtigungen */
@@ -120,7 +122,7 @@ async function subscribe(publicKey: string): Promise<PushSubscription> {
 
 async function register(sub: PushSubscription, prefs?: Partial<PushPrefs>) {
   const json = sub.toJSON()
-  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs })
+  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs: { ...prefs, lang: language() } })
 }
 
 /**
@@ -149,7 +151,7 @@ export async function disablePush(): Promise<void> {
 }
 
 export async function setPushPrefs(prefs: Partial<PushPrefs>): Promise<void> {
-  await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { prefs })
+  await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { prefs: { ...prefs, lang: language() } })
   await loadPushStatus()
 }
 

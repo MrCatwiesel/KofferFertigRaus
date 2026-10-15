@@ -9,7 +9,7 @@ import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/pub
 import { checkTrip, watchOf, NO_SERVER } from '../api'
 import { inWatchWindow, isActiveNow, otherWarnings, period, relevantWarnings, settingsOf, toggleRegion } from '../logic'
 import { todayIso } from '@/core/dates'
-import { LEVELS, MATCH_LABELS, SOURCE_URL, TYPE_ICONS, type AlertScope, type WarningCache, type Watch, type WeatherWarning } from '../types'
+import { LEVELS, MATCH_LABELS, SOURCE_URL, TYPE_ICONS, typeLabel, type AlertScope, type WarningCache, type Watch, type WeatherWarning } from '../types'
 import { intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
@@ -147,7 +147,7 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
             </div>
             <div class="flex-grow-1">
               <h2 class="h5 mb-1">
-                {{ w.typeName }}
+                {{ typeLabel(w) }}
                 <span class="badge ms-1" :style="{ background: level(w.level).bg, color: level(w.level).fg }">{{ level(w.level).label }} · {{ level(w.level).text }}</span>
                 <span v-if="isActiveNow(w)" class="badge text-bg-dark ms-1">{{ t('läuft gerade') }}</span>
               </h2>
@@ -174,7 +174,7 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
           <li v-for="w in others" :key="w.id" class="list-group-item small d-flex flex-wrap align-items-center gap-2">
             <span class="badge" :style="{ background: level(w.level).bg, color: level(w.level).fg }">{{ level(w.level).label }}</span>
             <i :class="`bi bi-${icon(w)}`" aria-hidden="true"></i>
-            <span class="fw-semibold">{{ w.typeName }}</span>
+            <span class="fw-semibold">{{ typeLabel(w) }}</span>
             <span>{{ w.areas.map((a) => a.name).join(', ') }}</span>
             <span class="text-body-secondary">{{ period(w.onset, w.expires) }}</span>
             <button

@@ -97,6 +97,9 @@ test('Zeitraum in der Ortszeit des Landes', () => {
   assert.equal(period('2026-10-15T14:00:00+02:00', '2026-10-15T22:00:00+02:00'), 'Do 15.10. 14:00 – 22:00')
   assert.equal(period('2026-10-15T12:00:00Z', '2026-10-16T04:00:00Z', timeZoneOf('AT')), 'Do 15.10. 14:00 – Fr 16.10. 06:00')
   assert.equal(period('', '2026-10-16T06:00:00+02:00'), 'bis Fr 16.10. 06:00')
+  // Englisch (Sprache des Abos)
+  assert.equal(period('2026-10-15T14:00:00+02:00', '2026-10-15T22:00:00+02:00', 'Europe/Berlin', 'en'), 'Thu 15/10 14:00 – 22:00')
+  assert.equal(period('', '2026-10-16T06:00:00+02:00', 'Europe/Berlin', 'en'), 'until Fri 16/10 06:00')
 })
 
 // ---------------------------------------------------------------- Ablauf mit Server
@@ -204,7 +207,7 @@ test('Beobachten und Push: neue Warnungen ab der gewählten Stufe, je Gerät ein
   s.marco = (await call('POST', '/api/anmelden', KEY, { name: 'iPad Marco' })).body.token
   s.ipad = browser('ipad')
   const abo = await call('PUT', '/api/benachrichtigungen/abo', s.marco, s.ipad)
-  assert.deepEqual(abo.body.prefs, { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3 })
+  assert.deepEqual(abo.body.prefs, { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3, lang: 'de' })
 
   const item = { trip: 't1', title: 'Großglockner', countries: ['AT', 'XX'], from: '2026-07-01', to: '2026-07-05', points: [[47.2, 12.8]], names: ['Bezirk Zell am See'] }
   assert.equal((await call('PUT', '/api/unwetter/beobachten', s.marco, { items: [{ ...item, from: 'gestern' }] })).status, 400)

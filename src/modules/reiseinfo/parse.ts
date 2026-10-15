@@ -84,7 +84,7 @@ export function parseTravelWarning(json: unknown): Omit<CountryInfo, 'id' | 'tri
   const resp = (json as { response?: Record<string, unknown> & { contentList?: string[] } })?.response
   const id = resp?.contentList?.[0]
   const e = (id ? resp?.[id] : null) as AaEntry | null
-  if (!e?.content) throw new Error('Keine Reisehinweise erhalten.')
+  if (!e?.content) throw new Error(t('Keine Reisehinweise erhalten.'))
   const sections = splitSections(e.content)
   const health = sections.find((s) => /gesundheit/i.test(s.title))
   const vaccText = health?.parts.filter((p) => /impf/i.test(p.title) || /impf/i.test(p.text.slice(0, 300))).map((p) => p.text).join('\n') ?? ''

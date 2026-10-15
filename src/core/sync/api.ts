@@ -133,7 +133,7 @@ export class SyncApi {
     }
     if (res.status === 401) {
       const body = await res.json().catch(() => ({}))
-      if (body.code === 'abgemeldet' || body.code === 'gesperrt') throw new DeviceRevokedError(body.error, body.reason ?? '')
+      if (body.code === 'abgemeldet' || body.code === 'gesperrt') throw new DeviceRevokedError(t(body.error ?? ''), body.reason ?? '')
       throw new Error(t('Schlüssel wurde vom Server abgelehnt.'))
     }
     if (res.status === 429) throw new Error(t('Zu viele Fehlversuche – bitte 15 Minuten warten.'))

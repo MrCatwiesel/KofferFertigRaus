@@ -6,6 +6,8 @@ import { canCreateTrips } from '@/core/people'
 import { setMeta } from '@/core/meta'
 import { installHint } from './platform'
 import { useSampleTrip } from './useSampleTrip'
+import LanguageSelect from '@/i18n/LanguageSelect.vue'
+import { t } from '@/i18n'
 
 /**
  * Einführung in wenigen Schritten. Erreichbar über die Willkommen-Ansicht, die Hilfe
@@ -21,13 +23,13 @@ interface Step {
   icon: string
 }
 const steps: Step[] = [
-  { id: 'willkommen', title: 'Willkommen', icon: 'suitcase-lg' },
-  { id: 'planen', title: 'Planen & vorbereiten', icon: 'map' },
-  { id: 'unterwegs', title: 'Unterwegs', icon: 'compass' },
-  { id: 'erinnern', title: 'Erinnern & teilen', icon: 'journal-richtext' },
-  { id: 'daten', title: 'Deine Daten', icon: 'shield-lock' },
-  { id: 'installieren', title: 'Als App nutzen', icon: 'phone' },
-  { id: 'los', title: 'Los geht’s', icon: 'rocket-takeoff' }
+  { id: 'willkommen', title: t('Willkommen'), icon: 'suitcase-lg' },
+  { id: 'planen', title: t('Planen & vorbereiten'), icon: 'map' },
+  { id: 'unterwegs', title: t('Unterwegs'), icon: 'compass' },
+  { id: 'erinnern', title: t('Erinnern & teilen'), icon: 'journal-richtext' },
+  { id: 'daten', title: t('Deine Daten'), icon: 'shield-lock' },
+  { id: 'installieren', title: t('Als App nutzen'), icon: 'phone' },
+  { id: 'los', title: t('Los geht’s'), icon: 'rocket-takeoff' }
 ]
 const index = ref(0)
 const step = computed(() => steps[index.value])
@@ -80,7 +82,7 @@ function touchEnd(e: TouchEvent) {
           <AppLogo v-if="step.id === 'willkommen'" :size="56" />
           <i v-else :class="`bi bi-${step.icon}`" aria-hidden="true"></i>
         </div>
-        <h1 class="h3 mb-3" data-intro-title>{{ step.id === 'willkommen' ? 'Willkommen bei KofferFertigRaus' : step.title }}</h1>
+        <h1 class="h3 mb-3" data-intro-title>{{ step.id === 'willkommen' ? t('Willkommen bei KofferFertigRaus') : step.title }}</h1>
 
         <template v-if="step.id === 'willkommen'">
           <p class="lead">{{ t('Deine Reise an einem Ort – von der ersten Idee bis zur Erinnerung.') }}</p>
@@ -91,6 +93,7 @@ function touchEnd(e: TouchEvent) {
             <div><i class="bi bi-journal-richtext" aria-hidden="true"></i><span>{{ t('Erinnern') }}</span></div>
           </div>
           <p class="mt-3 mb-0 text-body-secondary">{{ t('Kostenlos, ohne Werbung und ohne Konto. Alles funktioniert auch ohne Internet.') }}</p>
+          <div class="mt-3"><LanguageSelect compact /></div>
         </template>
 
         <template v-else-if="step.id === 'planen'">

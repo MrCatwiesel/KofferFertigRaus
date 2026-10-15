@@ -7,6 +7,8 @@ export interface Trip {
   destination: string
   /** Zielländer (ISO-Codes, z. B. ["AT", "IT"]) – für Reise- und Sicherheitshinweise */
   countries?: string[]
+  /** Durchreiseländer (ISO-Codes) – für den Länder-Spickzettel (Vignette, Tempo, Notruf unterwegs) */
+  transit?: string[]
   /** ISO-Datum YYYY-MM-DD */
   startDate: string
   /** ISO-Datum YYYY-MM-DD */

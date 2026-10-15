@@ -40,6 +40,12 @@ describe('Packvorschläge', () => {
     expect(gb).not.toContain('vignette-GB')
     expect(keys({ countries: ['FR'] })).toContain('critair')
   })
+  it('Durchreise mit dem Auto: Vignette, aber kein Geld/Roaming; mit dem Flug nichts', () => {
+    const k = keys({ countries: ['IT'], transit: ['AT', 'CH', 'IT'] })
+    expect(k).toEqual(expect.arrayContaining(['vignette-AT', 'vignette-CH']))
+    expect(k).not.toContain('geld-CH')
+    expect(keys({ countries: ['IT'], transit: ['AT'], transport: 'flug' })).not.toContain('vignette-AT')
+  })
   it('Berge, Wasser, Camping, Malaria', () => {
     const k = keys({ hasRoutes: true, maxElevation: 2571, activityText: 'Seisenbergklamm, Baden im Zeller See', accommodationTypes: ['camping'], healthText: 'Es besteht ein Malariarisiko.' })
     expect(k).toEqual(expect.arrayContaining(['wanderschuhe', 'stoecke', 'funktionsjacke', 'sonnenbrille', 'badesachen', 'stirnlampe', 'schlafsack', 'muecken', 'moskitonetz']))

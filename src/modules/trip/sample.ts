@@ -10,6 +10,7 @@ export async function tripSample(s: SampleTrip): Promise<void> {
     title: t('Beispiel: Gardasee'),
     destination: t('Riva del Garda, Gardasee'),
     countries: ['IT'],
+    transit: ['AT'],
     startDate: s.startDate,
     endDate: s.endDate,
     travelers: s.participants.length,

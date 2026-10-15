@@ -390,6 +390,28 @@ If you drive through other countries (e.g. Austria on the way to Italy), add the
 `
     },
     {
+      id: 'sprachfuehrer',
+      title: 'Phrasebook',
+      icon: 'translate',
+      group: 'vorbereiten',
+      summary: 'Key phrases in the local language – offline, to read aloud and hold up, with an allergy card.',
+      routes: ['phrasebook'],
+      keywords: 'language phrases translate vocabulary local language restaurant emergency doctor allergy allergy card read aloud pronunciation greek italian french spanish croatian german',
+      body: `
+For the trip's **destination countries** (including transit countries), the phrasebook shows about 40 key phrases in the local language – **Essentials**, **At the restaurant**, **On the road** and **Emergency**. Everything is stored in the app and works without internet.
+
+- You can choose any other language at the top via **Other language**: German, English, French, Italian, Spanish, Portuguese, Dutch, Danish, Swedish, Norwegian, Polish, Czech, Hungarian, Croatian, Slovenian, Greek and Turkish.
+- **Read aloud** (speaker) speaks the phrase with the device's voice – if a language is missing, you can download it on iPad/iPhone under *Accessibility → Spoken Content → Voices*.
+- **Show large** fills the screen with the phrase – to hold up at the counter. Tap to close.
+- Greek is also shown in Latin transliteration.
+
+## Allergy card
+Under **Choose allergies**, tick what you are allergic to (peanuts, nuts, gluten, milk … or penicillin). This creates a sentence in the local language: “I am allergic to: … Please make it without these – they are dangerous for me.” – best used with **Show large**. Your choice stays on this device only.
+
+> In an emergency the phrase “I take blood thinners.” helps – together with the emergency numbers in the [Country cheat sheet](#/hilfe/laender).
+`
+    },
+    {
       id: 'termine',
       title: 'Dates & deadlines',
       icon: 'calendar-event',

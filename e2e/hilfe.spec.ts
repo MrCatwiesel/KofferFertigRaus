@@ -3,6 +3,8 @@ import { NOW, seed, trip } from './helpers'
 import { readFileSync } from 'node:fs'
 
 const VERSION = (JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }).version
+/** Erste Neuerung der neuesten Version laut CHANGELOG („### Neu: …“) – der Hinweis zeigt nur die jüngsten */
+const LATEST = /^### Neu: (.+)$/m.exec(readFileSync('CHANGELOG.md', 'utf8'))![1].trim()
 
 /** Kein echtes Internet für Wetter und Kartenkacheln (in CI wären sie erreichbar) */
 async function offlineServices(page: Page) {
@@ -163,7 +165,7 @@ test('Nach einem Update: Hinweis „Was ist neu“ einmal auf der Startseite', a
   await page.reload()
   const hint = page.locator('[data-whats-new]')
   await expect(hint).toContainText(`Neu in Version ${VERSION}`)
-  await expect(hint).toContainText('Hilfe & Einführung')
+  await expect(hint).toContainText(LATEST)
   await hint.getByRole('button', { name: 'Hinweis schließen' }).click()
   await expect(hint).toHaveCount(0)
   await page.reload()
@@ -175,5 +177,5 @@ test('Bestehende Daten ohne gemerkte Version: Neuerungen seit 1.35 werden gezeig
   await seed(page, { trips: [trip({ updatedAt: NOW })] })
   await setSeen(page, undefined)
   await page.reload()
-  await expect(page.locator('[data-whats-new]')).toContainText('Hilfe & Einführung')
+  await expect(page.locator('[data-whats-new]')).toContainText(LATEST)
 })

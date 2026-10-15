@@ -121,8 +121,8 @@ function showCard() {
           <div :lang="current" class="allergy-text" data-allergy-text>
             <div v-for="(line, i) in card.lines" :key="i" :class="{ 'fw-bold text-danger': i === 1 }">{{ line }}</div>
           </div>
-          <div v-if="card.pron.length" class="small fst-italic text-body-secondary mt-1">{{ card.pron.join(' ') }}</div>
-          <div class="small text-body-secondary mt-1">{{ cardSource.join(' ') }}</div>
+          <div v-if="card.pron.length" class="small fst-italic text-body-secondary mt-1"><div v-for="(p, i) in card.pron" :key="i">{{ p }}</div></div>
+          <div class="small text-body-secondary mt-1"><div v-for="(p, i) in cardSource" :key="i">{{ p }}</div></div>
           <div class="d-flex gap-2 mt-2">
             <button type="button" class="btn btn-sm btn-danger" data-show-card @click="showCard"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i>{{ t('Groß zeigen') }}</button>
             <button v-if="canSpeak" type="button" class="btn btn-sm btn-outline-secondary" @click="speak(card.lines.join(' '))"><i class="bi bi-volume-up me-1" aria-hidden="true"></i>{{ t('Vorlesen') }}</button>
@@ -164,8 +164,8 @@ function showCard() {
     <div class="big-text" :lang="current">
       <div v-for="(line, i) in big.lines" :key="i">{{ line }}</div>
     </div>
-    <div v-if="big.pron.length" class="big-pron fst-italic">{{ big.pron.join(' ') }}</div>
-    <div class="big-source">{{ big.source.join(' ') }}</div>
+    <div v-if="big.pron.length" class="big-pron fst-italic"><div v-for="(p, i) in big.pron" :key="i">{{ p }}</div></div>
+    <div class="big-source"><div v-for="(p, i) in big.source" :key="i">{{ p }}</div></div>
   </div>
 </template>
 

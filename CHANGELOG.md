@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.39.0 – 2026-10-15
+
+### Neu: Abreise-Checklisten
+- Neuer Bereich **Abreise-Checklisten** auf der Reiseseite (Planung und Unterwegs) – drei Listen zum Abhaken:
+- **Bevor es losgeht:** zu Hause vor der Abfahrt (Herd, Fenster, Pflanzen, Post, Heizung …). Vorschläge mit einem Tipp übernehmen, eigene Punkte ergänzen – bei der nächsten Reise lässt sich die ganze Liste samt eigener Punkte übernehmen
+- **Online-Check-in:** jeder Flug aus der An- und Rückreise zum Abhaken
+- **Auschecken:** für jede gebuchte Unterkunft eine eigene Liste, passend zur Art – Safe und Minibar im Hotel, Müll und Geschirr in der Ferienwohnung, Strom, Wasser und Gasflasche auf dem Campingplatz
+- **Erinnerungen** unter „Heute“, bei den Terminen, als Benachrichtigung und im Kalender-Abo: zu Hause am Tag vor der Abreise, der Check-in am Tag vor dem Flug, das Auschecken am Abreisetag. Sind alle Punkte abgehakt, verschwindet die Erinnerung
+- Die Beispielreise hat eine erledigte Liste für zu Hause und eine fürs Auschecken aus der Ferienwohnung
+
 ## 1.38.0 – 2026-10-15
 
 ### Neu: Länder-Spickzettel

@@ -279,6 +279,32 @@ Auch praktisch: **Von einer anderen Reise übernehmen**.
 `
     },
     {
+      id: 'checklisten',
+      title: 'Abreise-Checklisten',
+      icon: 'clipboard-check',
+      group: 'vorbereiten',
+      summary: 'Zu Hause vor der Abfahrt, Online-Check-in und Auschecken aus der Unterkunft – abhaken.',
+      routes: ['checklists'],
+      keywords: 'checkliste abreise abfahrt zuhause herd fenster pflanzen post briefkasten auschecken check-out unterkunft schlüssel safe online-check-in flug bordkarte vergessen',
+      body: `
+Drei Listen, damit auf den letzten Metern nichts vergessen wird:
+
+- **Bevor es losgeht** – zu Hause: Herd aus, Fenster zu, Pflanzen, Post … Beim ersten Mal **Vorschläge übernehmen**, eigene Punkte dazuschreiben, Unpassendes mit dem **×** entfernen. Bei der nächsten Reise lässt sich die Liste mit einem Tipp **übernehmen** – samt deinen eigenen Punkten.
+- **Online-Check-in** – für jeden Flug aus [An- & Rückreise](#/hilfe/anreise) zum Abhaken.
+- **Auschecken** – für jede gebuchte [Unterkunft](#/hilfe/unterkuenfte) eine eigene Liste mit Vorschlägen passend zur Art: Safe und Minibar im Hotel, Müll und Geschirr in der Ferienwohnung, Strom und Gasflasche auf dem Campingplatz.
+
+**Weitere Vorschläge** zeigt, was die App noch anbietet; **Alle Häkchen entfernen** setzt eine Liste zurück.
+
+## Erinnerungen
+Offene Punkte erscheinen unter [Heute](#/hilfe/heute) und bei den [Terminen](#/hilfe/termine) – auch als Benachrichtigung und im Kalender-Abo:
+- zu Hause am Tag vor der Abreise,
+- der Online-Check-in am Tag vor dem Flug,
+- das Auschecken am Abreisetag aus der Unterkunft.
+
+Sind alle Punkte abgehakt, verschwindet die Erinnerung.
+`
+    },
+    {
       id: 'apotheke',
       title: 'Reiseapotheke und Impfungen',
       icon: 'capsule',

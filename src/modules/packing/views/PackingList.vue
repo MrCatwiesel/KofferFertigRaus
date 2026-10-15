@@ -82,7 +82,7 @@ async function unpackAll() {
           <div class="progress-bar" :class="prog.percent === 100 ? 'bg-success' : ''" :style="{ width: `${prog.percent}%` }"></div>
         </div>
         <div v-if="prog.essentialOpen" class="small text-danger mt-1">
-          <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ t('{essentialOpen} wichtige Dinge fehlen noch', { essentialOpen: prog.essentialOpen }) }}
+          <i class="bi bi-exclamation-circle me-1" aria-hidden="true"></i>{{ tn(prog.essentialOpen, '1 wichtiges Ding fehlt noch', '{n} wichtige Dinge fehlen noch') }}
         </div>
         <div v-else-if="prog.percent === 100" class="small text-success mt-1">
           <i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('Alles eingepackt – gute Reise!') }}
@@ -157,7 +157,7 @@ async function unpackAll() {
             <i v-if="i.essential" class="bi bi-exclamation-circle-fill text-danger small ms-1" :title="t('Wichtig')" :aria-label="t('Wichtig')"></i>
             <span v-if="i.person && person !== i.person" class="badge text-bg-light border ms-1">{{ i.person }}</span>
           </label>
-          <RouterLink :to="`/trip/${tripId}/packliste/${i.id}`" class="btn btn-sm btn-link text-body-secondary" :aria-label="`${i.name} bearbeiten`">
+          <RouterLink :to="`/trip/${tripId}/packliste/${i.id}`" class="btn btn-sm btn-link text-body-secondary" :aria-label="t('{name} bearbeiten', { name: i.name })">
             <i class="bi bi-pencil" aria-hidden="true"></i>
           </RouterLink>
         </li>

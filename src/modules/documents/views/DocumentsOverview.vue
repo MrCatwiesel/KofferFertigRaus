@@ -87,7 +87,7 @@ async function addSuggestions() {
       <li v-for="d in sorted" :key="d.id" class="list-group-item d-flex gap-2 align-items-start position-relative"
           :class="{ 'text-body-secondary': d.packed }">
         <input class="form-check-input mt-1 flex-none position-relative z-2" type="checkbox" :checked="d.packed"
-               :disabled="d.status !== 'vorhanden'" :aria-label="`${d.title} eingepackt`" @change="togglePacked(d)" />
+               :disabled="d.status !== 'vorhanden'" :aria-label="t('{name} eingepackt', { name: d.title })" @change="togglePacked(d)" />
         <div class="flex-grow-1 min-w-0">
           <div class="d-flex justify-content-between gap-2">
             <RouterLink :to="`/trip/${tripId}/dokumente/${d.id}`" class="fw-semibold text-body text-decoration-none stretched-link"
@@ -138,7 +138,7 @@ async function addSuggestions() {
           <span v-if="c.source" class="badge text-bg-light border ms-1 fw-normal" :title="t('Automatisch aus den Reisehinweisen des Auswärtigen Amts')">{{ t('Auswärtiges Amt') }}</span>
           <div class="small text-body-secondary text-truncate">{{ c.phone }}<template v-if="c.notes"> · {{ c.notes }}</template></div>
         </div>
-        <a v-if="telHref(c.phone)" :href="telHref(c.phone)!" class="btn btn-success btn-sm" :aria-label="`${c.label} anrufen`">
+        <a v-if="telHref(c.phone)" :href="telHref(c.phone)!" class="btn btn-success btn-sm" :aria-label="t('{name} anrufen', { name: c.label })">
           <i class="bi bi-telephone" aria-hidden="true"></i>
         </a>
       </div>

@@ -117,7 +117,7 @@ const weatherLine = computed(() => {
               <span v-else-if="s.quantity > 1" class="small text-body-secondary"> · {{ s.quantity }}×</span>
               <span class="d-block small text-body-secondary"><i :class="`bi bi-${CATEGORY[s.category].icon} me-1`" aria-hidden="true"></i>{{ s.reason }}</span>
             </label>
-            <button type="button" class="btn btn-sm btn-link text-body-secondary p-0" :aria-label="`${s.name} ausblenden`" :title="t('Nicht vorschlagen')" @click="dismiss(s)">
+            <button type="button" class="btn btn-sm btn-link text-body-secondary p-0" :aria-label="t('{name} ausblenden', { name: s.name })" :title="t('Nicht vorschlagen')" @click="dismiss(s)">
               <i class="bi bi-x-lg" aria-hidden="true"></i>
             </button>
           </li>

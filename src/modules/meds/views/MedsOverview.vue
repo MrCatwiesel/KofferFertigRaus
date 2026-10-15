@@ -49,7 +49,7 @@ const missingKit = computed(() => {
 })
 
 const expiryLabel = {
-  abgelaufen: { text: 'abgelaufen', cls: 'text-danger' },
+  abgelaufen: { text: t('abgelaufen'), cls: 'text-danger' },
   waehrend: { text: t('läuft während der Reise ab'), cls: 'text-warning-emphasis' }
 } as const
 
@@ -114,7 +114,7 @@ async function addKit() {
       <li v-for="m in sorted" :key="m.id" class="list-group-item d-flex gap-2 align-items-start position-relative"
           :class="{ 'text-body-secondary': m.packed }">
         <input :id="`m-${m.id}`" class="form-check-input mt-1 flex-none position-relative z-2" type="checkbox"
-               :checked="m.packed" :aria-label="`${m.name} eingepackt`" @change="togglePacked(m)" />
+               :checked="m.packed" :aria-label="t('{name} eingepackt', { name: m.name })" @change="togglePacked(m)" />
         <div class="flex-grow-1 min-w-0">
           <RouterLink :to="`/trip/${tripId}/apotheke/medikament/${m.id}`"
                       class="fw-semibold text-body text-decoration-none stretched-link"

@@ -782,8 +782,11 @@ Face ID gibt es nur, wenn die App [auf dem Home-Bildschirm](#/hilfe/installieren
       icon: 'chat-square-text',
       group: 'fragen',
       summary: 'Offline, verlorene Daten, Kosten, Mitreisende ohne App …',
-      keywords: 'faq frage problem hilfe fehler kosten offline gelöscht weg verschwunden',
+      keywords: 'faq frage problem hilfe fehler kosten offline gelöscht weg verschwunden sprache englisch language english',
       body: `
+## In welcher Sprache läuft die App?
+In der Sprache des Geräts – derzeit Deutsch oder Englisch (andere Gerätesprachen: Englisch). Umstellen unter Einstellungen → **Sprache · Language**; das gilt je Gerät. Eigene Einträge (Reisenamen, Packliste, Tagebuch) bleiben, wie du sie geschrieben hast. Die Reisehinweise des Auswärtigen Amts gibt es nur auf Deutsch.
+
 ## Funktioniert die App ohne Internet?
 Ja. Alles, was du eingetragen hast, ist offline da. Nur Wetter, Kartenausschnitte, Adresssuche, Routenplanung, Reisehinweise und Wechselkurse brauchen Netz. Für unterwegs: [Offline-Karten](#/hilfe/karte) speichern und den Tagesplan einmal mit Internet öffnen.
 

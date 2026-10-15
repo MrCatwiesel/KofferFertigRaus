@@ -25,7 +25,7 @@ export const journalModule: AppModule = {
       if (entries.length === 0) return t('Noch keine Einträge')
       const s = journalStats(entries, photos)
       const parts = [tn(s.entries, '1 Eintrag', '{n} Einträge'), tn(s.photos, '1 Foto', '{n} Fotos')]
-      if (s.highlights) parts.push(t('{n} Highlights', { n: s.highlights }))
+      if (s.highlights) parts.push(tn(s.highlights, '1 Highlight', '{n} Highlights'))
       return parts.join(' · ')
     }
   },

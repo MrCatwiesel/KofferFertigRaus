@@ -149,7 +149,7 @@ function invalid(field: keyof TripDraft) {
       <div v-if="countries.length" class="d-flex flex-wrap gap-1 mb-2">
         <span v-for="c in countries" :key="c" class="badge rounded-pill text-bg-light border fs-6 fw-normal">
           {{ flag(c) }} {{ countryName(c) }}
-          <button type="button" class="btn-close ms-1 align-middle" style="font-size: 0.6rem" :aria-label="`${countryName(c)} entfernen`" @click="removeCountry(c)"></button>
+          <button type="button" class="btn-close ms-1 align-middle" style="font-size: 0.6rem" :aria-label="t('{name} entfernen', { name: countryName(c) })" @click="removeCountry(c)"></button>
         </span>
       </div>
       <input id="country" v-model="countryInput" list="country-list" class="form-control" :placeholder="t('Land eingeben, z. B. Österreich')"
@@ -182,7 +182,7 @@ function invalid(field: keyof TripDraft) {
       <div v-if="draft.participants.length" class="d-flex flex-wrap gap-2 mb-2">
         <span v-for="(p, i) in draft.participants" :key="p" class="badge rounded-pill text-bg-primary d-flex align-items-center gap-1 fs-6 fw-normal">
           <i class="bi bi-person" aria-hidden="true"></i>{{ p }}
-          <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem" :aria-label="`${p} entfernen`"
+          <button type="button" class="btn-close btn-close-white ms-1" style="font-size: 0.6rem" :aria-label="t('{name} entfernen', { name: p })"
                   @click="removeParticipant(i)"></button>
         </span>
       </div>

@@ -94,7 +94,7 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
   for (const a of pool) {
     const open = openOn(a.openingHours, date)
     if (open.state === 'geschlossen') {
-      closed.push({ activity: a, reason: `${weekday} geschlossen` })
+      closed.push({ activity: a, reason: t('{weekday} geschlossen', { weekday }) })
       continue
     }
     let score: number = PRIORITY_SCORE[a.priority]
@@ -143,7 +143,7 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
     let alternative: Activity | undefined
     if (a.status !== 'erledigt') {
       const open = openOn(a.openingHours, date)
-      if (open.state === 'geschlossen') warnings.push(`Am ${weekday} geschlossen`)
+      if (open.state === 'geschlossen') warnings.push(t('Am {weekday} geschlossen', { weekday }))
       if (rainy && a.setting === 'aussen') {
         warnings.push(t('Regen erwartet'))
         alternative = indoorAlternatives[0]?.activity

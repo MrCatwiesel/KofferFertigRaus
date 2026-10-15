@@ -31,7 +31,14 @@ app.config.globalProperties.tk = tk
 app.config.globalProperties.intlLocale = intlLocale
 // Sätze mit Link/Code darin: <Tx text="… {link} …"><template #link>…</template></Tx>
 app.component('Tx', Tx)
-app.use(buildRouter()).mount('#app')
+const router = buildRouter()
+app.use(router).mount('#app')
+// Hat sich die Adresse geändert, während die App startete (Sprache laden, erste Seite), dorthin nachziehen –
+// der Router hört erst nach der ersten Navigation auf Adresswechsel
+void router.isReady().then(() => {
+  const wanted = decodeURI(location.hash.replace(/^#/, '')) || '/'
+  if (wanted !== decodeURI(router.currentRoute.value.fullPath)) void router.replace(wanted)
+})
 
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)
 startAutoSync()

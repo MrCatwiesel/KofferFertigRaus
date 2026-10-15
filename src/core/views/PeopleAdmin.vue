@@ -301,7 +301,7 @@ function assignDevice(d: Device, memberId: string) {
         <p class="small text-body-secondary">{{ t('Diese Geräte sind mit dem Gruppenschlüssel verbunden und sehen alles. Ordne sie einer Person zu, dann gelten deren Rechte.') }}</p>
         <div v-for="d in unassigned" :key="d.id" class="d-flex align-items-center gap-2 py-1 border-top" :data-device="d.name">
           <span class="flex-grow-1 small">{{ d.name }} <span v-if="d.current" class="badge text-bg-primary">{{ t('dieses Gerät') }}</span></span>
-          <select class="form-select form-select-sm w-auto" value="" :aria-label="`${d.name} zuordnen`" :disabled="busy" @change="assignDevice(d, ($event.target as HTMLSelectElement).value)">
+          <select class="form-select form-select-sm w-auto" value="" :aria-label="t('{name} zuordnen', { name: d.name })" :disabled="busy" @change="assignDevice(d, ($event.target as HTMLSelectElement).value)">
             <option value="">{{ t('Person wählen …') }}</option>
             <option v-for="m in active" :key="m.id" :value="m.id">{{ m.name }}</option>
           </select>

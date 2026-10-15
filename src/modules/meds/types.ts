@@ -81,5 +81,5 @@ export const FIRST_AID_KIT: { name: string; kind: MedKind }[] = [
   { name: t('Pinzette / Zeckenzange'), kind: 'bedarf' },
   { name: t('Insektenschutz & Gel gegen Stiche'), kind: 'bedarf' },
   { name: t('Sonnenschutz & After-Sun'), kind: 'bedarf' },
-  { name: 'Elektrolyt-Pulver', kind: 'bedarf' }
+  { name: t('Elektrolyt-Pulver'), kind: 'bedarf' }
 ]

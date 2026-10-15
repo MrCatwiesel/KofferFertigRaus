@@ -107,7 +107,7 @@ export function suggestItems(c: SuggestContext): Suggestion[] {
   const act = c.activityText.toLowerCase()
   const hiking = c.hasRoutes || c.activityCategories.includes('natur') || /wander|tour|gipfel|klamm|alm|berg/.test(act)
   if (hiking) {
-    add('wanderschuhe', t('Wanderschuhe'), 'kleidung', c.hasRoutes ? t('Routen geplant') : 'Natur-Unternehmungen', { personal: true })
+    add('wanderschuhe', t('Wanderschuhe'), 'kleidung', c.hasRoutes ? t('Routen geplant') : t('Natur-Unternehmungen'), { personal: true })
     add('rucksack', t('Tagesrucksack'), 'unterwegs', t('für Ausflüge'))
     add('blasenpflaster', t('Blasenpflaster'), 'gesundheit', t('für Wanderungen'))
   }

@@ -50,7 +50,7 @@ export function validity(doc: Pick<TravelDocument, 'type' | 'validUntil'>, tripE
 }
 
 export const VALIDITY_TEXT: Record<Exclude<ValidityState, 'ok' | 'unbekannt'>, { text: string; cls: string }> = {
-  abgelaufen: { text: 'abgelaufen', cls: 'text-danger' },
+  abgelaufen: { text: t('abgelaufen'), cls: 'text-danger' },
   reise: { text: t('endet vor Reiseende'), cls: 'text-danger' },
   knapp: { text: t('weniger als 6 Monate über Reiseende gültig – Einreiseregeln prüfen'), cls: 'text-warning-emphasis' }
 }

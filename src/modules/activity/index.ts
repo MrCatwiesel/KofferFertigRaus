@@ -4,7 +4,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { activityRepository } from './repository'
 import { countByStatus, totalEstimatedCost } from './logic'
 import { activityReminders } from './reminders'
-import { t } from '@/i18n'
+import { t, tn } from '@/i18n'
 
 /** Modul "Unternehmungen" (Meilenstein M1). */
 export const activityModule: AppModule = {
@@ -27,8 +27,8 @@ export const activityModule: AppModule = {
       const list = await activityRepository.listByTrip(tripId)
       if (list.length === 0) return t('Noch keine Ideen')
       const c = countByStatus(list)
-      const parts = [`${c.idee} ${c.idee === 1 ? 'Idee' : 'Ideen'}`, `${c.geplant} geplant`]
-      if (c.erledigt) parts.push(`${c.erledigt} erledigt`)
+      const parts = [tn(c.idee, '1 Idee', '{n} Ideen'), t('{n} geplant', { n: c.geplant })]
+      if (c.erledigt) parts.push(t('{n} erledigt', { n: c.erledigt }))
       return parts.join(' · ')
     },
     async plannedCost(tripId) {

@@ -674,8 +674,8 @@ Under **Trips** → **Statistics**: where you've been (countries on the map), tr
       icon: 'images',
       group: 'erinnern',
       summary: 'Upload original photos to your own Piwigo gallery and get them from there.',
-      routes: ['piwigo-trip'],
-      keywords: 'piwigo gallery photos original upload album',
+      routes: ['piwigo-trip', 'piwigo-settings'],
+      keywords: 'piwigo gallery photos original upload album address api key setup public address',
       body: `
 If you run your own **Piwigo** gallery, you can connect it to the trip:
 
@@ -685,7 +685,15 @@ If you run your own **Piwigo** gallery, you can connect it to the trip:
 
 Photos deleted in the journal stay in Piwigo.
 
-> Runs via your own server; Piwigo must be set up there and enabled for the travel group.
+## Setting up (server owner)
+Under **Settings → Device sync → Piwigo gallery**:
+- **Piwigo address** – how the server reaches Piwigo, usually on your home network (e.g. \`http://192.168.5.15\`).
+- **Public address** (optional) – for the “Open in Piwigo” links, so they also work on the road.
+- **API key** – create it in Piwigo as an administrator under *Profile → API keys*; enter the ID and secret. When only changing the address, simply leave the secret empty.
+
+**Check and save** signs in to Piwigo as a test – nothing is saved unless that works. The values apply immediately, without a restart, and take precedence over those in the server file. Which travel groups may use Piwigo is set under **Travel groups**.
+
+> Runs via your own server (version 1.22 or later); Piwigo must be enabled for the travel group.
 `
     },
 

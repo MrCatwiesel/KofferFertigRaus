@@ -676,8 +676,8 @@ Unter **Reisen** → **Statistik**: wo ihr wart (Länder auf der Karte), Reiseta
       icon: 'images',
       group: 'erinnern',
       summary: 'Originalfotos in die eigene Piwigo-Galerie hochladen und von dort holen.',
-      routes: ['piwigo-trip'],
-      keywords: 'piwigo galerie fotos original hochladen album',
+      routes: ['piwigo-trip', 'piwigo-settings'],
+      keywords: 'piwigo galerie fotos original hochladen album adresse api-schlüssel einrichten öffentliche adresse',
       body: `
 Wer eine eigene **Piwigo**-Galerie betreibt, kann sie mit der Reise verbinden:
 
@@ -687,7 +687,15 @@ Wer eine eigene **Piwigo**-Galerie betreibt, kann sie mit der Reise verbinden:
 
 Fotos, die im Tagebuch gelöscht werden, bleiben in Piwigo.
 
-> Läuft über deinen eigenen Server; Piwigo muss dort eingerichtet und für die Reisegruppe freigegeben sein.
+## Einrichten (Besitzer des Servers)
+Unter **Einstellungen → Geräte-Abgleich → Piwigo-Galerie**:
+- **Adresse von Piwigo** – wie der Server Piwigo erreicht, meist im Heimnetz (z. B. \`http://192.168.5.15\`).
+- **Öffentliche Adresse** (optional) – für die Links „In Piwigo öffnen“, damit sie auch unterwegs gehen.
+- **API-Schlüssel** – in Piwigo als Administrator unter *Profil → API-Schlüssel* anlegen; ID und Geheimnis eintragen. Beim Ändern der Adresse das Geheimnis einfach leer lassen.
+
+**Prüfen und speichern** meldet sich zur Probe bei Piwigo an – gespeichert wird nur, wenn das klappt. Die Werte gelten sofort, ohne Neustart, und gehen denen aus der Server-Datei vor. Welche Reisegruppen Piwigo nutzen dürfen, steht unter **Reisegruppen**.
+
+> Läuft über deinen eigenen Server (ab Version 1.22); Piwigo muss für die Reisegruppe freigegeben sein.
 `
     },
 

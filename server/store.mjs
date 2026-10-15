@@ -68,7 +68,9 @@ export function createStore(dataDir) {
     blobPut: db.prepare('INSERT OR IGNORE INTO blobs (space, hash, type, size) VALUES (?, ?, ?, ?)'),
     blobSize: db.prepare('SELECT COALESCE(SUM(size), 0) AS bytes FROM blobs WHERE space = ?'),
     setting: db.prepare('SELECT value FROM settings WHERE key = ?'),
-    setSetting: db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)')
+    setSetting: db.prepare('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)'),
+    putSetting: db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value'),
+    deleteSetting: db.prepare('DELETE FROM settings WHERE key = ?')
   }
 
   const blobPath = (space, hash) => join(dataDir, 'blobs', space, hash)
@@ -192,6 +194,18 @@ export function createStore(dataDir) {
         throw e
       }
       rmSync(join(dataDir, 'blobs', space), { recursive: true, force: true })
+    },
+
+    /** Einstellung des Servers (JSON) – null, wenn nicht gesetzt */
+    getSetting(key) {
+      const row = q.setting.get(key)
+      return row ? JSON.parse(row.value) : null
+    },
+
+    /** Einstellung speichern (JSON); null löscht sie */
+    putSetting(key, value) {
+      if (value === null) q.deleteSetting.run(key)
+      else q.putSetting.run(key, JSON.stringify(value))
     },
 
     /** Zufälliges Geheimnis des Servers (einmal erzeugt, bleibt erhalten). */

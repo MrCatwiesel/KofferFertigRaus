@@ -17,6 +17,7 @@ export function buildRouter() {
     { path: '/einstellungen/aussehen', name: 'appearance', component: () => import('@/ui/AppearanceView.vue') },
     { path: '/abgleich', name: 'sync', component: () => import('./views/SyncSettings.vue') },
     { path: '/gruppen', name: 'groups', component: () => import('./views/GroupsAdmin.vue') },
+    { path: '/piwigo', name: 'piwigo-settings', component: () => import('./views/PiwigoSettings.vue') },
     { path: '/personen', name: 'people', component: () => import('./views/PeopleAdmin.vue') },
     { path: '/benachrichtigungen', name: 'push', component: () => import('./views/PushSettings.vue') },
     { path: '/sicherung', name: 'backup-targets', component: () => import('./views/BackupTargets.vue') },

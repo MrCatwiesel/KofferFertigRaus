@@ -115,9 +115,8 @@ async function discardQueue() {
   </div>
 
   <div v-else-if="state === 'no-piwigo'" class="alert alert-info">
-    <Tx text="Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet ({settings} – Anleitung in {readme}), oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).">
-      <template #settings><code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code></template>
-      <template #readme><code>server/README.md</code></template>
+    <Tx text="Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet ({settings}), oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).">
+      <template #settings><RouterLink to="/piwigo">{{ t('Einstellungen → Geräte-Abgleich → Piwigo-Galerie') }}</RouterLink></template>
     </Tx>
   </div>
 

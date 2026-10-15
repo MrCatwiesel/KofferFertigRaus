@@ -119,6 +119,7 @@ export default {
   // core/views/BackupTargets.vue
   'Ordner / Platte': 'Folder / drive',
   'Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe': 'Mounted USB drive or an SMB/NFS share mounted in Proxmox',
+  'SMB-Freigabe': 'SMB share',
   'Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen': 'Windows share, Synology, QNAP, FRITZ!Box NAS – directly, without mounting',
   'Anderer Linux-Rechner oder NAS mit SSH – überträgt nur Änderungen': 'Another Linux machine or NAS with SSH – only transfers changes',
   'Der Geräte-Abgleich ist nicht eingerichtet.': 'Device sync is not set up.',
@@ -997,6 +998,7 @@ export default {
   '{n} Tage mit Programm': '{n} days with plans',
   // modules/dayplanner/logic.ts
   '{weekday} geschlossen': 'Closed on {weekday}',
+  'Muss-Ziel': 'Must-see',
   'Drinnen – gut bei Regen': 'Indoors – good when it rains',
   'Draußen – bei Regen ungünstig': 'Outdoors – not ideal in rain',
   'Draußen – schönes Wetter': 'Outdoors – nice weather',
@@ -2595,6 +2597,7 @@ export default {
   'Tannengrün, Sand und Abendrot': 'Fir green, sand and sunset',
   'Frisch & modern': 'Fresh & modern',
   'Kräftiges Blau und Türkis, runde Formen': 'Strong blue and turquoise, rounded shapes',
+  'Retro-Reiseplakat': 'Retro travel poster',
   'Petrol, Orange und Creme, Stempel-Optik': 'Petrol, orange and cream, stamp look',
   'Mittelmeer': 'Mediterranean',
   'Azurblau, Terrakotta und Kalkweiß': 'Azure, terracotta and whitewash',

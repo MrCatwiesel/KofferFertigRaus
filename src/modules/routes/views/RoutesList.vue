@@ -9,6 +9,7 @@ import { lacksElevation, statsLine, trackSvg } from '../logic'
 import { ACCEPT, parseRouteFile } from '../parse'
 import { buildRoute, routeRepository } from '../repository'
 import type { Route } from '../types'
+import { tn } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as Trip | undefined)
@@ -46,14 +47,14 @@ async function importFiles(event: Event) {
     }
   }
   if (created.length) await routeRepository.addMany(created)
-  result.value = { ok: created.length ? `${created.length} ${created.length === 1 ? 'Route' : 'Routen'} übernommen.` : '', errors }
+  result.value = { ok: created.length ? tn(created.length, '1 Route übernommen.', '{n} Routen übernommen.') : '', errors }
   busy.value = false
   // Dateien ohne Höhen: im Hintergrund aus dem Geländemodell ergänzen
   const flat = created.filter((r) => lacksElevation(r.points))
   if (flat.length && navigator.onLine) {
     let n = 0
     for (const r of flat) if (await routeRepository.fillElevations(r.id)) n++
-    if (n && result.value) result.value = { ...result.value, ok: `${result.value.ok} Höhen ergänzt für ${n === 1 ? '1 Route' : `${n} Routen`} (Datei ohne Höhenangaben).` }
+    if (n && result.value) result.value = { ...result.value, ok: `${result.value.ok} ${tn(n, 'Höhen ergänzt für 1 Route (Datei ohne Höhenangaben).', 'Höhen ergänzt für {n} Routen (Datei ohne Höhenangaben).')}` }
   }
 }
 
@@ -103,7 +104,7 @@ const svgOf = (r: Route) => trackSvg(r.preview, { width: 160, height: 100, color
           <div class="fw-semibold text-truncate">
             <i :class="`bi bi-${r.kind === 'track' ? 'person-walking' : 'signpost-2'} me-1`" :style="{ color: r.color }" aria-hidden="true"></i>{{ r.name }}
           </div>
-          <div class="small text-body-secondary">{{ r.date ? formatDayShort(r.date) : 'ohne Tag' }} · {{ statsLine(r.stats) }}</div>
+          <div class="small text-body-secondary">{{ r.date ? formatDayShort(r.date) : t('ohne Tag') }} · {{ statsLine(r.stats) }}</div>
           <div v-if="r.showInShare" class="small text-success"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('auf Webseite/Lese-Link') }}</div>
         </div>
         <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>

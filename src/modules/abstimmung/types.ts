@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Abstimmungen: gemeinsam entscheiden – Ausflug, Tag, Restaurant … */
 
 /** auswahl: freie Antworten · termin: Tage (optional für eine Unternehmung) · unternehmung: Ideen aus den Unternehmungen */
@@ -53,7 +54,7 @@ export interface PollVote {
 }
 
 export const KIND_LABELS: Record<PollKind, { label: string; icon: string; hint: string }> = {
-  auswahl: { label: 'Freie Antworten', icon: 'ui-checks', hint: 'z. B. Restaurant, Ausflugsziel, Abfahrtszeit' },
-  termin: { label: 'Tag finden', icon: 'calendar-week', hint: 'Welche Tage passen? Wahlweise für eine Unternehmung' },
-  unternehmung: { label: 'Unternehmung wählen', icon: 'star', hint: 'Aus den Ideen der Reise' }
+  auswahl: { label: t('Freie Antworten'), icon: 'ui-checks', hint: t('z. B. Restaurant, Ausflugsziel, Abfahrtszeit') },
+  termin: { label: t('Tag finden'), icon: 'calendar-week', hint: t('Welche Tage passen? Wahlweise für eine Unternehmung') },
+  unternehmung: { label: t('Unternehmung wählen'), icon: 'star', hint: t('Aus den Ideen der Reise') }
 }

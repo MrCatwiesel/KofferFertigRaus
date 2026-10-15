@@ -84,7 +84,7 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
         <div class="small fw-semibold mb-2">{{ t('Warnungen für') }}</div>
         <div class="btn-group flex-wrap mb-2" role="group" :aria-label="t('Warnungen für')">
           <button
-            v-for="o in ([['orte', 'Unsere Orte'], ['land', 'Ganzes Land'], ['aus', 'Aus']] as const)"
+            v-for="o in ([['orte', t('Unsere Orte')], ['land', t('Ganzes Land')], ['aus', 'Aus']] as const)"
             :key="o[0]"
             type="button"
             class="btn btn-sm"
@@ -109,7 +109,7 @@ const soon = computed(() => (trip.value ? inWatchWindow(trip.value, todayIso()) 
         </p>
         <div v-if="settings.regions.length" class="mt-2 d-flex flex-wrap gap-1 align-items-center" data-watched-regions>
           <span class="small">{{ t('Beobachtete Regionen:') }}</span>
-          <button v-for="r in settings.regions" :key="r" type="button" class="btn btn-sm btn-outline-secondary py-0" :aria-label="`${settings.regionNames?.[r] || r} nicht mehr beobachten`" @click="toggle(r, '')">
+          <button v-for="r in settings.regions" :key="r" type="button" class="btn btn-sm btn-outline-secondary py-0" :aria-label="t('{region} nicht mehr beobachten', { region: settings.regionNames?.[r] || r })" @click="toggle(r, '')">
             {{ settings.regionNames?.[r] || r }} <i class="bi bi-x" aria-hidden="true"></i>
           </button>
         </div>

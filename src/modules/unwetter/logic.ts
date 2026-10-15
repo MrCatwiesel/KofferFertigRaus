@@ -1,7 +1,7 @@
 /** Reine Funktionen der Unwetterwarnungen (ohne Datenbank, ohne Vue). */
 import { addDays } from '@/core/dates'
 import type { AlertScope, WarningCache, Watch, WeatherAlertSettings, WeatherWarning } from './types'
-import { intlLocale } from '@/i18n'
+import { t, tn, intlLocale } from '@/i18n'
 
 export const DEFAULT_SETTINGS: WeatherAlertSettings = { scope: 'orte', regions: [] }
 
@@ -82,15 +82,15 @@ export function otherWarnings(cache: WarningCache | null | undefined, now = Date
   return cache.countries.flatMap((c) => c.warnings.filter((w) => !w.match && isCurrent(w, now)).map((w) => ({ ...w, country: c.country })))
 }
 
-const LEVEL_WORD: Record<number, string> = { 2: 'Gelb', 3: 'Orange', 4: 'Rot' }
+const LEVEL_WORD: Record<number, string> = { 2: t('Gelb'), 3: t('Orange'), 4: t('Rot') }
 
 /** Kurzfassung für die Reiseseite */
 export function summaryText(cache: WarningCache | null | undefined, now = Date.now()): string {
   const list = relevantWarnings(cache, now)
-  if (!list.length) return 'Keine Warnungen für eure Orte'
+  if (!list.length) return t('Keine Warnungen für eure Orte')
   const top = list[0]
   const types = [...new Set(list.filter((w) => w.level === top.level).map((w) => w.typeName))].slice(0, 2).join(', ')
-  return `⚠️ ${list.length} Warnung${list.length === 1 ? '' : 'en'} · ${LEVEL_WORD[top.level] ?? ''}: ${types}`
+  return `⚠️ ${tn(list.length, '1 Warnung', '{n} Warnungen')} · ${LEVEL_WORD[top.level] ?? ''}: ${types}`
 }
 
 /**

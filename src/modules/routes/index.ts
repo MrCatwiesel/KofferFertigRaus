@@ -2,12 +2,12 @@ import type { AppModule } from '@/core/registry'
 import { routeDayFacts } from './day-facts'
 import { statsLine } from './logic'
 import { routeRepository } from './repository'
-import { intlLocale } from '@/i18n'
+import { t, tn, intlLocale } from '@/i18n'
 
 /** Modul "Routen & Touren": GPX/FIT/KML importieren, Karte, Höhenprofil, Export für Garmin. */
 export const routesModule: AppModule = {
   id: 'routes',
-  title: 'Routen & Touren',
+  title: t('Routen & Touren'),
   icon: 'signpost-2',
   order: 16,
   routes: [
@@ -17,14 +17,14 @@ export const routesModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs', 'danach'],
-    title: 'Routen & Touren',
+    title: t('Routen & Touren'),
     icon: 'signpost-2',
     to: (tripId) => `/trip/${tripId}/routen`,
     async summary(tripId) {
       const list = await routeRepository.listByTrip(tripId)
-      if (!list.length) return 'GPX, Garmin (FIT), Google My Maps (KML)'
+      if (!list.length) return t('GPX, Garmin (FIT), Google My Maps (KML)')
       const km = list.reduce((s, r) => s + r.stats.distance, 0) / 1000
-      return `${list.length} ${list.length === 1 ? 'Route' : 'Routen'} · ${km.toLocaleString(intlLocale(), { maximumFractionDigits: 0 })} km`
+      return `${tn(list.length, '1 Route', '{n} Routen')} · ${km.toLocaleString(intlLocale(), { maximumFractionDigits: 0 })} km`
     }
   },
   async mapOverlays(tripId) {

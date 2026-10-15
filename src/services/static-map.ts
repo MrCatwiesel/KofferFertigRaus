@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /**
  * Kartenbild mit Touren (für Reisebericht und PDF): OpenStreetMap-Kacheln als Hintergrund,
  * darüber die Strecken – alles in derselben Web-Mercator-Projektion wie die Karte in der App,
@@ -8,7 +9,7 @@
  */
 
 export const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-export const MAP_ATTRIBUTION = '© OpenStreetMap-Mitwirkende'
+export const MAP_ATTRIBUTION = '© ' + t('{osm}-Mitwirkende', { osm: 'OpenStreetMap' })
 const TILE = 256
 
 export type LatLon = readonly [number, number, ...unknown[]]

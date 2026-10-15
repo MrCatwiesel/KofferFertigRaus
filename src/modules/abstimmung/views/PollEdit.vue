@@ -76,7 +76,7 @@ async function save() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="isEdit ? 'Abstimmung bearbeiten' : 'Neue Abstimmung'" />
+  <TripContextHeader :trip-id="tripId" :title="isEdit ? t('Abstimmung bearbeiten') : t('Neue Abstimmung')" />
 
   <form class="card" novalidate @submit.prevent="save">
     <div class="card-body">
@@ -106,7 +106,7 @@ async function save() {
           v-model="draft.question"
           class="form-control"
           :class="{ 'is-invalid': submitted && errors.question }"
-          :placeholder="draft.kind === 'termin' ? 'Welcher Tag passt für die Gletschertour?' : draft.kind === 'unternehmung' ? 'Was machen wir am Sonntag?' : 'Wo essen wir heute Abend?'"
+          :placeholder="draft.kind === 'termin' ? t('Welcher Tag passt für die Gletschertour?') : draft.kind === 'unternehmung' ? t('Was machen wir am Sonntag?') : t('Wo essen wir heute Abend?')"
           maxlength="200"
         />
         <div class="invalid-feedback">{{ errors.question }}</div>
@@ -114,7 +114,7 @@ async function save() {
 
       <!-- Antworten -->
       <fieldset class="mb-3">
-        <legend class="form-label fs-6">{{ draft.kind === 'termin' ? 'Tage' : draft.kind === 'unternehmung' ? 'Unternehmungen' : 'Antworten' }}</legend>
+        <legend class="form-label fs-6">{{ draft.kind === 'termin' ? t('Tage') : draft.kind === 'unternehmung' ? t('Unternehmungen') : t('Antworten') }}</legend>
 
         <template v-if="draft.kind === 'unternehmung'">
           <p v-if="!choosable.length" class="small text-body-secondary">
@@ -128,20 +128,20 @@ async function save() {
 
         <template v-else>
           <div v-for="(o, i) in draft.options" :key="o.id" class="input-group mb-2" data-option-row>
-            <input v-if="draft.kind === 'termin'" v-model="o.date" type="date" class="form-control flex-grow-0 w-auto" :aria-label="`Tag ${i + 1}`" :min="trip?.startDate" />
+            <input v-if="draft.kind === 'termin'" v-model="o.date" type="date" class="form-control flex-grow-0 w-auto" :aria-label="t('Tag {x}', { x: i + 1 })" :min="trip?.startDate" />
             <input
               v-model="o.text"
               class="form-control"
-              :placeholder="draft.kind === 'termin' ? 'Zusatz, z. B. vormittags (optional)' : `Antwort ${i + 1}`"
-              :aria-label="draft.kind === 'termin' ? `Zusatz zu Tag ${i + 1}` : `Antwort ${i + 1}`"
+              :placeholder="draft.kind === 'termin' ? t('Zusatz, z. B. vormittags (optional)') : t('Antwort {x}', { x: i + 1 })"
+              :aria-label="draft.kind === 'termin' ? t('Zusatz zu Tag {x}', { x: i + 1 }) : t('Antwort {x}', { x: i + 1 })"
               maxlength="120"
             />
-            <button type="button" class="btn btn-outline-secondary" :aria-label="`Antwort ${i + 1} entfernen`" @click="draft.options.splice(i, 1)">
+            <button type="button" class="btn btn-outline-secondary" :aria-label="t('Antwort {x} entfernen', { x: i + 1 })" @click="draft.options.splice(i, 1)">
               <i class="bi bi-x-lg" aria-hidden="true"></i>
             </button>
           </div>
           <button type="button" class="btn btn-sm btn-outline-primary" data-add-option @click="draft.options.push(newOption())">
-            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ draft.kind === 'termin' ? 'Tag hinzufügen' : 'Antwort hinzufügen' }}
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ draft.kind === 'termin' ? t('Tag hinzufügen') : t('Antwort hinzufügen') }}
           </button>
         </template>
         <div v-if="submitted && errors.options" class="text-danger small mt-1">{{ errors.options }}</div>
@@ -175,7 +175,7 @@ async function save() {
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" :disabled="saving">{{ isEdit ? 'Speichern' : 'Abstimmung starten' }}</button>
+        <button type="submit" class="btn btn-primary" :disabled="saving">{{ isEdit ? t('Speichern') : t('Abstimmung starten') }}</button>
         <RouterLink :to="`/trip/${tripId}/abstimmungen`" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       </div>
     </div>

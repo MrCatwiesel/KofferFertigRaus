@@ -13,7 +13,7 @@ import { expenseRepository, inTripCurrency } from '@/modules/expenses/public'
 import { placeRepository } from '@/modules/map/public'
 import TripsMap from '../components/TripsMap.vue'
 import { summarize, yearsOf, type TripExtra } from '../logic'
-import { intlLocale } from '@/i18n'
+import { t, tn, intlLocale } from '@/i18n'
 
 const router = useRouter()
 const trips = shallowRef<Trip[]>([])
@@ -66,14 +66,14 @@ const mapPoints = computed(() =>
 )
 const tiles = computed(() =>
   [
-    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? 'Reise' : 'Reisen' },
-    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: 'Reisetage' },
-    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: 'Übernachtungen' },
-    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? 'Land' : 'Länder' },
-    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: `auf ${s.value.routes} ${s.value.routes === 1 ? 'Tour' : 'Touren'}` },
-    { icon: 'graph-up-arrow', n: s.value.ascent, value: `${s.value.ascent.toLocaleString(intlLocale())} m`, label: 'bergauf' },
-    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString(intlLocale()), label: 'Fotos' },
-    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: 'Tagebuch-Einträge' }
+    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? t('Reise') : t('Reisen') },
+    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: t('Reisetage') },
+    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: t('Übernachtungen') },
+    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? t('Land') : t('Länder') },
+    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: tn(s.value.routes, 'auf 1 Tour', 'auf {n} Touren') },
+    { icon: 'graph-up-arrow', n: s.value.ascent, value: `${s.value.ascent.toLocaleString(intlLocale())} m`, label: t('bergauf') },
+    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString(intlLocale()), label: t('Fotos') },
+    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: t('Tagebuch-Einträge') }
   ].filter((t) => t.n > 0)
 )
 </script>
@@ -124,7 +124,7 @@ const tiles = computed(() =>
     <section class="card mb-3">
       <div class="card-body">
         <h2 class="h6">{{ t('Reisetage je Monat') }}</h2>
-        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="`Reisetage je Monat: ${s.months.join(', ')}`">
+        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="t('Reisetage je Monat: {join}', { join: s.months.join(', ') })">
           <g v-for="(v, i) in s.months" :key="i">
             <rect :x="i * 50 + 8" :y="140 - (v / maxMonth) * 120" width="34" :height="Math.max(v ? 2 : 0, (v / maxMonth) * 120)" rx="4" fill="var(--nww-primary)" />
             <text v-if="v" :x="i * 50 + 25" :y="134 - (v / maxMonth) * 120" text-anchor="middle" class="m-val">{{ v }}</text>

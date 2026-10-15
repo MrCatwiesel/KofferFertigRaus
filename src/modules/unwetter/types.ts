@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Unwetterwarnungen von MeteoAlarm (über den eigenen Server). */
 
 /** Welche Warnungen zählen: die für die Orte der Reise, alle im Land – oder gar keine */
@@ -64,9 +65,9 @@ export interface Watch {
 }
 
 export const LEVELS: Record<number, { label: string; text: string; bg: string; fg: string }> = {
-  2: { label: 'Gelb', text: 'Achtung', bg: '#facc15', fg: '#422006' },
-  3: { label: 'Orange', text: 'Gefährlich', bg: '#f97316', fg: '#1c0a00' },
-  4: { label: 'Rot', text: 'Sehr gefährlich', bg: '#dc2626', fg: '#ffffff' }
+  2: { label: t('Gelb'), text: t('Achtung'), bg: '#facc15', fg: '#422006' },
+  3: { label: t('Orange'), text: t('Gefährlich'), bg: '#f97316', fg: '#1c0a00' },
+  4: { label: 'Rot', text: t('Sehr gefährlich'), bg: '#dc2626', fg: '#ffffff' }
 }
 
 export const TYPE_ICONS: Record<number, string> = {
@@ -86,10 +87,10 @@ export const TYPE_ICONS: Record<number, string> = {
 }
 
 export const MATCH_LABELS: Record<MatchKind, string> = {
-  region: 'beobachtete Region',
-  ort: 'ein Ort der Reise liegt im Gebiet',
-  name: 'Gebiet passt zu einem Ort der Reise',
-  land: 'ganzes Land'
+  region: t('beobachtete Region'),
+  ort: t('ein Ort der Reise liegt im Gebiet'),
+  name: t('Gebiet passt zu einem Ort der Reise'),
+  land: t('ganzes Land')
 }
 
 export const SOURCE_URL = 'https://meteoalarm.org'

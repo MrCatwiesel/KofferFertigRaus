@@ -17,6 +17,7 @@ import { MAX_SEARCH_SPAN, TRAIL_TYPES, type TrailHit, type TrailType } from '../
 import { RoutingApi, fetchElevations } from '../planning/api'
 import { formatDuration } from '@/services/tracks'
 import type { TrackPoint } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const route = useRoute()
@@ -50,7 +51,7 @@ onMounted(async () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+    attribution: '&copy; ' + t('{osm}-Mitwirkende', { osm: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
   }).addTo(map)
   lineLayer = markRaw(L.layerGroup().addTo(map))
   pointLayer = markRaw(L.layerGroup().addTo(map))
@@ -107,7 +108,7 @@ function drawWaypoints() {
     const m = L.marker([w.lat, w.lon], {
       draggable: true,
       icon: L.divIcon({ className: 'nww-wp', html: `<span>${letter(i, waypoints.value.length)}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
-      title: w.label || `Punkt ${i + 1}`
+      title: w.label || t('Punkt {x}', { x: i + 1 })
     })
     m.on('dragend', () => {
       const p = m.getLatLng()
@@ -198,8 +199,8 @@ const plannedStats = computed(() => (planned.value ? computeStats(planned.value.
 const planName = computed(() => {
   const w = waypoints.value
   if (w.length < 2) return ''
-  const a = w[0].label || 'Start'
-  const b = w[w.length - 1].label || 'Ziel'
+  const a = w[0].label || t('Start')
+  const b = w[w.length - 1].label || t('Ziel')
   return `${a} → ${b}`
 })
 
@@ -217,7 +218,7 @@ async function searchTrails() {
   if (!api.value || !bbox) return
   trailError.value = ''
   if (bbox[2] - bbox[0] > MAX_SEARCH_SPAN || bbox[3] - bbox[1] > MAX_SEARCH_SPAN) {
-    trailError.value = 'Der Kartenausschnitt ist zu groß – bitte näher an die Gegend heranzoomen.'
+    trailError.value = t('Der Kartenausschnitt ist zu groß – bitte näher an die Gegend heranzoomen.')
     return
   }
   trailBusy.value = true
@@ -281,7 +282,7 @@ async function save() {
     if (tab.value === 'planen' && planned.value) {
       points = planned.value.points
       const prof = PROFILES.find((p) => p.id === profile.value)?.label ?? profile.value
-      notes = `Geplant mit BRouter (${prof})${plannedTime.value ? ` · Dauer ca. ${formatDuration(plannedTime.value)}` : ''}`
+      notes = t('Geplant mit BRouter ({profile})', { profile: prof }) + (plannedTime.value ? ' · ' + t('Dauer ca. {duration}', { duration: formatDuration(plannedTime.value) }) : '')
       format = 'planung'
     } else if (selected.value) {
       // Höhen nachladen (OSM kennt keine), damit Profil und Höhenmeter stimmen
@@ -291,10 +292,10 @@ async function save() {
       const st = computeStats(points)
       const h = selected.value.hit
       notes = [
-        `Aus OpenStreetMap (Relation ${h.id})`,
-        h.networkLabel ? `${TRAIL_TYPES[h.type].label.slice(0, -1)} (${h.networkLabel})` : '',
+        t('Aus OpenStreetMap (Relation {id})', { id: h.id }),
+        h.networkLabel ? `${TRAIL_TYPES[h.type].one} (${h.networkLabel})` : '',
         h.from && h.to ? `${h.from} – ${h.to}` : '',
-        h.type === 'hiking' ? `Gehzeit ca. ${formatDuration(hikingTime(st.distance, st.ascent, st.descent))}` : '',
+        h.type === 'hiking' ? t('Gehzeit ca. {duration}', { duration: formatDuration(hikingTime(st.distance, st.ascent, st.descent)) }) : '',
         h.website
       ]
         .filter(Boolean)
@@ -302,7 +303,7 @@ async function save() {
       format = 'osm'
     } else return
     const count = await routeRepository.count(props.tripId)
-    const r = buildRoute(props.tripId, { name: saveName.value.trim() || 'Route', kind: 'route', points }, { format, filename: '', original: null }, count, trip.value)
+    const r = buildRoute(props.tripId, { name: saveName.value.trim() || t('Route'), kind: 'route', points }, { format, filename: '', original: null }, count, trip.value)
     r.notes = notes
     r.date = saveDay.value
     await routeRepository.addMany([r])
@@ -372,7 +373,7 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
         <ol v-if="waypoints.length" class="list-group list-group-numbered mb-2">
           <li v-for="(w, i) in waypoints" :key="i" class="list-group-item d-flex align-items-center gap-2 py-1 small">
             <span class="flex-grow-1 text-truncate"><strong>{{ letter(i, waypoints.length) }}</strong> · {{ w.label || `${w.lat.toFixed(4)}, ${w.lon.toFixed(4)}` }}</span>
-            <button type="button" class="btn btn-sm btn-link text-danger p-0" :aria-label="`Punkt ${i + 1} entfernen`" @click="removePoint(i)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-sm btn-link text-danger p-0" :aria-label="t('Punkt {x} entfernen', { x: i + 1 })" @click="removePoint(i)"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
           </li>
         </ol>
         <div class="d-flex gap-2 mb-2">
@@ -413,7 +414,7 @@ const placeIcon = (p: MapPlace) => KIND_STYLE[p.kind]
               <span v-if="h.ref" class="badge text-bg-light border flex-none">{{ h.ref }}</span>
             </div>
             <div class="small opacity-75 text-truncate">
-              {{ [h.networkLabel, h.from && h.to ? `${h.from} – ${h.to}` : '', h.distance ? `${h.distance} km` : ''].filter(Boolean).join(' · ') || 'ausgeschilderte Route' }}
+              {{ [h.networkLabel, h.from && h.to ? `${h.from} – ${h.to}` : '', h.distance ? `${h.distance} km` : ''].filter(Boolean).join(' · ') || t('ausgeschilderte Route') }}
             </div>
           </button>
         </div>

@@ -2,6 +2,7 @@
 import { markRaw, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { t } from '@/i18n'
 
 /** Karte mit einer oder mehreren Strecken (OpenStreetMap). */
 interface MapLine {
@@ -28,8 +29,8 @@ function draw() {
     pl.bindTooltip(line.name, { sticky: true })
     pl.on('click', () => emit('select', line.id))
     if (props.markers) {
-      L.circleMarker(line.points[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1 }).bindTooltip('Start').addTo(layer)
-      L.circleMarker(line.points[line.points.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: '#111827', fillOpacity: 1 }).bindTooltip('Ziel').addTo(layer)
+      L.circleMarker(line.points[0], { radius: 7, color: '#fff', weight: 2, fillColor: '#16a34a', fillOpacity: 1 }).bindTooltip(t('Start')).addTo(layer)
+      L.circleMarker(line.points[line.points.length - 1], { radius: 7, color: '#fff', weight: 2, fillColor: '#111827', fillOpacity: 1 }).bindTooltip(t('Ziel')).addTo(layer)
     }
     all.push(...line.points)
   }
@@ -43,7 +44,7 @@ onMounted(async () => {
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+    attribution: '&copy; ' + t('{osm}-Mitwirkende', { osm: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
   }).addTo(map)
   layer = markRaw(L.layerGroup().addTo(map))
   draw()

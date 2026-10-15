@@ -1,3 +1,4 @@
+import { formatDate } from '../../../core/format'
 import type { FileFormat, ParsedRoute } from '../types'
 import { isFit, parseFit } from './fit'
 import { parseGeoJson } from './geojson'
@@ -5,6 +6,7 @@ import { parseGpx } from './gpx'
 import { parseKml } from './kml'
 import { parseTcx } from './tcx'
 import { decodeText } from './text'
+import { t } from '@/i18n'
 
 export const ACCEPT = '.gpx,.fit,.tcx,.kml,.kmz,.geojson,.json'
 
@@ -15,8 +17,8 @@ export const ACCEPT = '.gpx,.fit,.tcx,.kml,.kmz,.geojson,.json'
 export function baseName(filename: string): string {
   const name = filename.replace(/\.[^.]+$/, '').trim()
   const m = /^(\d{4})-(\d{2})-(\d{2})(?:[-_ T]\d{2}[-_:]?\d{2}(?:[-_:]?\d{2})?)?$/.exec(name)
-  if (m) return `Aktivität vom ${m[3]}.${m[2]}.${m[1]}`
-  return name.replace(/[_]+/g, ' ').trim() || 'Route'
+  if (m) return t('Aktivität vom {date}', { date: formatDate(`${m[1]}-${m[2]}-${m[3]}`) })
+  return name.replace(/[_]+/g, ' ').trim() || t('Route')
 }
 
 /** Liest das erste KML aus einer KMZ-Datei (ZIP). */
@@ -30,7 +32,7 @@ export async function unzipKml(bytes: Uint8Array): Promise<string> {
       break
     }
   }
-  if (eocd < 0) throw new Error('KMZ-Datei beschädigt.')
+  if (eocd < 0) throw new Error(t('KMZ-Datei beschädigt.'))
   const count = view.getUint16(eocd + 10, true)
   let p = view.getUint32(eocd + 16, true)
   const entries: { name: string; method: number; size: number; local: number }[] = []
@@ -46,11 +48,11 @@ export async function unzipKml(bytes: Uint8Array): Promise<string> {
   }
   const kmls = entries.filter((e) => /\.kml$/i.test(e.name))
   const entry = kmls.find((e) => /(^|\/)doc\.kml$/i.test(e.name)) ?? kmls[0]
-  if (!entry) throw new Error('In der KMZ-Datei ist keine KML-Datei.')
+  if (!entry) throw new Error(t('In der KMZ-Datei ist keine KML-Datei.'))
   const start = entry.local + 30 + view.getUint16(entry.local + 26, true) + view.getUint16(entry.local + 28, true)
   const data = bytes.subarray(start, start + entry.size)
   if (entry.method === 0) return decodeText(data)
-  if (entry.method !== 8) throw new Error('KMZ: unbekannte Kompression.')
+  if (entry.method !== 8) throw new Error(t('KMZ: unbekannte Kompression.'))
   const stream = new Blob([new Uint8Array(data)]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
   return decodeText(new Uint8Array(await new Response(stream).arrayBuffer()))
 }
@@ -73,7 +75,7 @@ export function detectFormat(filename: string, bytes: Uint8Array): FileFormat | 
 /** Liest eine Routendatei; eine Datei kann mehrere Routen enthalten. */
 export async function parseRouteFile(filename: string, bytes: Uint8Array): Promise<{ format: FileFormat; routes: ParsedRoute[] }> {
   const format = detectFormat(filename, bytes)
-  if (!format) throw new Error(`${filename}: Format nicht erkannt (GPX, FIT, TCX, KML, KMZ oder GeoJSON).`)
+  if (!format) throw new Error(t('{filename}: Format nicht erkannt (GPX, FIT, TCX, KML, KMZ oder GeoJSON).', { filename }))
   const name = baseName(filename)
   const text = () => decodeText(bytes)
   let routes: ParsedRoute[]
@@ -97,6 +99,6 @@ export async function parseRouteFile(filename: string, bytes: Uint8Array): Promi
       routes = parseGeoJson(text(), name)
       break
   }
-  if (!routes.length) throw new Error(`${filename}: keine Strecke gefunden (nur Wegpunkte?).`)
+  if (!routes.length) throw new Error(t('{filename}: keine Strecke gefunden (nur Wegpunkte?).', { filename }))
   return { format, routes }
 }

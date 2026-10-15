@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Ein Punkt: Breite, Länge, Höhe in m (oder null), Zeit in Sekunden seit 1970 (oder null). */
 export type TrackPoint = [lat: number, lon: number, ele: number | null, time: number | null]
 
@@ -63,11 +64,11 @@ export const ROUTE_COLORS = ['#e11d48', '#2563eb', '#16a34a', '#d97706', '#7c3ae
 
 export const FORMAT_LABEL: Record<RouteFormat, string> = {
   gpx: 'GPX',
-  fit: 'FIT (Garmin)',
+  fit: t('FIT (Garmin)'),
   tcx: 'TCX',
   kml: 'KML',
   kmz: 'KMZ',
   geojson: 'GeoJSON',
   osm: 'OpenStreetMap',
-  planung: 'In der App geplant'
+  planung: t('In der App geplant')
 }

@@ -10,6 +10,7 @@ import PollCard from '../components/PollCard.vue'
 import { isOpen, winners } from '../logic'
 import { pollRepository } from '../repository'
 import type { Poll, PollVote } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const today = todayIso()
@@ -55,7 +56,7 @@ async function adopt(p: Poll) {
 }
 
 async function remove(p: Poll) {
-  if (confirm(`Abstimmung „${p.question}“ mit allen Stimmen löschen?`)) await pollRepository.remove(p.id)
+  if (confirm(t('Abstimmung „{question}“ mit allen Stimmen löschen?', { question: p.question }))) await pollRepository.remove(p.id)
 }
 </script>
 
@@ -70,7 +71,7 @@ async function remove(p: Poll) {
       <label for="voter" class="small text-nowrap on-bg">{{ t('Ich stimme ab als') }}</label>
       <select v-if="participants.length" id="voter" v-model="voter" class="form-select form-select-sm w-auto" :disabled="!!linkedMe">
         <option value="" disabled>{{ t('– bitte wählen –') }}</option>
-        <option v-for="p in participants" :key="p" :value="p" :disabled="foreign(p)">{{ p }}{{ foreign(p) ? ' (eigenes Konto)' : '' }}</option>
+        <option v-for="p in participants" :key="p" :value="p" :disabled="foreign(p)">{{ p }}{{ foreign(p) ? ' ' + t('(eigenes Konto)') : '' }}</option>
       </select>
       <input v-else id="voter" v-model.trim="voter" class="form-control form-control-sm w-auto" :placeholder="t('Name')" />
     </div>

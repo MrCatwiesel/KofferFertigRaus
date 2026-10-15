@@ -47,13 +47,13 @@ function tap(optionId: string) {
             <template v-if="!open">{{ t('Beendet') }}</template>
             <template v-else-if="poll.deadline">{{ t('Abstimmen bis {deadline}', { deadline: formatDate(poll.deadline) }) }}</template>
             <template v-else>{{ t('Offen') }}</template>
-            · {{ poll.multiple ? 'mehrere Antworten möglich' : 'eine Antwort' }}
+            · {{ poll.multiple ? t('mehrere Antworten möglich') : t('eine Antwort') }}
             <template v-if="poll.createdBy"> {{ t('· von {createdBy}', { createdBy: poll.createdBy }) }}</template>
             <template v-if="poll.kind === 'termin' && poll.activityId"> {{ t('· für „{activityTitle}“', { activityTitle: activityTitle(poll.activityId) }) }}</template>
           </div>
         </div>
         <div v-if="editable" class="dropdown">
-          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" :aria-label="`Mehr zu „${poll.question}“`">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" :aria-label="t('Mehr zu „{question}“', { question: poll.question })">
             <i class="bi bi-three-dots" aria-hidden="true"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
@@ -92,17 +92,17 @@ function tap(optionId: string) {
       </div>
 
       <div class="small mt-2 d-flex flex-wrap gap-2 align-items-center">
-        <span>{{ result.voters.length }} {{ result.voters.length === 1 ? 'Stimme' : 'Stimmen' }}</span>
+        <span>{{ tn(result.voters.length, '1 Stimme', '{n} Stimmen') }}</span>
         <span v-if="open && missing.length" class="text-body-secondary" data-missing>{{ t('· noch offen: {join}', { join: missing.join(', ') }) }}</span>
         <button v-if="open && mine" type="button" class="btn btn-link btn-sm p-0 ms-auto" @click="emit('vote', null)">{{ t('Stimme zurückziehen') }}</button>
       </div>
 
       <div v-if="!open && win.length" class="alert alert-success small py-2 mt-3 mb-0 d-flex flex-wrap align-items-center gap-2" data-result>
         <i class="bi bi-trophy" aria-hidden="true"></i>
-        <span>{{ win.length === 1 ? 'Ergebnis' : 'Gleichstand' }}: <strong>{{ win.map(label).join(' / ') }}</strong></span>
+        <span>{{ win.length === 1 ? t('Ergebnis') : t('Gleichstand') }}: <strong>{{ win.map(label).join(' / ') }}</strong></span>
         <span v-if="adopted" class="ms-auto"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{{ t('eingetragen') }}</span>
         <button v-else-if="canAdopt" type="button" class="btn btn-sm btn-success ms-auto" data-adopt @click="emit('adopt')">
-          {{ poll.kind === 'termin' ? 'Tag bei der Unternehmung eintragen' : 'Als geplant übernehmen' }}
+          {{ poll.kind === 'termin' ? t('Tag bei der Unternehmung eintragen') : t('Als geplant übernehmen') }}
         </button>
       </div>
     </div>

@@ -6,8 +6,8 @@ import { KIND_LABEL, groupOf, type Reminder, type ReminderGroup } from '@/core/r
 import { syncState } from '@/core/sync/engine'
 import { pushState } from '@/core/push'
 import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/public'
-import { aboStatus, aboUrls, disableAbo, enableAbo, remindersOfTrip, shareIcs, tripIcs, type AboStatus } from '../calendar'
-import { intlLocale } from '@/i18n'
+import { aboStatus, aboUrls, disableAbo, enableAbo, remindersOfTrip, shareIcs, tripIcs, tripLine, type AboStatus } from '../calendar'
+import { t, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const today = todayIso()
@@ -20,10 +20,10 @@ const list = useLiveQuery(async () => {
 }, [] as Reminder[])
 
 const GROUPS: { id: ReminderGroup; label: string; cls: string }[] = [
-  { id: 'ueberfaellig', label: 'Überfällig', cls: 'text-danger' },
-  { id: 'heute', label: 'Heute', cls: 'text-primary' },
-  { id: 'woche', label: 'Nächste 7 Tage', cls: '' },
-  { id: 'spaeter', label: 'Später', cls: '' }
+  { id: 'ueberfaellig', label: t('Überfällig'), cls: 'text-danger' },
+  { id: 'heute', label: t('Heute'), cls: 'text-primary' },
+  { id: 'woche', label: t('Nächste 7 Tage'), cls: '' },
+  { id: 'spaeter', label: t('Später'), cls: '' }
 ]
 const grouped = computed(() => GROUPS.map((g) => ({ ...g, items: list.value.filter((r) => groupOf(r, today) === g.id) })).filter((g) => g.items.length))
 const past = computed(() => list.value.filter((r) => groupOf(r, today) === 'vorbei'))
@@ -32,12 +32,12 @@ const day = (iso: string) => new Intl.DateTimeFormat(intlLocale(), { weekday: 's
 function when(r: Reminder) {
   let s = day(r.date)
   if (r.endDate && r.endDate !== r.date) s += ` – ${day(r.endDate)}`
-  if (r.time) s += `, ${r.time}${r.endTime ? `–${r.endTime}` : ''} Uhr`
+  if (r.time) s += ', ' + t('{time} Uhr', { time: `${r.time}${r.endTime ? `–${r.endTime}` : ''}` })
   return s
 }
 
 /** Zusatzinfo ohne „Reise: …“ (das steht nur im Kalender, hier ist klar, welche Reise) */
-const detail = (r: Reminder) => (r.detail ?? '').split('\n').filter((l) => !l.startsWith('Reise: '))[0] ?? ''
+const detail = (r: Reminder) => (r.detail ?? '').split('\n').filter((l) => !l.startsWith(tripLine('')))[0] ?? ''
 
 // ---------------- Kalender
 const busy = ref(false)
@@ -60,7 +60,7 @@ const urls = computed(() => (abo.value?.status.token ? aboUrls(abo.value.server,
 
 async function exportTrip() {
   if (!trip.value) return
-  await shareIcs(await tripIcs(trip.value), `${trip.value.title.replace(/[^\wäöüÄÖÜß -]/g, '').trim() || 'Reise'}.ics`)
+  await shareIcs(await tripIcs(trip.value), `${trip.value.title.replace(/[^\wäöüÄÖÜß -]/g, '').trim() || t('Reise')}.ics`)
 }
 
 async function run(fn: () => Promise<unknown>, ok: string) {
@@ -76,19 +76,19 @@ async function run(fn: () => Promise<unknown>, ok: string) {
     busy.value = false
   }
 }
-const start = () => run(() => enableAbo(), 'Kalender-Abo ist eingerichtet. Jetzt auf dem iPad „Im Kalender abonnieren“ antippen.')
-const renew = () => confirm('Neue geheime Adresse erzeugen? Die alte funktioniert dann nicht mehr – bereits abonnierte Kalender müssen neu abonniert werden.') && run(() => enableAbo(true), 'Neue Adresse erzeugt.')
-const stop = () => confirm('Kalender-Abo beenden? Abonnierte Kalender bekommen dann keine Termine mehr.') && run(disableAbo, 'Kalender-Abo beendet.')
+const start = () => run(() => enableAbo(), t('Kalender-Abo ist eingerichtet. Jetzt auf dem iPad „Im Kalender abonnieren“ antippen.'))
+const renew = () => confirm(t('Neue geheime Adresse erzeugen? Die alte funktioniert dann nicht mehr – bereits abonnierte Kalender müssen neu abonniert werden.')) && run(() => enableAbo(true), t('Neue Adresse erzeugt.'))
+const stop = () => confirm(t('Kalender-Abo beenden? Abonnierte Kalender bekommen dann keine Termine mehr.')) && run(disableAbo, t('Kalender-Abo beendet.'))
 async function copy() {
   if (!urls.value) return
   try {
     await navigator.clipboard.writeText(urls.value.https)
-    message.value = { type: 'info', text: 'Adresse kopiert.' }
+    message.value = { type: 'info', text: t('Adresse kopiert.') }
   } catch {
     message.value = { type: 'info', text: urls.value.https }
   }
 }
-const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat(intlLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : 'noch nie')
+const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat(intlLocale(), { dateStyle: 'short', timeStyle: 'short' }).format(new Date(iso)) : t('noch nie'))
 </script>
 
 <template>
@@ -163,7 +163,7 @@ const ago = (iso: string | null) => (iso ? new Intl.DateTimeFormat(intlLocale(),
           {{ t('Ohne Kalender: Die App selbst meldet sich zur selben Zeit auf dem Gerät – auch wenn sie geschlossen ist.') }}
         </p>
         <RouterLink to="/benachrichtigungen" class="btn btn-outline-primary btn-sm">
-          <i class="bi me-1" :class="pushState.active ? 'bi-bell-fill' : 'bi-bell'" aria-hidden="true"></i>{{ pushState.active ? 'Benachrichtigungen sind an' : 'Benachrichtigungen einrichten' }}
+          <i class="bi me-1" :class="pushState.active ? 'bi-bell-fill' : 'bi-bell'" aria-hidden="true"></i>{{ pushState.active ? t('Benachrichtigungen sind an') : t('Benachrichtigungen einrichten') }}
         </RouterLink>
       </div>
 

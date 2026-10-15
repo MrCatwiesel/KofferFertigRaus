@@ -75,7 +75,7 @@ export const THEMES: ThemeDef[] = [
     dark: { primary: '#86bba5', onPrimary: '#10201a', accent: '#e39b63', bg: '#121815', surface: '#1b231f', surface2: '#222c27', text: '#e9e5db', muted: '#a7aaa0', border: '#2f3a34', sky1: '#3b3550', sky2: '#7a4d4a', far: '#3d5248', mid: '#2c4038', near: '#1d2c26' }
   },
   {
-    id: 'modern', label: 'Frisch & modern', hint: t('Kräftiges Blau und Türkis, runde Formen'),
+    id: 'modern', label: t('Frisch & modern'), hint: t('Kräftiges Blau und Türkis, runde Formen'),
     heading: { font: F.montserrat, weight: 700 }, body: { font: F.montserrat }, radius: 1.15, border: 1, shadow: 'float', pattern: 'blobs', logo: 'pin', tile: 'gradient', gradient: true,
     light: { primary: '#1463ff', onPrimary: '#ffffff', accent: '#0e9e90', sun: '#ffd166', bg: '#eef3fb', surface: '#ffffff', surface2: '#f4f7fd', text: '#162036', muted: '#56637b', border: '#dde5f2', sky1: '#8fd3ff', sky2: '#3c7bff', far: '#7fb8e8', mid: '#2f8fd8', near: '#1463ff' },
     dark: { primary: '#6d9bff', onPrimary: '#0b1430', accent: '#2dd4bf', sun: '#ffd166', bg: '#0b1120', surface: '#131b2e', surface2: '#1a2339', text: '#e6ebf5', muted: '#9aa6bd', border: '#26314a', sky1: '#233a7a', sky2: '#4c2f80', far: '#1f3466', mid: '#1a2b55', near: '#131f40' }

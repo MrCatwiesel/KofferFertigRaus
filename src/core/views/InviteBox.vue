@@ -39,7 +39,7 @@ async function share() {
     : t('Einladung zu „KofferFertigRaus“ (gilt einmal, 24 Stunden):')
   const text = t('{intro}\n{link}\nOder in der App unter „Geräte-Abgleich“ eingeben: {code}', { intro, link: link.value, code: props.code })
   try {
-    if (navigator.share) await navigator.share({ title: 'KofferFertigRaus – Einladung', text })
+    if (navigator.share) await navigator.share({ title: t('KofferFertigRaus – Einladung'), text })
     else {
       await navigator.clipboard.writeText(text)
       copied.value = true

@@ -247,7 +247,7 @@ function assignDevice(d: Device, memberId: string) {
               <div class="dropdown">
                 <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="t('Aktionen für {name}', { name: m.name })"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><button class="dropdown-item" @click="newInvite(m)">{{ m.hasPassword ? t('Passwort zurücksetzen') : 'Neue Einladung' }}</button></li>
+                  <li><button class="dropdown-item" @click="newInvite(m)">{{ m.hasPassword ? t('Passwort zurücksetzen') : t('Neue Einladung') }}</button></li>
                   <li><button class="dropdown-item" @click="rename(m)">{{ t('Umbenennen') }}</button></li>
                   <li v-if="m.id !== people.me?.id"><button class="dropdown-item" @click="toggleDisabled(m)">{{ m.disabled ? t('Entsperren') : t('Sperren') }}</button></li>
                   <li v-if="m.id !== people.me?.id"><button class="dropdown-item text-danger" @click="remove(m)">{{ t('Entfernen') }}</button></li>

@@ -4,11 +4,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
 import { accommodationReminders } from './reminders'
+import { t } from '@/i18n'
 
 /** Modul "Unterkünfte" (Meilenstein M1). */
 export const accommodationModule: AppModule = {
   id: 'accommodation',
-  title: 'Unterkünfte',
+  title: t('Unterkünfte'),
   icon: 'house-door',
   order: 20,
   routes: [
@@ -19,14 +20,14 @@ export const accommodationModule: AppModule = {
   reminders: async (trip, today) => accommodationReminders(await accommodationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Unterkünfte',
+    title: t('Unterkünfte'),
     icon: 'house-door',
     to: (tripId) => `/trip/${tripId}/unterkuenfte`,
     async summary(tripId) {
       const [trip, list] = await Promise.all([tripRepository.get(tripId), accommodationRepository.listByTrip(tripId)])
-      if (!trip || list.length === 0) return 'Noch keine Unterkunft'
+      if (!trip || list.length === 0) return t('Noch keine Unterkunft')
       const c = coverage(trip.startDate, trip.endDate, list)
-      return c.totalNights === 0 ? `${list.length} erfasst` : `${c.bookedNights} von ${c.totalNights} Nächten gebucht`
+      return c.totalNights === 0 ? t('{n} erfasst', { n: list.length }) : t('{booked} von {total} Nächten gebucht', { booked: c.bookedNights, total: c.totalNights })
     },
     async plannedCost(tripId) {
       const [trip, list] = await Promise.all([tripRepository.get(tripId), accommodationRepository.listByTrip(tripId)])

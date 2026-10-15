@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url'
 const Q = String.raw`(['"\x60])((?:\\.|(?!\1)[^\\])*)\1`
 const SINGLE = new RegExp(String.raw`(?<![\w.$])(?:t|tk)\(\s*` + Q, 'g')
 const Q2 = String.raw`(['"\x60])((?:\\.|(?!\3)[^\\])*)\3`
-const PLURAL = new RegExp(String.raw`(?<![\w.$])tn\(\s*[^,]+?,\s*` + Q + String.raw`\s*,\s*` + Q2, 'g')
+const PLURAL = new RegExp(String.raw`(?<![\w.$])tn\(\s*(?:[^,()]|\((?:[^()]|\([^()]*\))*\))+?,\s*` + Q + String.raw`\s*,\s*` + Q2, 'g')
 
 function unescape(s) {
   return s.replace(/\\(.)/g, (_, c) => (c === 'n' ? '\n' : c))

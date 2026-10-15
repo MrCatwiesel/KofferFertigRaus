@@ -106,7 +106,7 @@ function duration(l: TravelLeg) {
               </div>
               <div v-if="recommendedBreaks(l.mode, duration(l)) > 0" class="small text-body-secondary">
                 <i class="bi bi-cup-hot me-1" aria-hidden="true"></i>
-                {{ t('{recommendedBreaks} {recommendedBreaks2} einplanen (alle 2 Std. ca. 15–20 Min.)', { recommendedBreaks: recommendedBreaks(l.mode, duration(l)), recommendedBreaks2: recommendedBreaks(l.mode, duration(l)) === 1 ? 'Pause' : 'Pausen' }) }}
+                {{ tn(recommendedBreaks(l.mode, duration(l)), '1 Pause einplanen (alle 2 Std. ca. 15–20 Min.)', '{n} Pausen einplanen (alle 2 Std. ca. 15–20 Min.)') }}
               </div>
               <div class="d-flex flex-wrap gap-3 small mt-1 position-relative z-2">
                 <a :href="appleMapsUrl(l.from, l.to, l.mode)" target="_blank" rel="noopener noreferrer">

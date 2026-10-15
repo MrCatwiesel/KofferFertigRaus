@@ -7,6 +7,7 @@ import { allCountries, countryName, flag, guessCountries } from '@/core/countrie
 import { budgetPerPersonDay, cleanParticipants, formatMoney, tripDays, validateTrip } from '../logic'
 import { TRANSPORT_LABELS, type TripDraft } from '../types'
 import { linkedMember, mergeLinks, people, type MemberLinks } from '@/core/people'
+import { tn } from '@/i18n'
 
 const props = defineProps<{ id?: string }>()
 const router = useRouter()
@@ -90,8 +91,8 @@ const summary = computed(() => {
   const days = tripDays(draft.startDate, draft.endDate)
   const perDay = budgetPerPersonDay(draft)
   return perDay === null
-    ? `${days} Tage`
-    : `${days} Tage · ${formatMoney(perDay, draft.currency)} pro Person und Tag`
+    ? tn(days, '1 Tag', '{n} Tage')
+    : tn(days, '1 Tag · {price} pro Person und Tag', '{n} Tage · {price} pro Person und Tag', { price: formatMoney(perDay, draft.currency) })
 })
 
 async function save() {
@@ -126,7 +127,7 @@ function invalid(field: keyof TripDraft) {
 </script>
 
 <template>
-  <h1 class="h3 mb-3">{{ isEdit ? 'Reise bearbeiten' : 'Neue Reise' }}</h1>
+  <h1 class="h3 mb-3">{{ isEdit ? t('Reise bearbeiten') : t('Neue Reise') }}</h1>
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">
@@ -198,9 +199,9 @@ function invalid(field: keyof TripDraft) {
         <div v-for="p in draft.participants" :key="p" class="d-flex align-items-center gap-2 py-1">
           <span class="flex-grow-1 small">{{ p }}</span>
           <span v-if="lockedFor(p)" class="small text-body-secondary"><i class="bi bi-lock me-1" aria-hidden="true"></i>{{ lockedFor(p)!.name }}</span>
-          <select v-else class="form-select form-select-sm w-auto" :value="links[p] ?? ''" :aria-label="`Konto für ${p}`" @change="setLink(p, ($event.target as HTMLSelectElement).value)">
+          <select v-else class="form-select form-select-sm w-auto" :value="links[p] ?? ''" :aria-label="t('Konto für {p}', { p })" @change="setLink(p, ($event.target as HTMLSelectElement).value)">
             <option value="">{{ t('– nicht verknüpft –') }}</option>
-            <option v-for="m in people.members" :key="m.id" :value="m.id">{{ m.name }}{{ m.id === people.me?.id ? ' (ich)' : '' }}</option>
+            <option v-for="m in people.members" :key="m.id" :value="m.id">{{ m.name }}{{ m.id === people.me?.id ? ' ' + t('(ich)') : '' }}</option>
           </select>
         </div>
         <div class="form-text mt-1">{{ t('Verknüpfte Personen sehen ihre Packliste, Medikamente und Dokumente privat – nur für sich. Nicht verknüpfte (z. B. Kinder) sieht die ganze Gruppe.') }}</div>
@@ -211,7 +212,7 @@ function invalid(field: keyof TripDraft) {
     <div class="col-6 col-md-4">
       <label for="travelers" class="form-label">{{ t('Personen') }}</label>
       <input id="travelers" v-model.number="draft.travelers" type="number" min="1" step="1" class="form-control"
-             :disabled="draft.participants.length > 0" :title="draft.participants.length ? 'Ergibt sich aus den Teilnehmern' : undefined"
+             :disabled="draft.participants.length > 0" :title="draft.participants.length ? t('Ergibt sich aus den Teilnehmern') : undefined"
              :class="{ 'is-invalid': invalid('travelers') }" />
       <div class="invalid-feedback">{{ errors.travelers }}</div>
     </div>

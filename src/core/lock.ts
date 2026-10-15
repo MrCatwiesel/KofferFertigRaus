@@ -140,7 +140,7 @@ export async function enableBiometric(): Promise<void> {
   const cred = (await navigator.credentials.create({
     publicKey: {
       rp: { name: 'KofferFertigRaus', id: location.hostname },
-      user: { id: random(16), name: 'koffer-fertig-raus', displayName: 'KofferFertigRaus – App-Sperre' },
+      user: { id: random(16), name: 'koffer-fertig-raus', displayName: t('KofferFertigRaus – App-Sperre') },
       challenge: random(32),
       pubKeyCredParams: [
         { type: 'public-key', alg: -7 },

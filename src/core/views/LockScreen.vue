@@ -23,7 +23,7 @@ async function check() {
   busy.value = false
   now.value = Date.now()
   if (!ok) {
-    error.value = waitSec.value ? '' : 'Falscher Code'
+    error.value = waitSec.value ? '' : t('Falscher Code')
     shake.value = true
     setTimeout(() => (shake.value = false), 400)
     pin.value = ''

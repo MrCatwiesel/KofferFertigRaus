@@ -204,7 +204,7 @@ async function copyKey() {
         <i class="bi fs-2" :class="syncState.running ? 'bi-arrow-repeat text-primary spin' : syncState.lastError ? 'bi-cloud-slash text-warning' : 'bi-cloud-check text-success'" aria-hidden="true"></i>
         <div class="flex-grow-1">
           <div class="fw-semibold">
-            <template v-if="syncState.running">{{ syncState.progress || 'Gleiche ab …' }}</template>
+            <template v-if="syncState.running">{{ syncState.progress || t('Gleiche ab …') }}</template>
             <template v-else-if="syncState.lastError">{{ syncState.lastError }}</template>
             <template v-else>{{ t('Abgeglichen {ago}', { ago: ago(syncState.lastSync) }) }}</template>
           </div>

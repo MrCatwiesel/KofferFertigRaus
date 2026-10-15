@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type ActivityCategory = 'kultur' | 'natur' | 'aktiv' | 'essen' | 'entspannung' | 'kinder' | 'sonstiges'
 export type ActivitySetting = 'innen' | 'aussen' | 'gemischt'
 export type ActivityStatus = 'idee' | 'geplant' | 'erledigt' | 'verworfen'
@@ -35,30 +36,30 @@ export interface Activity {
 export type ActivityDraft = Omit<Activity, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
 export const CATEGORY: Record<ActivityCategory, { label: string; icon: string }> = {
-  kultur: { label: 'Kultur', icon: 'bank' },
-  natur: { label: 'Natur', icon: 'tree' },
-  aktiv: { label: 'Aktiv', icon: 'bicycle' },
-  essen: { label: 'Essen & Trinken', icon: 'cup-hot' },
-  entspannung: { label: 'Entspannung', icon: 'water' },
-  kinder: { label: 'Für Kinder', icon: 'balloon' },
-  sonstiges: { label: 'Sonstiges', icon: 'three-dots' }
+  kultur: { label: t('Kultur'), icon: 'bank' },
+  natur: { label: t('Natur'), icon: 'tree' },
+  aktiv: { label: t('Aktiv'), icon: 'bicycle' },
+  essen: { label: t('Essen & Trinken'), icon: 'cup-hot' },
+  entspannung: { label: t('Entspannung'), icon: 'water' },
+  kinder: { label: t('Für Kinder'), icon: 'balloon' },
+  sonstiges: { label: t('Sonstiges'), icon: 'three-dots' }
 }
 
 export const SETTING: Record<ActivitySetting, { label: string; icon: string }> = {
-  innen: { label: 'Drinnen', icon: 'house' },
-  aussen: { label: 'Draußen', icon: 'sun' },
-  gemischt: { label: 'Drinnen & draußen', icon: 'cloud-sun' }
+  innen: { label: t('Drinnen'), icon: 'house' },
+  aussen: { label: t('Draußen'), icon: 'sun' },
+  gemischt: { label: t('Drinnen & draußen'), icon: 'cloud-sun' }
 }
 
 export const PRIORITY: Record<ActivityPriority, string> = {
-  1: 'Muss',
-  2: 'Gern',
-  3: 'Vielleicht'
+  1: t('Muss'),
+  2: t('Gern'),
+  3: t('Vielleicht')
 }
 
 export const ACTIVITY_STATUS: Record<ActivityStatus, { label: string; badge: string }> = {
-  idee: { label: 'Idee', badge: 'text-bg-light border' },
-  geplant: { label: 'Geplant', badge: 'text-bg-primary' },
-  erledigt: { label: 'Erledigt', badge: 'text-bg-success' },
-  verworfen: { label: 'Verworfen', badge: 'text-bg-secondary' }
+  idee: { label: t('Idee'), badge: 'text-bg-light border' },
+  geplant: { label: t('Geplant'), badge: 'text-bg-primary' },
+  erledigt: { label: t('Erledigt'), badge: 'text-bg-success' },
+  verworfen: { label: t('Verworfen'), badge: 'text-bg-secondary' }
 }

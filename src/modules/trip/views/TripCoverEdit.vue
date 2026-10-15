@@ -8,6 +8,7 @@ import { tripRepository } from '../repository'
 import type { Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
 import TripContextHeader from '../components/TripContextHeader.vue'
+import { t } from '@/i18n'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -42,7 +43,7 @@ async function upload(e: Event) {
     cover.value = (await resizeBlob(file, 1800, 0.82)).blob
     coverY.value = 50
   } catch (err) {
-    error.value = `Bild konnte nicht gelesen werden: ${(err as Error).message}`
+    error.value = t('Bild konnte nicht gelesen werden: {x}', { x: (err as Error).message })
   } finally {
     busy.value = false
   }
@@ -95,7 +96,7 @@ async function save() {
     <template v-if="photos.length">
       <h2 class="h6 text-body-secondary">{{ t('Aus dem Reisetagebuch') }}</h2>
       <div class="photo-grid mb-3">
-        <button v-for="p in photos" :key="p.id" type="button" class="photo" :class="{ active: cover === p.full }" :aria-label="p.caption || 'Foto wählen'" @click="choose(p)">
+        <button v-for="p in photos" :key="p.id" type="button" class="photo" :class="{ active: cover === p.full }" :aria-label="p.caption || t('Foto wählen')" @click="choose(p)">
           <img :src="p.url" alt="" />
         </button>
       </div>

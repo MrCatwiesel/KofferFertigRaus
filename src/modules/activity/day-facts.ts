@@ -1,6 +1,7 @@
 import type { DayFact } from '@/core/registry'
 import { joinList } from '@/core/format'
 import type { Activity } from './types'
+import { t } from '@/i18n'
 
 /** Unternehmungen des Tages: erledigte („Unternommen“), sonst geplante („Auf dem Plan“) */
 export function activityDayFacts(activities: readonly Activity[], date: string): DayFact[] {
@@ -12,7 +13,7 @@ export function activityDayFacts(activities: readonly Activity[], date: string):
   return [
     {
       order: 30,
-      text: `${done.length ? 'Unternommen' : 'Auf dem Plan'}: ${joinList(list.map((a) => a.title))}.`,
+      text: done.length ? t('Unternommen: {list}.', { list: joinList(list.map((a) => a.title)) }) : t('Auf dem Plan: {list}.', { list: joinList(list.map((a) => a.title)) }),
       title: first.title,
       titleRank: 2,
       ...(first.place && !/^-?\d/.test(first.place) ? { location: first.place.split(',')[0].trim(), locationRank: 3 } : {})

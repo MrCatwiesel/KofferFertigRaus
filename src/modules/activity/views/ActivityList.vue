@@ -35,10 +35,10 @@ const priorityStars = (p: number) => 4 - p
 
   <div v-if="list.length" class="d-flex flex-wrap gap-2 small mb-3">
     <span class="badge text-bg-light border">{{ t('{idee} Ideen', { idee: counts.idee }) }}</span>
-    <span class="badge text-bg-primary">{{ t('{geplant} geplant', { geplant: counts.geplant }) }}</span>
-    <span class="badge text-bg-success">{{ t('{erledigt} erledigt', { erledigt: counts.erledigt }) }}</span>
+    <span class="badge text-bg-primary">{{ t('{n} geplant', { n: counts.geplant }) }}</span>
+    <span class="badge text-bg-success">{{ t('{n} erledigt', { n: counts.erledigt }) }}</span>
     <span v-if="cost > 0 && trip" class="badge text-bg-light border">
-      {{ t('ca. {cost} für {travelers} {x}', { cost: formatMoney(cost, trip.currency), travelers: trip.travelers, x: trip.travelers === 1 ? 'Person' : 'Personen' }) }}
+      {{ tn(trip.travelers, 'ca. {cost} für 1 Person', 'ca. {cost} für {n} Personen', { cost: formatMoney(cost, trip.currency) }) }}
     </span>
   </div>
 
@@ -109,7 +109,7 @@ const priorityStars = (p: number) => 4 - p
         <button v-if="a.status === 'geplant' || a.status === 'erledigt'" type="button"
                 class="btn btn-sm position-relative z-2"
                 :class="a.status === 'erledigt' ? 'btn-success' : 'btn-outline-success'"
-                :aria-label="a.status === 'erledigt' ? 'Als nicht erledigt markieren' : 'Als erledigt markieren'"
+                :aria-label="a.status === 'erledigt' ? t('Als nicht erledigt markieren') : t('Als erledigt markieren')"
                 @click="toggleDone(a)">
           <i class="bi bi-check-lg" aria-hidden="true"></i>
         </button>

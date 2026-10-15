@@ -9,6 +9,7 @@ import TripCover from '../components/TripCover.vue'
 import { canCreateTrips } from '@/core/people'
 import WelcomeCard from '@/help/WelcomeCard.vue'
 import WhatsNewHint from '@/help/WhatsNewHint.vue'
+import { t } from '@/i18n'
 
 // null = noch nicht geladen (sonst blitzt beim Start kurz die Willkommen-Ansicht auf)
 const loaded = useLiveQuery(() => tripRepository.listAll(), null as Trip[] | null)
@@ -20,9 +21,9 @@ const groups = computed(() => {
   const active = trips.value.filter((t) => !t.archived)
   const by = (p: string) => active.filter((t) => tripPhase(t.startDate, t.endDate) === p)
   return [
-    { id: 'unterwegs', title: 'Gerade unterwegs', trips: by('unterwegs') },
-    { id: 'planung', title: 'Geplant', trips: by('planung').sort((a, b) => a.startDate.localeCompare(b.startDate)) },
-    { id: 'vorbei', title: 'Erinnerungen', trips: by('vorbei') }
+    { id: 'unterwegs', title: t('Gerade unterwegs'), trips: by('unterwegs') },
+    { id: 'planung', title: t('Geplant'), trips: by('planung').sort((a, b) => a.startDate.localeCompare(b.startDate)) },
+    { id: 'vorbei', title: t('Erinnerungen'), trips: by('vorbei') }
   ].filter((g) => g.trips.length)
 })
 const archived = computed(() => trips.value.filter((t) => t.archived))

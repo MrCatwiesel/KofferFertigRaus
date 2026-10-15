@@ -36,7 +36,7 @@ interface Status {
 }
 
 const TYPE_INFO: Record<TargetType, { label: string; icon: string; hint: string }> = {
-  ordner: { label: 'Ordner / Platte', icon: 'device-hdd', hint: t('Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe') },
+  ordner: { label: t('Ordner / Platte'), icon: 'device-hdd', hint: t('Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe') },
   smb: { label: 'SMB-Freigabe', icon: 'hdd-network', hint: t('Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen') },
   ssh: { label: 'SSH / rsync', icon: 'terminal', hint: t('Anderer Linux-Rechner oder NAS mit SSH – überträgt nur Änderungen') },
   webdav: { label: 'WebDAV', icon: 'cloud-upload', hint: 'Nextcloud, ownCloud, Synology WebDAV, Hetzner Storage Box' }
@@ -249,7 +249,7 @@ const form = reactive({ showPw: false })
   <!-- Bearbeiten -->
   <div v-if="editing" class="card border-primary mb-3">
     <div class="card-body">
-      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? t('Ziel bearbeiten') : `Neues Ziel: ${TYPE_INFO[editing.type].label}` }}</h2>
+      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? t('Ziel bearbeiten') : t('Neues Ziel: {x}', { x: TYPE_INFO[editing.type].label }) }}</h2>
       <p class="small text-body-secondary">{{ TYPE_INFO[editing.type].hint }}</p>
       <form class="row g-2" @submit.prevent="saveEdit">
         <div class="col-12 col-sm-8">

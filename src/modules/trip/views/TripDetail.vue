@@ -13,6 +13,7 @@ import TripCover from '../components/TripCover.vue'
 import SectionTiles from '../components/SectionTiles.vue'
 import ReadOnlyNote from '../components/ReadOnlyNote.vue'
 import { canEdit } from '@/core/people'
+import { t, tn } from '@/i18n'
 
 const props = defineProps<{ id: string }>()
 const router = useRouter()
@@ -21,10 +22,10 @@ const route = useRoute()
 const trip = useLiveQuery(() => tripRepository.get(props.id), undefined as Trip | undefined)
 
 const TABS: { id: TripPhase; label: string; icon: string; intro: string }[] = [
-  { id: 'planung', label: 'Planung', icon: 'clipboard-check', intro: 'Alles vorbereiten – von der Anreise bis zur Packliste.' },
-  { id: 'unterwegs', label: 'Unterwegs', icon: 'compass', intro: 'Was ihr während der Reise braucht – griffbereit, auch offline.' },
-  { id: 'danach', label: 'Danach', icon: 'stars', intro: 'Erinnerungen festhalten, abrechnen, Fotos sortieren.' },
-  { id: 'teilen', label: 'Teilen & Archiv', icon: 'send', intro: 'Webseite und Lese-Links für Freunde – und die Reise ins Archiv legen.' }
+  { id: 'planung', label: t('Planung'), icon: 'clipboard-check', intro: t('Alles vorbereiten – von der Anreise bis zur Packliste.') },
+  { id: 'unterwegs', label: t('Unterwegs'), icon: 'compass', intro: t('Was ihr während der Reise braucht – griffbereit, auch offline.') },
+  { id: 'danach', label: t('Danach'), icon: 'stars', intro: t('Erinnerungen festhalten, abrechnen, Fotos sortieren.') },
+  { id: 'teilen', label: t('Teilen & Archiv'), icon: 'send', intro: t('Webseite und Lese-Links für Freunde – und die Reise ins Archiv legen.') }
 ]
 
 /** Gewählter Bereich steht in der Adresse (?bereich=…), damit „Zurück“ wieder dort landet */
@@ -41,14 +42,14 @@ function select(id: TripPhase) {
 }
 
 const facts = computed(() => {
-  const t = trip.value
-  if (!t) return []
-  const perDay = budgetPerPersonDay(t)
+  const tp = trip.value
+  if (!tp) return []
+  const perDay = budgetPerPersonDay(tp)
   return [
-    { icon: 'calendar-range', value: `${formatDate(t.startDate)} – ${formatDate(t.endDate)} · ${tripDays(t.startDate, t.endDate)} Tage` },
-    { icon: 'people', value: t.participants?.length ? t.participants.join(', ') : `${t.travelers} Personen` },
-    { icon: 'signpost-split', value: TRANSPORT_LABELS[t.transport] },
-    { icon: 'wallet2', value: t.budget ? formatMoney(t.budget, t.currency) + (perDay !== null ? ` · ${formatMoney(perDay, t.currency)} p. P./Tag` : '') : 'Budget offen' }
+    { icon: 'calendar-range', value: `${formatDate(tp.startDate)} – ${formatDate(tp.endDate)} · ${tn(tripDays(tp.startDate, tp.endDate), '1 Tag', '{n} Tage')}` },
+    { icon: 'people', value: tp.participants?.length ? tp.participants.join(', ') : tn(tp.travelers, '1 Person', '{n} Personen') },
+    { icon: 'signpost-split', value: TRANSPORT_LABELS[tp.transport] },
+    { icon: 'wallet2', value: tp.budget ? formatMoney(tp.budget, tp.currency) + (perDay !== null ? ' · ' + t('{price} p. P./Tag', { price: formatMoney(perDay, tp.currency) }) : '') : t('Budget offen') }
   ]
 })
 
@@ -100,7 +101,7 @@ async function toggleArchive() {
 
 async function remove() {
   if (!trip.value) return
-  if (!confirm(`„${trip.value.title}“ wirklich löschen?`)) return
+  if (!confirm(t('„{title}“ wirklich löschen?', { title: trip.value.title }))) return
   await tripRepository.remove(props.id)
   router.replace('/trip')
 }
@@ -122,7 +123,7 @@ async function remove() {
               <li v-if="canEdit(trip.id)"><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">{{ t('Bearbeiten') }}</RouterLink></li>
               <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">{{ t('Titelbild ändern') }}</RouterLink></li>
               <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">{{ t('Mit Mitreisenden teilen') }}</RouterLink></li>
-              <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
+              <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? t('Aus dem Archiv holen') : t('Ins Archiv legen') }}</button></li>
               <li><hr class="dropdown-divider" /></li>
               <li v-if="canEdit(trip.id)"><button class="dropdown-item text-danger" @click="remove">{{ t('Löschen') }}</button></li>
             </ul>
@@ -152,7 +153,7 @@ async function remove() {
           <li v-if="canEdit(trip.id)"><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/bearbeiten`">{{ t('Bearbeiten') }}</RouterLink></li>
           <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/titelbild`">{{ t('Titelbild ändern') }}</RouterLink></li>
           <li><RouterLink class="dropdown-item" :to="`/trip/${trip.id}/teilen`">{{ t('Mit Mitreisenden teilen') }}</RouterLink></li>
-          <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}</button></li>
+          <li><button class="dropdown-item" @click="toggleArchive">{{ trip.archived ? t('Aus dem Archiv holen') : t('Ins Archiv legen') }}</button></li>
           <li><hr class="dropdown-divider" /></li>
           <li v-if="canEdit(trip.id)"><button class="dropdown-item text-danger" @click="remove">{{ t('Löschen') }}</button></li>
         </ul>
@@ -250,7 +251,7 @@ async function remove() {
       <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
         <div class="flex-grow-1">
-          <div class="fw-semibold">{{ trip.archived ? 'Im Archiv' : 'Archiv' }}</div>
+          <div class="fw-semibold">{{ trip.archived ? t('Im Archiv') : t('Archiv') }}</div>
           <div class="small text-body-secondary">
             <template v-if="trip.archived">{{ t('Die Reise liegt im Archiv – in der Reiseliste eingeklappt, alle Daten bleiben erhalten.') }}</template>
             <template v-else-if="isOver">{{ t('Fertig erzählt? Ins Archiv legen – die Reiseliste bleibt übersichtlich, nichts geht verloren.') }}</template>
@@ -258,7 +259,7 @@ async function remove() {
           </div>
         </div>
         <button type="button" class="btn" :class="trip.archived ? 'btn-outline-primary' : 'btn-primary'" @click="toggleArchive">
-          {{ trip.archived ? 'Aus dem Archiv holen' : 'Ins Archiv legen' }}
+          {{ trip.archived ? t('Aus dem Archiv holen') : t('Ins Archiv legen') }}
         </button>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type AccommodationType = 'hotel' | 'ferienwohnung' | 'camping' | 'hostel' | 'privat' | 'sonstiges'
 export type AccommodationStatus = 'idee' | 'angefragt' | 'gebucht' | 'storniert'
 
@@ -29,17 +30,17 @@ export interface Accommodation {
 export type AccommodationDraft = Omit<Accommodation, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
 export const ACCOMMODATION_TYPE_LABELS: Record<AccommodationType, string> = {
-  hotel: 'Hotel',
-  ferienwohnung: 'Ferienwohnung',
-  camping: 'Camping',
-  hostel: 'Hostel',
-  privat: 'Privat / Freunde',
-  sonstiges: 'Sonstiges'
+  hotel: t('Hotel'),
+  ferienwohnung: t('Ferienwohnung'),
+  camping: t('Camping'),
+  hostel: t('Hostel'),
+  privat: t('Privat / Freunde'),
+  sonstiges: t('Sonstiges')
 }
 
 export const ACCOMMODATION_STATUS: Record<AccommodationStatus, { label: string; badge: string }> = {
-  idee: { label: 'Idee', badge: 'text-bg-light border' },
-  angefragt: { label: 'Angefragt', badge: 'text-bg-warning' },
-  gebucht: { label: 'Gebucht', badge: 'text-bg-success' },
-  storniert: { label: 'Storniert', badge: 'text-bg-secondary' }
+  idee: { label: t('Idee'), badge: 'text-bg-light border' },
+  angefragt: { label: t('Angefragt'), badge: 'text-bg-warning' },
+  gebucht: { label: t('Gebucht'), badge: 'text-bg-success' },
+  storniert: { label: t('Storniert'), badge: 'text-bg-secondary' }
 }

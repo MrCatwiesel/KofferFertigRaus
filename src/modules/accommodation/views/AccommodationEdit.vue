@@ -6,6 +6,7 @@ import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/pub
 import { accommodationRepository } from '../repository'
 import { emptyAccommodationDraft, nights, outsideTripWarning, pricePerNight, validateAccommodation } from '../logic'
 import { ACCOMMODATION_STATUS, ACCOMMODATION_TYPE_LABELS, type AccommodationDraft } from '../types'
+import { t, tn } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -36,7 +37,7 @@ const info = computed(() => {
   const n = nights(draft.checkIn, draft.checkOut)
   const price = typeof draft.price === 'number' ? draft.price : null
   const ppn = pricePerNight({ price, checkIn: draft.checkIn, checkOut: draft.checkOut })
-  return `${n} ${n === 1 ? 'Nacht' : 'Nächte'}` + (ppn !== null ? ` · ${formatMoney(ppn, draft.currency)} pro Nacht` : '')
+  return tn(n, '1 Nacht', '{n} Nächte') + (ppn !== null ? ' · ' + t('{price} pro Nacht', { price: formatMoney(ppn, draft.currency) }) : '')
 })
 
 function invalid(f: keyof AccommodationDraft) {
@@ -59,14 +60,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{name}“ löschen?', { name: draft.name }))) return
   await accommodationRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Unterkunft bearbeiten' : 'Neue Unterkunft'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Unterkunft bearbeiten') : t('Neue Unterkunft')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">

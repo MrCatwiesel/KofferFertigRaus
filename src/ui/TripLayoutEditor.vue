@@ -10,7 +10,7 @@ const TAB_LABEL: Record<TripPhase, { label: string; icon: string }> = {
   planung: { label: t('Planung'), icon: 'clipboard-check' },
   unterwegs: { label: t('Unterwegs'), icon: 'compass' },
   danach: { label: t('Danach'), icon: 'stars' },
-  teilen: { label: 'Teilen & Archiv', icon: 'send' }
+  teilen: { label: t('Teilen & Archiv'), icon: 'send' }
 }
 
 const sections = getTripSections()

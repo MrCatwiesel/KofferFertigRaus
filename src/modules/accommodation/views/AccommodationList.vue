@@ -37,7 +37,7 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
         <span class="text-body-secondary">{{ t('Noch offen:') }}</span>
         <span v-for="g in cov.gaps" :key="g.from" class="badge text-bg-light border ms-1">
           {{ formatDayShort(g.from) }}<template v-if="g.nights > 1"> – {{ formatDayShort(g.to) }}</template>
-          ({{ g.nights }} {{ g.nights === 1 ? 'Nacht' : 'Nächte' }})
+          ({{ tn(g.nights, '1 Nacht', '{n} Nächte') }})
         </span>
       </div>
       <div v-else class="small text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('Alle Nächte gebucht.') }}</div>
@@ -51,7 +51,9 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
   <!-- Stornofristen -->
   <div v-for="d in deadlines" :key="d.accommodation.id" class="alert alert-warning py-2 small">
     <i class="bi bi-alarm me-1" aria-hidden="true"></i>
-    {{ t('{name}: kostenlos stornierbar nur noch {x} (bis {cancelUntil}).', { name: d.accommodation.name, x: d.daysLeft === 0 ? 'heute' : `${d.daysLeft} ${d.daysLeft === 1 ? 'Tag' : 'Tage'}`, cancelUntil: formatDate(d.accommodation.cancelUntil) }) }}
+    {{ d.daysLeft === 0
+      ? t('{name}: kostenlos stornierbar nur noch heute (bis {date}).', { name: d.accommodation.name, date: formatDate(d.accommodation.cancelUntil) })
+      : tn(d.daysLeft, '{name}: kostenlos stornierbar nur noch 1 Tag (bis {date}).', '{name}: kostenlos stornierbar nur noch {n} Tage (bis {date}).', { name: d.accommodation.name, date: formatDate(d.accommodation.cancelUntil) }) }}
   </div>
 
   <div class="d-flex flex-wrap gap-2 mb-3">
@@ -78,7 +80,7 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
             <div class="small text-body-secondary">
               {{ ACCOMMODATION_TYPE_LABELS[a.type] }} ·
               {{ formatDayShort(a.checkIn) }} – {{ formatDayShort(a.checkOut) }} ·
-              {{ nights(a.checkIn, a.checkOut) }} {{ nights(a.checkIn, a.checkOut) === 1 ? 'Nacht' : 'Nächte' }}
+              {{ tn(nights(a.checkIn, a.checkOut), '1 Nacht', '{n} Nächte') }}
             </div>
             <div v-if="a.address" class="small text-body-secondary">
               <i class="bi bi-geo-alt" aria-hidden="true"></i> {{ a.address }}
@@ -88,7 +90,7 @@ const coveragePct = computed(() => (cov.value && cov.value.totalNights > 0 ? Mat
             <span class="badge" :class="ACCOMMODATION_STATUS[a.status].badge">{{ ACCOMMODATION_STATUS[a.status].label }}</span>
             <div v-if="a.price !== null" class="small mt-1">{{ formatMoney(a.price, a.currency) }}</div>
             <div v-if="pricePerNight(a) !== null" class="small text-body-secondary">
-              {{ t('{pricePerNight}/Nacht', { pricePerNight: formatMoney(pricePerNight(a)!, a.currency) }) }}
+              {{ t('{price}/Nacht', { price: formatMoney(pricePerNight(a)!, a.currency) }) }}
             </div>
           </div>
         </div>

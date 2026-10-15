@@ -73,7 +73,7 @@ async function readBack(event: Event) {
       f,
       (meta) => !meta.scope || meta.scope.tripId === props.tripId || confirm(t('Diese Datei gehört zur Reise „{title}“, nicht zu „{value}“. Trotzdem einlesen?', { title: meta.scope.title, value: title.value }))
     )
-    if (result) message.value = { type: 'success', text: `Abgeglichen: ${describeStats(result.stats)}.` }
+    if (result) message.value = { type: 'success', text: t('Abgeglichen: {describeStats}.', { describeStats: describeStats(result.stats) }) }
   } catch (e) {
     message.value = { type: 'danger', text: t('Einlesen fehlgeschlagen: {x}', { x: (e as Error).message }) }
   } finally {

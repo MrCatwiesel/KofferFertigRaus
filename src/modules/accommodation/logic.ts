@@ -1,5 +1,6 @@
 import { addDays, diffDays, todayIso } from '../../core/dates'
 import type { Accommodation, AccommodationDraft } from './types'
+import { t } from '@/i18n'
 
 export function emptyAccommodationDraft(checkIn = '', checkOut = '', currency = 'EUR'): AccommodationDraft {
   return {
@@ -32,19 +33,19 @@ export function pricePerNight(a: Pick<Accommodation, 'price' | 'checkIn' | 'chec
 
 export function validateAccommodation(d: AccommodationDraft): Partial<Record<keyof AccommodationDraft, string>> {
   const e: Partial<Record<keyof AccommodationDraft, string>> = {}
-  if (!d.name.trim()) e.name = 'Bitte einen Namen angeben.'
-  if (!d.checkIn) e.checkIn = 'Bitte Anreisetag wählen.'
-  if (!d.checkOut) e.checkOut = 'Bitte Abreisetag wählen.'
-  if (d.checkIn && d.checkOut && d.checkOut <= d.checkIn) e.checkOut = 'Abreise muss nach der Anreise liegen.'
-  if (d.price !== null && d.price < 0) e.price = 'Preis darf nicht negativ sein.'
-  if (d.cancelUntil && d.checkIn && d.cancelUntil > d.checkIn) e.cancelUntil = 'Stornofrist liegt nach der Anreise.'
+  if (!d.name.trim()) e.name = t('Bitte einen Namen angeben.')
+  if (!d.checkIn) e.checkIn = t('Bitte Anreisetag wählen.')
+  if (!d.checkOut) e.checkOut = t('Bitte Abreisetag wählen.')
+  if (d.checkIn && d.checkOut && d.checkOut <= d.checkIn) e.checkOut = t('Abreise muss nach der Anreise liegen.')
+  if (d.price !== null && d.price < 0) e.price = t('Preis darf nicht negativ sein.')
+  if (d.cancelUntil && d.checkIn && d.cancelUntil > d.checkIn) e.cancelUntil = t('Stornofrist liegt nach der Anreise.')
   return e
 }
 
 /** Hinweis, wenn die Unterkunft außerhalb des Reisezeitraums liegt (kein Fehler). */
 export function outsideTripWarning(d: Pick<AccommodationDraft, 'checkIn' | 'checkOut'>, tripStart: string, tripEnd: string): string | null {
   if (!d.checkIn || !d.checkOut) return null
-  if (d.checkIn < tripStart || d.checkOut > tripEnd) return 'Liegt teilweise außerhalb des Reisezeitraums.'
+  if (d.checkIn < tripStart || d.checkOut > tripEnd) return t('Liegt teilweise außerhalb des Reisezeitraums.')
   return null
 }
 

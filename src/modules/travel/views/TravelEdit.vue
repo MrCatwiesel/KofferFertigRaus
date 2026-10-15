@@ -9,6 +9,7 @@ import {
   recommendedBreaks, validateLeg
 } from '../logic'
 import { DIRECTION, MODE, type TravelDirection, type TravelLegDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -88,14 +89,14 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm('Diese Etappe löschen?')) return
+  if (!props.id || !confirm(t('Diese Etappe löschen?'))) return
   await travelRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Etappe bearbeiten' : 'Neue Etappe'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Etappe bearbeiten') : t('Neue Etappe')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">
@@ -151,9 +152,9 @@ async function remove() {
       <div class="invalid-feedback">{{ errors.arriveTime }}</div>
     </div>
     <div v-if="duration !== null" class="col-12 small text-body-secondary">
-      <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ t('{formatDuration} unterwegs', { formatDuration: formatDuration(duration) }) }}
+      <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ t('{duration} unterwegs', { duration: formatDuration(duration) }) }}
       <template v-if="overnight"> {{ t('(Ankunft am Folgetag)') }}</template>
-      <template v-if="breaks > 0"> {{ t('· {breaks} {x} einplanen', { breaks, x: breaks === 1 ? 'Pause' : 'Pausen' }) }}</template>
+      <template v-if="breaks > 0"> · {{ tn(breaks, '1 Pause einplanen', '{n} Pausen einplanen') }}</template>
     </div>
 
     <div class="col-12 col-md-4">
@@ -189,7 +190,7 @@ async function remove() {
     </template>
 
     <div class="col-12 col-md-6">
-      <label for="cost" class="form-label">{{ draft.mode === 'auto' ? 'Kosten (überschreibt Berechnung)' : 'Ticketpreis' }}</label>
+      <label for="cost" class="form-label">{{ draft.mode === 'auto' ? t('Kosten (überschreibt Berechnung)') : t('Ticketpreis') }}</label>
       <div class="input-group has-validation">
         <input id="cost" v-model.number="draft.cost" type="number" min="0" step="0.5" class="form-control"
                :class="{ 'is-invalid': invalid('cost') }"

@@ -1,4 +1,5 @@
 import type { Activity, ActivityCategory, ActivityDraft, ActivitySetting, ActivityStatus } from './types'
+import { t } from '@/i18n'
 
 export function emptyActivityDraft(currency = 'EUR'): ActivityDraft {
   return {
@@ -24,11 +25,11 @@ export function validateActivity(
   trip?: { startDate: string; endDate: string }
 ): Partial<Record<keyof ActivityDraft, string>> {
   const e: Partial<Record<keyof ActivityDraft, string>> = {}
-  if (!d.title.trim()) e.title = 'Bitte einen Namen angeben.'
-  if (d.durationHours !== null && d.durationHours <= 0) e.durationHours = 'Dauer muss größer als 0 sein.'
-  if (d.pricePerPerson !== null && d.pricePerPerson < 0) e.pricePerPerson = 'Preis darf nicht negativ sein.'
+  if (!d.title.trim()) e.title = t('Bitte einen Namen angeben.')
+  if (d.durationHours !== null && d.durationHours <= 0) e.durationHours = t('Dauer muss größer als 0 sein.')
+  if (d.pricePerPerson !== null && d.pricePerPerson < 0) e.pricePerPerson = t('Preis darf nicht negativ sein.')
   if (trip && d.plannedDate && (d.plannedDate < trip.startDate || d.plannedDate > trip.endDate)) {
-    e.plannedDate = 'Der Tag liegt außerhalb der Reise.'
+    e.plannedDate = t('Der Tag liegt außerhalb der Reise.')
   }
   return e
 }

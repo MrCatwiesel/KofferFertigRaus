@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type TravelDirection = 'hin' | 'rueck'
 export type TravelMode = 'auto' | 'bahn' | 'flug' | 'bus' | 'faehre' | 'fahrrad' | 'sonstiges'
 
@@ -37,16 +38,16 @@ export interface TravelLeg {
 export type TravelLegDraft = Omit<TravelLeg, 'id' | 'tripId' | 'position' | 'createdAt' | 'updatedAt'>
 
 export const MODE: Record<TravelMode, { label: string; icon: string }> = {
-  auto: { label: 'Auto', icon: 'car-front' },
-  bahn: { label: 'Bahn', icon: 'train-front' },
-  flug: { label: 'Flug', icon: 'airplane' },
+  auto: { label: t('Auto'), icon: 'car-front' },
+  bahn: { label: t('Bahn'), icon: 'train-front' },
+  flug: { label: t('Flug'), icon: 'airplane' },
   bus: { label: 'Bus', icon: 'bus-front' },
-  faehre: { label: 'Fähre', icon: 'water' },
-  fahrrad: { label: 'Fahrrad', icon: 'bicycle' },
-  sonstiges: { label: 'Sonstiges', icon: 'signpost-2' }
+  faehre: { label: t('Fähre'), icon: 'water' },
+  fahrrad: { label: t('Fahrrad'), icon: 'bicycle' },
+  sonstiges: { label: t('Sonstiges'), icon: 'signpost-2' }
 }
 
 export const DIRECTION: Record<TravelDirection, string> = {
-  hin: 'Hinreise',
-  rueck: 'Rückreise'
+  hin: t('Hinreise'),
+  rueck: t('Rückreise')
 }

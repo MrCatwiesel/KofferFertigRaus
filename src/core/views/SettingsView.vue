@@ -111,6 +111,17 @@ async function persist() {
     </div>
   </RouterLink>
 
+  <RouterLink to="/hilfe" class="card mb-3 text-decoration-none text-body" data-settings-help>
+    <div class="card-body d-flex align-items-center gap-3">
+      <i class="bi bi-question-circle-fill fs-3 text-primary" aria-hidden="true"></i>
+      <div class="flex-grow-1">
+        <div class="h5 mb-0">Hilfe & Einführung</div>
+        <div class="small text-body-secondary">Anleitungen zu allen Bereichen, Einführung, Beispielreise, Was ist neu</div>
+      </div>
+      <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+    </div>
+  </RouterLink>
+
   <section class="card mb-3">
     <div class="card-body">
       <h2 class="h5">Datensicherung</h2>

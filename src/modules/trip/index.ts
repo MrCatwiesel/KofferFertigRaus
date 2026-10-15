@@ -1,4 +1,5 @@
 import type { AppModule } from '@/core/registry'
+import { tripSample } from './sample'
 
 /** Modul "Reiseprojekt" (Meilenstein M1). */
 export const tripModule: AppModule = {
@@ -13,5 +14,6 @@ export const tripModule: AppModule = {
     { path: '/trip/:id', name: 'trip-detail', component: () => import('./views/TripDetail.vue'), props: true },
     { path: '/trip/:id/bearbeiten', name: 'trip-edit', component: () => import('./views/TripEdit.vue'), props: true },
     { path: '/trip/:id/titelbild', name: 'trip-cover', component: () => import('./views/TripCoverEdit.vue'), props: true }
-  ]
+  ],
+  sampleData: tripSample
 }

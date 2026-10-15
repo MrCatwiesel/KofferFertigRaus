@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { journalRepository, photoRepository } from './repository'
 import { journalStats, photosForMap } from './logic'
 import { routeRepository } from '@/modules/routes/public'
+import { journalSample } from './sample'
 
 /** Modul "Reisetagebuch" (Meilenstein M4). */
 export const journalModule: AppModule = {
@@ -36,5 +37,6 @@ export const journalModule: AppModule = {
     return photosForMap(tripId, photos, entries, routes.filter((r) => r.kind === 'track').map((r) => r.points))
   },
   placePhoto: (photoId, pos) => photoRepository.setPlace(photoId, pos),
-  onTripDelete: (tripId) => journalRepository.removeByTrip(tripId)
+  onTripDelete: (tripId) => journalRepository.removeByTrip(tripId),
+  sampleData: journalSample
 }

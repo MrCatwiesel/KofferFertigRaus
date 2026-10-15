@@ -3,6 +3,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { contactRepository, documentRepository } from './repository'
 import { summarizeDocs } from './logic'
 import { documentReminders } from './reminders'
+import { documentsSample } from './sample'
 
 /** Modul "Dokumente & Notfall" (Meilenstein M2). */
 export const documentsModule: AppModule = {
@@ -37,5 +38,6 @@ export const documentsModule: AppModule = {
   onTripDelete: async (tripId) => {
     await documentRepository.removeByTrip(tripId)
     await contactRepository.removeByTrip(tripId)
-  }
+  },
+  sampleData: documentsSample
 }

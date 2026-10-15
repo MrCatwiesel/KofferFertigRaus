@@ -2,6 +2,7 @@ import type { AppModule } from '@/core/registry'
 import { packingRepository } from './repository'
 import { progress } from './logic'
 import { packingReminders } from './reminders'
+import { packingSample } from './sample'
 
 /** Modul "Packliste" (Meilenstein M2). */
 export const packingModule: AppModule = {
@@ -27,5 +28,6 @@ export const packingModule: AppModule = {
       return p.essentialOpen ? `${base} · ${p.essentialOpen} Wichtige fehlen` : base
     }
   },
-  onTripDelete: (tripId) => packingRepository.removeByTrip(tripId)
+  onTripDelete: (tripId) => packingRepository.removeByTrip(tripId),
+  sampleData: packingSample
 }

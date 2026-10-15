@@ -4,6 +4,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { accommodationRepository } from './repository'
 import { coverage, totalCost } from './logic'
 import { accommodationReminders } from './reminders'
+import { accommodationSample } from './sample'
 
 /** Modul "Unterkünfte" (Meilenstein M1). */
 export const accommodationModule: AppModule = {
@@ -34,5 +35,6 @@ export const accommodationModule: AppModule = {
     }
   },
   dayFacts: async (tripId, date) => stayDayFacts(await accommodationRepository.listByTrip(tripId), date),
-  onTripDelete: (tripId) => accommodationRepository.removeByTrip(tripId)
+  onTripDelete: (tripId) => accommodationRepository.removeByTrip(tripId),
+  sampleData: accommodationSample
 }

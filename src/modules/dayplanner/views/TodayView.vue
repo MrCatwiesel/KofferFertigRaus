@@ -15,7 +15,11 @@ const router = useRouter()
 const trips = useLiveQuery(() => tripRepository.listAll(), null as Trip[] | null)
 const today = todayIso()
 
-const running = computed(() => (trips.value ?? []).find((t) => t.startDate <= today && today <= t.endDate))
+// Eine echte Reise geht der Beispielreise vor
+const running = computed(() => {
+  const now = (trips.value ?? []).filter((t) => t.startDate <= today && today <= t.endDate)
+  return now.find((t) => !t.sample) ?? now[0]
+})
 const next = computed(() =>
   (trips.value ?? []).filter((t) => t.startDate > today).sort((a, b) => a.startDate.localeCompare(b.startDate))[0]
 )

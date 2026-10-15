@@ -90,3 +90,5 @@ registerModule(packingModule)
 - [ ] funktioniert im Flugmodus
 - [ ] Daten erscheinen im Backup-Export
 - [ ] Eintrag in `CHANGELOG.md`
+- [ ] Hilfe: Routen-Namen der neuen Seiten bei einem Thema in `src/help/topics.de.ts` unter `routes` eintragen (oder ein neues Thema schreiben) – `src/help/__tests__/topics.test.ts` prüft, dass jede Seite ein Thema hat
+- [ ] Beispielreise: wenn sinnvoll `sampleData` in der Modul-Definition (eigene `sample.ts`) – legt Beispiel-Einträge für `SampleTrip.tripId` an; Kartenpunkte über `sample.locations`

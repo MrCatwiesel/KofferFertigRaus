@@ -4,6 +4,7 @@ import { formatMoney } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { expenseRepository } from './repository'
 import { summarize } from './logic'
+import { expensesSample } from './sample'
 
 /** Modul "Ausgaben" (unterwegs). */
 export const expensesModule: AppModule = {
@@ -34,5 +35,6 @@ export const expensesModule: AppModule = {
     const [trip, list] = await Promise.all([tripRepository.get(tripId), expenseRepository.listByTrip(tripId)])
     return trip ? expenseDayFacts(list, date, trip.currency) : []
   },
-  onTripDelete: (tripId) => expenseRepository.removeByTrip(tripId)
+  onTripDelete: (tripId) => expenseRepository.removeByTrip(tripId),
+  sampleData: expensesSample
 }

@@ -160,6 +160,12 @@ async function remove() {
     </div>
 
     <ReadOnlyNote :trip-id="trip.id" />
+    <div v-if="trip.sample" class="alert alert-info d-flex flex-wrap align-items-center gap-2 py-2" data-sample-note>
+      <i class="bi bi-mortarboard" aria-hidden="true"></i>
+      <span class="flex-grow-1 small">Das ist die <strong>Beispielreise</strong> – schau dich um und ändere ruhig alles.</span>
+      <RouterLink to="/hilfe/erste-schritte" class="btn btn-sm btn-outline-primary">Hilfe</RouterLink>
+      <button v-if="canEdit(trip.id)" type="button" class="btn btn-sm btn-outline-danger" @click="remove">Beispielreise löschen</button>
+    </div>
 
     <div v-if="layout.facts" class="d-flex flex-wrap gap-2 mb-3">
       <span v-for="f in facts" :key="f.icon" class="fact"><i :class="`bi bi-${f.icon} me-1`" aria-hidden="true"></i>{{ f.value }}</span>

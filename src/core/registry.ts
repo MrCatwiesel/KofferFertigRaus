@@ -1,6 +1,7 @@
 import { sortReminders, type Reminder, type ReminderTrip } from './reminders'
 import type { Component } from 'vue'
 import type { RouteRecordRaw } from 'vue-router'
+import type { SampleTrip } from './sample'
 
 /**
  * Ein Abschnitt auf der Reise-Detailseite, den ein Modul beisteuert
@@ -185,6 +186,8 @@ export interface AppModule {
   dayLinks?: (tripId: string) => Promise<DayLink[]>
   /** Bausteine für den Tagebuch-Entwurf eines Tages (YYYY-MM-DD) */
   dayFacts?: (tripId: string, date: string) => Promise<DayFact[]>
+  /** Beispiel-Einträge für die Beispielreise anlegen (Hilfe & Einführung) */
+  sampleData?: (sample: SampleTrip) => Promise<void>
 }
 
 const modules: AppModule[] = []

@@ -74,7 +74,8 @@ onMounted(async () => {
 })
 
 const ageText = computed(() => {
-  if (!cache.value) return ''
+  // Ohne Abrufzeit (Ort gesetzt, Vorhersage noch nicht geladen – z. B. Beispielreise) kein Alter
+  if (!cache.value?.fetchedAt) return ''
   const h = Math.round((Date.now() - Date.parse(cache.value.fetchedAt)) / 3_600_000)
   return h < 1 ? 'gerade eben' : h < 24 ? `vor ${h} Std.` : `vor ${Math.round(h / 24)} Tagen`
 })

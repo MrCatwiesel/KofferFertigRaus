@@ -4,6 +4,7 @@ import { tripRepository } from '@/modules/trip/public'
 import { travelRepository } from './repository'
 import { formatDuration, summarize, totalCost } from './logic'
 import { travelReminders } from './reminders'
+import { travelSample } from './sample'
 
 /** Modul "Anreise" (Meilenstein M1). */
 export const travelModule: AppModule = {
@@ -42,5 +43,6 @@ export const travelModule: AppModule = {
     }
   },
   dayFacts: async (tripId, date) => travelDayFacts(await travelRepository.listByTrip(tripId), date),
-  onTripDelete: (tripId) => travelRepository.removeByTrip(tripId)
+  onTripDelete: (tripId) => travelRepository.removeByTrip(tripId),
+  sampleData: travelSample
 }

@@ -7,8 +7,12 @@ import { formatDate, tripPhase, tripStatusText } from '../logic'
 import type { Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
 import { canCreateTrips } from '@/core/people'
+import WelcomeCard from '@/help/WelcomeCard.vue'
+import WhatsNewHint from '@/help/WhatsNewHint.vue'
 
-const trips = useLiveQuery(() => tripRepository.listAll(), [] as Trip[])
+// null = noch nicht geladen (sonst blitzt beim Start kurz die Willkommen-Ansicht auf)
+const loaded = useLiveQuery(() => tripRepository.listAll(), null as Trip[] | null)
+const trips = computed(() => loaded.value ?? [])
 const showArchive = ref(false)
 
 /** Gruppen: unterwegs, geplant (bald zuerst), Erinnerungen (neueste zuerst), Archiv */
@@ -37,11 +41,9 @@ const archived = computed(() => trips.value.filter((t) => t.archived))
     </div>
   </div>
 
-  <div v-if="trips.length === 0" class="card text-center py-5 px-3">
-    <i class="bi bi-globe-europe-africa display-4 d-block mb-3 text-primary" aria-hidden="true"></i>
-    <p class="mb-3">Noch keine Reise angelegt.</p>
-    <div><RouterLink to="/trip/neu" class="btn btn-outline-primary">Erste Reise planen</RouterLink></div>
-  </div>
+  <WhatsNewHint />
+
+  <WelcomeCard v-if="loaded && loaded.length === 0" />
 
   <section v-for="g in groups" :key="g.id" class="mb-4">
     <h2 class="h6 text-body-secondary text-uppercase small mb-2 on-bg">{{ g.title }}</h2>

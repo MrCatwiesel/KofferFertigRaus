@@ -1,5 +1,18 @@
 # Änderungsprotokoll
 
+## 1.36.0 – 2026-10-15
+
+### Neu: Hilfe & Einführung
+- **Hilfe zu jeder Seite:** Das **?** oben rechts öffnet die passende Anleitung – zur Packliste, zur Karte, zum Geräte-Abgleich … Rund 30 Themen von „Erste Schritte“ über Planen, Unterwegs und Teilen bis zu Personen & Rechte, dazu **Häufige Fragen**
+- **Suche** in der Hilfe („offline“, „Fotos“, „Storno“ …) – Umlaute egal, Wortanfang genügt
+- **Einführung** in sieben kurzen Schritten: was die App kann, wo die Daten liegen, wie sie auf den Home-Bildschirm kommt (passend für iPad/iPhone, Android und Computer). Jederzeit wieder unter *Einstellungen → Hilfe & Einführung*
+- **Willkommen:** Ohne Reisen zeigt die Startseite statt einer leeren Liste die ersten Schritte – erste Reise planen, Beispielreise, Einführung, Daten von einem anderen Gerät holen. Auf iPad und iPhone im Browser mit Tipp zum Home-Bildschirm
+- **Beispielreise** an den Gardasee zum Ausprobieren: läuft gerade, mit Anreise, Ferienwohnung, Unternehmungen auf der Karte, Packliste, Dokumenten, Ausgaben, zwei Tagebuch-Einträgen und einer offenen Abstimmung. Oben auf ihrer Reiseseite mit einem Tipp wieder gelöscht. Sie erinnert nicht per Benachrichtigung, und bei „Heute“ geht eine echte Reise vor
+- **Was ist neu:** Nach einem Update erscheint auf der Startseite einmal ein kurzer Hinweis auf die Neuerungen; ausführlich unter *Hilfe → Was ist neu?*
+
+### Korrigiert
+- Tagesplan: Ist ein Wetter-Ort gewählt, aber noch keine Vorhersage geladen, steht dort nicht mehr „vor NaN Tagen“
+
 ## 1.35.0 – 2026-10-14 (Server 1.20.0)
 
 ### Neu: Abstimmungen

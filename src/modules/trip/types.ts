@@ -25,6 +25,8 @@ export interface Trip {
   coverY?: number
   /** Abgeschlossen und ins Archiv gelegt (in der Reiseliste eingeklappt) */
   archived?: boolean
+  /** Beispielreise aus der Einführung (Hinweis-Leiste mit „Löschen“) */
+  sample?: boolean
   /**
    * Teilnehmer-Name → Person beim Abgleich-Server (Personen & Rechte). Verknüpfte Teilnehmer haben private
    * Packliste, Medikamente, Impfungen und Dokumente.

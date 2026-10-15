@@ -19,6 +19,12 @@ export const tripRepository = {
     return trip.id
   },
 
+  /** Mit fester ID anlegen (Beispielreise: die anderen Module kennen die ID schon) */
+  async createWithId(id: string, draft: TripDraft): Promise<void> {
+    const ts = now()
+    await db.trips.add({ ...draft, id, createdAt: ts, updatedAt: ts })
+  },
+
   async update(id: string, draft: TripDraft): Promise<void> {
     await db.trips.update(id, { ...draft, updatedAt: now() })
   },

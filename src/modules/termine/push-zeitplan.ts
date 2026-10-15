@@ -16,7 +16,7 @@ const META_HASH = 'push.zeitplan.hash'
 
 export async function buildPushSchedule(now = new Date()) {
   const today = todayIso(now)
-  const trips = (await tripRepository.listAll()).filter((t) => !t.archived && t.endDate >= today)
+  const trips = (await tripRepository.listAll()).filter((t) => !t.archived && !t.sample && t.endDate >= today)
   const all: Reminder[] = []
   for (const t of trips) all.push(...(await remindersOfTrip(t, today)))
   return pushItems(all, now)

@@ -394,6 +394,28 @@ Fahrt ihr durch andere Länder (z. B. Österreich auf dem Weg nach Italien), fü
 `
     },
     {
+      id: 'sprachfuehrer',
+      title: 'Sprachführer',
+      icon: 'translate',
+      group: 'vorbereiten',
+      summary: 'Wichtige Sätze in der Landessprache – offline, zum Vorlesen und Hinhalten, mit Allergie-Karte.',
+      routes: ['phrasebook'],
+      keywords: 'sprache sätze übersetzen vokabeln landessprache restaurant notfall arzt allergie allergiekarte vorlesen aussprache griechisch italienisch französisch spanisch kroatisch',
+      body: `
+Für die **Zielländer** der Reise (auch Durchreiseländer) zeigt der Sprachführer rund 40 wichtige Sätze in der Landessprache – **Das Wichtigste**, **Im Restaurant**, **Unterwegs** und **Notfall**. Alles ist in der App gespeichert und funktioniert ohne Internet.
+
+- Jede andere Sprache lässt sich oben über **Andere Sprache** wählen: Deutsch, Englisch, Französisch, Italienisch, Spanisch, Portugiesisch, Niederländisch, Dänisch, Schwedisch, Norwegisch, Polnisch, Tschechisch, Ungarisch, Kroatisch, Slowenisch, Griechisch und Türkisch.
+- **Vorlesen** (Lautsprecher) spricht den Satz mit der Stimme des Geräts – fehlt eine Sprache, lässt sie sich in den Einstellungen von iPad/iPhone unter *Bedienungshilfen → Gesprochene Inhalte → Stimmen* laden.
+- **Groß zeigen** füllt den Bildschirm mit dem Satz – zum Hinhalten an der Theke. Tippen schließt wieder.
+- Griechisch steht zusätzlich in lateinischer Umschrift da.
+
+## Allergie-Karte
+Unter **Allergien wählen** hakst du an, wogegen du allergisch bist (Erdnüsse, Nüsse, Gluten, Milch … oder Penicillin). Daraus entsteht ein Satz in der Landessprache: „Ich habe eine Allergie gegen: … Bitte ohne diese Zutaten – das ist für mich gefährlich.“ – am besten **Groß zeigen**. Die Auswahl bleibt nur auf diesem Gerät.
+
+> Bei Notfällen hilft der Satz „Ich nehme Blutverdünner.“ – zusammen mit Notrufnummern im [Länder-Spickzettel](#/hilfe/laender).
+`
+    },
+    {
       id: 'termine',
       title: 'Termine & Fristen',
       icon: 'calendar-event',

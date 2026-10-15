@@ -1,6 +1,6 @@
 {
   "name": "koffer-fertig-raus",
-  "version": "1.39.0",
+  "version": "1.40.0",
   "private": true,
   "description": "Reise-App von der Planung über Packliste und Tagesplanung bis zu Tagebuch und Reise-Webseite. Offline zuerst.",
   "type": "module",

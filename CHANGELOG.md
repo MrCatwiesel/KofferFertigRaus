@@ -1,5 +1,15 @@
 # Änderungsprotokoll
 
+## 1.40.0 – 2026-10-15
+
+### Neu: Sprachführer
+- Neuer Bereich **Sprachführer** auf der Reiseseite (Planung und Unterwegs): rund 40 wichtige Sätze in der Landessprache der Ziel- und Durchreiseländer – Das Wichtigste, Im Restaurant, Unterwegs, Notfall. Alles in der App gespeichert, funktioniert ohne Internet
+- 17 Sprachen: Deutsch, Englisch, Französisch, Italienisch, Spanisch, Portugiesisch, Niederländisch, Dänisch, Schwedisch, Norwegisch, Polnisch, Tschechisch, Ungarisch, Kroatisch, Slowenisch, Griechisch (mit Umschrift) und Türkisch – jede lässt sich auch von Hand wählen
+- **Vorlesen** mit der Stimme des Geräts und **Groß zeigen** zum Hinhalten an der Theke
+- **Allergie-Karte:** Allergien einmal anhaken (bleibt auf dem Gerät) – die App zeigt „Ich habe eine Allergie gegen …, bitte ohne“ in der Landessprache
+- Im Notfall-Teil auch „Ich nehme Blutverdünner.“
+- Der Länder-Spickzettel verweist auf den Sprachführer
+
 ## 1.39.0 – 2026-10-15
 
 ### Neu: Abreise-Checklisten

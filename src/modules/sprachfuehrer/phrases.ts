@@ -10,7 +10,13 @@ export const PHRASE_IDS = [
 ] as const
 export type PhraseId = (typeof PHRASE_IDS)[number]
 
-export const ALLERGEN_IDS = ['peanuts', 'nuts', 'gluten', 'milk', 'eggs', 'fish', 'shellfish', 'soy', 'sesame', 'celery', 'mustard', 'penicillin'] as const
+export const ALLERGEN_IDS = [
+  // Lebensmittel (die 14 EU-Hauptallergene und weitere häufige)
+  'peanuts', 'nuts', 'gluten', 'milk', 'lactose', 'eggs', 'fish', 'shellfish', 'molluscs', 'soy', 'sesame', 'celery', 'mustard', 'lupin', 'sulphites',
+  'kiwi', 'strawberries', 'tomatoes', 'peach', 'garlic', 'onions', 'corn', 'coconut',
+  // Medikamente und Sonstiges
+  'penicillin', 'aspirin', 'ibuprofen', 'iodine', 'latex'
+] as const
 export type AllergenId = (typeof ALLERGEN_IDS)[number]
 
 /** Ausgangstexte */
@@ -68,7 +74,48 @@ export const ALLERGEN_SOURCE: Record<AllergenId, string> = {
   sesame: t('Sesam'),
   celery: t('Sellerie'),
   mustard: t('Senf'),
-  penicillin: t('Penicillin')
+  penicillin: t('Penicillin'),
+  lactose: t('Laktose'),
+  molluscs: t('Weichtiere (Muscheln, Tintenfisch)'),
+  lupin: t('Lupinen'),
+  sulphites: t('Sulfite'),
+  kiwi: t('Kiwi'),
+  strawberries: t('Erdbeeren'),
+  tomatoes: t('Tomaten'),
+  peach: t('Pfirsich'),
+  garlic: t('Knoblauch'),
+  onions: t('Zwiebeln'),
+  corn: t('Mais'),
+  coconut: t('Kokosnuss'),
+  aspirin: t('Aspirin (Acetylsalicylsäure)'),
+  ibuprofen: t('Ibuprofen'),
+  iodine: t('Jod (auch Kontrastmittel)'),
+  latex: t('Latex')
+}
+
+/** Gruppen in der Auswahl */
+export const ALLERGEN_GROUPS: { title: string; ids: AllergenId[] }[] = [
+  { title: t('Lebensmittel'), ids: ['peanuts', 'nuts', 'gluten', 'milk', 'lactose', 'eggs', 'fish', 'shellfish', 'molluscs', 'soy', 'sesame', 'celery', 'mustard', 'lupin', 'sulphites', 'kiwi', 'strawberries', 'tomatoes', 'peach', 'garlic', 'onions', 'corn', 'coconut'] },
+  { title: t('Medikamente und Sonstiges'), ids: ['penicillin', 'aspirin', 'ibuprofen', 'iodine', 'latex'] }
+]
+
+/** Weitere Wörter (deutsch und englisch, klein), die beim Eintippen auf ein bekanntes Allergen führen */
+export const ALLERGEN_SYNONYMS: Record<string, AllergenId> = {
+  erdnuss: 'peanuts', erdnüsse: 'peanuts', peanut: 'peanuts', peanuts: 'peanuts',
+  nuss: 'nuts', nüsse: 'nuts', haselnuss: 'nuts', haselnüsse: 'nuts', walnuss: 'nuts', walnüsse: 'nuts', mandeln: 'nuts', mandel: 'nuts', cashew: 'nuts', pistazien: 'nuts', nuts: 'nuts', 'tree nuts': 'nuts', almonds: 'nuts', hazelnuts: 'nuts',
+  weizen: 'gluten', glutenunverträglichkeit: 'gluten', zöliakie: 'gluten', wheat: 'gluten', coeliac: 'gluten', celiac: 'gluten',
+  milchprodukte: 'milk', milcheiweiß: 'milk', dairy: 'milk', milk: 'milk',
+  laktoseintoleranz: 'lactose', lactose: 'lactose', milchzucker: 'lactose',
+  ei: 'eggs', hühnerei: 'eggs', egg: 'eggs', eggs: 'eggs',
+  fische: 'fish', fish: 'fish',
+  krebstiere: 'shellfish', garnelen: 'shellfish', shrimps: 'shellfish', krabben: 'shellfish', hummer: 'shellfish', shellfish: 'shellfish', prawns: 'shellfish', shrimp: 'shellfish', crustaceans: 'shellfish',
+  weichtiere: 'molluscs', muscheln: 'molluscs', tintenfisch: 'molluscs', calamari: 'molluscs', schnecken: 'molluscs', molluscs: 'molluscs', mussels: 'molluscs', squid: 'molluscs',
+  sojabohnen: 'soy', soy: 'soy', soya: 'soy',
+  sesame: 'sesame', lupine: 'lupin', lupin: 'lupin', schwefel: 'sulphites', sulfit: 'sulphites', sulphites: 'sulphites', sulfites: 'sulphites',
+  celery: 'celery', mustard: 'mustard', erdbeere: 'strawberries', strawberries: 'strawberries', tomate: 'tomatoes', tomatoes: 'tomatoes',
+  pfirsiche: 'peach', peach: 'peach', garlic: 'garlic', zwiebel: 'onions', onion: 'onions', onions: 'onions', corn: 'corn', maize: 'corn',
+  kokos: 'coconut', coconut: 'coconut', penicillin: 'penicillin', penizillin: 'penicillin',
+  ass: 'aspirin', acetylsalicylsäure: 'aspirin', aspirin: 'aspirin', ibuprofen: 'ibuprofen', jod: 'iodine', kontrastmittel: 'iodine', iodine: 'iodine', latex: 'latex'
 }
 
 export interface PhraseGroup {

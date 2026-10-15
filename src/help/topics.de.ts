@@ -400,7 +400,7 @@ Fahrt ihr durch andere Länder (z. B. Österreich auf dem Weg nach Italien), fü
       group: 'vorbereiten',
       summary: 'Wichtige Sätze in der Landessprache – offline, zum Vorlesen und Hinhalten, mit Allergie-Karte.',
       routes: ['phrasebook'],
-      keywords: 'sprache sätze übersetzen vokabeln landessprache restaurant notfall arzt allergie allergiekarte vorlesen aussprache griechisch italienisch französisch spanisch kroatisch',
+      keywords: 'sprache sätze übersetzen vokabeln landessprache restaurant notfall arzt allergie allergiekarte unverträglichkeit eigene allergie vorlesen aussprache griechisch italienisch französisch spanisch kroatisch',
       body: `
 Für die **Zielländer** der Reise (auch Durchreiseländer) zeigt der Sprachführer rund 40 wichtige Sätze in der Landessprache – **Das Wichtigste**, **Im Restaurant**, **Unterwegs** und **Notfall**. Alles ist in der App gespeichert und funktioniert ohne Internet.
 
@@ -410,7 +410,9 @@ Für die **Zielländer** der Reise (auch Durchreiseländer) zeigt der Sprachfüh
 - Griechisch steht zusätzlich in lateinischer Umschrift da.
 
 ## Allergie-Karte
-Unter **Allergien wählen** hakst du an, wogegen du allergisch bist (Erdnüsse, Nüsse, Gluten, Milch … oder Penicillin). Daraus entsteht ein Satz in der Landessprache: „Ich habe eine Allergie gegen: … Bitte ohne diese Zutaten – das ist für mich gefährlich.“ – am besten **Groß zeigen**. Die Auswahl bleibt nur auf diesem Gerät.
+Unter **Allergien wählen** hakst du an, wogegen du allergisch bist – rund 30 Allergene, von Erdnüssen, Gluten und Milch über Muscheln, Kiwi und Knoblauch bis zu Penicillin, Aspirin, Jod und Latex. Daraus entsteht ein Satz in der Landessprache: „Ich habe eine Allergie gegen: … Bitte ohne diese Zutaten – das ist für mich gefährlich.“ – am besten **Groß zeigen**. Die Auswahl bleibt nur auf diesem Gerät.
+
+**Weitere Allergie** eintippen: Kennt die App das Wort (z. B. „Haselnüsse“ oder „Muscheln“), hakt sie das passende Allergen an und übersetzt es. Unbekannte Wörter (z. B. „Koriander“) landen in deiner eigenen Liste – darunter trägst du die Übersetzung für die gerade gewählte Sprache ein. Ohne Internet kann die App eigene Wörter nicht übersetzen; fehlt eine Übersetzung, steht das Wort so auf der Karte, wie du es eingegeben hast, und die App weist darauf hin.
 
 > Bei Notfällen hilft der Satz „Ich nehme Blutverdünner.“ – zusammen mit Notrufnummern im [Länder-Spickzettel](#/hilfe/laender).
 `

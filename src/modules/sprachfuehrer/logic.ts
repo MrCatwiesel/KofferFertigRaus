@@ -1,5 +1,6 @@
 import { joinList, language, t, tn } from '@/i18n'
-import { PHRASE_IDS, type AllergenId, type PhraseId } from './phrases'
+import { ALLERGEN_IDS, ALLERGEN_SOURCE, ALLERGEN_SYNONYMS, PHRASE_IDS, type AllergenId, type PhraseId } from './phrases'
+import type { CustomAllergen } from './settings'
 import type { PhraseLanguage } from './languages'
 
 /** Landessprachen je Land (nur Sprachen, die der Sprachführer kennt; mehrere = alle anbieten) */
@@ -51,13 +52,27 @@ export function phrasesIn(lang: PhraseLanguage, ids: readonly PhraseId[]): Phras
   return ids.filter((id) => !!lang.phrases[id])
 }
 
-/** Allergie-Karte in der Zielsprache (null ohne gewählte Allergene) */
-export function allergyCard(lang: PhraseLanguage, allergens: AllergenId[]): { lines: string[]; pron: string[] } | null {
-  if (!allergens.length) return null
-  const list = allergens.map((a) => lang.allergens[a]).join(', ')
+/** Allergie-Karte in der Zielsprache (null ohne Allergien). Eigene Einträge ohne Übersetzung erscheinen wie eingegeben */
+export function allergyCard(lang: PhraseLanguage, code: string, allergens: AllergenId[], custom: CustomAllergen[] = []): { lines: string[]; pron: string[]; untranslated: string[] } | null {
+  if (!allergens.length && !custom.length) return null
+  const own = custom.map((c) => c.tr[code]?.trim() || c.text)
+  const list = [...allergens.map((a) => lang.allergens[a]), ...own].join(', ')
   const lines = [lang.phrases.allergic ?? '', list, lang.phrases.without ?? ''].filter(Boolean)
-  const pron = lang.pron ? [lang.pron.phrases.allergic ?? '', allergens.map((a) => lang.pron!.allergens[a]).join(', '), lang.pron.phrases.without ?? ''].filter(Boolean) : []
-  return { lines, pron }
+  const pron = lang.pron ? [lang.pron.phrases.allergic ?? '', [...allergens.map((a) => lang.pron!.allergens[a]), ...own].join(', '), lang.pron.phrases.without ?? ''].filter(Boolean) : []
+  return { lines, pron, untranslated: custom.filter((c) => !c.tr[code]?.trim()).map((c) => c.text) }
+}
+
+const fold = (s: string) => s.trim().toLocaleLowerCase()
+
+/** Eingetipptes Wort → bekanntes Allergen (Name in der Sprache der App, deutsche/englische Synonyme), sonst null */
+export function matchAllergen(text: string): AllergenId | null {
+  const x = fold(text)
+  if (!x) return null
+  const byName = ALLERGEN_IDS.find((a) => {
+    const name = fold(ALLERGEN_SOURCE[a])
+    return name === x || name.replace(/\s*\(.*\)$/, '') === x
+  })
+  return byName ?? ALLERGEN_SYNONYMS[x] ?? null
 }
 
 /** Kurzfassung für die Reiseseite */

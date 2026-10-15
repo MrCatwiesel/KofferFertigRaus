@@ -396,7 +396,7 @@ If you drive through other countries (e.g. Austria on the way to Italy), add the
       group: 'vorbereiten',
       summary: 'Key phrases in the local language – offline, to read aloud and hold up, with an allergy card.',
       routes: ['phrasebook'],
-      keywords: 'language phrases translate vocabulary local language restaurant emergency doctor allergy allergy card read aloud pronunciation greek italian french spanish croatian german',
+      keywords: 'language phrases translate vocabulary local language restaurant emergency doctor allergy allergy card intolerance own allergy read aloud pronunciation greek italian french spanish croatian german',
       body: `
 For the trip's **destination countries** (including transit countries), the phrasebook shows about 40 key phrases in the local language – **Essentials**, **At the restaurant**, **On the road** and **Emergency**. Everything is stored in the app and works without internet.
 
@@ -406,7 +406,9 @@ For the trip's **destination countries** (including transit countries), the phra
 - Greek is also shown in Latin transliteration.
 
 ## Allergy card
-Under **Choose allergies**, tick what you are allergic to (peanuts, nuts, gluten, milk … or penicillin). This creates a sentence in the local language: “I am allergic to: … Please make it without these – they are dangerous for me.” – best used with **Show large**. Your choice stays on this device only.
+Under **Choose allergies**, tick what you are allergic to – around 30 allergens, from peanuts, gluten and milk to mussels, kiwi and garlic, as well as penicillin, aspirin, iodine and latex. This creates a sentence in the local language: “I am allergic to: … Please make it without these – they are dangerous for me.” – best used with **Show large**. Your choice stays on this device only.
+
+Type **Another allergy**: if the app knows the word (e.g. “hazelnuts” or “mussels”), it ticks the matching allergen and translates it. Unknown words (e.g. “coriander”) go on your own list – underneath you enter the translation for the language currently selected. Without internet the app cannot translate your own words; if a translation is missing, the word appears on the card as you typed it and the app points this out.
 
 > In an emergency the phrase “I take blood thinners.” helps – together with the emergency numbers in the [Country cheat sheet](#/hilfe/laender).
 `

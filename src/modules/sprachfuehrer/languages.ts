@@ -27,7 +27,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Call the police!', bloodThinner: 'I take blood thinners.', allergic: 'I am allergic to:', without: 'Please make it without these – they are dangerous for me.',
       contains: 'Does this contain any of these?'
     },
-    allergens: { peanuts: 'peanuts', nuts: 'tree nuts', gluten: 'gluten', milk: 'milk', eggs: 'eggs', fish: 'fish', shellfish: 'shellfish', soy: 'soy', sesame: 'sesame', celery: 'celery', mustard: 'mustard', penicillin: 'penicillin' }
+    allergens: { peanuts: 'peanuts', nuts: 'tree nuts', gluten: 'gluten', milk: 'milk', eggs: 'eggs', fish: 'fish', shellfish: 'shellfish', soy: 'soy', sesame: 'sesame', celery: 'celery', mustard: 'mustard', penicillin: 'penicillin', lactose: 'lactose', molluscs: 'molluscs (mussels, squid)', lupin: 'lupin', sulphites: 'sulphites', kiwi: 'kiwi', strawberries: 'strawberries', tomatoes: 'tomatoes', peach: 'peach', garlic: 'garlic', onions: 'onions', corn: 'corn', coconut: 'coconut', aspirin: 'aspirin', ibuprofen: 'ibuprofen', iodine: 'iodine (also contrast agents)', latex: 'latex' }
   },
   de: {
     speech: 'de-DE',
@@ -41,7 +41,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Rufen Sie die Polizei!', bloodThinner: 'Ich nehme Blutverdünner.', allergic: 'Ich habe eine Allergie gegen:', without: 'Bitte ohne diese Zutaten – das ist für mich gefährlich.',
       contains: 'Ist davon etwas enthalten?'
     },
-    allergens: { peanuts: 'Erdnüsse', nuts: 'Schalenfrüchte (Nüsse)', gluten: 'Gluten', milk: 'Milch', eggs: 'Eier', fish: 'Fisch', shellfish: 'Meeresfrüchte', soy: 'Soja', sesame: 'Sesam', celery: 'Sellerie', mustard: 'Senf', penicillin: 'Penicillin' }
+    allergens: { peanuts: 'Erdnüsse', nuts: 'Schalenfrüchte (Nüsse)', gluten: 'Gluten', milk: 'Milch', eggs: 'Eier', fish: 'Fisch', shellfish: 'Meeresfrüchte', soy: 'Soja', sesame: 'Sesam', celery: 'Sellerie', mustard: 'Senf', penicillin: 'Penicillin', lactose: 'Laktose', molluscs: 'Weichtiere (Muscheln, Tintenfisch)', lupin: 'Lupinen', sulphites: 'Sulfite', kiwi: 'Kiwi', strawberries: 'Erdbeeren', tomatoes: 'Tomaten', peach: 'Pfirsich', garlic: 'Knoblauch', onions: 'Zwiebeln', corn: 'Mais', coconut: 'Kokosnuss', aspirin: 'Aspirin (Acetylsalicylsäure)', ibuprofen: 'Ibuprofen', iodine: 'Jod (auch Kontrastmittel)', latex: 'Latex' }
   },
   fr: {
     speech: 'fr-FR',
@@ -55,7 +55,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Appelez la police !', bloodThinner: 'Je prends des anticoagulants.', allergic: 'J’ai une allergie à :', without: 'Merci de préparer sans ces ingrédients – c’est dangereux pour moi.',
       contains: 'Est-ce que cela en contient ?'
     },
-    allergens: { peanuts: 'arachides', nuts: 'fruits à coque', gluten: 'gluten', milk: 'lait', eggs: 'œufs', fish: 'poisson', shellfish: 'fruits de mer', soy: 'soja', sesame: 'sésame', celery: 'céleri', mustard: 'moutarde', penicillin: 'pénicilline' }
+    allergens: { peanuts: 'arachides', nuts: 'fruits à coque', gluten: 'gluten', milk: 'lait', eggs: 'œufs', fish: 'poisson', shellfish: 'fruits de mer', soy: 'soja', sesame: 'sésame', celery: 'céleri', mustard: 'moutarde', penicillin: 'pénicilline', lactose: 'lactose', molluscs: 'mollusques (moules, calamars)', lupin: 'lupin', sulphites: 'sulfites', kiwi: 'kiwi', strawberries: 'fraises', tomatoes: 'tomates', peach: 'pêche', garlic: 'ail', onions: 'oignons', corn: 'maïs', coconut: 'noix de coco', aspirin: 'aspirine', ibuprofen: 'ibuprofène', iodine: 'iode (aussi produits de contraste)', latex: 'latex' }
   },
   it: {
     speech: 'it-IT',
@@ -69,7 +69,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Chiami la polizia!', bloodThinner: 'Prendo anticoagulanti.', allergic: 'Ho un’allergia a:', without: 'Per favore senza questi ingredienti – per me è pericoloso.',
       contains: 'Contiene qualcuno di questi?'
     },
-    allergens: { peanuts: 'arachidi', nuts: 'frutta a guscio', gluten: 'glutine', milk: 'latte', eggs: 'uova', fish: 'pesce', shellfish: 'frutti di mare', soy: 'soia', sesame: 'sesamo', celery: 'sedano', mustard: 'senape', penicillin: 'penicillina' }
+    allergens: { peanuts: 'arachidi', nuts: 'frutta a guscio', gluten: 'glutine', milk: 'latte', eggs: 'uova', fish: 'pesce', shellfish: 'frutti di mare', soy: 'soia', sesame: 'sesamo', celery: 'sedano', mustard: 'senape', penicillin: 'penicillina', lactose: 'lattosio', molluscs: 'molluschi (cozze, calamari)', lupin: 'lupini', sulphites: 'solfiti', kiwi: 'kiwi', strawberries: 'fragole', tomatoes: 'pomodori', peach: 'pesca', garlic: 'aglio', onions: 'cipolle', corn: 'mais', coconut: 'cocco', aspirin: 'aspirina', ibuprofen: 'ibuprofene', iodine: 'iodio (anche mezzi di contrasto)', latex: 'lattice' }
   },
   es: {
     speech: 'es-ES',
@@ -83,7 +83,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: '¡Llame a la policía!', bloodThinner: 'Tomo anticoagulantes.', allergic: 'Tengo alergia a:', without: 'Por favor, sin estos ingredientes – es peligroso para mí.',
       contains: '¿Lleva alguno de estos?'
     },
-    allergens: { peanuts: 'cacahuetes', nuts: 'frutos de cáscara', gluten: 'gluten', milk: 'leche', eggs: 'huevos', fish: 'pescado', shellfish: 'marisco', soy: 'soja', sesame: 'sésamo', celery: 'apio', mustard: 'mostaza', penicillin: 'penicilina' }
+    allergens: { peanuts: 'cacahuetes', nuts: 'frutos de cáscara', gluten: 'gluten', milk: 'leche', eggs: 'huevos', fish: 'pescado', shellfish: 'marisco', soy: 'soja', sesame: 'sésamo', celery: 'apio', mustard: 'mostaza', penicillin: 'penicilina', lactose: 'lactosa', molluscs: 'moluscos (mejillones, calamares)', lupin: 'altramuces', sulphites: 'sulfitos', kiwi: 'kiwi', strawberries: 'fresas', tomatoes: 'tomates', peach: 'melocotón', garlic: 'ajo', onions: 'cebolla', corn: 'maíz', coconut: 'coco', aspirin: 'aspirina', ibuprofen: 'ibuprofeno', iodine: 'yodo (también contrastes)', latex: 'látex' }
   },
   pt: {
     speech: 'pt-PT',
@@ -97,7 +97,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Chame a polícia!', bloodThinner: 'Tomo anticoagulantes.', allergic: 'Tenho alergia a:', without: 'Por favor, sem estes ingredientes – é perigoso para mim.',
       contains: 'Isto contém algum destes?'
     },
-    allergens: { peanuts: 'amendoins', nuts: 'frutos de casca rija', gluten: 'glúten', milk: 'leite', eggs: 'ovos', fish: 'peixe', shellfish: 'marisco', soy: 'soja', sesame: 'sésamo', celery: 'aipo', mustard: 'mostarda', penicillin: 'penicilina' }
+    allergens: { peanuts: 'amendoins', nuts: 'frutos de casca rija', gluten: 'glúten', milk: 'leite', eggs: 'ovos', fish: 'peixe', shellfish: 'marisco', soy: 'soja', sesame: 'sésamo', celery: 'aipo', mustard: 'mostarda', penicillin: 'penicilina', lactose: 'lactose', molluscs: 'moluscos (mexilhões, lulas)', lupin: 'tremoço', sulphites: 'sulfitos', kiwi: 'kiwi', strawberries: 'morangos', tomatoes: 'tomate', peach: 'pêssego', garlic: 'alho', onions: 'cebola', corn: 'milho', coconut: 'coco', aspirin: 'aspirina', ibuprofen: 'ibuprofeno', iodine: 'iodo (também contrastes)', latex: 'látex' }
   },
   nl: {
     speech: 'nl-NL',
@@ -111,7 +111,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Bel de politie!', bloodThinner: 'Ik gebruik bloedverdunners.', allergic: 'Ik ben allergisch voor:', without: 'Graag zonder deze ingrediënten – dat is gevaarlijk voor mij.',
       contains: 'Zit hier een van deze in?'
     },
-    allergens: { peanuts: 'pinda’s', nuts: 'noten', gluten: 'gluten', milk: 'melk', eggs: 'eieren', fish: 'vis', shellfish: 'schaaldieren', soy: 'soja', sesame: 'sesam', celery: 'selderij', mustard: 'mosterd', penicillin: 'penicilline' }
+    allergens: { peanuts: 'pinda’s', nuts: 'noten', gluten: 'gluten', milk: 'melk', eggs: 'eieren', fish: 'vis', shellfish: 'schaaldieren', soy: 'soja', sesame: 'sesam', celery: 'selderij', mustard: 'mosterd', penicillin: 'penicilline', lactose: 'lactose', molluscs: 'weekdieren (mosselen, inktvis)', lupin: 'lupine', sulphites: 'sulfiet', kiwi: 'kiwi', strawberries: 'aardbeien', tomatoes: 'tomaten', peach: 'perzik', garlic: 'knoflook', onions: 'uien', corn: 'maïs', coconut: 'kokosnoot', aspirin: 'aspirine', ibuprofen: 'ibuprofen', iodine: 'jodium (ook contrastmiddel)', latex: 'latex' }
   },
   da: {
     speech: 'da-DK',
@@ -125,7 +125,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Ring til politiet!', bloodThinner: 'Jeg tager blodfortyndende medicin.', allergic: 'Jeg er allergisk over for:', without: 'Uden disse ingredienser, tak – det er farligt for mig.',
       contains: 'Er der noget af dette i?'
     },
-    allergens: { peanuts: 'jordnødder', nuts: 'nødder', gluten: 'gluten', milk: 'mælk', eggs: 'æg', fish: 'fisk', shellfish: 'skaldyr', soy: 'soja', sesame: 'sesam', celery: 'selleri', mustard: 'sennep', penicillin: 'penicillin' }
+    allergens: { peanuts: 'jordnødder', nuts: 'nødder', gluten: 'gluten', milk: 'mælk', eggs: 'æg', fish: 'fisk', shellfish: 'skaldyr', soy: 'soja', sesame: 'sesam', celery: 'selleri', mustard: 'sennep', penicillin: 'penicillin', lactose: 'laktose', molluscs: 'bløddyr (muslinger, blæksprutte)', lupin: 'lupin', sulphites: 'sulfitter', kiwi: 'kiwi', strawberries: 'jordbær', tomatoes: 'tomater', peach: 'fersken', garlic: 'hvidløg', onions: 'løg', corn: 'majs', coconut: 'kokos', aspirin: 'aspirin', ibuprofen: 'ibuprofen', iodine: 'jod (også kontrastmiddel)', latex: 'latex' }
   },
   sv: {
     speech: 'sv-SE',
@@ -139,7 +139,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Ring polisen!', bloodThinner: 'Jag tar blodförtunnande medicin.', allergic: 'Jag är allergisk mot:', without: 'Utan dessa ingredienser, tack – det är farligt för mig.',
       contains: 'Innehåller det här något av detta?'
     },
-    allergens: { peanuts: 'jordnötter', nuts: 'nötter', gluten: 'gluten', milk: 'mjölk', eggs: 'ägg', fish: 'fisk', shellfish: 'skaldjur', soy: 'soja', sesame: 'sesam', celery: 'selleri', mustard: 'senap', penicillin: 'penicillin' }
+    allergens: { peanuts: 'jordnötter', nuts: 'nötter', gluten: 'gluten', milk: 'mjölk', eggs: 'ägg', fish: 'fisk', shellfish: 'skaldjur', soy: 'soja', sesame: 'sesam', celery: 'selleri', mustard: 'senap', penicillin: 'penicillin', lactose: 'laktos', molluscs: 'blötdjur (musslor, bläckfisk)', lupin: 'lupin', sulphites: 'sulfiter', kiwi: 'kiwi', strawberries: 'jordgubbar', tomatoes: 'tomater', peach: 'persika', garlic: 'vitlök', onions: 'lök', corn: 'majs', coconut: 'kokos', aspirin: 'acetylsalicylsyra (Aspirin)', ibuprofen: 'ibuprofen', iodine: 'jod (även kontrastmedel)', latex: 'latex' }
   },
   no: {
     speech: 'nb-NO',
@@ -153,7 +153,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Ring politiet!', bloodThinner: 'Jeg bruker blodfortynnende medisin.', allergic: 'Jeg er allergisk mot:', without: 'Uten disse ingrediensene, takk – det er farlig for meg.',
       contains: 'Inneholder dette noe av dette?'
     },
-    allergens: { peanuts: 'peanøtter', nuts: 'nøtter', gluten: 'gluten', milk: 'melk', eggs: 'egg', fish: 'fisk', shellfish: 'skalldyr', soy: 'soya', sesame: 'sesam', celery: 'selleri', mustard: 'sennep', penicillin: 'penicillin' }
+    allergens: { peanuts: 'peanøtter', nuts: 'nøtter', gluten: 'gluten', milk: 'melk', eggs: 'egg', fish: 'fisk', shellfish: 'skalldyr', soy: 'soya', sesame: 'sesam', celery: 'selleri', mustard: 'sennep', penicillin: 'penicillin', lactose: 'laktose', molluscs: 'bløtdyr (blåskjell, blekksprut)', lupin: 'lupin', sulphites: 'sulfitter', kiwi: 'kiwi', strawberries: 'jordbær', tomatoes: 'tomater', peach: 'fersken', garlic: 'hvitløk', onions: 'løk', corn: 'mais', coconut: 'kokos', aspirin: 'acetylsalisylsyre (Aspirin)', ibuprofen: 'ibuprofen', iodine: 'jod (også kontrastmiddel)', latex: 'lateks' }
   },
   pl: {
     speech: 'pl-PL',
@@ -167,7 +167,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Proszę wezwać policję!', bloodThinner: 'Biorę leki przeciwzakrzepowe.', allergic: 'Mam alergię na:', without: 'Proszę bez tych składników – to dla mnie niebezpieczne.',
       contains: 'Czy to zawiera któryś z tych składników?'
     },
-    allergens: { peanuts: 'orzeszki ziemne', nuts: 'orzechy', gluten: 'gluten', milk: 'mleko', eggs: 'jajka', fish: 'ryby', shellfish: 'owoce morza', soy: 'soja', sesame: 'sezam', celery: 'seler', mustard: 'gorczyca', penicillin: 'penicylina' }
+    allergens: { peanuts: 'orzeszki ziemne', nuts: 'orzechy', gluten: 'gluten', milk: 'mleko', eggs: 'jajka', fish: 'ryby', shellfish: 'owoce morza', soy: 'soja', sesame: 'sezam', celery: 'seler', mustard: 'gorczyca', penicillin: 'penicylina', lactose: 'laktoza', molluscs: 'mięczaki (małże, kalmary)', lupin: 'łubin', sulphites: 'siarczyny', kiwi: 'kiwi', strawberries: 'truskawki', tomatoes: 'pomidory', peach: 'brzoskwinie', garlic: 'czosnek', onions: 'cebula', corn: 'kukurydza', coconut: 'kokos', aspirin: 'aspiryna', ibuprofen: 'ibuprofen', iodine: 'jod (także środki kontrastowe)', latex: 'lateks' }
   },
   cs: {
     speech: 'cs-CZ',
@@ -181,7 +181,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Zavolejte policii!', bloodThinner: 'Beru léky na ředění krve.', allergic: 'Mám alergii na:', without: 'Prosím bez těchto surovin – je to pro mě nebezpečné.',
       contains: 'Obsahuje to něco z tohoto?'
     },
-    allergens: { peanuts: 'arašídy', nuts: 'ořechy', gluten: 'lepek', milk: 'mléko', eggs: 'vejce', fish: 'ryby', shellfish: 'mořské plody', soy: 'sója', sesame: 'sezam', celery: 'celer', mustard: 'hořčice', penicillin: 'penicilin' }
+    allergens: { peanuts: 'arašídy', nuts: 'ořechy', gluten: 'lepek', milk: 'mléko', eggs: 'vejce', fish: 'ryby', shellfish: 'mořské plody', soy: 'sója', sesame: 'sezam', celery: 'celer', mustard: 'hořčice', penicillin: 'penicilin', lactose: 'laktóza', molluscs: 'měkkýši (mušle, chobotnice)', lupin: 'vlčí bob (lupina)', sulphites: 'siřičitany', kiwi: 'kiwi', strawberries: 'jahody', tomatoes: 'rajčata', peach: 'broskve', garlic: 'česnek', onions: 'cibule', corn: 'kukuřice', coconut: 'kokos', aspirin: 'aspirin (kyselina acetylsalicylová)', ibuprofen: 'ibuprofen', iodine: 'jód (i kontrastní látky)', latex: 'latex' }
   },
   hu: {
     speech: 'hu-HU',
@@ -195,7 +195,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Hívja a rendőrséget!', bloodThinner: 'Véralvadásgátlót szedek.', allergic: 'Allergiás vagyok a következőkre:', without: 'Kérem, ezek nélkül – számomra veszélyes.',
       contains: 'Tartalmaz ezek közül valamit?'
     },
-    allergens: { peanuts: 'földimogyoró', nuts: 'diófélék', gluten: 'glutén', milk: 'tej', eggs: 'tojás', fish: 'hal', shellfish: 'tenger gyümölcsei', soy: 'szója', sesame: 'szezám', celery: 'zeller', mustard: 'mustár', penicillin: 'penicillin' }
+    allergens: { peanuts: 'földimogyoró', nuts: 'diófélék', gluten: 'glutén', milk: 'tej', eggs: 'tojás', fish: 'hal', shellfish: 'tenger gyümölcsei', soy: 'szója', sesame: 'szezám', celery: 'zeller', mustard: 'mustár', penicillin: 'penicillin', lactose: 'laktóz', molluscs: 'puhatestűek (kagyló, tintahal)', lupin: 'csillagfürt', sulphites: 'szulfitok', kiwi: 'kivi', strawberries: 'eper', tomatoes: 'paradicsom', peach: 'őszibarack', garlic: 'fokhagyma', onions: 'hagyma', corn: 'kukorica', coconut: 'kókusz', aspirin: 'aszpirin', ibuprofen: 'ibuprofén', iodine: 'jód (kontrasztanyag is)', latex: 'latex' }
   },
   hr: {
     speech: 'hr-HR',
@@ -209,7 +209,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Zovite policiju!', bloodThinner: 'Uzimam lijekove za razrjeđivanje krvi.', allergic: 'Imam alergiju na:', without: 'Molim bez ovih sastojaka – to je za mene opasno.',
       contains: 'Sadrži li ovo nešto od toga?'
     },
-    allergens: { peanuts: 'kikiriki', nuts: 'orašasti plodovi', gluten: 'gluten', milk: 'mlijeko', eggs: 'jaja', fish: 'riba', shellfish: 'plodovi mora', soy: 'soja', sesame: 'sezam', celery: 'celer', mustard: 'senf', penicillin: 'penicilin' }
+    allergens: { peanuts: 'kikiriki', nuts: 'orašasti plodovi', gluten: 'gluten', milk: 'mlijeko', eggs: 'jaja', fish: 'riba', shellfish: 'plodovi mora', soy: 'soja', sesame: 'sezam', celery: 'celer', mustard: 'senf', penicillin: 'penicilin', lactose: 'laktoza', molluscs: 'mekušci (dagnje, lignje)', lupin: 'lupina', sulphites: 'sulfiti', kiwi: 'kivi', strawberries: 'jagode', tomatoes: 'rajčica', peach: 'breskva', garlic: 'češnjak', onions: 'luk', corn: 'kukuruz', coconut: 'kokos', aspirin: 'aspirin', ibuprofen: 'ibuprofen', iodine: 'jod (i kontrastna sredstva)', latex: 'lateks' }
   },
   sl: {
     speech: 'sl-SI',
@@ -223,7 +223,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Pokličite policijo!', bloodThinner: 'Jemljem zdravila za redčenje krvi.', allergic: 'Imam alergijo na:', without: 'Prosim brez teh sestavin – zame je nevarno.',
       contains: 'Ali to vsebuje kaj od tega?'
     },
-    allergens: { peanuts: 'arašidi', nuts: 'oreščki', gluten: 'gluten', milk: 'mleko', eggs: 'jajca', fish: 'ribe', shellfish: 'morski sadeži', soy: 'soja', sesame: 'sezam', celery: 'zelena', mustard: 'gorčica', penicillin: 'penicilin' }
+    allergens: { peanuts: 'arašidi', nuts: 'oreščki', gluten: 'gluten', milk: 'mleko', eggs: 'jajca', fish: 'ribe', shellfish: 'morski sadeži', soy: 'soja', sesame: 'sezam', celery: 'zelena', mustard: 'gorčica', penicillin: 'penicilin', lactose: 'laktoza', molluscs: 'mehkužci (školjke, lignji)', lupin: 'volčji bob', sulphites: 'sulfiti', kiwi: 'kivi', strawberries: 'jagode', tomatoes: 'paradižnik', peach: 'breskev', garlic: 'česen', onions: 'čebula', corn: 'koruza', coconut: 'kokos', aspirin: 'aspirin', ibuprofen: 'ibuprofen', iodine: 'jod (tudi kontrastna sredstva)', latex: 'lateks' }
   },
   el: {
     speech: 'el-GR',
@@ -237,7 +237,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Καλέστε την αστυνομία!', bloodThinner: 'Παίρνω αντιπηκτικά.', allergic: 'Έχω αλλεργία σε:', without: 'Χωρίς αυτά τα υλικά, παρακαλώ – είναι επικίνδυνο για μένα.',
       contains: 'Περιέχει κάποιο από αυτά;'
     },
-    allergens: { peanuts: 'αράπικα φιστίκια', nuts: 'ξηροί καρποί', gluten: 'γλουτένη', milk: 'γάλα', eggs: 'αυγά', fish: 'ψάρι', shellfish: 'θαλασσινά', soy: 'σόγια', sesame: 'σουσάμι', celery: 'σέλινο', mustard: 'μουστάρδα', penicillin: 'πενικιλίνη' },
+    allergens: { peanuts: 'αράπικα φιστίκια', nuts: 'ξηροί καρποί', gluten: 'γλουτένη', milk: 'γάλα', eggs: 'αυγά', fish: 'ψάρι', shellfish: 'θαλασσινά', soy: 'σόγια', sesame: 'σουσάμι', celery: 'σέλινο', mustard: 'μουστάρδα', penicillin: 'πενικιλίνη', lactose: 'λακτόζη', molluscs: 'μαλάκια (μύδια, καλαμάρια)', lupin: 'λούπινο', sulphites: 'θειώδη', kiwi: 'ακτινίδιο', strawberries: 'φράουλες', tomatoes: 'ντομάτες', peach: 'ροδάκινο', garlic: 'σκόρδο', onions: 'κρεμμύδι', corn: 'καλαμπόκι', coconut: 'καρύδα', aspirin: 'ασπιρίνη', ibuprofen: 'ιβουπροφαίνη', iodine: 'ιώδιο (και σκιαγραφικά)', latex: 'λάτεξ' },
     pron: {
       phrases: {
         hello: 'Ja sas', morning: 'Kaliméra', evening: 'Kalispéra', bye: 'Adío sas', please: 'Parakaló', thanks: 'Efcharistó', thanksMuch: 'Efcharistó polí',
@@ -249,7 +249,7 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
         police: 'Kaléste tin astinomía!', bloodThinner: 'Pérno antipiktiká.', allergic: 'Écho alerjía se:', without: 'Chorís aftá ta iliká, parakaló – íne epikíndino ja ména.',
         contains: 'Periéchi kápio apó aftá?'
       },
-      allergens: { peanuts: 'arápika fistíkia', nuts: 'xirí karpí', gluten: 'gluténi', milk: 'gála', eggs: 'awgá', fish: 'psári', shellfish: 'thalassiná', soy: 'sója', sesame: 'susámi', celery: 'sélino', mustard: 'mustárda', penicillin: 'penikilíni' }
+      allergens: { peanuts: 'arápika fistíkia', nuts: 'xirí karpí', gluten: 'gluténi', milk: 'gála', eggs: 'awgá', fish: 'psári', shellfish: 'thalassiná', soy: 'sója', sesame: 'susámi', celery: 'sélino', mustard: 'mustárda', penicillin: 'penikilíni', lactose: 'laktósi', molluscs: 'malákia (mídia, kalamária)', lupin: 'lúpino', sulphites: 'thiódi', kiwi: 'aktinídio', strawberries: 'fráules', tomatoes: 'domátes', peach: 'rodákino', garlic: 'skórdo', onions: 'kremídi', corn: 'kalambóki', coconut: 'karída', aspirin: 'aspiríni', ibuprofen: 'ivuprofaíni', iodine: 'iódio (ke skiagrafiká)', latex: 'látex' }
     }
   },
   tr: {
@@ -264,6 +264,6 @@ export const LANGUAGES: Record<string, PhraseLanguage> = {
       police: 'Polis çağırın!', bloodThinner: 'Kan sulandırıcı ilaç kullanıyorum.', allergic: 'Şunlara alerjim var:', without: 'Lütfen bunlar olmadan – benim için tehlikeli.',
       contains: 'Bunlardan herhangi birini içeriyor mu?'
     },
-    allergens: { peanuts: 'yer fıstığı', nuts: 'kabuklu yemişler', gluten: 'gluten', milk: 'süt', eggs: 'yumurta', fish: 'balık', shellfish: 'deniz ürünleri', soy: 'soya', sesame: 'susam', celery: 'kereviz', mustard: 'hardal', penicillin: 'penisilin' }
+    allergens: { peanuts: 'yer fıstığı', nuts: 'kabuklu yemişler', gluten: 'gluten', milk: 'süt', eggs: 'yumurta', fish: 'balık', shellfish: 'deniz ürünleri', soy: 'soya', sesame: 'susam', celery: 'kereviz', mustard: 'hardal', penicillin: 'penisilin', lactose: 'laktoz', molluscs: 'yumuşakçalar (midye, kalamar)', lupin: 'acı bakla (lupin)', sulphites: 'sülfitler', kiwi: 'kivi', strawberries: 'çilek', tomatoes: 'domates', peach: 'şeftali', garlic: 'sarımsak', onions: 'soğan', corn: 'mısır', coconut: 'hindistan cevizi', aspirin: 'aspirin', ibuprofen: 'ibuprofen', iodine: 'iyot (kontrast madde dahil)', latex: 'lateks' }
   }
 }

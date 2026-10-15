@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { allCountries } from '@/core/countries'
-import { ALLERGEN_IDS, GROUPS, PHRASE_IDS, SOURCE } from '../phrases'
+import { ALLERGEN_GROUPS, ALLERGEN_IDS, ALLERGEN_SYNONYMS, GROUPS, PHRASE_IDS, SOURCE } from '../phrases'
 import { LANGUAGES } from '../languages'
-import { LANGUAGE_OF_COUNTRY, allergyCard, nearbyNote, phrasebookSummary, phrasesIn, tripLanguages } from '../logic'
+import { LANGUAGE_OF_COUNTRY, allergyCard, matchAllergen, nearbyNote, phrasebookSummary, phrasesIn, tripLanguages } from '../logic'
 
 describe('Sätze', () => {
   it('jede Gruppe nutzt bekannte Sätze, jeder Satz steht in einer Gruppe oder auf der Allergie-Karte', () => {
@@ -59,11 +59,39 @@ describe('Länder und Sprachen', () => {
 
 describe('Allergie-Karte und Kurzfassung', () => {
   it('Karte in der Zielsprache, mit Umschrift', () => {
-    expect(allergyCard(LANGUAGES.it, [])).toBeNull()
-    expect(allergyCard(LANGUAGES.it, ['peanuts', 'gluten'])!.lines).toEqual(['Ho un’allergia a:', 'arachidi, glutine', 'Per favore senza questi ingredienti – per me è pericoloso.'])
-    const el = allergyCard(LANGUAGES.el, ['milk'])!
-    expect(el.lines[1]).toBe('γάλα')
-    expect(el.pron[1]).toBe('gála')
+    expect(allergyCard(LANGUAGES.it, 'it', [])).toBeNull()
+    expect(allergyCard(LANGUAGES.it, 'it', ['peanuts', 'gluten'])!.lines).toEqual(['Ho un’allergia a:', 'arachidi, glutine', 'Per favore senza questi ingredienti – per me è pericoloso.'])
+    const el = allergyCard(LANGUAGES.el, 'el', ['milk', 'kiwi'])!
+    expect(el.lines[1]).toBe('γάλα, ακτινίδιο')
+    expect(el.pron[1]).toBe('gála, aktinídio')
+  })
+  it('eigene Allergien: übersetzt, sonst wie eingegeben – und gemeldet', () => {
+    const own = [
+      { id: 'a', text: 'Koriander', tr: { it: 'coriandolo' } },
+      { id: 'b', text: 'Fenchel', tr: { it: '  ' } }
+    ]
+    const it = allergyCard(LANGUAGES.it, 'it', ['eggs'], own)!
+    expect(it.lines[1]).toBe('uova, coriandolo, Fenchel')
+    expect(it.untranslated).toEqual(['Fenchel'])
+    const fr = allergyCard(LANGUAGES.fr, 'fr', [], own)!
+    expect(fr.lines[1]).toBe('Koriander, Fenchel')
+    expect(fr.untranslated).toEqual(['Koriander', 'Fenchel'])
+    expect(allergyCard(LANGUAGES.el, 'el', ['milk'], own)!.pron[1]).toBe('gála, Koriander, Fenchel')
+  })
+  it('Eintippen findet bekannte Allergene über Namen und Synonyme', () => {
+    expect(matchAllergen('Erdnüsse')).toBe('peanuts')
+    expect(matchAllergen(' haselnüsse ')).toBe('nuts')
+    expect(matchAllergen('Muscheln')).toBe('molluscs')
+    expect(matchAllergen('Weichtiere')).toBe('molluscs') // Name ohne Klammerzusatz
+    expect(matchAllergen('ASS')).toBe('aspirin')
+    expect(matchAllergen('shrimp')).toBe('shellfish')
+    expect(matchAllergen('Koriander')).toBeNull()
+    expect(matchAllergen('')).toBeNull()
+  })
+  it('alle Synonyme zeigen auf bekannte Allergene, Gruppen enthalten jedes genau einmal', () => {
+    for (const id of Object.values(ALLERGEN_SYNONYMS)) expect(ALLERGEN_IDS).toContain(id)
+    const grouped = ALLERGEN_GROUPS.flatMap((g) => g.ids)
+    expect([...grouped].sort()).toEqual([...ALLERGEN_IDS].sort())
   })
   it('fehlende Sätze werden ausgelassen', () => {
     expect(phrasesIn(LANGUAGES.en, ['hello', 'english'])).toEqual(['hello'])

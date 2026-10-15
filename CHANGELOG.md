@@ -1,5 +1,13 @@
 # Änderungsprotokoll
 
+## 1.42.0 – 2026-10-15
+
+### Neu: Eigene Allergien im Sprachführer
+- **Weitere Allergie eintippen:** Kennt die App das Wort (auch „Haselnüsse“, „Muscheln“, „ASS“ …), hakt sie das passende Allergen an und übersetzt es in alle 17 Sprachen
+- Unbekannte Wörter (z. B. „Koriander“) kommen in eine eigene Liste; die Übersetzung trägst du je Sprache selbst ein. Fehlt sie, steht das Wort so auf der Karte, wie es eingegeben wurde – mit Hinweis
+- Mehr eingebaute Allergene, jetzt rund 30 in zwei Gruppen: alle 14 EU-Hauptallergene (neu: Weichtiere, Lupinen, Sulfite), dazu Laktose, Kiwi, Erdbeeren, Tomaten, Pfirsich, Knoblauch, Zwiebeln, Mais, Kokosnuss – und bei Medikamenten Aspirin, Ibuprofen, Jod (Kontrastmittel) und Latex
+- Alles bleibt nur auf diesem Gerät
+
 ## 1.41.0 – 2026-10-15 (Server 1.22.0)
 
 ### Neu: Piwigo in der App einrichten

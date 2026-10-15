@@ -8,7 +8,7 @@ import { refreshTripInfos } from '../refresh'
 import { missionName, warningLabel } from '../parse'
 import { SOURCE_URL, type CountryInfo, type Mission } from '../types'
 import { telHref } from '@/modules/documents/public'
-import { intlLocale } from '@/i18n'
+import { t, intlLocale } from '@/i18n'
 
 const tel = (p: string) => telHref(p) ?? undefined
 
@@ -28,8 +28,8 @@ async function refresh(force = true) {
   try {
     const r = await refreshTripInfos(props.tripId, force)
     if (r.errors.length) message.value = { type: 'danger', text: r.errors.join(' · ') }
-    else if (r.updated.length) message.value = { type: 'success', text: `Aktualisiert: ${r.updated.map(countryName).join(', ')} – auch in den Dokumenten.` }
-    else message.value = { type: 'info', text: 'Alles aktuell – keine Änderungen beim Auswärtigen Amt.' }
+    else if (r.updated.length) message.value = { type: 'success', text: t('Aktualisiert: {map} – auch in den Dokumenten.', { map: r.updated.map(countryName).join(', ') }) }
+    else message.value = { type: 'info', text: t('Alles aktuell – keine Änderungen beim Auswärtigen Amt.') }
   } finally {
     busy.value = false
   }
@@ -89,7 +89,7 @@ const badge = (level: string) => (level === 'danger' ? 'text-bg-danger' : level 
           <div v-if="infoOf(c)!.vaccines.length" class="mb-2">
             <span class="small fw-semibold me-1">{{ t('Impfschutz:') }}</span>
             <span v-for="v in infoOf(c)!.vaccines" :key="v.name" class="badge me-1" :class="v.required ? 'text-bg-danger' : 'text-bg-light border'">
-              {{ v.name }}{{ v.required ? ' – Pflicht' : '' }}
+              {{ v.name }}{{ v.required ? ' – ' + t('Pflicht') : '' }}
             </span>
           </div>
           <div v-if="infoOf(c)!.missions?.length" class="missions mb-2">
@@ -129,7 +129,7 @@ const badge = (level: string) => (level === 'danger' ? 'text-bg-danger' : level 
           </details>
         </template>
         <p v-else class="small text-body-secondary mb-0">
-          {{ online ? 'Wird abgerufen …' : 'Noch nicht abgerufen – dafür wird Internet benötigt.' }}
+          {{ online ? t('Wird abgerufen …') : t('Noch nicht abgerufen – dafür wird Internet benötigt.') }}
         </p>
       </div>
     </section>

@@ -5,6 +5,7 @@ import { PiwigoApi } from '../api'
 import { externalRef, piwigoDate, sortAlbums, uploadTitle } from '../logic'
 import { albumLinkRepository } from '../repository'
 import type { PiwigoAlbum, PiwigoImage } from '../types'
+import { t } from '@/i18n'
 
 /** Fotos aus Piwigo auswählen (Fotoquelle für das Tagebuch). */
 const props = defineProps<{ tripId: string }>()
@@ -33,7 +34,7 @@ onMounted(async () => {
   loading.value = true
   try {
     api = await PiwigoApi.fromSync()
-    if (!api) throw new Error('Geräte-Abgleich ist nicht eingerichtet.')
+    if (!api) throw new Error(t('Geräte-Abgleich ist nicht eingerichtet.'))
     const [list, link] = await Promise.all([api.albums(), albumLinkRepository.get(props.tripId)])
     albums.value = list
     tripAlbumId.value = link?.albumId ?? null
@@ -104,7 +105,7 @@ async function take() {
   try {
     const chosen = images.value.filter((i) => selected.value.includes(i.id))
     for (const [n, img] of chosen.entries()) {
-      progress.value = `Lade Foto ${n + 1} von ${chosen.length} …`
+      progress.value = t('Lade Foto {x} von {n} …', { x: n + 1, n: chosen.length })
       const blob = await api.imageBlob(img.id, 'xxlarge', abort.signal)
       // Piwigo-Titel nur übernehmen, wenn er mehr ist als der Dateiname
       const title = img.name && img.name !== uploadTitle('', img.file) ? img.name : ''
@@ -133,7 +134,7 @@ async function take() {
           <select id="pwg-album" v-model="albumId" class="form-select mb-3" :disabled="!albums.length">
             <option :value="null">{{ t('– Album wählen –') }}</option>
             <option v-for="a in sorted" :key="a.id" :value="a.id">
-              {{ a.name }} ({{ a.images }}){{ a.id === tripAlbumId ? ' · Album dieser Reise' : '' }}
+              {{ a.name }} ({{ a.images }}){{ a.id === tripAlbumId ? ' · ' + t('Album dieser Reise') : '' }}
             </option>
           </select>
 
@@ -156,7 +157,7 @@ async function take() {
           <div v-if="loading && !progress" class="text-center my-3"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
         </div>
         <div class="modal-footer">
-          <span class="me-auto small text-body-secondary">{{ progress || (selected.length ? `${selected.length} ausgewählt` : 'Fotos antippen zum Auswählen') }}</span>
+          <span class="me-auto small text-body-secondary">{{ progress || (selected.length ? t('{n} ausgewählt', { n: selected.length }) : t('Fotos antippen zum Auswählen')) }}</span>
           <button type="button" class="btn btn-outline-secondary" @click="emit('close')">{{ t('Abbrechen') }}</button>
           <button type="button" class="btn btn-primary" :disabled="!selected.length || loading" @click="take">
             <span v-if="progress" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>

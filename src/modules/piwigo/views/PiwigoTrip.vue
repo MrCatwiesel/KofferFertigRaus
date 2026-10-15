@@ -7,6 +7,7 @@ import { albumNameFor, describeQueue, findAlbumByName, sortAlbums } from '../log
 import { albumLinkRepository, piwigoPrefs, uploadRepository } from '../repository'
 import { processQueue, uploadState } from '../uploader'
 import type { PiwigoAlbum, PiwigoStatus } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -35,11 +36,11 @@ async function load() {
   api = await PiwigoApi.fromSync()
   if (!api) return (state.value = 'no-sync')
   const trip = await tripRepository.get(props.tripId)
-  newName.value = albumNameFor(trip ?? { title: 'Reise' })
+  newName.value = albumNameFor(trip ?? { title: t('Reise') })
   parentAlbum.value = await piwigoPrefs.parentAlbum()
   if (!online.value) {
     state.value = 'error'
-    message.value = 'Offline – Piwigo ist gerade nicht erreichbar. Fotos warten und werden später hochgeladen.'
+    message.value = t('Offline – Piwigo ist gerade nicht erreichbar. Fotos warten und werden später hochgeladen.')
     return
   }
   const enabled = await api.enabled()
@@ -57,7 +58,7 @@ async function load() {
 
 async function useAlbum(album: PiwigoAlbum) {
   await albumLinkRepository.set(props.tripId, { id: album.id, name: album.name, url: album.url })
-  feedback.value = `Verbunden mit „${album.name}“.`
+  feedback.value = t('Verbunden mit „{name}“.', { name: album.name })
   void processQueue(true)
 }
 
@@ -73,7 +74,7 @@ async function createNew() {
   try {
     await piwigoPrefs.setParentAlbum(parentAlbum.value)
     const same = findAlbumByName(albums.value, newName.value, parentAlbum.value)
-    if (same && !confirm(`Ein Album „${same.name}“ gibt es schon. Trotzdem ein neues anlegen?`)) return useAlbum(same)
+    if (same && !confirm(t('Ein Album „{name}“ gibt es schon. Trotzdem ein neues anlegen?', { name: same.name }))) return useAlbum(same)
     const created = await api.createAlbum(newName.value.trim(), parentAlbum.value)
     albums.value = await api.albums()
     await useAlbum(albums.value.find((a) => a.id === created.id) ?? { id: created.id, name: created.name, parentId: parentAlbum.value, images: 0, totalImages: 0, url: '' })
@@ -89,7 +90,7 @@ async function setAuto(e: Event) {
 }
 
 async function unlink() {
-  if (!confirm('Verbindung zum Album lösen? Fotos in Piwigo bleiben erhalten.')) return
+  if (!confirm(t('Verbindung zum Album lösen? Fotos in Piwigo bleiben erhalten.'))) return
   await albumLinkRepository.remove(props.tripId)
 }
 
@@ -99,7 +100,7 @@ async function uploadNow() {
 }
 
 async function discardQueue() {
-  if (!confirm('Wartende Originalfotos dieser Reise verwerfen? Die verkleinerten Fotos im Tagebuch bleiben.')) return
+  if (!confirm(t('Wartende Originalfotos dieser Reise verwerfen? Die verkleinerten Fotos im Tagebuch bleiben.'))) return
   await uploadRepository.removeByTrip(props.tripId)
 }
 </script>

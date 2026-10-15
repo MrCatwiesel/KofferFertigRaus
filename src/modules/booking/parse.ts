@@ -1,3 +1,4 @@
+import { t, tn } from '@/i18n'
 /**
  * Buchungsbestätigungen verstehen – ohne Internet, nur aus dem Text (eingefügt, PDF, E-Mail oder Kalenderdatei).
  *
@@ -400,8 +401,8 @@ export function parseBooking(raw: string, ref = ''): BookingGuess {
   const found: string[] = []
   const price = findPrice(text)
   const bookingRef = findBookingRef(text)
-  if (price) found.push('Preis')
-  if (bookingRef) found.push('Buchungsnummer')
+  if (price) found.push(t('Preis'))
+  if (bookingRef) found.push(t('Buchungsnummer'))
 
   let inD = dateAfter(text, CHECKIN, ref)
   let outD = dateAfter(text, CHECKOUT, ref, 120)
@@ -448,17 +449,17 @@ export function parseBooking(raw: string, ref = ''): BookingGuess {
     stay.currency = price?.currency ?? 'EUR'
     stay.bookingRef = bookingRef
     stay.url = /https?:\/\/[^\s<>"]*(booking\.com|airbnb\.[a-z.]+|hrs\.[a-z]+|expedia\.[a-z.]+|fewo-direkt\.de|traum-ferienwohnungen\.de)[^\s<>"]*/i.exec(text)?.[0] ?? ''
-    if (stay.name) found.push('Name')
-    if (stay.checkIn) found.push('Anreise')
-    if (stay.checkOut) found.push('Abreise')
-    if (stay.address) found.push('Adresse')
-    if (stay.cancelUntil) found.push('Stornofrist')
+    if (stay.name) found.push(t('Name'))
+    if (stay.checkIn) found.push(t('Anreise'))
+    if (stay.checkOut) found.push(t('Abreise'))
+    if (stay.address) found.push(t('Adresse'))
+    if (stay.cancelUntil) found.push(t('Stornofrist'))
     return { kind: 'unterkunft', stay, legs: [], price: stay.price, currency: stay.currency, bookingRef, found }
   }
 
   if (legs.length) {
-    found.push(legs.length === 1 ? '1 Etappe' : `${legs.length} Etappen`)
-    if (legs.some((l) => l.departTime)) found.push('Uhrzeiten')
+    found.push(tn(legs.length, '1 Etappe', '{n} Etappen'))
+    if (legs.some((l) => l.departTime)) found.push(t('Uhrzeiten'))
     return { kind: 'reise', stay: emptyStay(), legs, price: price?.amount ?? null, currency: price?.currency ?? 'EUR', bookingRef, found }
   }
   return { kind: 'unbekannt', stay: emptyStay(), legs: [], price: price?.amount ?? null, currency: price?.currency ?? 'EUR', bookingRef, found }
@@ -466,7 +467,7 @@ export function parseBooking(raw: string, ref = ''): BookingGuess {
 
 function fromIcs(text: string, ref: string): BookingGuess {
   const events = parseIcs(text)
-  const found = events.length ? ['Kalendereintrag'] : []
+  const found = events.length ? [t('Kalendereintrag')] : []
   const multiDay = events.find((e) => e.end && e.end > e.start && (e.allDay || /hotel|unterkunft|check|aufenthalt|stay|booking|ferien/i.test(e.summary)))
   if (multiDay) {
     const stay = emptyStay()
@@ -479,7 +480,7 @@ function fromIcs(text: string, ref: string): BookingGuess {
     const p = findPrice(multiDay.description)
     stay.price = p?.amount ?? null
     stay.currency = p?.currency ?? 'EUR'
-    return { kind: 'unterkunft', stay, legs: [], price: stay.price, currency: stay.currency, bookingRef: stay.bookingRef, found: [...found, 'Anreise', 'Abreise'] }
+    return { kind: 'unterkunft', stay, legs: [], price: stay.price, currency: stay.currency, bookingRef: stay.bookingRef, found: [...found, t('Anreise'), t('Abreise')] }
   }
   const legs: LegGuess[] = events
     .filter((e) => e.startTime)

@@ -7,6 +7,7 @@ import { PiwigoApi } from './api'
 import { albumNameFor, externalRef, findAlbumByName, isDue, retryDelayMs, uploadTitle } from './logic'
 import { albumLinkRepository, piwigoPrefs, uploadRepository } from './repository'
 import type { PiwigoAlbumLink } from './types'
+import { t } from '@/i18n'
 
 /** Sichtbarer Zustand des Hochladens. */
 export const uploadState = reactive({
@@ -38,7 +39,7 @@ export async function ensureAlbum(api: PiwigoApi, tripId: string): Promise<Piwig
   const existing = await albumLinkRepository.get(tripId)
   if (existing) return existing
   const trip = await tripRepository.get(tripId)
-  const name = albumNameFor(trip ?? { title: 'Reise' })
+  const name = albumNameFor(trip ?? { title: t('Reise') })
   const parent = await piwigoPrefs.parentAlbum()
   const albums = await api.albums()
   const found = findAlbumByName(albums, name, parent)
@@ -65,8 +66,8 @@ export async function queuePhotos(photos: AddedPhoto[]): Promise<void> {
 
 function friendly(e: unknown): string {
   const err = e as { status?: number; message?: string }
-  if (err.status === 413) return 'Foto zu groß – Upload-Grenze in Piwigo (PHP) oder im Proxy erhöhen.'
-  return err.message || 'Unbekannter Fehler'
+  if (err.status === 413) return t('Foto zu groß – Upload-Grenze in Piwigo (PHP) oder im Proxy erhöhen.')
+  return err.message || t('Unbekannter Fehler')
 }
 
 /** Warteschlange abarbeiten. `force` ignoriert Wartezeiten nach Fehlern. */

@@ -5,6 +5,7 @@
  */
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url'
+import { t } from '@/i18n'
 
 pdfjs.GlobalWorkerOptions.workerSrc = workerUrl
 
@@ -50,6 +51,6 @@ export async function pdfToText(bytes: Uint8Array, maxPages = 8): Promise<string
     void doc.destroy()
   }
   const text = pages.join('\n\n').trim()
-  if (!text) throw new Error('Die PDF enthält keinen lesbaren Text (vermutlich ein eingescanntes Bild).')
+  if (!text) throw new Error(t('Die PDF enthält keinen lesbaren Text (vermutlich ein eingescanntes Bild).'))
   return text
 }

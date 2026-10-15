@@ -9,6 +9,7 @@ import { FONT_GROUPS, TEMPLATE_INFO, websiteRepository } from '@/modules/website
 import { ShareApi } from '../api'
 import { EXPIRY_OPTIONS, MODE_LABEL, accessLabel, describeShare, emptyShareDraft, shareName, shareState, shareUrl } from '../logic'
 import type { ShareDraft, ShareLink, ShareLook, ShareMode } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -39,7 +40,7 @@ async function load() {
   const info = await api.client.info()
   if (!info) {
     state.value = 'error'
-    message.value = online.value ? 'Server nicht erreichbar.' : 'Offline – Lese-Links lassen sich nur mit Verbindung zum Server verwalten.'
+    message.value = online.value ? t('Server nicht erreichbar.') : t('Offline – Lese-Links lassen sich nur mit Verbindung zum Server verwalten.')
     return
   }
   if (!info.shares) return (state.value = 'old-server')
@@ -79,7 +80,7 @@ async function update(link: ShareLink, patch: Partial<ShareDraft> & { revoked?: 
 }
 
 async function remove(link: ShareLink) {
-  if (!api || !confirm(`Lese-Link „${shareName(link)}“ endgültig löschen? Wer ihn hat, sieht danach nichts mehr.`)) return
+  if (!api || !confirm(t('Lese-Link „{shareName}“ endgültig löschen? Wer ihn hat, sieht danach nichts mehr.', { shareName: shareName(link) }))) return
   try {
     await api.remove(link.token)
     links.value = links.value.filter((l) => l.token !== link.token)
@@ -97,13 +98,13 @@ async function copy(link: ShareLink) {
     copied.value = link.token
     setTimeout(() => (copied.value = ''), 2000)
   } catch {
-    prompt('Link kopieren:', urlOf(link))
+    prompt(t('Link kopieren:'), urlOf(link))
   }
 }
 
 async function shareLink(link: ShareLink) {
   try {
-    await navigator.share({ title: link.title || 'Unsere Reise', url: urlOf(link) })
+    await navigator.share({ title: link.title || t('Unsere Reise'), url: urlOf(link) })
   } catch {
     /* abgebrochen */
   }
@@ -116,7 +117,7 @@ function setMode(link: ShareLink, mode: ShareMode) {
 }
 
 async function changePassword(link: ShareLink) {
-  const pw = prompt(link.password ? 'Neues Passwort (leer lassen = Passwort entfernen):' : 'Passwort für diesen Link:')
+  const pw = prompt(link.password ? t('Neues Passwort (leer lassen = Passwort entfernen):') : t('Passwort für diesen Link:'))
   if (pw === null) return
   await update(link, { password: pw })
 }
@@ -164,7 +165,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
       <div class="d-flex flex-wrap gap-2">
         <button v-if="canShare" type="button" class="btn btn-sm btn-success" @click="shareLink(created)"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>{{ t('Teilen') }}</button>
         <button type="button" class="btn btn-sm btn-outline-success" @click="copy(created)">
-          <i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied === created.token ? 'Kopiert' : 'Kopieren' }}
+          <i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied === created.token ? t('Kopiert') : t('Kopieren') }}
         </button>
         <a :href="urlOf(created)" target="_blank" rel="noopener" class="btn btn-sm btn-outline-success"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('Ansehen') }}</a>
       </div>
@@ -287,12 +288,12 @@ async function changeExpiry(link: ShareLink, e: Event) {
               <i class="bi bi-three-dots" aria-hidden="true"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><button type="button" class="dropdown-item" @click="update(l, { photos: !l.photos })">{{ l.photos ? 'Fotos ausblenden' : 'Fotos zeigen' }}</button></li>
-              <li><button type="button" class="dropdown-item" @click="update(l, { routes: l.routes === false })">{{ l.routes === false ? 'Routen zeigen' : 'Routen ausblenden' }}</button></li>
-              <li><button type="button" class="dropdown-item" @click="update(l, { stays: !l.stays })">{{ l.stays ? 'Unterkünfte ausblenden' : 'Unterkünfte zeigen' }}</button></li>
-              <li v-if="l.stays"><button type="button" class="dropdown-item" @click="update(l, { stayDetails: !l.stayDetails })">{{ l.stayDetails ? 'Adresse/Link der Unterkünfte ausblenden' : 'Adresse/Link der Unterkünfte zeigen' }}</button></li>
-              <li><button type="button" class="dropdown-item" @click="update(l, { activities: !l.activities })">{{ l.activities ? 'Unternehmungen ausblenden' : 'Unternehmungen zeigen' }}</button></li>
-              <li><button type="button" class="dropdown-item" @click="changePassword(l)">{{ l.password ? 'Passwort ändern/entfernen' : 'Passwort setzen' }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { photos: !l.photos })">{{ l.photos ? t('Fotos ausblenden') : t('Fotos zeigen') }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { routes: l.routes === false })">{{ l.routes === false ? t('Routen zeigen') : t('Routen ausblenden') }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { stays: !l.stays })">{{ l.stays ? t('Unterkünfte ausblenden') : t('Unterkünfte zeigen') }}</button></li>
+              <li v-if="l.stays"><button type="button" class="dropdown-item" @click="update(l, { stayDetails: !l.stayDetails })">{{ l.stayDetails ? t('Adresse/Link der Unterkünfte ausblenden') : t('Adresse/Link der Unterkünfte zeigen') }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="update(l, { activities: !l.activities })">{{ l.activities ? t('Unternehmungen ausblenden') : t('Unternehmungen zeigen') }}</button></li>
+              <li><button type="button" class="dropdown-item" @click="changePassword(l)">{{ l.password ? t('Passwort ändern/entfernen') : t('Passwort setzen') }}</button></li>
               <li>
                 <label class="dropdown-item-text small d-block">{{ t('Gültig ab jetzt') }}
                   <select class="form-select form-select-sm mt-1" @change="changeExpiry(l, $event)">
@@ -304,7 +305,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
               <li><hr class="dropdown-divider" /></li>
               <li>
                 <button type="button" class="dropdown-item" @click="update(l, { revoked: !l.revoked })">
-                  {{ l.revoked ? 'Wieder freigeben' : 'Zurückziehen (vorübergehend)' }}
+                  {{ l.revoked ? t('Wieder freigeben') : t('Zurückziehen (vorübergehend)') }}
                 </button>
               </li>
               <li><button type="button" class="dropdown-item text-danger" @click="remove(l)"><i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}</button></li>
@@ -312,7 +313,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
           </div>
         </div>
         <div class="d-flex flex-wrap align-items-center gap-2 mt-2">
-          <div class="btn-group btn-group-sm" role="group" :aria-label="`Inhalt von ${shareName(l)}`">
+          <div class="btn-group btn-group-sm" role="group" :aria-label="t('Inhalt von {shareName}', { shareName: shareName(l) })">
             <button v-for="m in (['highlights', 'journal'] as ShareMode[])" :key="m" type="button" class="btn"
                     :class="l.mode === m ? 'btn-primary' : 'btn-outline-primary'" :aria-pressed="l.mode === m" @click="setMode(l, m)">
               {{ MODE_LABEL[m] }}
@@ -320,7 +321,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
           </div>
           <button v-if="canShare" type="button" class="btn btn-sm btn-outline-secondary" @click="shareLink(l)"><i class="bi bi-box-arrow-up" aria-hidden="true"></i><span class="visually-hidden">{{ t('Teilen') }}</span></button>
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="copy(l)">
-            <i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied === l.token ? 'Kopiert' : 'Kopieren' }}
+            <i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ copied === l.token ? t('Kopiert') : t('Kopieren') }}
           </button>
           <a :href="urlOf(l)" target="_blank" rel="noopener" class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye me-1" aria-hidden="true"></i>{{ t('Ansehen') }}</a>
         </div>

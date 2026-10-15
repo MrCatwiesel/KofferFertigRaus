@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /**
  * Bildverarbeitung im Browser: Fotos verkleinern, bevor sie gespeichert werden.
  * Spart Speicher auf dem Gerät (ein Handyfoto hat oft 3–6 MB, verkleinert ca. 0,3–0,6 MB).
@@ -42,7 +43,7 @@ async function decode(file: Blob): Promise<{ source: CanvasImageSource; width: n
     return { source: img, width: img.naturalWidth, height: img.naturalHeight, close: () => URL.revokeObjectURL(url) }
   } catch (e) {
     URL.revokeObjectURL(url)
-    throw new Error('Dieses Bild kann nicht gelesen werden.')
+    throw new Error(t('Dieses Bild kann nicht gelesen werden.'))
   }
 }
 
@@ -51,11 +52,11 @@ function render(source: CanvasImageSource, width: number, height: number, qualit
   canvas.width = width
   canvas.height = height
   const ctx = canvas.getContext('2d')
-  if (!ctx) return Promise.reject(new Error('Zeichnen nicht möglich.'))
+  if (!ctx) return Promise.reject(new Error(t('Zeichnen nicht möglich.')))
   ctx.imageSmoothingQuality = 'high'
   ctx.drawImage(source, 0, 0, width, height)
   return new Promise((resolve, reject) =>
-    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Bild konnte nicht gespeichert werden.'))), 'image/jpeg', quality)
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(t('Bild konnte nicht gespeichert werden.')))), 'image/jpeg', quality)
   )
 }
 
@@ -120,11 +121,11 @@ export async function fitBlob(blob: Blob, target: { w: number; h: number; crop: 
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
-    if (!ctx) throw new Error('Zeichnen nicht möglich.')
+    if (!ctx) throw new Error(t('Zeichnen nicht möglich.'))
     ctx.imageSmoothingQuality = 'high'
     ctx.drawImage(img.source, sx, sy, sw, sh, 0, 0, w, h)
     const out = await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('Bild konnte nicht gespeichert werden.'))), 'image/jpeg', quality)
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(t('Bild konnte nicht gespeichert werden.')))), 'image/jpeg', quality)
     )
     canvas.width = canvas.height = 0 // Speicher sofort freigeben (iPad)
     return out

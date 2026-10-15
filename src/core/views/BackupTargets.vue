@@ -37,7 +37,7 @@ interface Status {
 
 const TYPE_INFO: Record<TargetType, { label: string; icon: string; hint: string }> = {
   ordner: { label: t('Ordner / Platte'), icon: 'device-hdd', hint: t('Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe') },
-  smb: { label: 'SMB-Freigabe', icon: 'hdd-network', hint: t('Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen') },
+  smb: { label: t('SMB-Freigabe'), icon: 'hdd-network', hint: t('Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen') },
   ssh: { label: 'SSH / rsync', icon: 'terminal', hint: t('Anderer Linux-Rechner oder NAS mit SSH – überträgt nur Änderungen') },
   webdav: { label: 'WebDAV', icon: 'cloud-upload', hint: 'Nextcloud, ownCloud, Synology WebDAV, Hetzner Storage Box' }
 }

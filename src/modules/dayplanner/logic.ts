@@ -100,7 +100,7 @@ export function planDay(date: string, activities: Activity[], weather?: DailyWea
     let score: number = PRIORITY_SCORE[a.priority]
     const reasons: string[] = []
     const notes: string[] = []
-    if (a.priority === 1) reasons.push('Muss-Ziel')
+    if (a.priority === 1) reasons.push(t('Muss-Ziel'))
 
     if (weather) {
       if (rainy) {

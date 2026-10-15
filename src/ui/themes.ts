@@ -81,7 +81,7 @@ export const THEMES: ThemeDef[] = [
     dark: { primary: '#6d9bff', onPrimary: '#0b1430', accent: '#2dd4bf', sun: '#ffd166', bg: '#0b1120', surface: '#131b2e', surface2: '#1a2339', text: '#e6ebf5', muted: '#9aa6bd', border: '#26314a', sky1: '#233a7a', sky2: '#4c2f80', far: '#1f3466', mid: '#1a2b55', near: '#131f40' }
   },
   {
-    id: 'retro', label: 'Retro-Reiseplakat', hint: t('Petrol, Orange und Creme, Stempel-Optik'),
+    id: 'retro', label: t('Retro-Reiseplakat'), hint: t('Petrol, Orange und Creme, Stempel-Optik'),
     heading: { font: F.slab, weight: 700, upper: true }, body: { font: F.nunito }, radius: 0.45, border: 2, shadow: 'hard', pattern: 'sunburst', logo: 'stempel', tile: 'solid',
     light: { primary: '#1f6f78', onPrimary: '#fbf5e6', accent: '#e2603a', bg: '#f1e5c9', surface: '#fbf4e3', surface2: '#f5ead0', text: '#2b2620', muted: '#665a4b', border: '#2b2620', sky1: '#f4c869', sky2: '#e2603a', far: '#e9b44c', mid: '#1f6f78', near: '#133f45' },
     dark: { primary: '#5cbcc7', onPrimary: '#14262a', accent: '#f08a5d', bg: '#1c1914', surface: '#26221b', surface2: '#2e2920', text: '#f2e7d0', muted: '#b6a88f', border: '#8a7b62', sky1: '#6b3f2a', sky2: '#2c4a50', far: '#7a5a2a', mid: '#1f4f55', near: '#12302f' }

@@ -7,7 +7,7 @@ import { t } from '@/i18n'
 /** Modul "Reise-Webseite" (Meilenstein M5). */
 export const websiteModule: AppModule = {
   id: 'website',
-  title: 'Reise-Webseite',
+  title: t('Reise-Webseite'),
   icon: 'globe2',
   order: 70,
   routes: [
@@ -15,7 +15,7 @@ export const websiteModule: AppModule = {
   ],
   tripSection: {
     phases: ['teilen'],
-    title: 'Reise-Webseite',
+    title: t('Reise-Webseite'),
     icon: 'globe2',
     to: (tripId) => `/trip/${tripId}/webseite`,
     async summary(tripId) {

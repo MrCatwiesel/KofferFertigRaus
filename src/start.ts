@@ -14,6 +14,7 @@ import { startLock } from './core/lock'
 import { startPush } from './core/push'
 import { intlLocale, t, tk, tn } from './i18n'
 import Tx from './i18n/Tx'
+import { takeStartupHash } from './core/startup-hash'
 
 // Reihenfolge wichtig: erst Module registrieren, dann Router bauen.
 registerAllModules()
@@ -33,11 +34,11 @@ app.config.globalProperties.intlLocale = intlLocale
 app.component('Tx', Tx)
 const router = buildRouter()
 app.use(router).mount('#app')
-// Hat sich die Adresse geändert, während die App startete (Sprache laden, erste Seite), dorthin nachziehen –
-// der Router hört erst nach der ersten Navigation auf Adresswechsel
+// Hat sich die Adresse geändert, während die App startete, dorthin nachziehen (siehe core/startup-hash.ts)
 void router.isReady().then(() => {
-  const wanted = decodeURI(location.hash.replace(/^#/, '')) || '/'
-  if (wanted !== decodeURI(router.currentRoute.value.fullPath)) void router.replace(wanted)
+  const hash = takeStartupHash()
+  const wanted = hash ? decodeURI(hash.replace(/^#/, '')) || '/' : null
+  if (wanted && wanted !== decodeURI(router.currentRoute.value.fullPath)) void router.replace(wanted)
 })
 
 // Geräte-Abgleich im Hintergrund (nur aktiv, wenn eingerichtet)

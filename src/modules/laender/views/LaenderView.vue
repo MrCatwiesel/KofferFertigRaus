@@ -190,6 +190,12 @@ const waterIcon = { ja: 'bi-check-circle text-success', teils: 'bi-exclamation-c
     </div>
   </section>
 
+  <p v-if="countries.length" class="mb-3">
+    <RouterLink :to="`/trip/${tripId}/sprachfuehrer`" class="btn btn-sm btn-outline-primary" data-phrasebook-link>
+      <i class="bi bi-translate me-1" aria-hidden="true"></i>{{ t('Wichtige Sätze in der Landessprache') }}
+    </RouterLink>
+  </p>
+
   <p class="small text-body-secondary">
     <Tx text="Stand Oktober 2026, ohne Gewähr – Regeln ändern sich, vor Ort gelten die Schilder. Einreise, Sicherheit und Impfungen stehen unter {link}.">
       <template #link><RouterLink :to="`/trip/${tripId}/reisehinweise`">{{ t('Reisehinweise') }}</RouterLink></template>

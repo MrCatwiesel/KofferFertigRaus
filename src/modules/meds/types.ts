@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type MedKind = 'dauer' | 'bedarf' | 'notfall'
 
 /** Ein Medikament oder Artikel der Reiseapotheke. */
@@ -53,15 +54,15 @@ export interface Vaccination {
 export type VaccinationDraft = Omit<Vaccination, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
 export const KIND: Record<MedKind, { label: string; icon: string; hint: string }> = {
-  dauer: { label: 'Dauermedikation', icon: 'clock-history', hint: 'regelmäßig nach Plan' },
-  bedarf: { label: 'Bei Bedarf', icon: 'bandaid', hint: 'z. B. Schmerzmittel, Pflaster' },
-  notfall: { label: 'Notfall', icon: 'exclamation-octagon', hint: 'z. B. Allergie-Notfallset' }
+  dauer: { label: t('Dauermedikation'), icon: 'clock-history', hint: t('regelmäßig nach Plan') },
+  bedarf: { label: t('Bei Bedarf'), icon: 'bandaid', hint: t('z. B. Schmerzmittel, Pflaster') },
+  notfall: { label: t('Notfall'), icon: 'exclamation-octagon', hint: t('z. B. Allergie-Notfallset') }
 }
 
 export const VACC_STATUS: Record<VaccinationStatus, { label: string; badge: string }> = {
-  pruefen: { label: 'Prüfen', badge: 'text-bg-warning' },
-  geplant: { label: 'Termin geplant', badge: 'text-bg-primary' },
-  erledigt: { label: 'Erledigt', badge: 'text-bg-success' }
+  pruefen: { label: t('Prüfen'), badge: 'text-bg-warning' },
+  geplant: { label: t('Termin geplant'), badge: 'text-bg-primary' },
+  erledigt: { label: t('Erledigt'), badge: 'text-bg-success' }
 }
 
 /**
@@ -69,16 +70,16 @@ export const VACC_STATUS: Record<VaccinationStatus, { label: string; badge: stri
  * Auswahl und Mittel mit Arzt oder Apotheke abstimmen.
  */
 export const FIRST_AID_KIT: { name: string; kind: MedKind }[] = [
-  { name: 'Schmerz- und Fiebermittel', kind: 'bedarf' },
-  { name: 'Mittel gegen Durchfall', kind: 'bedarf' },
-  { name: 'Mittel gegen Reiseübelkeit', kind: 'bedarf' },
-  { name: 'Allergiemittel', kind: 'bedarf' },
-  { name: 'Wund- und Desinfektionsspray', kind: 'bedarf' },
-  { name: 'Pflaster & Blasenpflaster', kind: 'bedarf' },
-  { name: 'Verbandszeug & Mullbinde', kind: 'bedarf' },
-  { name: 'Fieberthermometer', kind: 'bedarf' },
-  { name: 'Pinzette / Zeckenzange', kind: 'bedarf' },
-  { name: 'Insektenschutz & Gel gegen Stiche', kind: 'bedarf' },
-  { name: 'Sonnenschutz & After-Sun', kind: 'bedarf' },
-  { name: 'Elektrolyt-Pulver', kind: 'bedarf' }
+  { name: t('Schmerz- und Fiebermittel'), kind: 'bedarf' },
+  { name: t('Mittel gegen Durchfall'), kind: 'bedarf' },
+  { name: t('Mittel gegen Reiseübelkeit'), kind: 'bedarf' },
+  { name: t('Allergiemittel'), kind: 'bedarf' },
+  { name: t('Wund- und Desinfektionsspray'), kind: 'bedarf' },
+  { name: t('Pflaster & Blasenpflaster'), kind: 'bedarf' },
+  { name: t('Verbandszeug & Mullbinde'), kind: 'bedarf' },
+  { name: t('Fieberthermometer'), kind: 'bedarf' },
+  { name: t('Pinzette / Zeckenzange'), kind: 'bedarf' },
+  { name: t('Insektenschutz & Gel gegen Stiche'), kind: 'bedarf' },
+  { name: t('Sonnenschutz & After-Sun'), kind: 'bedarf' },
+  { name: t('Elektrolyt-Pulver'), kind: 'bedarf' }
 ]

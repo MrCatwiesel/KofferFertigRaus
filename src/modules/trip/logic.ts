@@ -1,5 +1,6 @@
 import type { TripDraft } from './types'
 import { DAY_MS, toUtcDay } from '../../core/dates'
+import { t, tn } from '@/i18n'
 
 // Formatierung liegt im Kern; hier weitergereicht, damit bestehende Imports funktionieren.
 export { formatDate, formatMoney } from '../../core/format'
@@ -72,36 +73,36 @@ export function cleanParticipants(names: string[]): string[] {
 /** Prüft einen Entwurf und liefert Fehlermeldungen je Feld. */
 export function validateTrip(draft: TripDraft): Partial<Record<keyof TripDraft, string>> {
   const errors: Partial<Record<keyof TripDraft, string>> = {}
-  if (!draft.title.trim()) errors.title = 'Bitte einen Namen für die Reise angeben.'
-  if (!draft.destination.trim()) errors.destination = 'Bitte ein Reiseziel angeben.'
-  if (!draft.startDate) errors.startDate = 'Bitte ein Startdatum wählen.'
-  if (!draft.endDate) errors.endDate = 'Bitte ein Enddatum wählen.'
+  if (!draft.title.trim()) errors.title = t('Bitte einen Namen für die Reise angeben.')
+  if (!draft.destination.trim()) errors.destination = t('Bitte ein Reiseziel angeben.')
+  if (!draft.startDate) errors.startDate = t('Bitte ein Startdatum wählen.')
+  if (!draft.endDate) errors.endDate = t('Bitte ein Enddatum wählen.')
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    errors.endDate = 'Das Ende liegt vor dem Start.'
+    errors.endDate = t('Das Ende liegt vor dem Start.')
   }
   if (!Number.isInteger(draft.travelers) || draft.travelers < 1) {
-    errors.travelers = 'Mindestens eine reisende Person.'
+    errors.travelers = t('Mindestens eine reisende Person.')
   }
-  if (draft.budget !== null && draft.budget < 0) errors.budget = 'Budget darf nicht negativ sein.'
+  if (draft.budget !== null && draft.budget < 0) errors.budget = t('Budget darf nicht negativ sein.')
   const names = (draft.participants ?? []).map((n) => n.trim().toLowerCase()).filter(Boolean)
-  if (new Set(names).size !== names.length) errors.participants = 'Jeder Name nur einmal.'
+  if (new Set(names).size !== names.length) errors.participants = t('Jeder Name nur einmal.')
   return errors
 }
 
 /** Kurzer Stand für den Kopf der Reiseseite: „noch 12 Tage“, „Tag 2 von 5“, „vor 3 Wochen“ */
 export function tripStatusText(startDate: string, endDate: string, today: Date = new Date()): string {
   const until = daysUntil(startDate, today)
-  if (until > 1) return `noch ${until} Tage`
-  if (until === 1) return 'morgen geht es los'
+  if (until > 1) return t('noch {n} Tage', { n: until })
+  if (until === 1) return t('morgen geht es los')
   const total = tripDays(startDate, endDate)
   const since = -daysUntil(endDate, today)
-  if (since <= 0) return until === 0 ? `heute geht es los · ${total} Tage` : `Tag ${1 - until} von ${total}`
-  if (since === 1) return 'gestern zurückgekommen'
-  if (since < 14) return `vor ${since} Tagen`
-  if (since < 60) return `vor ${Math.round(since / 7)} Wochen`
-  if (since < 365) return `vor ${Math.round(since / 30)} Monaten`
+  if (since <= 0) return until === 0 ? tn(total, 'heute geht es los · 1 Tag', 'heute geht es los · {n} Tage') : t('Tag {day} von {total}', { day: 1 - until, total })
+  if (since === 1) return t('gestern zurückgekommen')
+  if (since < 14) return t('vor {n} Tagen', { n: since })
+  if (since < 60) return t('vor {n} Wochen', { n: Math.round(since / 7) })
+  if (since < 365) return t('vor {n} Monaten', { n: Math.round(since / 30) })
   const y = Math.round(since / 365)
-  return y === 1 ? 'vor einem Jahr' : `vor ${y} Jahren`
+  return y === 1 ? t('vor einem Jahr') : t('vor {n} Jahren', { n: y })
 }
 
 /** Bereich der Reiseseite, der zum Datum passt */

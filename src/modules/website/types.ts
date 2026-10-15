@@ -1,3 +1,4 @@
+import { t, tk } from '@/i18n'
 export type TemplateId = 'klassisch' | 'magazin' | 'galerie'
 export type FontChoice =
   | 'modern'
@@ -121,9 +122,9 @@ export interface SiteData {
 }
 
 export const TEMPLATE_INFO: Record<TemplateId, { title: string; description: string; icon: string }> = {
-  klassisch: { title: 'Klassisch', description: 'Titelbild, dann Tag für Tag als Karten', icon: 'journal-richtext' },
-  magazin: { title: 'Magazin', description: 'Große Bilder, Text daneben – wie eine Reisereportage', icon: 'newspaper' },
-  galerie: { title: 'Galerie', description: 'Fotos im Vordergrund, kurze Texte', icon: 'grid-3x3-gap' }
+  klassisch: { title: t('Klassisch'), description: t('Titelbild, dann Tag für Tag als Karten'), icon: 'journal-richtext' },
+  magazin: { title: t('Magazin'), description: t('Große Bilder, Text daneben – wie eine Reisereportage'), icon: 'newspaper' },
+  galerie: { title: t('Galerie'), description: t('Fotos im Vordergrund, kurze Texte'), icon: 'grid-3x3-gap' }
 }
 
 /**
@@ -131,29 +132,29 @@ export const TEMPLATE_INFO: Record<TemplateId, { title: string; description: str
  * (Dateien in fonts.ts, beim Export in die HTML-Datei eingebettet – sehen also überall gleich aus).
  */
 export const FONT_INFO: Record<FontChoice, { label: string; css: string; group: 'Gerät' | 'Serif' | 'Ohne Serifen' | 'Handschrift' }> = {
-  modern: { label: 'Modern (Gerät)', group: 'Gerät', css: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" },
-  serif: { label: 'Klassisch (Gerät)', group: 'Gerät', css: "Georgia, 'Times New Roman', serif" },
-  rund: { label: 'Rund (Gerät)', group: 'Gerät', css: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" },
-  lora: { label: 'Lora – warm, gut lesbar', group: 'Serif', css: "'Lora', Georgia, serif" },
-  playfair: { label: 'Playfair Display – elegant', group: 'Serif', css: "'Playfair Display', Georgia, serif" },
-  merriweather: { label: 'Merriweather – ruhig, für lange Texte', group: 'Serif', css: "'Merriweather', Georgia, serif" },
-  robotoslab: { label: 'Roboto Slab – kräftig', group: 'Serif', css: "'Roboto Slab', Rockwell, Georgia, serif" },
-  nunito: { label: 'Nunito – rund, freundlich', group: 'Ohne Serifen', css: "'Nunito', ui-rounded, system-ui, sans-serif" },
-  montserrat: { label: 'Montserrat – geometrisch, modern', group: 'Ohne Serifen', css: "'Montserrat', system-ui, sans-serif" },
-  raleway: { label: 'Raleway – leicht, stilvoll', group: 'Ohne Serifen', css: "'Raleway', system-ui, sans-serif" },
-  caveat: { label: 'Caveat – Handschrift', group: 'Handschrift', css: "'Caveat', 'Bradley Hand', 'Segoe Print', cursive" }
+  modern: { label: t('Modern (Gerät)'), group: 'Gerät', css: "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" },
+  serif: { label: t('Klassisch (Gerät)'), group: 'Gerät', css: "Georgia, 'Times New Roman', serif" },
+  rund: { label: t('Rund (Gerät)'), group: 'Gerät', css: "ui-rounded, 'SF Pro Rounded', system-ui, sans-serif" },
+  lora: { label: t('Lora – warm, gut lesbar'), group: 'Serif', css: "'Lora', Georgia, serif" },
+  playfair: { label: t('Playfair Display – elegant'), group: 'Serif', css: "'Playfair Display', Georgia, serif" },
+  merriweather: { label: t('Merriweather – ruhig, für lange Texte'), group: 'Serif', css: "'Merriweather', Georgia, serif" },
+  robotoslab: { label: t('Roboto Slab – kräftig'), group: 'Serif', css: "'Roboto Slab', Rockwell, Georgia, serif" },
+  nunito: { label: t('Nunito – rund, freundlich'), group: 'Ohne Serifen', css: "'Nunito', ui-rounded, system-ui, sans-serif" },
+  montserrat: { label: t('Montserrat – geometrisch, modern'), group: 'Ohne Serifen', css: "'Montserrat', system-ui, sans-serif" },
+  raleway: { label: t('Raleway – leicht, stilvoll'), group: 'Ohne Serifen', css: "'Raleway', system-ui, sans-serif" },
+  caveat: { label: t('Caveat – Handschrift'), group: 'Handschrift', css: "'Caveat', 'Bradley Hand', 'Segoe Print', cursive" }
 }
 
 /** Schriften nach Art gruppiert (für Auswahllisten). */
-export const FONT_GROUPS = (['Gerät', 'Serif', 'Ohne Serifen', 'Handschrift'] as const).map((group) => ({
+export const FONT_GROUPS = ([tk('Gerät'), tk('Serif'), tk('Ohne Serifen'), tk('Handschrift')] as const).map((group) => ({
   group,
   fonts: (Object.keys(FONT_INFO) as FontChoice[]).filter((id) => FONT_INFO[id].group === group).map((id) => ({ id, label: FONT_INFO[id].label }))
 }))
 
 export const IMAGE_EDGE: Record<ImageSize, { edge: number; label: string }> = {
-  klein: { edge: 1024, label: 'Klein (schnell zu teilen)' },
-  mittel: { edge: 1600, label: 'Mittel' },
-  gross: { edge: 2048, label: 'Groß (beste Qualität)' }
+  klein: { edge: 1024, label: t('Klein (schnell zu teilen)') },
+  mittel: { edge: 1600, label: t('Mittel') },
+  gross: { edge: 2048, label: t('Groß (beste Qualität)') }
 }
 
 export const ACCENT_PRESETS = ['#0d6efd', '#0f766e', '#c2410c', '#be123c', '#7c3aed', '#334155']

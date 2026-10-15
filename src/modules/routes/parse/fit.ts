@@ -1,5 +1,6 @@
 import { decodeText } from './text'
 import type { ParsedRoute, RouteKind, TrackPoint } from '../types'
+import { t } from '@/i18n'
 
 /**
  * FIT – das Originalformat von Garmin-Geräten (Fenix, Edge, GPSMap …).
@@ -69,7 +70,7 @@ export function isFit(bytes: Uint8Array): boolean {
 }
 
 export function parseFit(bytes: Uint8Array, fallbackName: string): ParsedRoute[] {
-  if (!isFit(bytes)) throw new Error('Keine gültige FIT-Datei.')
+  if (!isFit(bytes)) throw new Error(t('Keine gültige FIT-Datei.'))
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
   const headerSize = bytes[0]
   const dataSize = view.getUint32(4, true)
@@ -116,7 +117,7 @@ export function parseFit(bytes: Uint8Array, fallbackName: string): ParsedRoute[]
       local = h & 0x0f
     }
     const def = defs.get(local)
-    if (!def) throw new Error('FIT-Datei beschädigt (unbekannte Nachricht).')
+    if (!def) throw new Error(t('FIT-Datei beschädigt (unbekannte Nachricht).'))
 
     let lat: number | null = null
     let lon: number | null = null

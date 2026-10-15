@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Unwetterwarnungen von MeteoAlarm (über den eigenen Server). */
 
 /** Welche Warnungen zählen: die für die Orte der Reise, alle im Land – oder gar keine */
@@ -64,10 +65,30 @@ export interface Watch {
 }
 
 export const LEVELS: Record<number, { label: string; text: string; bg: string; fg: string }> = {
-  2: { label: 'Gelb', text: 'Achtung', bg: '#facc15', fg: '#422006' },
-  3: { label: 'Orange', text: 'Gefährlich', bg: '#f97316', fg: '#1c0a00' },
-  4: { label: 'Rot', text: 'Sehr gefährlich', bg: '#dc2626', fg: '#ffffff' }
+  2: { label: t('Gelb'), text: t('Achtung'), bg: '#facc15', fg: '#422006' },
+  3: { label: t('Orange'), text: t('Gefährlich'), bg: '#f97316', fg: '#1c0a00' },
+  4: { label: t('Rot'), text: t('Sehr gefährlich'), bg: '#dc2626', fg: '#ffffff' }
 }
+
+/** Warnarten (MeteoAlarm awareness_type) in der gewählten Sprache – der Server liefert sie auf Deutsch */
+export const TYPE_NAMES: Record<number, string> = {
+  1: t('Sturm'),
+  2: t('Schnee und Glätte'),
+  3: t('Gewitter'),
+  4: t('Nebel'),
+  5: t('Hitze'),
+  6: t('Kälte'),
+  7: t('Küstengefahren'),
+  8: t('Waldbrandgefahr'),
+  9: t('Lawinen'),
+  10: t('Starkregen'),
+  11: t('Unwetter'),
+  12: t('Hochwasser'),
+  13: t('Regen und Hochwasser')
+}
+
+/** Name der Warnart für die Anzeige */
+export const typeLabel = (w: { type: number; typeName: string }) => TYPE_NAMES[w.type] ?? w.typeName
 
 export const TYPE_ICONS: Record<number, string> = {
   1: 'wind',
@@ -86,10 +107,10 @@ export const TYPE_ICONS: Record<number, string> = {
 }
 
 export const MATCH_LABELS: Record<MatchKind, string> = {
-  region: 'beobachtete Region',
-  ort: 'ein Ort der Reise liegt im Gebiet',
-  name: 'Gebiet passt zu einem Ort der Reise',
-  land: 'ganzes Land'
+  region: t('beobachtete Region'),
+  ort: t('ein Ort der Reise liegt im Gebiet'),
+  name: t('Gebiet passt zu einem Ort der Reise'),
+  land: t('ganzes Land')
 }
 
 export const SOURCE_URL = 'https://meteoalarm.org'

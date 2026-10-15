@@ -1,6 +1,7 @@
 import { addDays, diffDays, todayIso } from '../../core/dates'
 import type { MapPhoto } from '../../core/registry'
 import { MOODS, type JournalEntry, type JournalEntryDraft, type Photo } from './types'
+import { t } from '@/i18n'
 
 export function emptyEntryDraft(date = ''): JournalEntryDraft {
   return { date, title: '', text: '', mood: 0, location: '', highlight: false }
@@ -17,8 +18,8 @@ export function defaultEntryDate(start: string, end: string, today: Date = new D
 /** Ein Eintrag braucht ein Datum und irgendeinen Inhalt (Titel, Text oder Foto). */
 export function validateEntry(d: JournalEntryDraft, photoCount: number): Partial<Record<keyof JournalEntryDraft | 'content', string>> {
   const e: Partial<Record<keyof JournalEntryDraft | 'content', string>> = {}
-  if (!d.date) e.date = 'Bitte ein Datum wählen.'
-  if (!d.title.trim() && !d.text.trim() && photoCount === 0) e.content = 'Schreib etwas oder füge ein Foto hinzu.'
+  if (!d.date) e.date = t('Bitte ein Datum wählen.')
+  if (!d.title.trim() && !d.text.trim() && photoCount === 0) e.content = t('Schreib etwas oder füge ein Foto hinzu.')
   return e
 }
 

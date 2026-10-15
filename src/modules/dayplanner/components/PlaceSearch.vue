@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
 import { searchPlaces, type Place } from '@/services/weather'
+import { t } from '@/i18n'
 
 /** Ortssuche für die Wettervorhersage. Gibt den gewählten Ort per "select" zurück. */
 const props = defineProps<{ initialQuery?: string }>()
@@ -22,9 +23,9 @@ async function run() {
     // Nur der erste Teil vor einem Komma ("Riva del Garda, Italien" → "Riva del Garda") – die Suche mag kurze Namen
     const q = query.value.split(',')[0]
     results.value = await searchPlaces(q, controller.signal)
-    if (!results.value.length && q.trim().length >= 2) error.value = 'Kein Ort gefunden. Anders schreiben oder größeren Ort wählen.'
+    if (!results.value.length && q.trim().length >= 2) error.value = t('Kein Ort gefunden. Anders schreiben oder größeren Ort wählen.')
   } catch (e) {
-    if ((e as Error).name !== 'AbortError') error.value = navigator.onLine ? (e as Error).message : 'Für die Ortssuche wird Internet benötigt.'
+    if ((e as Error).name !== 'AbortError') error.value = navigator.onLine ? (e as Error).message : t('Für die Ortssuche wird Internet benötigt.')
   } finally {
     loading.value = false
   }
@@ -45,7 +46,7 @@ onUnmounted(() => {
   <div>
     <div class="input-group mb-2">
       <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
-      <input v-model="query" class="form-control" placeholder="Ort für die Wettervorhersage" aria-label="Ort suchen" />
+      <input v-model="query" class="form-control" :placeholder="t('Ort für die Wettervorhersage')" :aria-label="t('Ort suchen')" />
       <span v-if="loading" class="input-group-text"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span></span>
     </div>
     <div v-if="error" class="small text-body-secondary mb-2">{{ error }}</div>

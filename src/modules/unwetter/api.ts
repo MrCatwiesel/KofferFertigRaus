@@ -12,25 +12,28 @@ import { placeRepository } from '@/modules/map/public'
 import { tripRepository, type Trip } from '@/modules/trip/public'
 import { buildWatch, inWatchWindow, settingsOf } from './logic'
 import type { CountryWarnings, WarningCache, Watch } from './types'
+import { t } from '@/i18n'
 
 const metaKey = (tripId: string) => `unwetter.${tripId}`
 /** Automatisch höchstens alle 30 Minuten neu holen */
 const STALE_MS = 30 * 60_000
 
-export const NO_SERVER = 'Unwetterwarnungen kommen über den eigenen Server – erst den Geräte-Abgleich einrichten.'
-export const OLD_SERVER = 'Der Server kennt noch keine Unwetterwarnungen. Bitte auf Version 1.19 aktualisieren (im Container: update.sh).'
+export const NO_SERVER = t('Unwetterwarnungen kommen über den eigenen Server – erst den Geräte-Abgleich einrichten.')
+export const OLD_SERVER = t('Der Server kennt noch keine Unwetterwarnungen. Bitte auf Version 1.19 aktualisieren (im Container: update.sh).')
 
 export const getCache = (tripId: string) => getMeta<WarningCache | null>(metaKey(tripId), null)
 export const removeCache = (tripId: string) => deleteMeta(metaKey(tripId))
 
-const englishNames = (() => {
+const namesIn = (lang: string) => {
   try {
-    const dn = new Intl.DisplayNames(['en'], { type: 'region' })
+    const dn = new Intl.DisplayNames([lang], { type: 'region' })
     return (c: string) => dn.of(c) ?? ''
   } catch {
     return () => ''
   }
-})()
+}
+const englishNames = namesIn('en')
+const germanNames = namesIn('de')
 
 /** Orte, Ortsnamen und gewählte Regionen der Reise */
 export async function watchOf(trip: Trip): Promise<Watch> {
@@ -42,7 +45,7 @@ export async function watchOf(trip: Trip): Promise<Watch> {
   const countries = trip.countries ?? []
   return buildWatch(settingsOf(trip), {
     destination: trip.destination,
-    countryNames: [...countries.map(countryName), ...countries.map(englishNames), 'Deutschland', 'Germany'],
+    countryNames: [...countries.map(countryName), ...countries.map(germanNames), ...countries.map(englishNames), 'Deutschland', 'Germany'],
     places,
     weatherPlace: weather?.place ?? null,
     addresses: accommodations.map((a) => a.address)
@@ -54,7 +57,7 @@ export async function checkTrip(tripId: string): Promise<WarningCache> {
   const client = await ServerClient.fromSync()
   if (!client) throw new Error(NO_SERVER)
   const trip = await tripRepository.get(tripId)
-  if (!trip) throw new Error('Reise nicht gefunden.')
+  if (!trip) throw new Error(t('Reise nicht gefunden.'))
   const watch = await watchOf(trip)
   const countries: CountryWarnings[] = []
   const errors: WarningCache['errors'] = []

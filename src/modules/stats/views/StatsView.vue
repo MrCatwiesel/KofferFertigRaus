@@ -13,6 +13,7 @@ import { expenseRepository, inTripCurrency } from '@/modules/expenses/public'
 import { placeRepository } from '@/modules/map/public'
 import TripsMap from '../components/TripsMap.vue'
 import { summarize, yearsOf, type TripExtra } from '../logic'
+import { t, tn, intlLocale } from '@/i18n'
 
 const router = useRouter()
 const trips = shallowRef<Trip[]>([])
@@ -55,8 +56,8 @@ void load()
 
 const years = computed(() => yearsOf(trips.value))
 const s = computed(() => summarize(trips.value, extra.value, year.value, today))
-const km = (m: number) => `${Math.round(m / 1000).toLocaleString('de-DE')} km`
-const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez']
+const km = (m: number) => `${Math.round(m / 1000).toLocaleString(intlLocale())} km`
+const MONTHS = Array.from({ length: 12 }, (_, i) => new Intl.DateTimeFormat(intlLocale(), { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2026, i, 15))).replace('.', ''))
 const maxMonth = computed(() => Math.max(1, ...s.value.months))
 const mapPoints = computed(() =>
   s.value.rows
@@ -65,65 +66,65 @@ const mapPoints = computed(() =>
 )
 const tiles = computed(() =>
   [
-    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? 'Reise' : 'Reisen' },
-    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: 'Reisetage' },
-    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: 'Übernachtungen' },
-    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? 'Land' : 'Länder' },
-    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: `auf ${s.value.routes} ${s.value.routes === 1 ? 'Tour' : 'Touren'}` },
-    { icon: 'graph-up-arrow', n: s.value.ascent, value: `${s.value.ascent.toLocaleString('de-DE')} m`, label: 'bergauf' },
-    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString('de-DE'), label: 'Fotos' },
-    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: 'Tagebuch-Einträge' }
+    { icon: 'suitcase2', n: s.value.trips, value: s.value.trips, label: s.value.trips === 1 ? t('Reise') : t('Reisen') },
+    { icon: 'calendar-range', n: s.value.days, value: s.value.days, label: t('Reisetage') },
+    { icon: 'moon-stars', n: s.value.nights, value: s.value.nights, label: t('Übernachtungen') },
+    { icon: 'globe-europe-africa', n: s.value.countries.length, value: s.value.countries.length, label: s.value.countries.length === 1 ? t('Land') : t('Länder') },
+    { icon: 'signpost-2', n: s.value.distance, value: km(s.value.distance), label: tn(s.value.routes, 'auf 1 Tour', 'auf {n} Touren') },
+    { icon: 'graph-up-arrow', n: s.value.ascent, value: `${s.value.ascent.toLocaleString(intlLocale())} m`, label: t('bergauf') },
+    { icon: 'images', n: s.value.photos, value: s.value.photos.toLocaleString(intlLocale()), label: t('Fotos') },
+    { icon: 'journal-richtext', n: s.value.entries, value: s.value.entries, label: t('Tagebuch-Einträge') }
   ].filter((t) => t.n > 0)
 )
 </script>
 
 <template>
   <div class="mb-3">
-    <RouterLink to="/trip" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Meine Reisen</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Unsere Reisen in Zahlen</h1>
+    <RouterLink to="/trip" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ t('Meine Reisen') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ t('Unsere Reisen in Zahlen') }}</h1>
   </div>
 
-  <div class="d-flex flex-wrap gap-2 mb-3" role="group" aria-label="Zeitraum">
-    <button type="button" class="btn btn-sm" :class="year === null ? 'btn-primary' : 'btn-outline-primary'" @click="year = null">Alle Jahre</button>
+  <div class="d-flex flex-wrap gap-2 mb-3" role="group" :aria-label="t('Zeitraum')">
+    <button type="button" class="btn btn-sm" :class="year === null ? 'btn-primary' : 'btn-outline-primary'" @click="year = null">{{ t('Alle Jahre') }}</button>
     <button v-for="y in years" :key="y" type="button" class="btn btn-sm" :class="year === y ? 'btn-primary' : 'btn-outline-primary'" @click="year = y">{{ y }}</button>
   </div>
 
-  <p v-if="loading" class="text-body-secondary">Wird gezählt …</p>
+  <p v-if="loading" class="text-body-secondary">{{ t('Wird gezählt …') }}</p>
   <div v-else-if="!s.trips" class="card"><div class="card-body text-body-secondary">
-    Noch keine Reise in diesem Zeitraum<template v-if="s.planned"> – {{ s.planned }} geplant</template>.
+    {{ t('Noch keine Reise in diesem Zeitraum') }}<template v-if="s.planned"> {{ t('– {planned} geplant', { planned: s.planned }) }}</template>.
   </div></div>
   <template v-else>
     <div class="row g-2 mb-3">
-      <div v-for="t in tiles" :key="t.label" class="col-6 col-md-3">
+      <div v-for="tile in tiles" :key="tile.label" class="col-6 col-md-3">
         <div class="card h-100 stat">
           <div class="card-body py-2">
-            <i :class="`bi bi-${t.icon} text-primary`" aria-hidden="true"></i>
-            <div class="stat-value">{{ t.value }}</div>
-            <div class="small text-body-secondary">{{ t.label }}</div>
+            <i :class="`bi bi-${tile.icon} text-primary`" aria-hidden="true"></i>
+            <div class="stat-value">{{ tile.value }}</div>
+            <div class="small text-body-secondary">{{ tile.label }}</div>
           </div>
         </div>
       </div>
     </div>
-    <p v-if="s.planned" class="small text-body-secondary on-bg">Dazu {{ s.planned }} geplante {{ s.planned === 1 ? 'Reise' : 'Reisen' }}.</p>
+    <p v-if="s.planned" class="small text-body-secondary on-bg">{{ tn(s.planned, 'Dazu 1 geplante Reise.', 'Dazu {n} geplante Reisen.') }}</p>
 
     <section v-if="s.countries.length" class="card mb-3">
       <div class="card-body">
-        <h2 class="h6">Länder</h2>
+        <h2 class="h6">{{ t('Länder') }}</h2>
         <span v-for="c in s.countries" :key="c" class="badge text-bg-light border fs-6 fw-normal me-1 mb-1">{{ flag(c) }} {{ countryName(c) }}</span>
       </div>
     </section>
 
     <section v-if="mapPoints.length" class="card mb-3">
       <div class="card-body">
-        <h2 class="h6">Wo wir waren</h2>
+        <h2 class="h6">{{ t('Wo wir waren') }}</h2>
         <TripsMap :points="mapPoints" @open="(id) => router.push(`/trip/${id}`)" />
       </div>
     </section>
 
     <section class="card mb-3">
       <div class="card-body">
-        <h2 class="h6">Reisetage je Monat</h2>
-        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="`Reisetage je Monat: ${s.months.join(', ')}`">
+        <h2 class="h6">{{ t('Reisetage je Monat') }}</h2>
+        <svg viewBox="0 0 600 170" class="months" role="img" :aria-label="t('Reisetage je Monat: {join}', { join: s.months.join(', ') })">
           <g v-for="(v, i) in s.months" :key="i">
             <rect :x="i * 50 + 8" :y="140 - (v / maxMonth) * 120" width="34" :height="Math.max(v ? 2 : 0, (v / maxMonth) * 120)" rx="4" fill="var(--nww-primary)" />
             <text v-if="v" :x="i * 50 + 25" :y="134 - (v / maxMonth) * 120" text-anchor="middle" class="m-val">{{ v }}</text>
@@ -135,18 +136,18 @@ const tiles = computed(() =>
 
     <section v-if="s.longestTrip || s.longestRoute || s.highestRoute || Object.keys(s.spent).length" class="card mb-3">
       <div class="card-body">
-        <h2 class="h6">Rekorde</h2>
+        <h2 class="h6">{{ t('Rekorde') }}</h2>
         <ul class="list-unstyled mb-0">
-          <li v-if="s.longestTrip" class="mb-1"><i class="bi bi-trophy text-primary me-2" aria-hidden="true"></i>Längste Reise: <b>{{ s.longestTrip.title }}</b> ({{ s.longestTrip.days }} Tage)</li>
-          <li v-if="s.longestRoute" class="mb-1"><i class="bi bi-signpost-2 text-primary me-2" aria-hidden="true"></i>Längste Tour: <b>{{ s.longestRoute.name }}</b> ({{ km(s.longestRoute.distance) }}, {{ s.longestRoute.trip }})</li>
-          <li v-if="s.highestRoute" class="mb-1"><i class="bi bi-graph-up-arrow text-primary me-2" aria-hidden="true"></i>Meiste Höhenmeter: <b>{{ s.highestRoute.name }}</b> ({{ s.highestRoute.ascent.toLocaleString('de-DE') }} m, {{ s.highestRoute.trip }})</li>
-          <li v-for="(v, c) in s.spent" :key="c" class="mb-1"><i class="bi bi-wallet2 text-primary me-2" aria-hidden="true"></i>Ausgegeben: <b>{{ formatMoney(v, String(c)) }}</b></li>
+          <li v-if="s.longestTrip" class="mb-1"><i class="bi bi-trophy text-primary me-2" aria-hidden="true"></i>{{ t('Längste Reise:') }} <b>{{ s.longestTrip.title }}</b> {{ t('({days} Tage)', { days: s.longestTrip.days }) }}</li>
+          <li v-if="s.longestRoute" class="mb-1"><i class="bi bi-signpost-2 text-primary me-2" aria-hidden="true"></i>{{ t('Längste Tour:') }} <b>{{ s.longestRoute.name }}</b> ({{ km(s.longestRoute.distance) }}, {{ s.longestRoute.trip }})</li>
+          <li v-if="s.highestRoute" class="mb-1"><i class="bi bi-graph-up-arrow text-primary me-2" aria-hidden="true"></i>{{ t('Meiste Höhenmeter:') }} <b>{{ s.highestRoute.name }}</b> ({{ s.highestRoute.ascent.toLocaleString(intlLocale()) }} m, {{ s.highestRoute.trip }})</li>
+          <li v-for="(v, c) in s.spent" :key="c" class="mb-1"><i class="bi bi-wallet2 text-primary me-2" aria-hidden="true"></i>{{ t('Ausgegeben:') }} <b>{{ formatMoney(v, String(c)) }}</b></li>
         </ul>
       </div>
     </section>
 
     <section class="mb-4">
-      <h2 class="h6 text-body-secondary on-bg">Reisen</h2>
+      <h2 class="h6 text-body-secondary on-bg">{{ t('Reisen') }}</h2>
       <div class="list-group">
         <RouterLink v-for="r in s.rows" :key="r.id" :to="`/trip/${r.id}`" class="list-group-item list-group-item-action">
           <div class="d-flex justify-content-between gap-2">
@@ -154,7 +155,7 @@ const tiles = computed(() =>
             <span class="small text-body-secondary text-nowrap">{{ formatDate(r.startDate) }}</span>
           </div>
           <div class="small text-body-secondary">
-            {{ r.days }} Tage<template v-if="r.distance"> · {{ km(r.distance) }}</template><template v-if="r.ascent"> · {{ r.ascent.toLocaleString('de-DE') }} Hm</template><template v-if="r.photos"> · {{ r.photos }} Fotos</template>
+            {{ t('{days} Tage', { days: r.days }) }}<template v-if="r.distance"> · {{ km(r.distance) }}</template><template v-if="r.ascent"> {{ t('· {toLocaleString} Hm', { toLocaleString: r.ascent.toLocaleString(intlLocale()) }) }}</template><template v-if="r.photos"> {{ t('· {photos} Fotos', { photos: r.photos }) }}</template>
           </div>
         </RouterLink>
       </div>

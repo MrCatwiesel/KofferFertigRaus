@@ -4,11 +4,12 @@ import { formatMoney } from '@/core/format'
 import { tripRepository } from '@/modules/trip/public'
 import { expenseRepository } from './repository'
 import { summarize } from './logic'
+import { t } from '@/i18n'
 
 /** Modul "Ausgaben" (unterwegs). */
 export const expensesModule: AppModule = {
   id: 'expenses',
-  title: 'Ausgaben',
+  title: t('Ausgaben'),
   icon: 'wallet2',
   order: 55,
   routes: [
@@ -18,15 +19,15 @@ export const expensesModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs', 'danach'],
-    title: 'Ausgaben',
+    title: t('Ausgaben'),
     icon: 'wallet2',
     to: (tripId) => `/trip/${tripId}/ausgaben`,
     async summary(tripId) {
       const [trip, list] = await Promise.all([tripRepository.get(tripId), expenseRepository.listByTrip(tripId)])
-      if (!trip || list.length === 0) return 'Noch nichts ausgegeben'
+      if (!trip || list.length === 0) return t('Noch nichts ausgegeben')
       const s = summarize(list, trip.currency, trip.startDate, trip.endDate)
-      const parts = [`${formatMoney(s.total, trip.currency)} ausgegeben`, `Ø ${formatMoney(s.perDay, trip.currency)}/Tag`]
-      if (trip.budget) parts.push(`${Math.round((s.total / trip.budget) * 100)} % vom Budget`)
+      const parts = [t('{sum} ausgegeben', { sum: formatMoney(s.total, trip.currency) }), t('Ø {sum}/Tag', { sum: formatMoney(s.perDay, trip.currency) })]
+      if (trip.budget) parts.push(t('{n} % vom Budget', { n: Math.round((s.total / trip.budget) * 100) }))
       return parts.join(' · ')
     }
   },

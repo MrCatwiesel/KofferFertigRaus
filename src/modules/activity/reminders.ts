@@ -1,5 +1,6 @@
 import { notBefore, shiftDate, type Reminder, type ReminderTrip } from '@/core/reminders'
 import type { Activity } from './types'
+import { t } from '@/i18n'
 
 /** Geplante Unternehmungen am Tag; „Buchung nötig“ eine Woche vorher als Aufgabe */
 export function activityReminders(list: Activity[], trip: ReminderTrip, today: string): Reminder[] {
@@ -12,7 +13,7 @@ export function activityReminders(list: Activity[], trip: ReminderTrip, today: s
     if (a.bookingRequired && a.status === 'geplant' && (!a.plannedDate || a.plannedDate >= today))
       out.push({
         id: `act:${a.id}:buchen`, tripId: trip.id, date: notBefore(shiftDate(a.plannedDate || trip.startDate, -7), today),
-        kind: 'pruefen', title: `Buchen: ${a.title}`, detail: a.url || undefined, to
+        kind: 'pruefen', title: t('Buchen: {title}', { title: a.title }), detail: a.url || undefined, to
       })
   }
   return out

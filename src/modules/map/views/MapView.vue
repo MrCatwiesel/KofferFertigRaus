@@ -18,6 +18,7 @@ import { groupByPixels } from '../photo-groups'
 import { KIND_STYLE, type MapPlace } from '../types'
 import { offlineMapRepository, type Bbox, type OfflineMap } from '../offline'
 import OfflineMapsCard from './OfflineMapsCard.vue'
+import { t, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const online = useOnline()
@@ -119,10 +120,10 @@ function icon(kind: MapItem['kind'], done: boolean) {
 
 function popupHtml(l: Located): string {
   const links = navLinks(l.place.lat, l.place.lon, l.title)
-  const dist = me.value ? ` · ${formatDistance(distanceKm(me.value, l.place))} entfernt` : ''
+  const dist = me.value ? ' · ' + t('{distance} entfernt', { distance: formatDistance(distanceKm(me.value, l.place)) }) : ''
   return `<strong>${escapeHtml(l.title)}</strong><br><small>${escapeHtml(l.subtitle)}${dist}</small><br>
     <small class="font-monospace">${formatGarmin(l.place.lat, l.place.lon)}</small><br>
-    <a href="${links.apple}" target="_blank" rel="noopener">Apple Karten</a> · <a href="${links.google}" target="_blank" rel="noopener">Google Maps</a>`
+    <a href="${links.apple}" target="_blank" rel="noopener">${t('Apple Karten')}</a> · <a href="${links.google}" target="_blank" rel="noopener">Google Maps</a>`
 }
 
 function draw() {
@@ -138,7 +139,7 @@ function draw() {
       L.DomEvent.stop(e)
       const [lat, lon] = nearestOnRoute(o.points, e.latlng.lat, e.latlng.lng)
       if (photoTarget.value) return void choosePhotoPlace(lat, lon)
-      if (target.value && pickOnMap.value) return void choose(lat, lon, `auf Route „${o.name}“`)
+      if (target.value && pickOnMap.value) return void choose(lat, lon, t('auf Route „{name}“', { name: o.name }))
       L.popup().setLatLng([lat, lon]).setContent(routePopup(o, lat, lon)).openOn(map!)
     })
   }
@@ -167,7 +168,7 @@ function drawPhotos() {
       iconAnchor: [22, 22],
       popupAnchor: [0, -20]
     })
-    L.marker([lat, lon], { icon, title: sorted.length > 1 ? `${sorted.length} Fotos` : sorted[0].caption || 'Foto', zIndexOffset: 500 })
+    L.marker([lat, lon], { icon, title: sorted.length > 1 ? t('{n} Fotos', { n: sorted.length }) : sorted[0].caption || t('Foto'), zIndexOffset: 500 })
       .bindPopup(() => photoPopup(sorted), { maxWidth: 300, minWidth: 200 })
       .addTo(photoLayer)
   }
@@ -176,17 +177,17 @@ function drawPhotos() {
 function photoPopup(list: PlacedPhoto[]): HTMLElement {
   const box = document.createElement('div')
   box.className = 'nww-photo-popup'
-  const time = (p: MapPhoto) => new Date(p.takenAt).toLocaleString('de-DE', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
+  const time = (p: MapPhoto) => new Date(p.takenAt).toLocaleString(intlLocale(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   const shown = list.slice(0, 12)
   box.innerHTML =
     `<div class="grid">${shown
       .map((p, i) => `<a href="#" data-i="${i}" title="${escapeHtml(p.caption || time(p))}"><img src="${thumbUrl(p)}" alt="${escapeHtml(p.caption)}"></a>`)
       .join('')}</div>` +
-    (list.length > shown.length ? `<small>… und ${list.length - shown.length} weitere</small><br>` : '') +
-    `<small>${escapeHtml(list.length === 1 ? list[0].caption || time(list[0]) : `${list.length} Fotos · ${time(list[0])} – ${time(list[list.length - 1])}`)}</small>` +
-    (list.some((p) => p.source === 'tour') ? `<br><small class="text-body-secondary"><i class="bi bi-signpost-2"></i> Ort aus der Tour zur Aufnahmezeit geschätzt</small>` : '') +
+    (list.length > shown.length ? `<small>${t('… und {n} weitere', { n: list.length - shown.length })}</small><br>` : '') +
+    `<small>${escapeHtml(list.length === 1 ? list[0].caption || time(list[0]) : t('{n} Fotos · {from} – {to}', { n: list.length, from: time(list[0]), to: time(list[list.length - 1]) }))}</small>` +
+    (list.some((p) => p.source === 'tour') ? `<br><small class="text-body-secondary"><i class="bi bi-signpost-2"></i> ${t('Ort aus der Tour zur Aufnahmezeit geschätzt')}</small>` : '') +
     (list.length === 1
-      ? `<br><small><a href="#" data-act="move">Ort ändern</a>${list[0].source === 'karte' ? ' · <a href="#" data-act="clear">Ort entfernen</a>' : ''}</small>`
+      ? `<br><small><a href="#" data-act="move">${t('Ort ändern')}</a>${list[0].source === 'karte' ? ` · <a href="#" data-act="clear">${t('Ort entfernen')}</a>` : ''}</small>`
       : '')
   box.addEventListener('click', (ev) => {
     const a = (ev.target as HTMLElement).closest('a')
@@ -204,14 +205,14 @@ function routePopup(o: MapOverlay, lat: number, lon: number): HTMLElement {
   const box = document.createElement('div')
   box.innerHTML = `<strong>${escapeHtml(o.name)}</strong><br><small>${escapeHtml(o.info)}</small><br>
     <small class="font-monospace">${formatGarmin(lat, lon)}</small><br>
-    <a href="#" data-act="details">Details</a>${target.value ? ` · <a href="#" data-act="here">„${escapeHtml(target.value.title)}“ hier setzen</a>` : ''}`
+    <a href="#" data-act="details">${t('Details')}</a>${target.value ? ` · <a href="#" data-act="here">${t('„{name}“ hier setzen', { name: escapeHtml(target.value.title) })}</a>` : ''}`
   box.addEventListener('click', (ev) => {
     const act = (ev.target as HTMLElement).closest('a')?.dataset.act
     if (!act) return
     ev.preventDefault()
     map?.closePopup()
     if (act === 'details') router.push(o.to)
-    else choose(lat, lon, `auf Route „${o.name}“`)
+    else choose(lat, lon, t('auf Route „{name}“', { name: o.name }))
   })
   return box
 }
@@ -238,7 +239,7 @@ onMounted(async () => {
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       crossOrigin: true, // mit CORS laden – dann taugen die gemerkten Kacheln auch fürs Kartenbild im Reisebericht
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>-Mitwirkende'
+      attribution: '&copy; ' + t('{osm}-Mitwirkende', { osm: '<a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>' })
     })
   )
   layer = markRaw(L.layerGroup().addTo(map))
@@ -300,7 +301,7 @@ async function applyBase() {
       offlineLayers = layers.map((l) => markRaw(l).addTo(map!))
       return
     } catch (e) {
-      baseError.value = `Offline-Karte konnte nicht geladen werden: ${(e as Error).message}`
+      baseError.value = t('Offline-Karte konnte nicht geladen werden: {error}', { error: (e as Error).message })
     }
   }
   if (osm && map && !map.hasLayer(osm)) osm.addTo(map)
@@ -343,7 +344,7 @@ function startLocate(it: MapItem) {
   if (c) results.value = [coordResult(c.lat, c.lon)]
 }
 
-const coordResult = (lat: number, lon: number): GeoResult => ({ lat, lon, label: `Koordinaten ${formatDecimal(lat, lon)} · ${formatGarmin(lat, lon)}` })
+const coordResult = (lat: number, lon: number): GeoResult => ({ lat, lon, label: t('Koordinaten {decimal} · {garmin}', { decimal: formatDecimal(lat, lon), garmin: formatGarmin(lat, lon) }) })
 
 async function runSearch() {
   searchError.value = ''
@@ -356,9 +357,9 @@ async function runSearch() {
   searching.value = true
   try {
     results.value = await searchAddress(query.value)
-    if (!results.value.length) searchError.value = 'Nichts gefunden – kürzer suchen (z. B. nur Ort) oder auf der Karte antippen.'
+    if (!results.value.length) searchError.value = t('Nichts gefunden – kürzer suchen (z. B. nur Ort) oder auf der Karte antippen.')
   } catch (e) {
-    searchError.value = online.value ? (e as Error).message : 'Für die Suche wird Internet benötigt – oder auf der Karte antippen.'
+    searchError.value = online.value ? (e as Error).message : t('Für die Suche wird Internet benötigt – oder auf der Karte antippen.')
   } finally {
     searching.value = false
   }
@@ -374,7 +375,7 @@ async function choose(lat: number, lon: number, label: string) {
 
 function onMapClick(lat: number, lon: number) {
   if (photoTarget.value) return void choosePhotoPlace(lat, lon)
-  if (target.value && pickOnMap.value) choose(lat, lon, 'auf der Karte gesetzt')
+  if (target.value && pickOnMap.value) choose(lat, lon, t('auf der Karte gesetzt'))
 }
 
 // ---- Foto von Hand verorten ----
@@ -394,7 +395,7 @@ async function choosePhotoPlace(lat: number, lon: number) {
 
 function fromRoute(o: MapOverlay, end: boolean) {
   const [lat, lon] = end ? o.points[o.points.length - 1] : o.points[0]
-  choose(lat, lon, `${end ? 'Ziel' : 'Start'} von „${o.name}“`)
+  choose(lat, lon, end ? t('Ziel von „{name}“', { name: o.name }) : t('Start von „{name}“', { name: o.name }))
 }
 
 const copied = ref('')
@@ -402,7 +403,7 @@ async function copyCoords(l: Located) {
   const text = formatDecimal(l.place.lat, l.place.lon, 6)
   try {
     await navigator.clipboard.writeText(text)
-    copied.value = `Kopiert: ${text}`
+    copied.value = t('Kopiert: {text}', { text })
   } catch {
     copied.value = text
   }
@@ -455,55 +456,55 @@ const nearest = computed(() => {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Karte" />
+  <TripContextHeader :trip-id="tripId" :title="t('Karte')" />
 
   <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-    <select v-if="plannedDays.length" v-model="dayFilter" class="form-select form-select-sm w-auto" aria-label="Tag">
-      <option value="">Alle Tage</option>
+    <select v-if="plannedDays.length" v-model="dayFilter" class="form-select form-select-sm w-auto" :aria-label="t('Tag')">
+      <option value="">{{ t('Alle Tage') }}</option>
       <option v-for="d in plannedDays" :key="d" :value="d">{{ formatDayShort(d) }}</option>
     </select>
-    <button type="button" class="btn btn-sm btn-outline-secondary" @click="fitAll"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i>Alles zeigen</button>
+    <button type="button" class="btn btn-sm btn-outline-secondary" @click="fitAll"><i class="bi bi-arrows-fullscreen me-1" aria-hidden="true"></i>{{ t('Alles zeigen') }}</button>
     <button type="button" class="btn btn-sm btn-outline-primary" :disabled="locating" @click="showMe">
       <span v-if="locating" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-      <i v-else class="bi bi-crosshair me-1" aria-hidden="true"></i>Mein Standort
+      <i v-else class="bi bi-crosshair me-1" aria-hidden="true"></i>{{ t('Mein Standort') }}
     </button>
-    <div v-if="offlineMaps.length" class="btn-group btn-group-sm" role="group" aria-label="Kartengrundlage">
+    <div v-if="offlineMaps.length" class="btn-group btn-group-sm" role="group" :aria-label="t('Kartengrundlage')">
       <input id="base-online" v-model="baseMode" type="radio" class="btn-check" value="online" />
-      <label class="btn btn-outline-secondary" for="base-online"><i class="bi bi-globe me-1" aria-hidden="true"></i>Online</label>
+      <label class="btn btn-outline-secondary" for="base-online"><i class="bi bi-globe me-1" aria-hidden="true"></i>{{ t('Online') }}</label>
       <input id="base-offline" v-model="baseMode" type="radio" class="btn-check" value="offline" />
-      <label class="btn btn-outline-secondary" for="base-offline"><i class="bi bi-cloud-check me-1" aria-hidden="true"></i>Offline</label>
+      <label class="btn btn-outline-secondary" for="base-offline"><i class="bi bi-cloud-check me-1" aria-hidden="true"></i>{{ t('Offline') }}</label>
     </div>
     <span class="small text-body-secondary ms-auto">
-      <span class="legend" :style="{ background: KIND_STYLE.accommodation.color }"></span> Unterkunft
-      <span class="legend ms-2" :style="{ background: KIND_STYLE.activity.color }"></span> Unternehmung
+      <span class="legend" :style="{ background: KIND_STYLE.accommodation.color }"></span> {{ t('Unterkunft') }}
+      <span class="legend ms-2" :style="{ background: KIND_STYLE.activity.color }"></span> {{ t('Unternehmung') }}
     </span>
     <button v-if="mapPhotos.length" type="button" class="btn btn-sm" :class="showPhotos ? 'btn-primary' : 'btn-outline-primary'" :aria-pressed="showPhotos" data-photos-toggle @click="showPhotos = !showPhotos">
-      <i class="bi bi-images me-1" aria-hidden="true"></i>Fotos ({{ mapPhotos.length }})
+      <i class="bi bi-images me-1" aria-hidden="true"></i>{{ t('Fotos ({n})', { n: mapPhotos.length }) }}
     </button>
   </div>
 
   <div v-if="target && pickOnMap" class="alert alert-info py-2 small mb-2">
-    <i class="bi bi-hand-index me-1" aria-hidden="true"></i>Tippe auf die Karte, wo „{{ target.title }}“ liegt – oder auf eine Route, dann wird der nächste Punkt der Route genommen.
-    <button type="button" class="btn btn-link btn-sm p-0 ms-2" @click="pickOnMap = false">Abbrechen</button>
+    <i class="bi bi-hand-index me-1" aria-hidden="true"></i>{{ t('Tippe auf die Karte, wo „{title}“ liegt – oder auf eine Route, dann wird der nächste Punkt der Route genommen.', { title: target.title }) }}
+    <button type="button" class="btn btn-link btn-sm p-0 ms-2" @click="pickOnMap = false">{{ t('Abbrechen') }}</button>
   </div>
 
   <div v-if="photoTarget" class="alert alert-info py-2 small mb-2 d-flex align-items-center gap-2" data-photo-target>
     <img :src="thumbUrl(photoTarget)" alt="" class="photo-mini" />
-    <span class="flex-grow-1">Tippe auf die Karte, wo das Foto entstanden ist – oder auf eine Route.</span>
-    <button type="button" class="btn btn-link btn-sm p-0" @click="photoTarget = null">Abbrechen</button>
+    <span class="flex-grow-1">{{ t('Tippe auf die Karte, wo das Foto entstanden ist – oder auf eine Route.') }}</span>
+    <button type="button" class="btn btn-link btn-sm p-0" @click="photoTarget = null">{{ t('Abbrechen') }}</button>
   </div>
 
   <!-- Dynamische Klasse am Rahmen: Vue würde sonst die Klassen überschreiben, die Leaflet am Kartenelement setzt -->
   <div class="map-frame mb-3" :class="{ picking: pickOnMap || !!photoTarget }"><div ref="mapEl" class="map"></div></div>
   <p v-if="baseError" class="small text-danger">{{ baseError }}</p>
   <p v-else-if="!online && !offlineMaps.length" class="small text-body-secondary">
-    Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast. Tipp: unten „Offline-Karten“ – dann ist die ganze Gegend gespeichert.
+    {{ t('Offline: Es werden nur Kartenausschnitte angezeigt, die du schon einmal angesehen hast. Tipp: unten „Offline-Karten“ – dann ist die ganze Gegend gespeichert.') }}
   </p>
-  <p v-else-if="baseMode === 'offline'" class="small text-body-secondary">Gespeicherte Offline-Karte – außerhalb ihres Ausschnitts bleibt die Karte leer.</p>
+  <p v-else-if="baseMode === 'offline'" class="small text-body-secondary">{{ t('Gespeicherte Offline-Karte – außerhalb ihres Ausschnitts bleibt die Karte leer.') }}</p>
 
   <!-- In der Nähe -->
   <section v-if="nearest.length" class="mb-3">
-    <h2 class="h6 text-body-secondary">In deiner Nähe</h2>
+    <h2 class="h6 text-body-secondary">{{ t('In deiner Nähe') }}</h2>
     <div class="list-group">
       <button v-for="n in nearest" :key="n.l.refId" type="button" class="list-group-item list-group-item-action d-flex justify-content-between" @click="focus(n.l)">
         <span>{{ n.l.title }}</span><span class="text-body-secondary small">{{ formatDistance(n.km) }}</span>
@@ -514,17 +515,16 @@ const nearest = computed(() => {
   <!-- Verorten -->
   <section v-if="target" class="card mb-3 border-primary">
     <div class="card-body">
-      <h2 class="h6">„{{ target.title }}“ auf die Karte setzen</h2>
+      <h2 class="h6">{{ t('„{title}“ auf die Karte setzen', { title: target.title }) }}</h2>
       <form class="input-group mb-2" @submit.prevent="runSearch">
-        <input v-model="query" class="form-control" aria-label="Adresse, Ort oder GPS-Koordinaten" placeholder="Adresse, Ort oder GPS-Koordinaten" />
+        <input v-model="query" class="form-control" :aria-label="t('Adresse, Ort oder GPS-Koordinaten')" :placeholder="t('Adresse, Ort oder GPS-Koordinaten')" />
         <button class="btn btn-primary" type="submit" :disabled="searching">
           <span v-if="searching" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-          <i v-else class="bi bi-search" aria-hidden="true"></i><span class="visually-hidden">Suchen</span>
+          <i v-else class="bi bi-search" aria-hidden="true"></i><span class="visually-hidden">{{ t('Suchen') }}</span>
         </button>
       </form>
       <div class="form-text mt-0 mb-2">
-        Auch GPS-Koordinaten gehen (ohne Internet), z. B. <code>47.0751, 12.7530</code> oder wie am Garmin <code>N 47° 04.507' E 012° 45.180'</code> –
-        oder ein geteilter Link aus Google Maps / Apple Karten.
+        {{ t('Auch GPS-Koordinaten gehen (ohne Internet), z. B.') }} <code>47.0751, 12.7530</code> {{ t('oder wie am Garmin') }} <code>N 47° 04.507' E 012° 45.180'</code> {{ t('– oder ein geteilter Link aus Google Maps / Apple Karten.') }}
       </div>
       <div v-if="searchError" class="small text-body-secondary mb-2">{{ searchError }}</div>
       <div class="list-group mb-2">
@@ -533,27 +533,27 @@ const nearest = computed(() => {
         </button>
       </div>
       <div v-if="overlays.length" class="mb-2">
-        <div class="small text-body-secondary mb-1">Von einer Route übernehmen:</div>
+        <div class="small text-body-secondary mb-1">{{ t('Von einer Route übernehmen:') }}</div>
         <div v-for="o in overlays" :key="o.id" class="d-flex flex-wrap align-items-center gap-1 mb-1">
           <span class="route-dot" :style="{ background: o.color }"></span>
           <span class="small flex-grow-1 text-truncate">{{ o.name }}</span>
-          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, false)">Start</button>
-          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, true)">Ziel</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, false)">{{ t('Start') }}</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary py-0" :disabled="o.points.length < 2" @click="fromRoute(o, true)">{{ t('Ziel') }}</button>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <button type="button" class="btn btn-sm btn-outline-primary" @click="pickOnMap = true"><i class="bi bi-hand-index me-1" aria-hidden="true"></i>Auf der Karte antippen</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @click="target = null">Abbrechen</button>
+        <button type="button" class="btn btn-sm btn-outline-primary" @click="pickOnMap = true"><i class="bi bi-hand-index me-1" aria-hidden="true"></i>{{ t('Auf der Karte antippen') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="target = null">{{ t('Abbrechen') }}</button>
       </div>
-      <p class="small text-body-secondary mt-2 mb-0">Adresssuche: Nominatim / © OpenStreetMap-Mitwirkende</p>
+      <p class="small text-body-secondary mt-2 mb-0">{{ t('Adresssuche: Nominatim / © OpenStreetMap-Mitwirkende') }}</p>
     </div>
   </section>
 
   <!-- Fotos ohne Ort -->
   <section v-if="unplacedPhotos.length" class="mb-3" data-unplaced-photos>
-    <h2 class="h6 text-body-secondary">Fotos ohne Ort ({{ unplacedPhotos.length }})</h2>
+    <h2 class="h6 text-body-secondary">{{ t('Fotos ohne Ort ({n})', { n: unplacedPhotos.length }) }}</h2>
     <p class="small text-body-secondary mb-2">
-      Diese Fotos haben keine GPS-Angaben, und keine aufgezeichnete Tour passt zur Aufnahmezeit. Antippen und auf der Karte setzen.
+      {{ t('Diese Fotos haben keine GPS-Angaben, und keine aufgezeichnete Tour passt zur Aufnahmezeit. Antippen und auf der Karte setzen.') }}
     </p>
     <div class="d-flex flex-wrap gap-2">
       <button
@@ -563,7 +563,7 @@ const nearest = computed(() => {
         class="btn p-0 border-0 photo-pick"
         :class="{ active: photoTarget?.id === p.id }"
         :title="p.caption || formatDayShort(p.date)"
-        :aria-label="`Foto ${p.caption || formatDayShort(p.date)} auf der Karte setzen`"
+        :aria-label="t('Foto {x} auf der Karte setzen', { x: p.caption || formatDayShort(p.date) })"
         @click="startPlacePhoto(p)"
       >
         <img :src="thumbUrl(p)" alt="" />
@@ -573,7 +573,7 @@ const nearest = computed(() => {
 
   <!-- Noch nicht verortet -->
   <section v-if="split.missing.length" class="mb-3">
-    <h2 class="h6 text-body-secondary">Noch nicht auf der Karte ({{ split.missing.length }})</h2>
+    <h2 class="h6 text-body-secondary">{{ t('Noch nicht auf der Karte ({n})', { n: split.missing.length }) }}</h2>
     <div class="list-group">
       <div v-for="it in split.missing" :key="`${it.kind}-${it.refId}`" class="list-group-item d-flex align-items-center gap-2">
         <i :class="`bi bi-${KIND_STYLE[it.kind].icon}`" :style="{ color: KIND_STYLE[it.kind].color }" aria-hidden="true"></i>
@@ -581,14 +581,14 @@ const nearest = computed(() => {
           <div class="text-truncate">{{ it.title }}</div>
           <div class="small text-body-secondary text-truncate">{{ it.where || it.subtitle }}</div>
         </div>
-        <button type="button" class="btn btn-sm btn-outline-primary flex-none" @click="startLocate(it)">Verorten</button>
+        <button type="button" class="btn btn-sm btn-outline-primary flex-none" @click="startLocate(it)">{{ t('Verorten') }}</button>
       </div>
     </div>
   </section>
 
   <!-- Auf der Karte -->
   <section v-if="split.located.length" class="mb-3">
-    <h2 class="h6 text-body-secondary">Auf der Karte ({{ split.located.length }})</h2>
+    <h2 class="h6 text-body-secondary">{{ t('Auf der Karte ({n})', { n: split.located.length }) }}</h2>
     <div v-if="copied" class="alert alert-success py-1 small mb-2" role="status">{{ copied }}</div>
     <div class="list-group">
       <div v-for="l in split.located" :key="l.place.id" class="list-group-item d-flex align-items-center gap-2">
@@ -599,13 +599,13 @@ const nearest = computed(() => {
           <div class="small text-body-secondary font-monospace text-truncate">{{ formatGarmin(l.place.lat, l.place.lon) }}</div>
         </button>
         <div class="dropdown flex-none">
-          <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-label="Aktionen"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
+          <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" :aria-label="t('Aktionen')"><i class="bi bi-three-dots" aria-hidden="true"></i></button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).apple" target="_blank" rel="noopener">Route in Apple Karten</a></li>
-            <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).google" target="_blank" rel="noopener">Route in Google Maps</a></li>
-            <li><button class="dropdown-item" @click="copyCoords(l)">Koordinaten kopieren</button></li>
-            <li><button class="dropdown-item" @click="startLocate(l)">Neu verorten</button></li>
-            <li><button class="dropdown-item text-danger" @click="unlocate(l)">Von der Karte nehmen</button></li>
+            <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).apple" target="_blank" rel="noopener">{{ t('Route in Apple Karten') }}</a></li>
+            <li><a class="dropdown-item" :href="navLinks(l.place.lat, l.place.lon, l.title).google" target="_blank" rel="noopener">{{ t('Route in Google Maps') }}</a></li>
+            <li><button class="dropdown-item" @click="copyCoords(l)">{{ t('Koordinaten kopieren') }}</button></li>
+            <li><button class="dropdown-item" @click="startLocate(l)">{{ t('Neu verorten') }}</button></li>
+            <li><button class="dropdown-item text-danger" @click="unlocate(l)">{{ t('Von der Karte nehmen') }}</button></li>
           </ul>
         </div>
       </div>
@@ -614,7 +614,7 @@ const nearest = computed(() => {
 
   <OfflineMapsCard :trip-id="tripId" :trip-title="trip?.title ?? ''" :view-bbox="viewBbox" @show="showOfflineMap" />
 
-  <p v-if="items.length === 0" class="text-body-secondary">Lege Unterkünfte oder Unternehmungen an – dann kannst du sie hier auf die Karte setzen.</p>
+  <p v-if="items.length === 0" class="text-body-secondary">{{ t('Lege Unterkünfte oder Unternehmungen an – dann kannst du sie hier auf die Karte setzen.') }}</p>
 </template>
 
 <style scoped>

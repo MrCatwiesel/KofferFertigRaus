@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 import { NOW, seed, trip } from './helpers'
+import { readFileSync } from 'node:fs'
+
+const VERSION = (JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }).version
 
 /** Kein echtes Internet für Wetter und Kartenkacheln (in CI wären sie erreichbar) */
 async function offlineServices(page: Page) {
@@ -101,8 +104,8 @@ test('Hilfe: „?“ führt zum passenden Thema, Verweise, Suche, Was ist neu', 
 
   // Was ist neu
   await page.goto('/#/hilfe/neu')
-  await expect(page.locator('[data-release]').first()).toContainText('Version 1.36.0')
-  await expect(page.locator('[data-release]').first()).toContainText('Hilfe & Einführung')
+  await expect(page.locator('[data-release]').first()).toContainText(`Version ${VERSION}`)
+  await expect(page.locator('[data-release]').nth(1)).toContainText('Hilfe & Einführung')
 
   // Einstellungen → Hilfe
   await page.goto('/#/einstellungen')
@@ -158,7 +161,7 @@ test('Nach einem Update: Hinweis „Was ist neu“ einmal auf der Startseite', a
   await setSeen(page, '1.35.0')
   await page.reload()
   const hint = page.locator('[data-whats-new]')
-  await expect(hint).toContainText('Neu in Version 1.36.0')
+  await expect(hint).toContainText(`Neu in Version ${VERSION}`)
   await expect(hint).toContainText('Hilfe & Einführung')
   await hint.getByRole('button', { name: 'Hinweis schließen' }).click()
   await expect(hint).toHaveCount(0)

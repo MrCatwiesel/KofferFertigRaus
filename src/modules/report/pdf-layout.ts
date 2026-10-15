@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /**
  * Seitenformate und Fotoaufteilung für die PDF-Datei (Bericht und Fotobuch).
  * Reine Rechnerei in Punkt (1 pt = 1/72 Zoll) – ohne Browser, damit sie sich testen lässt.
@@ -8,10 +9,10 @@ export const MM = 72 / 25.4
 export type PageFormat = 'a4-hoch' | 'a4-quer' | 'quadrat-21' | 'quadrat-30'
 
 export const PAGE_FORMATS: Record<PageFormat, { label: string; w: number; h: number }> = {
-  'a4-hoch': { label: 'A4 hoch', w: 210, h: 297 },
-  'a4-quer': { label: 'A4 quer', w: 297, h: 210 },
-  'quadrat-21': { label: 'Quadrat 21 × 21 cm', w: 210, h: 210 },
-  'quadrat-30': { label: 'Quadrat 30 × 30 cm', w: 300, h: 300 }
+  'a4-hoch': { label: t('A4 hoch'), w: 210, h: 297 },
+  'a4-quer': { label: t('A4 quer'), w: 297, h: 210 },
+  'quadrat-21': { label: t('Quadrat 21 × 21 cm'), w: 210, h: 210 },
+  'quadrat-30': { label: t('Quadrat 30 × 30 cm'), w: 300, h: 300 }
 }
 
 /** Beschnittzugabe für Druckereien (rundum), in mm */

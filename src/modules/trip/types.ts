@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Ein Reiseprojekt – der Ausgangspunkt für alle weiteren Module. */
 export interface Trip {
   id: string
@@ -45,9 +46,9 @@ export interface Trip {
 export type TripDraft = Omit<Trip, 'id' | 'createdAt' | 'updatedAt'>
 
 export const TRANSPORT_LABELS: Record<Trip['transport'], string> = {
-  auto: 'Auto',
-  bahn: 'Bahn',
-  flug: 'Flug',
-  bus: 'Bus',
-  sonstiges: 'Sonstiges'
+  auto: t('Auto'),
+  bahn: t('Bahn'),
+  flug: t('Flug'),
+  bus: t('Bus'),
+  sonstiges: t('Sonstiges')
 }

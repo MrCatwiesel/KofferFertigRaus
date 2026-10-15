@@ -1,5 +1,6 @@
 /** Reine Funktionen der Abstimmungen (ohne Datenbank, ohne Vue). */
 import type { Poll, PollDraft, PollOption, PollVote } from './types'
+import { t, tn } from '@/i18n'
 
 export const emptyPollDraft = (createdBy = ''): PollDraft => ({
   question: '',
@@ -22,8 +23,8 @@ export const usableOptions = (p: Pick<PollDraft, 'kind' | 'options'>) =>
 
 export function validatePoll(p: PollDraft): Partial<Record<'question' | 'options', string>> {
   const errors: Partial<Record<'question' | 'options', string>> = {}
-  if (!p.question.trim()) errors.question = 'Bitte eine Frage eingeben.'
-  if (usableOptions(p).length < 2) errors.options = p.kind === 'termin' ? 'Bitte mindestens zwei Tage angeben.' : 'Bitte mindestens zwei Antworten angeben.'
+  if (!p.question.trim()) errors.question = t('Bitte eine Frage eingeben.')
+  if (usableOptions(p).length < 2) errors.options = p.kind === 'termin' ? t('Bitte mindestens zwei Tage angeben.') : t('Bitte mindestens zwei Antworten angeben.')
   return errors
 }
 
@@ -82,15 +83,15 @@ export function dayLabel(iso: string): string {
 
 /** Anzeige einer Antwort; `activityTitle` liefert den Namen der Unternehmung */
 export function optionLabel(o: PollOption, activityTitle: (id: string) => string = () => ''): string {
-  const base = o.date ? dayLabel(o.date) : o.activityId ? activityTitle(o.activityId) || 'Unternehmung' : ''
+  const base = o.date ? dayLabel(o.date) : o.activityId ? activityTitle(o.activityId) || t('Unternehmung') : ''
   return [base, o.text.trim()].filter(Boolean).join(' · ') || o.text
 }
 
 /** Kurzfassung für die Reiseseite */
 export function summaryText(polls: Poll[], votes: PollVote[], me: string, today: string): string {
   const open = polls.filter((p) => isOpen(p, today))
-  if (!polls.length) return 'Gemeinsam entscheiden: Ausflug, Tag, Restaurant …'
-  if (!open.length) return `${polls.length} beendet`
+  if (!polls.length) return t('Gemeinsam entscheiden: Ausflug, Tag, Restaurant …')
+  if (!open.length) return t('{n} beendet', { n: polls.length })
   const mine = me ? open.filter((p) => !votes.some((v) => v.pollId === p.id && v.voter === me)).length : 0
-  return [`${open.length} offen`, mine ? `${mine} wartet auf dich` : ''].filter(Boolean).join(' · ')
+  return [t('{n} offen', { n: open.length }), mine ? tn(mine, '1 wartet auf dich', '{n} warten auf dich') : ''].filter(Boolean).join(' · ')
 }

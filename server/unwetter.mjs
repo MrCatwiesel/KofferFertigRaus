@@ -15,6 +15,7 @@
  *                                 ersetzt die Beobachtungsliste der Person (für die Push-Benachrichtigungen)
  */
 import { HttpError, readJson, send } from './http.mjs'
+import { intlOf, tr } from './sprachen.mjs'
 
 /** ISO-Ländercode → Name des Feeds bei MeteoAlarm (feeds-<name>) */
 export const COUNTRY_SLUGS = {
@@ -211,24 +212,26 @@ const TIME_ZONES = {
 export const timeZoneOf = (country) => TIME_ZONES[country] ?? 'Europe/Berlin'
 
 /** „Do 15.10. 14:00“ in der Zeitzone `timeZone` */
-export function localWhen(iso, timeZone = 'Europe/Berlin') {
+export function localWhen(iso, timeZone = 'Europe/Berlin', lang = 'de') {
   const t = Date.parse(iso ?? '')
   if (!iso || Number.isNaN(t)) return ''
   const p = Object.fromEntries(
-    new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
+    new Intl.DateTimeFormat(intlOf(lang), { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone })
       .formatToParts(new Date(t))
       .map((x) => [x.type, x.value])
   )
+  if (lang !== 'de') return `${p.weekday} ${p.day}/${p.month} ${p.hour}:${p.minute}`
   return `${String(p.weekday).replace('.', '')} ${p.day}.${p.month}. ${p.hour}:${p.minute}`
 }
 
 /** Zeitraum einer Warnung, z. B. „Do 15.10. 14:00 – Fr 16.10. 06:00“ (gleicher Tag: nur Uhrzeit) */
-export function period(onset, expires, timeZone) {
-  const a = localWhen(onset, timeZone)
-  const b = localWhen(expires, timeZone)
-  if (!a) return b ? `bis ${b}` : ''
-  if (!b) return `ab ${a}`
-  return a.slice(0, 9) === b.slice(0, 9) ? `${a} – ${b.slice(10)}` : `${a} – ${b}`
+export function period(onset, expires, timeZone, lang = 'de') {
+  const a = localWhen(onset, timeZone, lang)
+  const b = localWhen(expires, timeZone, lang)
+  if (!a) return b ? tr(lang, 'bis {time}', { time: b }) : ''
+  if (!b) return tr(lang, 'ab {time}', { time: a })
+  const day = (s) => s.slice(0, s.lastIndexOf(' '))
+  return day(a) === day(b) ? `${a} – ${b.slice(b.lastIndexOf(' ') + 1)}` : `${a} – ${b}`
 }
 
 // ---------------------------------------------------------------- Dienst
@@ -387,10 +390,12 @@ export function createUnwetter(store, push, opts = {}) {
           for (const s of targets) {
             if (x.level < s.prefs.unwetterStufe || q.wasSent.get(s.device_id, key)) continue
             q.markSent.run(s.device_id, key, new Date(at).toISOString())
-            const place = areas.slice(0, 2).join(', ') + (areas.length > 2 ? ` und ${areas.length - 2} weitere` : '')
+            const lang = s.prefs.lang ?? 'de'
+            const place = areas.slice(0, 2).join(', ') + (areas.length > 2 ? tr(lang, ' und {n} weitere', { n: areas.length - 2 }) : '')
+            const typeName = TYPE_NAMES[x.type] ? tr(lang, TYPE_NAMES[x.type]) : x.typeName
             const r = await push.deliver(s, {
-              title: `${w.title}: ${LEVEL_NAMES[x.level]} – ${x.typeName}`,
-              body: [place, period(x.onset, x.expires, timeZoneOf(country))].filter(Boolean).join(' · ').slice(0, 280),
+              title: `${w.title}: ${tr(lang, LEVEL_NAMES[x.level] ?? '')} – ${typeName}`,
+              body: [place, period(x.onset, x.expires, timeZoneOf(country), lang)].filter(Boolean).join(' · ').slice(0, 280),
               url: `#/trip/${row.trip}/unwetter`,
               tag: `unwetter:${row.trip}:${x.type}`.slice(0, 100)
             }, { ttl: 12 * 3600, urgency: x.level >= 3 ? 'high' : 'normal' })

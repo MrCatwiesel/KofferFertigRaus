@@ -76,12 +76,12 @@ async function save() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="isEdit ? 'Abstimmung bearbeiten' : 'Neue Abstimmung'" />
+  <TripContextHeader :trip-id="tripId" :title="isEdit ? t('Abstimmung bearbeiten') : t('Neue Abstimmung')" />
 
   <form class="card" novalidate @submit.prevent="save">
     <div class="card-body">
       <div class="mb-3">
-        <span class="form-label d-block">Art</span>
+        <span class="form-label d-block">{{ t('Art') }}</span>
         <div class="d-grid gap-2 kinds">
           <button
             v-for="(k, key) in KIND_LABELS"
@@ -100,13 +100,13 @@ async function save() {
       </div>
 
       <div class="mb-3">
-        <label for="question" class="form-label">Frage</label>
+        <label for="question" class="form-label">{{ t('Frage') }}</label>
         <input
           id="question"
           v-model="draft.question"
           class="form-control"
           :class="{ 'is-invalid': submitted && errors.question }"
-          :placeholder="draft.kind === 'termin' ? 'Welcher Tag passt für die Gletschertour?' : draft.kind === 'unternehmung' ? 'Was machen wir am Sonntag?' : 'Wo essen wir heute Abend?'"
+          :placeholder="draft.kind === 'termin' ? t('Welcher Tag passt für die Gletschertour?') : draft.kind === 'unternehmung' ? t('Was machen wir am Sonntag?') : t('Wo essen wir heute Abend?')"
           maxlength="200"
         />
         <div class="invalid-feedback">{{ errors.question }}</div>
@@ -114,11 +114,11 @@ async function save() {
 
       <!-- Antworten -->
       <fieldset class="mb-3">
-        <legend class="form-label fs-6">{{ draft.kind === 'termin' ? 'Tage' : draft.kind === 'unternehmung' ? 'Unternehmungen' : 'Antworten' }}</legend>
+        <legend class="form-label fs-6">{{ draft.kind === 'termin' ? t('Tage') : draft.kind === 'unternehmung' ? t('Unternehmungen') : t('Antworten') }}</legend>
 
         <template v-if="draft.kind === 'unternehmung'">
           <p v-if="!choosable.length" class="small text-body-secondary">
-            Noch keine Unternehmungen – erst unter <RouterLink :to="`/trip/${tripId}/unternehmungen`">Unternehmungen</RouterLink> Ideen sammeln.
+            <Tx text="Noch keine Unternehmungen – erst unter {link} Ideen sammeln."><template #link><RouterLink :to="`/trip/${tripId}/unternehmungen`">{{ t('Unternehmungen') }}</RouterLink></template></Tx>
           </p>
           <div v-for="a in choosable" :key="a.id" class="form-check">
             <input :id="`act-${a.id}`" class="form-check-input" type="checkbox" :checked="chosenActivity(a.id)" @change="toggleActivity(a)" />
@@ -128,55 +128,55 @@ async function save() {
 
         <template v-else>
           <div v-for="(o, i) in draft.options" :key="o.id" class="input-group mb-2" data-option-row>
-            <input v-if="draft.kind === 'termin'" v-model="o.date" type="date" class="form-control flex-grow-0 w-auto" :aria-label="`Tag ${i + 1}`" :min="trip?.startDate" />
+            <input v-if="draft.kind === 'termin'" v-model="o.date" type="date" class="form-control flex-grow-0 w-auto" :aria-label="t('Tag {x}', { x: i + 1 })" :min="trip?.startDate" />
             <input
               v-model="o.text"
               class="form-control"
-              :placeholder="draft.kind === 'termin' ? 'Zusatz, z. B. vormittags (optional)' : `Antwort ${i + 1}`"
-              :aria-label="draft.kind === 'termin' ? `Zusatz zu Tag ${i + 1}` : `Antwort ${i + 1}`"
+              :placeholder="draft.kind === 'termin' ? t('Zusatz, z. B. vormittags (optional)') : t('Antwort {x}', { x: i + 1 })"
+              :aria-label="draft.kind === 'termin' ? t('Zusatz zu Tag {x}', { x: i + 1 }) : t('Antwort {x}', { x: i + 1 })"
               maxlength="120"
             />
-            <button type="button" class="btn btn-outline-secondary" :aria-label="`Antwort ${i + 1} entfernen`" @click="draft.options.splice(i, 1)">
+            <button type="button" class="btn btn-outline-secondary" :aria-label="t('Antwort {x} entfernen', { x: i + 1 })" @click="draft.options.splice(i, 1)">
               <i class="bi bi-x-lg" aria-hidden="true"></i>
             </button>
           </div>
           <button type="button" class="btn btn-sm btn-outline-primary" data-add-option @click="draft.options.push(newOption())">
-            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ draft.kind === 'termin' ? 'Tag hinzufügen' : 'Antwort hinzufügen' }}
+            <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ draft.kind === 'termin' ? t('Tag hinzufügen') : t('Antwort hinzufügen') }}
           </button>
         </template>
         <div v-if="submitted && errors.options" class="text-danger small mt-1">{{ errors.options }}</div>
       </fieldset>
 
       <div v-if="draft.kind === 'termin' && choosable.length" class="mb-3">
-        <label for="activity" class="form-label">Für eine Unternehmung? <span class="text-body-secondary small">(optional)</span></label>
+        <label for="activity" class="form-label">{{ t('Für eine Unternehmung?') }} <span class="text-body-secondary small">{{ t('(optional)') }}</span></label>
         <select id="activity" v-model="draft.activityId" class="form-select">
-          <option :value="undefined">– nein –</option>
+          <option :value="undefined">{{ t('– nein –') }}</option>
           <option v-for="a in choosable" :key="a.id" :value="a.id">{{ a.title }}</option>
         </select>
-        <div class="form-text">Nach dem Abstimmen lässt sich der gewählte Tag dort mit einem Tipp eintragen.</div>
+        <div class="form-text">{{ t('Nach dem Abstimmen lässt sich der gewählte Tag dort mit einem Tipp eintragen.') }}</div>
       </div>
 
       <div class="form-check form-switch mb-3">
         <input id="multiple" v-model="draft.multiple" class="form-check-input" type="checkbox" />
-        <label class="form-check-label" for="multiple">Mehrere Antworten erlaubt</label>
+        <label class="form-check-label" for="multiple">{{ t('Mehrere Antworten erlaubt') }}</label>
       </div>
 
       <div class="row g-3 mb-3">
         <div class="col-sm-6">
-          <label for="deadline" class="form-label">Abstimmen bis <span class="text-body-secondary small">(optional)</span></label>
+          <label for="deadline" class="form-label">{{ t('Abstimmen bis') }} <span class="text-body-secondary small">{{ t('(optional)') }}</span></label>
           <input id="deadline" v-model="draft.deadline" type="date" class="form-control" />
-          <div class="form-text">Erscheint unter Termine & Fristen.</div>
+          <div class="form-text">{{ t('Erscheint unter Termine & Fristen.') }}</div>
         </div>
       </div>
 
       <div class="mb-3">
-        <label for="note" class="form-label">Hinweis <span class="text-body-secondary small">(optional)</span></label>
+        <label for="note" class="form-label">{{ t('Hinweis') }} <span class="text-body-secondary small">{{ t('(optional)') }}</span></label>
         <textarea id="note" v-model="draft.note" class="form-control" rows="2" maxlength="1000"></textarea>
       </div>
 
       <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary" :disabled="saving">{{ isEdit ? 'Speichern' : 'Abstimmung starten' }}</button>
-        <RouterLink :to="`/trip/${tripId}/abstimmungen`" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+        <button type="submit" class="btn btn-primary" :disabled="saving">{{ isEdit ? t('Speichern') : t('Abstimmung starten') }}</button>
+        <RouterLink :to="`/trip/${tripId}/abstimmungen`" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       </div>
     </div>
   </form>

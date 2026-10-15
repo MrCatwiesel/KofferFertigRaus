@@ -6,6 +6,7 @@
  * Ohne Server oder mit Gruppenschlüssel (`me` leer) gilt: alles erlaubt.
  */
 import { reactive } from 'vue'
+import { t } from '@/i18n'
 
 export type MemberRole = 'verwalter' | 'mitglied' | 'leser'
 export type TripRole = 'bearbeiten' | 'lesen' | 'kein'
@@ -30,15 +31,15 @@ export interface PeopleState {
 }
 
 export const ROLE_LABEL: Record<MemberRole, string> = {
-  verwalter: 'Verwalter',
-  mitglied: 'Mitglied',
-  leser: 'Nur lesen'
+  verwalter: t('Verwalter'),
+  mitglied: t('Mitglied'),
+  leser: t('Nur lesen')
 }
 
 export const TRIP_ROLE_LABEL: Record<TripRole, string> = {
-  bearbeiten: 'Bearbeiten',
-  lesen: 'Nur lesen',
-  kein: 'Kein Zugriff'
+  bearbeiten: t('Bearbeiten'),
+  lesen: t('Nur lesen'),
+  kein: t('Kein Zugriff')
 }
 
 export const emptyPeople = (): PeopleState => ({ enabled: false, me: null, manager: true, members: [], tripAccess: {} })
@@ -104,9 +105,9 @@ export function mergeLinks(state: PeopleState, before: MemberLinks | undefined, 
 /** Freigabe eines privaten Eintrags in Worten. */
 export function sharedLabel(state: PeopleState, shared: string[] | undefined): string {
   const list = shared ?? []
-  if (list.includes('*')) return 'Für alle in der Reisegruppe sichtbar'
+  if (list.includes('*')) return t('Für alle in der Reisegruppe sichtbar')
   const names = list.map((id) => state.members.find((m) => m.id === id)?.name).filter(Boolean)
-  return names.length ? `Privat · freigegeben für ${names.join(', ')}` : 'Privat – nur für dich sichtbar'
+  return names.length ? t('Privat · freigegeben für {names}', { names: names.join(', ') }) : t('Privat – nur für dich sichtbar')
 }
 
 /** Aus den Server-Angaben (GET /api/info) übernehmen. */

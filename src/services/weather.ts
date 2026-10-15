@@ -1,3 +1,4 @@
+import { t, language } from '@/i18n'
 /**
  * Wetterdienst (Open-Meteo, https://open-meteo.com) – kostenlos, ohne API-Schlüssel.
  * Hinweis: Die freie Nutzung ist für nicht-kommerzielle Zwecke gedacht; bei kommerzieller
@@ -39,9 +40,9 @@ const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast'
 export async function searchPlaces(query: string, signal?: AbortSignal): Promise<Place[]> {
   const q = query.trim()
   if (q.length < 2) return []
-  const url = `${GEO_URL}?${new URLSearchParams({ name: q, count: '6', language: 'de', format: 'json' })}`
+  const url = `${GEO_URL}?${new URLSearchParams({ name: q, count: '6', language: language(), format: 'json' })}`
   const res = await fetch(url, { signal })
-  if (!res.ok) throw new Error(`Ortssuche fehlgeschlagen (${res.status})`)
+  if (!res.ok) throw new Error(t('Ortssuche fehlgeschlagen ({status})', { status: res.status }))
   return parsePlaces(await res.json())
 }
 
@@ -67,7 +68,7 @@ export async function fetchDailyForecast(latitude: number, longitude: number, si
     forecast_days: String(FORECAST_DAYS)
   })
   const res = await fetch(`${FORECAST_URL}?${params}`, { signal })
-  if (!res.ok) throw new Error(`Wetter konnte nicht geladen werden (${res.status})`)
+  if (!res.ok) throw new Error(t('Wetter konnte nicht geladen werden ({status})', { status: res.status }))
   return parseDaily(await res.json())
 }
 
@@ -94,15 +95,15 @@ export type WeatherKind = 'sonnig' | 'wolkig' | 'nebel' | 'niesel' | 'regen' | '
 
 /** WMO-Wettercode → Art, Text und Bootstrap-Icon. */
 export function describeCode(code: number): { kind: WeatherKind; label: string; icon: string } {
-  if (code === 0) return { kind: 'sonnig', label: 'Sonnig', icon: 'sun' }
-  if (code <= 2) return { kind: 'sonnig', label: 'Heiter', icon: 'cloud-sun' }
-  if (code === 3) return { kind: 'wolkig', label: 'Bewölkt', icon: 'cloud' }
-  if (code === 45 || code === 48) return { kind: 'nebel', label: 'Nebel', icon: 'cloud-fog' }
-  if (code >= 51 && code <= 57) return { kind: 'niesel', label: 'Nieselregen', icon: 'cloud-drizzle' }
-  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return { kind: 'regen', label: code >= 80 ? 'Regenschauer' : 'Regen', icon: 'cloud-rain' }
-  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { kind: 'schnee', label: 'Schnee', icon: 'cloud-snow' }
-  if (code >= 95) return { kind: 'gewitter', label: 'Gewitter', icon: 'cloud-lightning-rain' }
-  return { kind: 'wolkig', label: 'Wechselhaft', icon: 'cloud-sun' }
+  if (code === 0) return { kind: 'sonnig', label: t('Sonnig'), icon: 'sun' }
+  if (code <= 2) return { kind: 'sonnig', label: t('Heiter'), icon: 'cloud-sun' }
+  if (code === 3) return { kind: 'wolkig', label: t('Bewölkt'), icon: 'cloud' }
+  if (code === 45 || code === 48) return { kind: 'nebel', label: t('Nebel'), icon: 'cloud-fog' }
+  if (code >= 51 && code <= 57) return { kind: 'niesel', label: t('Nieselregen'), icon: 'cloud-drizzle' }
+  if ((code >= 61 && code <= 67) || (code >= 80 && code <= 82)) return { kind: 'regen', label: code >= 80 ? t('Regenschauer') : t('Regen'), icon: 'cloud-rain' }
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return { kind: 'schnee', label: t('Schnee'), icon: 'cloud-snow' }
+  if (code >= 95) return { kind: 'gewitter', label: t('Gewitter'), icon: 'cloud-lightning-rain' }
+  return { kind: 'wolkig', label: t('Wechselhaft'), icon: 'cloud-sun' }
 }
 
 // ---------------------------------------------------------------- Aussicht für einen Reisezeitraum
@@ -120,7 +121,7 @@ export async function fetchPastDays(latitude: number, longitude: number, start: 
     timezone: 'auto'
   })
   const res = await fetch(`${ARCHIVE_URL}?${params}`, { signal })
-  if (!res.ok) throw new Error(`Wetterarchiv nicht erreichbar (${res.status})`)
+  if (!res.ok) throw new Error(t('Wetterarchiv nicht erreichbar ({status})', { status: res.status }))
   return parseDaily(await res.json())
 }
 

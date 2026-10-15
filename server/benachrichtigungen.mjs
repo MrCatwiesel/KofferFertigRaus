@@ -19,6 +19,7 @@
 import { createCipheriv, createECDH, createHmac, createPrivateKey, randomBytes, sign } from 'node:crypto'
 import { HttpError, readJson, send } from './http.mjs'
 import { tripOf } from './members.mjs'
+import { changeWords, cleanLang, tr } from './sprachen.mjs'
 
 /** Push-Dienste der Browser – an andere Adressen schickt der Server nichts (kein Weiterleiten ins Heimnetz). */
 export const PUSH_HOSTS = [/^([a-z0-9-]+\.)*push\.apple\.com$/, /^fcm\.googleapis\.com$/, /^([a-z0-9-]+\.)*push\.services\.mozilla\.com$/, /^([a-z0-9-]+\.)*notify\.windows\.com$/]
@@ -48,7 +49,7 @@ export const CHANGE_LABELS = {
 }
 
 /** unwetterStufe: ab welcher Warnstufe (2 gelb, 3 orange, 4 rot) eine Unwetterwarnung kommt */
-export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3 }
+export const DEFAULT_PREFS = { erinnerungen: true, aenderungen: false, unwetter: true, unwetterStufe: 3, lang: 'de' }
 
 const b64u = (buf) => Buffer.from(buf).toString('base64url')
 const fromB64u = (s) => Buffer.from(String(s), 'base64url')
@@ -132,16 +133,17 @@ export function validEndpoint(endpoint, hosts = PUSH_HOSTS) {
 
 // ---------------------------------------------------------------- Texte
 
-/** Zusammenfassung der gesammelten Änderungen, z. B. „2 Tagebucheinträge, 5 Fotos“ */
-export function changeSummary(counts) {
+/** Zusammenfassung der gesammelten Änderungen, z. B. „2 Tagebucheinträge, 5 Fotos“ (in der Sprache des Geräts) */
+export function changeSummary(counts, lang = 'de') {
   const parts = []
-  for (const [tbl, [article, one, many]] of Object.entries(CHANGE_LABELS)) {
+  for (const [tbl, german] of Object.entries(CHANGE_LABELS)) {
+    const [article, one, many] = changeWords(lang, tbl, german)
     const n = counts[tbl]?.neu ?? 0
     if (n) parts.push(n === 1 ? `${article} ${one}` : `${n} ${many}`)
   }
   const changed = Object.values(counts).reduce((n, c) => n + (c.geaendert ?? 0), 0)
-  const neu = parts.length ? `Neu: ${parts.join(', ')}` : ''
-  const mod = changed ? `${changed} ${changed === 1 ? 'Änderung' : 'Änderungen'}` : ''
+  const neu = parts.length ? tr(lang, 'Neu: {list}', { list: parts.join(', ') }) : ''
+  const mod = changed ? (changed === 1 ? tr(lang, '1 Änderung') : tr(lang, '{n} Änderungen', { n: changed })) : ''
   return [neu, mod].filter(Boolean).join(' · ')
 }
 
@@ -206,7 +208,8 @@ export function createBenachrichtigungen(store, members, opts = {}) {
     erinnerungen: typeof p?.erinnerungen === 'boolean' ? p.erinnerungen : base.erinnerungen,
     aenderungen: typeof p?.aenderungen === 'boolean' ? p.aenderungen : base.aenderungen,
     unwetter: typeof p?.unwetter === 'boolean' ? p.unwetter : base.unwetter,
-    unwetterStufe: [2, 3, 4].includes(p?.unwetterStufe) ? p.unwetterStufe : base.unwetterStufe
+    unwetterStufe: [2, 3, 4].includes(p?.unwetterStufe) ? p.unwetterStufe : base.unwetterStufe,
+    lang: cleanLang(p?.lang, base.lang ?? 'de')
   })
   /** Zeitplan gehört der Person – oder (Gerät ohne Person) der ganzen Gruppe */
   const ownerOf = (space, memberId) => (memberId ? `${space}:${memberId}` : space)
@@ -328,7 +331,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
     if (!relevant.length) return
     const subs = subsOf(space, 'aenderungen').filter((s) => (member ? s.member !== member.id : s.device_id !== device?.id))
     if (!subs.length) return
-    const who = member?.name ?? device?.name ?? 'Jemand'
+    const who = member?.name ?? device?.name ?? ''
     const t = Date.now()
     for (const s of subs) {
       const access = members.accessFor(space, s.member ? members.get(space, s.member) : null)
@@ -356,10 +359,11 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       const trip = store.record(p.space, 'trips', p.trip)
       if (!trip) continue
       lastSent.set(key, at)
-      const who = [...p.who].slice(0, 3).join(', ')
+      const lang = prefsOf(sub).lang
+      const who = [...p.who].slice(0, 3).map((w) => w || tr(lang, 'Jemand')).join(', ')
       const r = await deliver(sub, {
-        title: `${trip.title || 'Reise'}: ${who}`,
-        body: changeSummary(p.counts),
+        title: `${trip.title || tr(lang, 'Reise')}: ${who}`,
+        body: changeSummary(p.counts, lang),
         url: `#/trip/${p.trip}`,
         tag: `trip:${p.trip}`
       }, { ttl: 24 * 3600 })
@@ -459,7 +463,7 @@ export function createBenachrichtigungen(store, members, opts = {}) {
       if (sub === '/test' && req.method === 'POST') {
         const row = q.sub.get(device.id)
         if (!row) throw new HttpError(404, 'Auf diesem Gerät sind Benachrichtigungen nicht eingeschaltet.')
-        const r = await deliver(row, { title: 'KofferFertigRaus', body: 'Benachrichtigungen funktionieren 👍', url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
+        const r = await deliver(row, { title: 'KofferFertigRaus', body: tr(prefsOf(row).lang, 'Benachrichtigungen funktionieren 👍'), url: '#/', tag: 'test' }, { ttl: 600, urgency: 'high' })
         if (r.gone) throw new HttpError(410, 'Der Push-Dienst kennt dieses Gerät nicht mehr – bitte Benachrichtigungen neu einschalten.')
         if (!r.ok) throw new HttpError(502, q.sub.get(device.id)?.last_error ?? 'Senden ging nicht.')
         return send(res, 200, { ok: true })

@@ -1,7 +1,8 @@
 import { missionName, partText, warningLabel } from './parse'
 import { SOURCE_URL, type CountryInfo } from './types'
+import { t, intlLocale } from '@/i18n'
 
-const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString('de-DE') : '')
+const date = (iso: string) => (iso ? new Date(iso).toLocaleDateString(intlLocale()) : '')
 const clip = (s: string, n = 1500) => (s.length > n ? `${s.slice(0, n).trimEnd()} …` : s)
 
 /** Eintrag für die Dokumentenliste (wie ein TravelDocumentDraft, plus Kennung für spätere Aktualisierung) */
@@ -19,7 +20,7 @@ export interface InfoDocument {
  */
 export function infoDocuments(i: CountryInfo): InfoDocument[] {
   const name = i.countryName || i.country
-  const stand = `Quelle: Auswärtiges Amt, Stand ${date(i.lastModified)} – ${SOURCE_URL}`
+  const stand = t('Quelle: Auswärtiges Amt, Stand {date} – {url}', { date: date(i.lastModified), url: SOURCE_URL })
   const docs = partText(i.sections, /einreise/i, /reisedokument/i)
   const visa = partText(i.sections, /einreise/i, /visum|visa/i)
   const entryOther = partText(i.sections, /einreise/i, /einreise|elektronisch|registrier/i)
@@ -33,21 +34,36 @@ export function infoDocuments(i: CountryInfo): InfoDocument[] {
     {
       source: `aa:${i.country}:einreise`,
       type: 'visum',
-      title: `Einreise ${name}${visaNeeded ? ' – Visum nötig' : ''}`,
+      title: visaNeeded ? t('Einreise {country} – Visum nötig', { country: name }) : t('Einreise {country}', { country: name }),
       status: visaNeeded ? 'fehlt' : 'vorhanden',
-      notes: [docs && `Reisedokumente:\n${clip(docs)}`, visa && `Visum:\n${clip(visa, 800)}`, entryOther && `Einreise:\n${clip(entryOther, 800)}`, stand].filter(Boolean).join('\n\n')
+      notes: [
+        docs && `${t('Reisedokumente:')}\n${clip(docs)}`,
+        visa && `${t('Visum:')}\n${clip(visa, 800)}`,
+        entryOther && `${t('Einreise:')}\n${clip(entryOther, 800)}`,
+        stand
+      ]
+        .filter(Boolean)
+        .join('\n\n')
     },
     {
       source: `aa:${i.country}:impfschutz`,
       type: 'gesundheit',
-      title: `Impfschutz ${name}${requiredVacc.length ? ` – Pflicht: ${requiredVacc.join(', ')}` : ''}`,
+      title: requiredVacc.length
+        ? t('Impfschutz {country} – Pflicht: {vaccines}', { country: name, vaccines: requiredVacc.join(', ') })
+        : t('Impfschutz {country}', { country: name }),
       status: requiredVacc.length ? 'fehlt' : 'vorhanden',
-      notes: [i.vaccines.length ? `Genannte Impfungen: ${i.vaccines.map((v) => v.name + (v.required ? ' (Pflicht)' : '')).join(', ')}` : '', vacc && clip(vacc), stand].filter(Boolean).join('\n\n')
+      notes: [
+        i.vaccines.length ? t('Genannte Impfungen: {list}', { list: i.vaccines.map((v) => v.name + (v.required ? ' ' + t('(Pflicht)') : '')).join(', ') }) : '',
+        vacc && clip(vacc),
+        stand
+      ]
+        .filter(Boolean)
+        .join('\n\n')
     },
     {
       source: `aa:${i.country}:sicherheit`,
       type: 'sonstiges',
-      title: `Sicherheitslage ${name}: ${w.text}`,
+      title: t('Sicherheitslage {country}: {text}', { country: name, text: w.text }),
       status: 'vorhanden',
       notes: [w.text, securityText && clip(securityText, 1200), stand].filter(Boolean).join('\n\n')
     }
@@ -81,10 +97,15 @@ export function missionContacts(i: CountryInfo, destination = ''): InfoContact[]
     if (!m.main && !near) continue
     const name = missionName(m)
     const src = `aa:${i.country}:vertretung:${m.id}`
-    const extra = [m.address, m.mail && `E-Mail: ${m.mail}`, m.website].filter(Boolean).join(' · ')
-    if (m.phone) out.push({ source: src, label: name, phone: m.phone, notes: [extra, m.open && clip(m.open, 300), 'Quelle: Auswärtiges Amt'].filter(Boolean).join('\n') })
+    const extra = [m.address, m.mail && t('E-Mail: {mail}', { mail: m.mail }), m.website].filter(Boolean).join(' · ')
+    if (m.phone) out.push({ source: src, label: name, phone: m.phone, notes: [extra, m.open && clip(m.open, 300), t('Quelle: Auswärtiges Amt')].filter(Boolean).join('\n') })
     if (m.emergency && m.emergency !== m.phone)
-      out.push({ source: `${src}:notfall`, label: `${name} – Notfall-Bereitschaft`, phone: m.emergency, notes: 'Außerhalb der Öffnungszeiten, nur in dringenden Notfällen (z. B. Pass verloren, Festnahme, schwerer Unfall). Quelle: Auswärtiges Amt' })
+      out.push({
+        source: `${src}:notfall`,
+        label: t('{name} – Notfall-Bereitschaft', { name }),
+        phone: m.emergency,
+        notes: t('Außerhalb der Öffnungszeiten, nur in dringenden Notfällen (z. B. Pass verloren, Festnahme, schwerer Unfall). Quelle: Auswärtiges Amt')
+      })
   }
   return out
 }

@@ -4,13 +4,14 @@
  * Die Wege einer Route liegen in OSM als einzelne Abschnitte vor – stitch() fügt sie zu einer Linie zusammen.
  */
 import { haversine } from '../../../services/tracks'
+import { t, language } from '@/i18n'
 
 export type TrailType = 'hiking' | 'bicycle' | 'mtb'
 
-export const TRAIL_TYPES: Record<TrailType, { label: string; routes: string; icon: string }> = {
-  hiking: { label: 'Wanderwege', routes: 'hiking|foot', icon: 'person-walking' },
-  bicycle: { label: 'Radwege', routes: 'bicycle', icon: 'bicycle' },
-  mtb: { label: 'MTB-Strecken', routes: 'mtb', icon: 'bicycle' }
+export const TRAIL_TYPES: Record<TrailType, { label: string; one: string; routes: string; icon: string }> = {
+  hiking: { label: t('Wanderwege'), one: t('Wanderweg'), routes: 'hiking|foot', icon: 'person-walking' },
+  bicycle: { label: t('Radwege'), one: t('Radweg'), routes: 'bicycle', icon: 'bicycle' },
+  mtb: { label: t('MTB-Strecken'), one: t('MTB-Strecke'), routes: 'mtb', icon: 'bicycle' }
 }
 
 /** Größter Suchausschnitt (Grad) – größere Abfragen dauern zu lange */
@@ -67,19 +68,19 @@ export function parseHits(json: { elements?: OsmElement[] }, type: TrailType): T
   return (json.elements ?? [])
     .filter((e) => e.type === 'relation' && e.tags)
     .map((e) => {
-      const t = e.tags!
-      const network = t.network ?? ''
+      const tags = e.tags!
+      const network = tags.network ?? ''
       return {
         id: e.id,
-        name: t['name:de'] || t.name || t.ref || `Route ${e.id}`,
-        ref: t.ref ?? '',
+        name: tags[`name:${language()}`] || tags.name || tags.ref || t('Route {id}', { id: e.id }),
+        ref: tags.ref ?? '',
         network,
         networkLabel: NETWORKS[network] ?? '',
-        from: t.from ?? '',
-        to: t.to ?? '',
-        distance: t.distance ?? '',
-        operator: t.operator ?? '',
-        website: /^https?:\/\//.test(t.website ?? '') ? t.website : '',
+        from: tags.from ?? '',
+        to: tags.to ?? '',
+        distance: tags.distance ?? '',
+        operator: tags.operator ?? '',
+        website: /^https?:\/\//.test(tags.website ?? '') ? tags.website : '',
         type
       }
     })

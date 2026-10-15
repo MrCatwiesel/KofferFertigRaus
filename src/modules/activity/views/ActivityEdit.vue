@@ -6,6 +6,7 @@ import { TripContextHeader, tripRepository, type Trip } from '@/modules/trip/pub
 import { activityRepository } from '../repository'
 import { emptyActivityDraft, estimatedCost, validateActivity } from '../logic'
 import { ACTIVITY_STATUS, CATEGORY, PRIORITY, SETTING, type ActivityDraft } from '../types'
+import { t, tn } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -38,7 +39,7 @@ const errors = computed(() =>
 const costInfo = computed(() => {
   const p = num(draft.pricePerPerson)
   if (!p || !trip.value) return null
-  return `ca. ${formatMoney(estimatedCost({ pricePerPerson: p }, trip.value.travelers), draft.currency)} für ${trip.value.travelers} ${trip.value.travelers === 1 ? 'Person' : 'Personen'}`
+  return tn(trip.value.travelers, 'ca. {cost} für 1 Person', 'ca. {cost} für {n} Personen', { cost: formatMoney(estimatedCost({ pricePerPerson: p }, trip.value.travelers), draft.currency) })
 })
 
 function invalid(f: keyof ActivityDraft) {
@@ -71,39 +72,39 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.title}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{title}“ löschen?', { title: draft.title }))) return
   await activityRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Unternehmung bearbeiten' : 'Neue Unternehmung'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Unternehmung bearbeiten') : t('Neue Unternehmung')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">
-      <label for="title" class="form-label">Was?</label>
+      <label for="title" class="form-label">{{ t('Was?') }}</label>
       <input id="title" v-model="draft.title" class="form-control" :class="{ 'is-invalid': invalid('title') }"
-             placeholder="z. B. Bootsfahrt nach Limone" />
+             :placeholder="t('z. B. Bootsfahrt nach Limone')" />
       <div class="invalid-feedback">{{ errors.title }}</div>
     </div>
 
     <div class="col-6">
-      <label for="cat" class="form-label">Kategorie</label>
+      <label for="cat" class="form-label">{{ t('Kategorie') }}</label>
       <select id="cat" v-model="draft.category" class="form-select">
         <option v-for="(c, key) in CATEGORY" :key="key" :value="key">{{ c.label }}</option>
       </select>
     </div>
     <div class="col-6">
-      <label for="setting" class="form-label">Drinnen / draußen</label>
+      <label for="setting" class="form-label">{{ t('Drinnen / draußen') }}</label>
       <select id="setting" v-model="draft.setting" class="form-select">
         <option v-for="(s, key) in SETTING" :key="key" :value="key">{{ s.label }}</option>
       </select>
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Wie wichtig?</label>
-      <div class="btn-group" role="group" aria-label="Priorität">
+      <label class="form-label d-block">{{ t('Wie wichtig?') }}</label>
+      <div class="btn-group" role="group" :aria-label="t('Priorität')">
         <template v-for="p in ([1, 2, 3] as const)" :key="p">
           <input :id="`prio-${p}`" v-model="draft.priority" type="radio" class="btn-check" :value="p" />
           <label class="btn btn-outline-warning" :for="`prio-${p}`">{{ PRIORITY[p] }}</label>
@@ -112,8 +113,8 @@ async function remove() {
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Status</label>
-      <div class="btn-group flex-wrap" role="group" aria-label="Status">
+      <label class="form-label d-block">{{ t('Status') }}</label>
+      <div class="btn-group flex-wrap" role="group" :aria-label="t('Status')">
         <template v-for="(s, key) in ACTIVITY_STATUS" :key="key">
           <input :id="`st-${key}`" v-model="draft.status" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`st-${key}`">{{ s.label }}</label>
@@ -122,27 +123,27 @@ async function remove() {
     </div>
 
     <div class="col-12 col-md-6">
-      <label for="date" class="form-label">Geplanter Tag</label>
+      <label for="date" class="form-label">{{ t('Geplanter Tag') }}</label>
       <input id="date" v-model="draft.plannedDate" type="date" class="form-control"
              :min="trip?.startDate" :max="trip?.endDate" :class="{ 'is-invalid': invalid('plannedDate') }"
              @change="onDateChange" />
       <div class="invalid-feedback">{{ errors.plannedDate }}</div>
-      <div class="form-text">Leer lassen, wenn noch offen – der Tagesplaner hilft später beim Einplanen.</div>
+      <div class="form-text">{{ t('Leer lassen, wenn noch offen – der Tagesplaner hilft später beim Einplanen.') }}</div>
     </div>
     <div class="col-12 col-md-6">
-      <label for="dur" class="form-label">Dauer (Stunden)</label>
+      <label for="dur" class="form-label">{{ t('Dauer (Stunden)') }}</label>
       <input id="dur" v-model.number="draft.durationHours" type="number" min="0.5" step="0.5" class="form-control"
-             :class="{ 'is-invalid': invalid('durationHours') }" placeholder="optional" />
+             :class="{ 'is-invalid': invalid('durationHours') }" :placeholder="t('optional')" />
       <div class="invalid-feedback">{{ errors.durationHours }}</div>
     </div>
 
     <div class="col-12 col-md-6">
-      <label for="price" class="form-label">Preis pro Person</label>
+      <label for="price" class="form-label">{{ t('Preis pro Person') }}</label>
       <div class="input-group has-validation">
         <input id="price" v-model.number="draft.pricePerPerson" type="number" min="0" step="0.5" class="form-control"
-               :class="{ 'is-invalid': invalid('pricePerPerson') }" placeholder="optional" />
-        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" aria-label="Währung">
-          <option>EUR</option><option>CHF</option><option>USD</option><option>GBP</option>
+               :class="{ 'is-invalid': invalid('pricePerPerson') }" :placeholder="t('optional')" />
+        <select v-model="draft.currency" class="form-select flex-grow-0 w-auto" :aria-label="t('Währung')">
+          <option>{{ t('EUR') }}</option><option>{{ t('CHF') }}</option><option>{{ t('USD') }}</option><option>{{ t('GBP') }}</option>
         </select>
         <div class="invalid-feedback">{{ errors.pricePerPerson }}</div>
       </div>
@@ -151,35 +152,35 @@ async function remove() {
     <div class="col-12 col-md-6 d-flex align-items-end">
       <div class="form-check form-switch mb-2">
         <input id="booking" v-model="draft.bookingRequired" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="booking">Reservierung / Ticket nötig</label>
+        <label class="form-check-label" for="booking">{{ t('Reservierung / Ticket nötig') }}</label>
       </div>
     </div>
 
     <div class="col-12 col-md-6">
-      <label for="place" class="form-label">Ort / Adresse</label>
+      <label for="place" class="form-label">{{ t('Ort / Adresse') }}</label>
       <input id="place" v-model="draft.place" class="form-control" autocomplete="off" />
     </div>
     <div class="col-12 col-md-6">
-      <label for="hours" class="form-label">Öffnungszeiten</label>
-      <input id="hours" v-model="draft.openingHours" class="form-control" placeholder="z. B. Di–So 10–18 Uhr" />
+      <label for="hours" class="form-label">{{ t('Öffnungszeiten') }}</label>
+      <input id="hours" v-model="draft.openingHours" class="form-control" :placeholder="t('z. B. Di–So 10–18 Uhr')" />
     </div>
     <div class="col-12">
-      <label for="url" class="form-label">Link</label>
-      <input id="url" v-model="draft.url" type="url" class="form-control" placeholder="https://…" />
+      <label for="url" class="form-label">{{ t('Link') }}</label>
+      <input id="url" v-model="draft.url" type="url" class="form-control" :placeholder="t('https://…')" />
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
+      <label for="notes" class="form-label">{{ t('Notizen') }}</label>
       <textarea id="notes" v-model="draft.notes" rows="3" class="form-control"
-                placeholder="Tipps, Anfahrt, was mitnehmen …"></textarea>
+                :placeholder="t('Tipps, Anfahrt, was mitnehmen …')"></textarea>
     </div>
 
     <div class="col-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary" :disabled="saving">
-        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern
+        <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}
       </button>
-      <RouterLink :to="`/trip/${tripId}/unternehmungen`" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <RouterLink :to="`/trip/${tripId}/unternehmungen`" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

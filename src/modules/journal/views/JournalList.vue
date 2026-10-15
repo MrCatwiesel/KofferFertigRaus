@@ -11,6 +11,7 @@ import { useObjectUrls } from '../composables'
 import type { JournalEntry, Photo, VoiceNote } from '../types'
 import { formatSeconds } from '@/services/recorder'
 import PhotoLightbox from '../components/PhotoLightbox.vue'
+import { t, tn, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -26,7 +27,7 @@ const voicesByEntry = computed(() => {
   return m
 })
 const voiceLabel = (v: VoiceNote) =>
-  v.title || `Sprachnotiz ${new Date(v.recordedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })}`
+  v.title || t('Sprachnotiz {time}', { time: new Date(v.recordedAt).toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' }) })
 // Verweise anderer Module je Tag (z. B. die Wanderung des Tages)
 const dayLinks = useLiveQuery(() => getDayLinks(props.tripId), [] as DayLink[])
 const linksByDay = computed(() => {
@@ -62,45 +63,48 @@ function toggleHighlight(e: JournalEntry) {
 
 async function removeEntry(e: JournalEntry) {
   const n = photosByEntry.value.get(e.id)?.length ?? 0
-  const what = `„${e.title || 'Eintrag ohne Titel'}“${n ? ` mit ${n} ${n === 1 ? 'Foto' : 'Fotos'}` : ''}`
-  if (!confirm(`${what} löschen? Das lässt sich nicht rückgängig machen.`)) return
+  const title = e.title || t('Eintrag ohne Titel')
+  const question = n
+    ? tn(n, '„{title}“ mit 1 Foto löschen? Das lässt sich nicht rückgängig machen.', '„{title}“ mit {n} Fotos löschen? Das lässt sich nicht rückgängig machen.', { title })
+    : t('„{title}“ löschen? Das lässt sich nicht rückgängig machen.', { title })
+  if (!confirm(question)) return
   await journalRepository.remove(e.id)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Reisetagebuch" />
+  <TripContextHeader :trip-id="tripId" :title="t('Reisetagebuch')" />
 
   <div v-if="stats.entries" class="d-flex flex-wrap gap-2 small mb-3">
-    <span class="badge text-bg-light border"><i class="bi bi-journal-text me-1" aria-hidden="true"></i>{{ stats.entries }} Einträge</span>
-    <span class="badge text-bg-light border"><i class="bi bi-images me-1" aria-hidden="true"></i>{{ stats.photos }} Fotos</span>
-    <span class="badge text-bg-warning"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>{{ stats.highlights }} Highlights</span>
+    <span class="badge text-bg-light border"><i class="bi bi-journal-text me-1" aria-hidden="true"></i>{{ t('{entries} Einträge', { entries: stats.entries }) }}</span>
+    <span class="badge text-bg-light border"><i class="bi bi-images me-1" aria-hidden="true"></i>{{ t('{photos} Fotos', { photos: stats.photos }) }}</span>
+    <span class="badge text-bg-warning"><i class="bi bi-star-fill me-1" aria-hidden="true"></i>{{ t('{highlights} Highlights', { highlights: stats.highlights }) }}</span>
   </div>
 
   <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
     <RouterLink :to="`/trip/${tripId}/tagebuch/neu`" class="btn btn-primary">
-      <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>Neuer Eintrag
+      <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>{{ t('Neuer Eintrag') }}
     </RouterLink>
     <div class="form-check form-switch mb-0 ms-auto">
       <input id="hl" v-model="onlyHighlights" class="form-check-input" type="checkbox" role="switch" />
-      <label class="form-check-label small" for="hl">Nur Highlights</label>
+      <label class="form-check-label small" for="hl">{{ t('Nur Highlights') }}</label>
     </div>
     <div v-if="!onlyHighlights" class="form-check form-switch mb-0">
       <input id="empty" v-model="showEmptyDays" class="form-check-input" type="checkbox" role="switch" />
-      <label class="form-check-label small" for="empty">Leere Tage</label>
+      <label class="form-check-label small" for="empty">{{ t('Leere Tage') }}</label>
     </div>
   </div>
 
   <p v-if="onlyHighlights && days.length === 0" class="text-body-secondary">
-    Noch keine Highlights. Markiere die schönsten Einträge mit dem Stern – sie kommen später auf die Reise-Webseite.
+    {{ t('Noch keine Highlights. Markiere die schönsten Einträge mit dem Stern – sie kommen später auf die Reise-Webseite.') }}
   </p>
 
   <div class="timeline">
     <section v-for="d in days" :key="d.date" class="mb-3">
       <div class="d-flex align-items-baseline gap-2 mb-1">
         <h2 class="h6 mb-0">{{ formatDayShort(d.date) }}</h2>
-        <span v-if="d.dayNumber" class="small text-body-secondary">Tag {{ d.dayNumber }}</span>
-        <span v-if="d.date === todayIso()" class="badge text-bg-primary">heute</span>
+        <span v-if="d.dayNumber" class="small text-body-secondary">{{ t('Tag {dayNumber}', { dayNumber: d.dayNumber }) }}</span>
+        <span v-if="d.date === todayIso()" class="badge text-bg-primary">{{ t('heute') }}</span>
       </div>
       <div v-if="linksByDay.get(d.date)?.length" class="d-flex flex-wrap gap-1 mb-1">
         <RouterLink v-for="l in linksByDay.get(d.date)" :key="l.to" :to="l.to" class="badge rounded-pill text-bg-light border text-decoration-none fw-normal day-link">
@@ -110,17 +114,17 @@ async function removeEntry(e: JournalEntry) {
 
       <div v-if="d.entries.length === 0" class="d-flex border border-dashed rounded small">
         <RouterLink :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date } }" class="flex-grow-1 p-2 text-body-secondary text-decoration-none">
-          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Eintrag schreiben
+          <i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Eintrag schreiben') }}
         </RouterLink>
         <RouterLink :to="{ path: `/trip/${tripId}/tagebuch/neu`, query: { tag: d.date, entwurf: '1' } }" class="p-2 text-decoration-none border-start" data-draft-link>
-          <i class="bi bi-magic me-1" aria-hidden="true"></i>Entwurf aus dem Tag
+          <i class="bi bi-magic me-1" aria-hidden="true"></i>{{ t('Entwurf aus dem Tag') }}
         </RouterLink>
       </div>
 
       <article v-for="e in d.entries" :key="e.id" class="card mb-2">
         <div v-if="photosByEntry.get(e.id)?.length" class="photo-strip">
           <button v-for="(p, i) in photosByEntry.get(e.id)!.slice(0, 4)" :key="p.id" type="button" class="photo-btn"
-                  :aria-label="`Foto ${i + 1} groß anzeigen`" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
+                  :aria-label="t('Foto {x} groß anzeigen', { x: i + 1 })" @click="lightbox = { photos: photosByEntry.get(e.id)!, start: i }">
             <img :src="thumbs.get(p.id)" :alt="p.caption || ''" loading="lazy" />
             <span v-if="i === 3 && photosByEntry.get(e.id)!.length > 4" class="more">+{{ photosByEntry.get(e.id)!.length - 4 }}</span>
           </button>
@@ -129,20 +133,20 @@ async function removeEntry(e: JournalEntry) {
           <div class="d-flex justify-content-between gap-2">
             <RouterLink :to="`/trip/${tripId}/tagebuch/${e.id}`" class="fw-semibold text-body text-decoration-none">
               <span v-if="moodOf(e.mood)" class="me-1" :title="moodOf(e.mood)!.label">{{ moodOf(e.mood)!.emoji }}</span>
-              {{ e.title || 'Ohne Titel' }}
+              {{ e.title || t('Ohne Titel') }}
             </RouterLink>
             <div class="d-flex align-items-start gap-1 flex-none">
-              <button type="button" class="btn btn-sm p-0" :aria-label="e.highlight ? 'Highlight entfernen' : 'Als Highlight markieren'"
+              <button type="button" class="btn btn-sm p-0" :aria-label="e.highlight ? t('Highlight entfernen') : t('Als Highlight markieren')"
                       @click="toggleHighlight(e)">
                 <i class="bi fs-5" :class="e.highlight ? 'bi-star-fill text-warning' : 'bi-star text-body-secondary'" aria-hidden="true"></i>
               </button>
               <div class="dropdown">
-                <button type="button" class="btn btn-sm btn-link text-body-secondary px-1 py-0" data-bs-toggle="dropdown" aria-label="Weitere Aktionen">
+                <button type="button" class="btn btn-sm btn-link text-body-secondary px-1 py-0" data-bs-toggle="dropdown" :aria-label="t('Weitere Aktionen')">
                   <i class="bi bi-three-dots-vertical fs-5" aria-hidden="true"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                  <li><RouterLink class="dropdown-item" :to="`/trip/${tripId}/tagebuch/${e.id}`"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Bearbeiten</RouterLink></li>
-                  <li><button type="button" class="dropdown-item text-danger" @click="removeEntry(e)"><i class="bi bi-trash me-2" aria-hidden="true"></i>Löschen</button></li>
+                  <li><RouterLink class="dropdown-item" :to="`/trip/${tripId}/tagebuch/${e.id}`"><i class="bi bi-pencil me-2" aria-hidden="true"></i>{{ t('Bearbeiten') }}</RouterLink></li>
+                  <li><button type="button" class="dropdown-item text-danger" @click="removeEntry(e)"><i class="bi bi-trash me-2" aria-hidden="true"></i>{{ t('Löschen') }}</button></li>
                 </ul>
               </div>
             </div>

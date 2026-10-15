@@ -3,6 +3,7 @@ import { db } from './db'
 import { decide, emptyStats, type MergeStats } from './merge'
 import { DATA_TABLES } from './tables'
 import { readBackup, writeBackup, type BackupMeta, type BackupSource } from './backup-format'
+import { t } from '@/i18n'
 
 export { dataUrlToBlob, type BackupFile, type BackupMeta } from './backup-format'
 
@@ -64,7 +65,7 @@ export async function exportBackup(options: ExportOptions = {}): Promise<BackupR
  */
 export async function exportTrip(tripId: string, options: ExportOptions = {}): Promise<BackupResult> {
   const trip = (await db.trips.get(tripId)) as unknown as Record<string, unknown> | undefined
-  if (!trip) throw new Error('Reise nicht gefunden.')
+  if (!trip) throw new Error(t('Reise nicht gefunden.'))
   const meta: BackupMeta = { app: 'koffer-fertig-raus', format: 1, exportedAt: new Date().toISOString(), scope: { tripId, title: String(trip.title ?? '') } }
   async function* source(): BackupSource {
     yield { table: 'trips', rows: [[trip!]] }

@@ -7,6 +7,7 @@
 import { reactive } from 'vue'
 import { getMeta, setMeta } from './meta'
 import { ServerClient } from './sync/client'
+import { t, language } from '@/i18n'
 
 export interface PushPrefs {
   erinnerungen: boolean
@@ -15,6 +16,8 @@ export interface PushPrefs {
   unwetter?: boolean
   /** ab Stufe 2 gelb, 3 orange, 4 rot */
   unwetterStufe?: 2 | 3 | 4
+  /** Sprache der Texte, die der Server schickt (ab Server 1.21) */
+  lang?: string
 }
 
 /** Antwort von GET /api/benachrichtigungen */
@@ -69,7 +72,7 @@ const sameKey = (sub: PushSubscription, key: string) => {
 
 async function client(): Promise<ServerClient> {
   const c = await ServerClient.fromSync()
-  if (!c) throw new Error('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.')
+  if (!c) throw new Error(t('Dafür muss der Geräte-Abgleich mit dem eigenen Server eingerichtet sein.'))
   return c
 }
 
@@ -97,7 +100,7 @@ async function setActive(on: boolean) {
 async function swReady(): Promise<ServiceWorkerRegistration> {
   let timer: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error('Der Hintergrunddienst der App läuft noch nicht – bitte die App einmal schließen und neu öffnen.')), 10_000)
+    timer = setTimeout(() => reject(new Error(t('Der Hintergrunddienst der App läuft noch nicht – bitte die App einmal schließen und neu öffnen.'))), 10_000)
   })
   try {
     return await Promise.race([navigator.serviceWorker.ready, timeout])
@@ -119,7 +122,7 @@ async function subscribe(publicKey: string): Promise<PushSubscription> {
 
 async function register(sub: PushSubscription, prefs?: Partial<PushPrefs>) {
   const json = sub.toJSON()
-  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs })
+  await (await client()).json('/api/benachrichtigungen/abo', 'PUT', { endpoint: json.endpoint, keys: json.keys, prefs: { ...prefs, lang: language() } })
 }
 
 /**
@@ -128,7 +131,7 @@ async function register(sub: PushSubscription, prefs?: Partial<PushPrefs>) {
  */
 export async function enablePush(publicKey: string, prefs?: Partial<PushPrefs>): Promise<void> {
   const answer = await Notification.requestPermission()
-  if (answer !== 'granted') throw new Error(answer === 'denied' ? 'Benachrichtigungen sind für die App nicht erlaubt.' : 'Keine Erlaubnis erteilt.')
+  if (answer !== 'granted') throw new Error(answer === 'denied' ? t('Benachrichtigungen sind für die App nicht erlaubt.') : t('Keine Erlaubnis erteilt.'))
   const sub = await subscribe(publicKey)
   await register(sub, prefs)
   await setActive(true)
@@ -148,7 +151,7 @@ export async function disablePush(): Promise<void> {
 }
 
 export async function setPushPrefs(prefs: Partial<PushPrefs>): Promise<void> {
-  await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { prefs })
+  await (await client()).json('/api/benachrichtigungen/abo', 'PATCH', { prefs: { ...prefs, lang: language() } })
   await loadPushStatus()
 }
 

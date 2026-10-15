@@ -1,7 +1,8 @@
+import { t, intlLocale } from '@/i18n'
 /**
- * Einfacher Parser für Öffnungszeiten als Freitext – deutsch und im OpenStreetMap-Stil:
+ * Einfacher Parser für Öffnungszeiten als Freitext – deutsch, englisch und im OpenStreetMap-Stil:
  *   "Di–So 10–18 Uhr", "Mo-Fr 9:00-17:30; Sa 10-14", "täglich 9–19", "Mo geschlossen",
- *   "Tu-Su 10:00-18:00", "24/7", "Mo, Mi, Fr 8-12"
+ *   "Tu-Su 10:00-18:00", "24/7", "Mo, Mi, Fr 8-12", "Tue to Sun 10-18", "Mon closed"
  * Was nicht erkannt wird, gilt als "unbekannt" – die App rät dann nicht.
  */
 
@@ -19,7 +20,10 @@ export type WeekHours = (TimeRange[] | null)[]
 
 const DAY_TOKENS: Record<string, Weekday> = {
   mo: 0, montag: 0, di: 1, dienstag: 1, tu: 1, mi: 2, mittwoch: 2, we: 2, do: 3, donnerstag: 3, th: 3,
-  fr: 4, freitag: 4, sa: 5, samstag: 5, so: 6, sonntag: 6, su: 6
+  fr: 4, freitag: 4, sa: 5, samstag: 5, so: 6, sonntag: 6, su: 6,
+  // englisch
+  mon: 0, monday: 0, tue: 1, tues: 1, tuesday: 1, wed: 2, wednesday: 2, thu: 3, thur: 3, thurs: 3, thursday: 3,
+  fri: 4, friday: 4, sat: 5, saturday: 5, sun: 6, sunday: 6
 }
 
 const ALL_DAYS: Weekday[] = [0, 1, 2, 3, 4, 5, 6]
@@ -43,10 +47,10 @@ function rangeDays(a: Weekday, b: Weekday): Weekday[] {
 /** Liest den Tagesteil, z. B. "Di–So", "Mo, Mi, Fr", "täglich". */
 function parseDays(spec: string): Weekday[] | null {
   const s = spec.trim().toLowerCase()
-  if (!s || /^(täglich|taeglich|tgl\.?|jeden tag|mo-so|mo–so|daily)$/.test(s)) return [...ALL_DAYS]
+  if (!s || /^(täglich|taeglich|tgl\.?|jeden tag|mo-so|mo–so|daily|every day|everyday)$/.test(s)) return [...ALL_DAYS]
   const out = new Set<Weekday>()
-  for (const part of s.split(/\s*[,+]\s*|\s+und\s+/)) {
-    const m = part.match(/^([a-zäöü.]+)\s*(?:-|–|—|bis)\s*([a-zäöü.]+)$/)
+  for (const part of s.split(/\s*[,+&]\s*|\s+(?:und|and)\s+/)) {
+    const m = part.match(/^([a-zäöü.]+)\s*(?:-|–|—|bis|to)\s*([a-zäöü.]+)$/)
     if (m) {
       const a = dayOf(m[1])
       const b = dayOf(m[2])
@@ -67,8 +71,8 @@ function toMin(h: string, m?: string): number {
 
 /** Liest Zeitfenster, z. B. "10–18", "9:00-12:30, 14-18". */
 function parseTimes(spec: string): TimeRange[] | null {
-  const s = spec.replace(/uhr/gi, '').trim()
-  const re = /(\d{1,2})(?:[:.](\d{2}))?\s*(?:-|–|—|bis)\s*(\d{1,2})(?:[:.](\d{2}))?/g
+  const s = spec.replace(/uhr|h\b/gi, '').trim()
+  const re = /(\d{1,2})(?:[:.](\d{2}))?\s*(?:-|–|—|bis|to)\s*(\d{1,2})(?:[:.](\d{2}))?/g
   const out: TimeRange[] = []
   let m: RegExpExecArray | null
   while ((m = re.exec(s))) {
@@ -85,7 +89,7 @@ export function parseOpeningHours(text: string): WeekHours {
   const week: WeekHours = [null, null, null, null, null, null, null]
   const src = text.trim()
   if (!src) return week
-  if (/^24\s*\/\s*7$/.test(src) || /rund um die uhr|immer geöffnet|immer offen/i.test(src)) {
+  if (/^24\s*\/\s*7$/.test(src) || /rund um die uhr|immer geöffnet|immer offen|open 24 hours|always open/i.test(src)) {
     return ALL_DAYS.map(() => [{ from: 0, to: 24 * 60 }])
   }
   let understood = false
@@ -138,7 +142,10 @@ export function formatRanges(ranges: TimeRange[]): string {
     const r = mm % 60
     return r ? `${h}:${String(r).padStart(2, '0')}` : `${h}`
   }
-  return ranges.map((r) => (r.from === 0 && r.to === 24 * 60 ? 'rund um die Uhr' : `${f(r.from)}–${f(r.to)}`)).join(', ')
+  return ranges.map((r) => (r.from === 0 && r.to === 24 * 60 ? t('rund um die Uhr') : `${f(r.from)}–${f(r.to)}`)).join(', ')
 }
 
-export const WEEKDAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag']
+/** Namen der Wochentage in der gewählten Sprache, Montag zuerst */
+export const WEEKDAY_NAMES = Array.from({ length: 7 }, (_, i) =>
+  new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', timeZone: 'UTC' }).format(new Date(Date.UTC(2024, 0, 1 + i)))
+)

@@ -6,6 +6,7 @@
 import { onUnmounted, ref } from 'vue'
 import { canRecord, formatSeconds, startRecording, type Recording } from '@/services/recorder'
 import { requestPersistentStorage } from '@/core/storage'
+import { t, intlLocale } from '@/i18n'
 
 export interface VoiceItem {
   key: string
@@ -57,7 +58,7 @@ async function stop() {
   seconds.value = 0
   level.value = 0
   if (!blob.size || duration < 0.5) {
-    error.value = 'Die Aufnahme war leer – bitte noch einmal.'
+    error.value = t('Die Aufnahme war leer – bitte noch einmal.')
     return
   }
   items.value = [
@@ -68,12 +69,12 @@ async function stop() {
 
 function remove(i: number) {
   const it = items.value[i]
-  if (!confirm(`Sprachnotiz ${it.title ? `„${it.title}“ ` : ''}löschen?`)) return
+  if (!confirm(it.title ? t('Sprachnotiz „{title}“ löschen?', { title: it.title }) : t('Sprachnotiz löschen?'))) return
   items.value = items.value.filter((_, k) => k !== i)
   emit('removed', it)
 }
 
-const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+const timeOf = (iso: string) => new Date(iso).toLocaleTimeString(intlLocale(), { hour: '2-digit', minute: '2-digit' })
 
 onUnmounted(() => {
   clearInterval(tick)
@@ -89,10 +90,10 @@ onUnmounted(() => {
         <input
           v-model="it.title"
           class="form-control form-control-sm"
-          :placeholder="`Sprachnotiz ${timeOf(it.recordedAt)} · ${formatSeconds(it.duration)}`"
-          :aria-label="`Titel der Sprachnotiz ${i + 1}`"
+          :placeholder="t('Sprachnotiz {timeOf} · {formatSeconds}', { timeOf: timeOf(it.recordedAt), formatSeconds: formatSeconds(it.duration) })"
+          :aria-label="t('Titel der Sprachnotiz {x}', { x: i + 1 })"
         />
-        <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="`Sprachnotiz ${i + 1} löschen`" @click="remove(i)">
+        <button type="button" class="btn btn-sm btn-outline-danger flex-none" :aria-label="t('Sprachnotiz {x} löschen', { x: i + 1 })" @click="remove(i)">
           <i class="bi bi-trash" aria-hidden="true"></i>
         </button>
       </div>
@@ -101,14 +102,14 @@ onUnmounted(() => {
     <div v-if="recording" class="d-flex align-items-center gap-2" role="status" data-recording>
       <span class="rec-dot" :style="{ transform: `scale(${1 + level * 0.8})` }" aria-hidden="true"></span>
       <span class="font-monospace">{{ formatSeconds(seconds) }}</span>
-      <span class="small text-body-secondary">Aufnahme läuft …</span>
-      <button type="button" class="btn btn-danger btn-sm ms-auto" data-stop-recording @click="stop"><i class="bi bi-stop-fill me-1" aria-hidden="true"></i>Fertig</button>
+      <span class="small text-body-secondary">{{ t('Aufnahme läuft …') }}</span>
+      <button type="button" class="btn btn-danger btn-sm ms-auto" data-stop-recording @click="stop"><i class="bi bi-stop-fill me-1" aria-hidden="true"></i>{{ t('Fertig') }}</button>
     </div>
     <button v-else-if="supported" type="button" class="btn btn-outline-primary btn-sm" :disabled="starting" data-start-recording @click="start">
       <span v-if="starting" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-      <i v-else class="bi bi-mic-fill me-1" aria-hidden="true"></i>Sprachnotiz aufnehmen
+      <i v-else class="bi bi-mic-fill me-1" aria-hidden="true"></i>{{ t('Sprachnotiz aufnehmen') }}
     </button>
-    <p v-else class="small text-body-secondary mb-0">Dieser Browser kann keinen Ton aufnehmen.</p>
+    <p v-else class="small text-body-secondary mb-0">{{ t('Dieser Browser kann keinen Ton aufnehmen.') }}</p>
     <div v-if="error" class="small text-danger mt-1" role="alert">{{ error }}</div>
   </div>
 </template>

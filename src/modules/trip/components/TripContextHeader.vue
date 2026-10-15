@@ -14,7 +14,7 @@ const trip = useLiveQuery(() => tripRepository.get(props.tripId), undefined as T
   <div class="mb-3">
     <RouterLink :to="`/trip/${tripId}`" class="small text-decoration-none">
       <i class="bi bi-chevron-left" aria-hidden="true"></i>
-      {{ trip?.title ?? 'Zurück zur Reise' }}
+      {{ trip?.title ?? t('Zurück zur Reise') }}
     </RouterLink>
     <h1 class="h3 mb-0 mt-1">{{ title }}</h1>
     <p v-if="trip" class="small text-body-secondary mb-0">

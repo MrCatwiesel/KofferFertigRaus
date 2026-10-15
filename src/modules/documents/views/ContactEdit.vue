@@ -5,6 +5,7 @@ import { TripContextHeader } from '@/modules/trip/public'
 import { contactRepository } from '../repository'
 import { emptyContactDraft, validateContact } from '../logic'
 import type { EmergencyContactDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -35,43 +36,42 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.label}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{label}“ löschen?', { label: draft.label }))) return
   await contactRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Nummer bearbeiten' : 'Neue Notfallnummer'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Nummer bearbeiten') : t('Neue Notfallnummer')" />
 
   <div v-if="source" class="alert alert-info small py-2">
-    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>Automatisch aus den Reisehinweisen des Auswärtigen Amts. Ändert sich dort etwas,
-    wird diese Nummer beim nächsten Aktualisieren angepasst; nimmst du das Land aus der Reise, verschwindet sie.
+    <i class="bi bi-info-circle me-1" aria-hidden="true"></i>{{ t('Automatisch aus den Reisehinweisen des Auswärtigen Amts. Ändert sich dort etwas, wird diese Nummer beim nächsten Aktualisieren angepasst; nimmst du das Land aus der Reise, verschwindet sie.') }}
   </div>
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12">
-      <label for="label" class="form-label">Wer?</label>
+      <label for="label" class="form-label">{{ t('Wer?') }}</label>
       <input id="label" v-model="draft.label" class="form-control" :class="{ 'is-invalid': submitted && errors.label }"
-             placeholder="z. B. Notruf Auslandskrankenversicherung" />
+             :placeholder="t('z. B. Notruf Auslandskrankenversicherung')" />
       <div class="invalid-feedback">{{ errors.label }}</div>
     </div>
     <div class="col-12">
-      <label for="phone" class="form-label">Telefon</label>
+      <label for="phone" class="form-label">{{ t('Telefon') }}</label>
       <input id="phone" v-model="draft.phone" type="tel" class="form-control" :class="{ 'is-invalid': submitted && errors.phone }"
              placeholder="+49 …" />
       <div class="invalid-feedback">{{ errors.phone }}</div>
-      <div class="form-text">Mit Ländervorwahl, damit es auch im Ausland funktioniert.</div>
+      <div class="form-text">{{ t('Mit Ländervorwahl, damit es auch im Ausland funktioniert.') }}</div>
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notiz</label>
-      <input id="notes" v-model="draft.notes" class="form-control" placeholder="z. B. Versicherungsnummer bereithalten" />
+      <label for="notes" class="form-label">{{ t('Notiz') }}</label>
+      <input id="notes" v-model="draft.notes" class="form-control" :placeholder="t('z. B. Versicherungsnummer bereithalten')" />
     </div>
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

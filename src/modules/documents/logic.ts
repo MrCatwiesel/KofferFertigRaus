@@ -1,5 +1,6 @@
 import { diffDays, todayIso } from '../../core/dates'
 import type { DocType, EmergencyContactDraft, TravelDocument, TravelDocumentDraft } from './types'
+import { t } from '@/i18n'
 
 /** Monate, die ein Reisepass über das Reiseende hinaus gültig sein sollte (häufige Einreiseregel). */
 export const PASSPORT_BUFFER_MONTHS = 6
@@ -49,9 +50,9 @@ export function validity(doc: Pick<TravelDocument, 'type' | 'validUntil'>, tripE
 }
 
 export const VALIDITY_TEXT: Record<Exclude<ValidityState, 'ok' | 'unbekannt'>, { text: string; cls: string }> = {
-  abgelaufen: { text: 'abgelaufen', cls: 'text-danger' },
-  reise: { text: 'endet vor Reiseende', cls: 'text-danger' },
-  knapp: { text: 'weniger als 6 Monate über Reiseende gültig – Einreiseregeln prüfen', cls: 'text-warning-emphasis' }
+  abgelaufen: { text: t('abgelaufen'), cls: 'text-danger' },
+  reise: { text: t('endet vor Reiseende'), cls: 'text-danger' },
+  knapp: { text: t('weniger als 6 Monate über Reiseende gültig – Einreiseregeln prüfen'), cls: 'text-warning-emphasis' }
 }
 
 /** Ausweise, die erneuert werden müssen und deren Bearbeitung mehrere Wochen dauern kann. */
@@ -114,21 +115,21 @@ export function suggestDocuments(
   participants: string[] = []
 ): TravelDocumentDraft[] {
   const personal: TravelDocumentDraft[] = [
-    emptyDocumentDraft({ type: 'ausweis', title: 'Personalausweis oder Reisepass' }),
-    emptyDocumentDraft({ type: 'versicherung', title: 'Krankenversicherungskarte' }),
-    emptyDocumentDraft({ type: 'gesundheit', title: 'Impfpass' })
+    emptyDocumentDraft({ type: 'ausweis', title: t('Personalausweis oder Reisepass') }),
+    emptyDocumentDraft({ type: 'versicherung', title: t('Krankenversicherungskarte') }),
+    emptyDocumentDraft({ type: 'gesundheit', title: t('Impfpass') })
   ]
   const shared: TravelDocumentDraft[] = [
-    emptyDocumentDraft({ type: 'versicherung', title: 'Auslandsreisekrankenversicherung' }),
-    emptyDocumentDraft({ type: 'buchung', title: 'Buchungsbestätigung Unterkunft' })
+    emptyDocumentDraft({ type: 'versicherung', title: t('Auslandsreisekrankenversicherung') }),
+    emptyDocumentDraft({ type: 'buchung', title: t('Buchungsbestätigung Unterkunft') })
   ]
   if (transport === 'auto') {
-    shared.push(emptyDocumentDraft({ type: 'fuehrerschein', title: 'Führerschein' }))
-    shared.push(emptyDocumentDraft({ type: 'fahrzeug', title: 'Fahrzeugschein & grüne Versicherungskarte' }))
+    shared.push(emptyDocumentDraft({ type: 'fuehrerschein', title: t('Führerschein') }))
+    shared.push(emptyDocumentDraft({ type: 'fahrzeug', title: t('Fahrzeugschein & grüne Versicherungskarte') }))
   }
-  if (transport === 'flug') shared.push(emptyDocumentDraft({ type: 'ticket', title: 'Flugtickets / Bordkarten' }))
-  if (transport === 'bahn') shared.push(emptyDocumentDraft({ type: 'ticket', title: 'Bahntickets' }))
-  if (transport === 'bus') shared.push(emptyDocumentDraft({ type: 'ticket', title: 'Bustickets' }))
+  if (transport === 'flug') shared.push(emptyDocumentDraft({ type: 'ticket', title: t('Flugtickets / Bordkarten') }))
+  if (transport === 'bahn') shared.push(emptyDocumentDraft({ type: 'ticket', title: t('Bahntickets') }))
+  if (transport === 'bus') shared.push(emptyDocumentDraft({ type: 'ticket', title: t('Bustickets') }))
 
   const all = participants.length
     ? [...participants.flatMap((p) => personal.map((d) => ({ ...d, person: p }))), ...shared]
@@ -155,13 +156,13 @@ export function maskNumber(n: string): string {
 
 export function validateDocument(d: TravelDocumentDraft): Partial<Record<keyof TravelDocumentDraft, string>> {
   const e: Partial<Record<keyof TravelDocumentDraft, string>> = {}
-  if (!d.title.trim()) e.title = 'Bitte eine Bezeichnung angeben.'
+  if (!d.title.trim()) e.title = t('Bitte eine Bezeichnung angeben.')
   return e
 }
 
 export function validateContact(d: EmergencyContactDraft): Partial<Record<keyof EmergencyContactDraft, string>> {
   const e: Partial<Record<keyof EmergencyContactDraft, string>> = {}
-  if (!d.label.trim()) e.label = 'Bitte angeben, wer das ist.'
-  if (!telHref(d.phone)) e.phone = 'Bitte eine gültige Telefonnummer angeben.'
+  if (!d.label.trim()) e.label = t('Bitte angeben, wer das ist.')
+  if (!telHref(d.phone)) e.phone = t('Bitte eine gültige Telefonnummer angeben.')
   return e
 }

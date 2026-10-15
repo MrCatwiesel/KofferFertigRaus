@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { createSampleTrip } from '@/core/sample'
+import { t } from '@/i18n'
 
 /** Beispielreise anlegen und öffnen – für Willkommen, Einführung und Hilfe */
 export function useSampleTrip() {
@@ -15,7 +16,7 @@ export function useSampleTrip() {
       const id = await createSampleTrip()
       await router.push(`/trip/${id}`)
     } catch (e) {
-      error.value = `Die Beispielreise konnte nicht angelegt werden: ${(e as Error).message}`
+      error.value = t('Die Beispielreise konnte nicht angelegt werden: {x}', { x: (e as Error).message })
     } finally {
       creating.value = false
     }

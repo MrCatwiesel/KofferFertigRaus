@@ -4,29 +4,30 @@ import { tripRepository } from '@/modules/trip/public'
 import { countryInfoRepository } from './repository'
 import { refreshIfStale, refreshTripInfos } from './refresh'
 import { warningLabel } from './parse'
+import { t } from '@/i18n'
 
 /** Modul "Reisehinweise": Auswärtiges Amt – Sicherheitslage, Einreise, Impfschutz je Zielland. */
 export const reiseinfoModule: AppModule = {
   id: 'reiseinfo',
-  title: 'Reisehinweise',
+  title: t('Reisehinweise'),
   icon: 'shield-exclamation',
   order: 48,
   routes: [{ path: '/trip/:tripId/reisehinweise', name: 'reiseinfo', component: () => import('./views/ReiseinfoView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Reisehinweise',
+    title: t('Reisehinweise'),
     icon: 'shield-exclamation',
     to: (tripId) => `/trip/${tripId}/reisehinweise`,
     async summary(tripId) {
       void refreshIfStale(tripId).catch(() => undefined) // im Hintergrund aktuell halten
       const trip = await tripRepository.get(tripId)
       const countries = trip?.countries ?? []
-      if (!countries.length) return 'Zielland angeben → Einreise, Impfschutz, Sicherheitslage'
+      if (!countries.length) return t('Zielland angeben → Einreise, Impfschutz, Sicherheitslage')
       const infos = await countryInfoRepository.listByTrip(tripId)
       const parts = countries.map((c) => {
         const i = infos.find((x) => x.country === c)
-        if (!i) return `${countryName(c)}: noch nicht abgerufen`
-        return `${countryName(c)}: ${warningLabel(i).text}${i.unseenChange ? ' – geändert!' : ''}`
+        if (!i) return t('{country}: noch nicht abgerufen', { country: countryName(c) })
+        return `${countryName(c)}: ${warningLabel(i).text}${i.unseenChange ? ' – ' + t('geändert!') : ''}`
       })
       return parts.join(' · ')
     }

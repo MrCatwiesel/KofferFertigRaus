@@ -13,6 +13,7 @@ import { documentRepository, emptyDocumentDraft } from '@/modules/documents/publ
 import { parseBooking, type BookingGuess, type LegGuess } from '../parse'
 import { fileToText } from '../extract'
 import { MODE_LABEL, excerpt, legDrafts, outsideTrip, stayDraft } from '../logic'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 const router = useRouter()
@@ -42,10 +43,10 @@ async function analyse() {
   guess.value = g
   kind.value = g.kind === 'unbekannt' ? 'dokument' : g.kind
   Object.assign(stay, g.stay)
-  const t = trip.value
-  const ld = legDrafts(g, { startDate: t?.startDate ?? '', endDate: t?.endDate ?? '', currency: t?.currency ?? 'EUR' }, '')
+  const tr = trip.value
+  const ld = legDrafts(g, { startDate: tr?.startDate ?? '', endDate: tr?.endDate ?? '', currency: tr?.currency ?? 'EUR' }, '')
   legs.value = g.legs.map((l, i) => ({ ...l, direction: ld[i].direction }))
-  docTitle.value = g.stay.name || (g.legs[0] ? `${MODES[g.legs[0].mode]} ${g.legs[0].from} – ${g.legs[0].to}` : 'Buchung')
+  docTitle.value = g.stay.name || (g.legs[0] ? `${MODES[g.legs[0].mode]} ${g.legs[0].from} – ${g.legs[0].to}` : t('Buchung'))
   // Schon eingetragen? (gleiche Buchungsnummer)
   existing.value = null
   if (g.bookingRef && g.kind === 'unterkunft') {
@@ -66,7 +67,7 @@ async function pickFile(e: Event) {
     source.value = file.name
     await analyse()
   } catch (err) {
-    error.value = (err as Error).message || 'Datei konnte nicht gelesen werden.'
+    error.value = (err as Error).message || t('Datei konnte nicht gelesen werden.')
   } finally {
     busy.value = false
   }
@@ -78,22 +79,22 @@ async function paste() {
     source.value = ''
     await analyse()
   } catch {
-    error.value = 'Kein Zugriff auf die Zwischenablage – bitte lange ins Feld tippen und „Einsetzen“ wählen.'
+    error.value = t('Kein Zugriff auf die Zwischenablage – bitte lange ins Feld tippen und „Einsetzen“ wählen.')
   }
 }
 
 const outside = computed(() => {
-  const t = trip.value
-  if (!t || !guess.value) return false
+  const tr = trip.value
+  if (!tr || !guess.value) return false
   const dates = kind.value === 'unterkunft' ? [stay.checkIn, stay.checkOut] : kind.value === 'reise' ? legs.value.map((l) => l.date) : []
-  return outsideTrip(dates, t)
+  return outsideTrip(dates, tr)
 })
 
-const note = computed(() => `Aus Buchungsbestätigung eingelesen${source.value ? ` (${source.value})` : ''}.`)
+const note = computed(() => (source.value ? t('Aus Buchungsbestätigung eingelesen ({source}).', { source: source.value }) : t('Aus Buchungsbestätigung eingelesen.')))
 
 async function save() {
-  const t = trip.value
-  if (!t || !guess.value) return
+  const tr = trip.value
+  if (!tr || !guess.value) return
   if (kind.value === 'unterkunft') {
     const d = stayDraft({ ...stay, type: stay.type as never }, note.value)
     if (existing.value) {
@@ -105,7 +106,7 @@ async function save() {
     return router.push(`/trip/${props.tripId}/unterkuenfte/${id}`)
   }
   if (kind.value === 'reise') {
-    const drafts = legDrafts({ ...guess.value, legs: legs.value }, { startDate: t.startDate, endDate: t.endDate, currency: t.currency }, note.value).map((d, i) => ({
+    const drafts = legDrafts({ ...guess.value, legs: legs.value }, { startDate: tr.startDate, endDate: tr.endDate, currency: tr.currency }, note.value).map((d, i) => ({
       ...d,
       direction: legs.value[i].direction
     }))
@@ -114,7 +115,7 @@ async function save() {
   }
   const id = await documentRepository.create(
     props.tripId,
-    emptyDocumentDraft({ type: 'buchung', title: docTitle.value || 'Buchung', number: guess.value.bookingRef, status: 'vorhanden', notes: `${note.value}\n\n${excerpt(text.value)}` })
+    emptyDocumentDraft({ type: 'buchung', title: docTitle.value || t('Buchung'), number: guess.value.bookingRef, status: 'vorhanden', notes: `${note.value}\n\n${excerpt(text.value)}` })
   )
   return router.push(`/trip/${props.tripId}/dokumente/${id}`)
 }
@@ -125,69 +126,68 @@ function addLeg() {
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" title="Buchung einlesen" />
+  <TripContextHeader :trip-id="tripId" :title="t('Buchung einlesen')" />
 
   <p class="small text-body-secondary">
-    Bestätigung einer Unterkunft, eines Flugs, einer Bahn- oder Busfahrt: Text aus Mail oder PDF einfügen – oder die Datei wählen
-    (PDF, gespeicherte E-Mail, Kalendereintrag .ics). Die App liest alles <strong>hier auf dem Gerät</strong>, nichts wird hochgeladen.
+    {{ t('Bestätigung einer Unterkunft, eines Flugs, einer Bahn- oder Busfahrt: Text aus Mail oder PDF einfügen – oder die Datei wählen (PDF, gespeicherte E-Mail, Kalendereintrag .ics). Die App liest alles') }} <strong>{{ t('hier auf dem Gerät') }}</strong>{{ t(', nichts wird hochgeladen.') }}
   </p>
 
   <div class="d-flex flex-wrap gap-2 mb-2">
     <label class="btn btn-primary mb-0" :class="{ disabled: busy }">
       <span v-if="busy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-      <i v-else class="bi bi-file-earmark-arrow-up me-1" aria-hidden="true"></i>Datei wählen
+      <i v-else class="bi bi-file-earmark-arrow-up me-1" aria-hidden="true"></i>{{ t('Datei wählen') }}
       <input type="file" class="d-none" accept=".pdf,.eml,.ics,.html,.htm,.txt,application/pdf,message/rfc822,text/calendar,text/plain,text/html" data-testid="booking-file" @change="pickFile" />
     </label>
-    <button type="button" class="btn btn-outline-primary" @click="paste"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Aus Zwischenablage</button>
+    <button type="button" class="btn btn-outline-primary" @click="paste"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ t('Aus Zwischenablage') }}</button>
   </div>
-  <label for="bk-text" class="visually-hidden">Text der Buchungsbestätigung</label>
-  <textarea id="bk-text" v-model="text" rows="6" class="form-control mb-2 font-monospace small" placeholder="… oder Text der Bestätigung hier einfügen"
+  <label for="bk-text" class="visually-hidden">{{ t('Text der Buchungsbestätigung') }}</label>
+  <textarea id="bk-text" v-model="text" rows="6" class="form-control mb-2 font-monospace small" :placeholder="t('… oder Text der Bestätigung hier einfügen')"
             @input="analyse"></textarea>
   <div v-if="error" class="alert alert-danger small py-2">{{ error }}</div>
 
   <template v-if="guess">
     <div class="d-flex flex-wrap align-items-center gap-2 mb-2 small">
-      <span class="text-body-secondary">Erkannt:</span>
+      <span class="text-body-secondary">{{ t('Erkannt:') }}</span>
       <span v-for="f in guess.found" :key="f" class="badge text-bg-light border">{{ f }}</span>
-      <span v-if="!guess.found.length" class="text-body-secondary">wenig – bitte unten ergänzen</span>
+      <span v-if="!guess.found.length" class="text-body-secondary">{{ t('wenig – bitte unten ergänzen') }}</span>
     </div>
 
-    <div class="btn-group mb-3 flex-wrap" role="group" aria-label="Als was übernehmen?">
+    <div class="btn-group mb-3 flex-wrap" role="group" :aria-label="t('Als was übernehmen?')">
       <button type="button" class="btn btn-sm" :class="kind === 'unterkunft' ? 'btn-primary' : 'btn-outline-primary'" @click="kind = 'unterkunft'">
-        <i class="bi bi-house-door me-1" aria-hidden="true"></i>Unterkunft
+        <i class="bi bi-house-door me-1" aria-hidden="true"></i>{{ t('Unterkunft') }}
       </button>
       <button type="button" class="btn btn-sm" :class="kind === 'reise' ? 'btn-primary' : 'btn-outline-primary'" @click="kind = 'reise'; if (!legs.length) addLeg()">
-        <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>An-/Rückreise
+        <i class="bi bi-signpost-split me-1" aria-hidden="true"></i>{{ t('An-/Rückreise') }}
       </button>
       <button type="button" class="btn btn-sm" :class="kind === 'dokument' ? 'btn-primary' : 'btn-outline-primary'" @click="kind = 'dokument'">
-        <i class="bi bi-receipt me-1" aria-hidden="true"></i>Nur als Beleg
+        <i class="bi bi-receipt me-1" aria-hidden="true"></i>{{ t('Nur als Beleg') }}
       </button>
     </div>
 
     <div v-if="outside" class="alert alert-warning small py-2">
-      <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Die Daten liegen außerhalb dieser Reise ({{ trip?.startDate }} – {{ trip?.endDate }}). Richtige Reise?
+      <i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>{{ t('Die Daten liegen außerhalb dieser Reise ({startDate} – {endDate}). Richtige Reise?', { startDate: trip?.startDate, endDate: trip?.endDate }) }}
     </div>
 
     <!-- Unterkunft -->
     <section v-if="kind === 'unterkunft'" class="card mb-3">
       <div class="card-body row g-2">
         <div v-if="existing" class="col-12">
-          <div class="alert alert-info small py-2 mb-1">„{{ existing.name }}“ mit dieser Buchungsnummer gibt es schon – wird aktualisiert.</div>
+          <div class="alert alert-info small py-2 mb-1">{{ t('„{name}“ mit dieser Buchungsnummer gibt es schon – wird aktualisiert.', { name: existing.name }) }}</div>
         </div>
-        <div class="col-12 col-md-8"><label class="form-label small" for="bk-name">Name</label><input id="bk-name" v-model="stay.name" class="form-control" /></div>
+        <div class="col-12 col-md-8"><label class="form-label small" for="bk-name">{{ t('Name') }}</label><input id="bk-name" v-model="stay.name" class="form-control" /></div>
         <div class="col-12 col-md-4">
-          <label class="form-label small" for="bk-type">Art</label>
+          <label class="form-label small" for="bk-type">{{ t('Art') }}</label>
           <select id="bk-type" v-model="stay.type" class="form-select"><option v-for="(l, k) in TYPES" :key="k" :value="k">{{ l }}</option></select>
         </div>
-        <div class="col-12"><label class="form-label small" for="bk-addr">Adresse</label><input id="bk-addr" v-model="stay.address" class="form-control" /></div>
-        <div class="col-6 col-md-3"><label class="form-label small" for="bk-in">Anreise</label><input id="bk-in" v-model="stay.checkIn" type="date" class="form-control" /></div>
-        <div class="col-6 col-md-3"><label class="form-label small" for="bk-out">Abreise</label><input id="bk-out" v-model="stay.checkOut" type="date" class="form-control" /></div>
-        <div class="col-6 col-md-3"><label class="form-label small" for="bk-price">Preis</label>
+        <div class="col-12"><label class="form-label small" for="bk-addr">{{ t('Adresse') }}</label><input id="bk-addr" v-model="stay.address" class="form-control" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="bk-in">{{ t('Anreise') }}</label><input id="bk-in" v-model="stay.checkIn" type="date" class="form-control" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="bk-out">{{ t('Abreise') }}</label><input id="bk-out" v-model="stay.checkOut" type="date" class="form-control" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="bk-price">{{ t('Preis') }}</label>
           <div class="input-group"><input id="bk-price" v-model.number="stay.price" type="number" step="0.01" class="form-control" /><span class="input-group-text">{{ stay.currency }}</span></div>
         </div>
-        <div class="col-6 col-md-3"><label class="form-label small" for="bk-cancel">Kostenlos stornierbar bis</label><input id="bk-cancel" v-model="stay.cancelUntil" type="date" class="form-control" /></div>
-        <div class="col-12 col-md-6"><label class="form-label small" for="bk-ref">Buchungsnummer</label><input id="bk-ref" v-model="stay.bookingRef" class="form-control" /></div>
-        <div class="col-12 col-md-6"><label class="form-label small" for="bk-url">Link</label><input id="bk-url" v-model="stay.url" type="url" class="form-control" /></div>
+        <div class="col-6 col-md-3"><label class="form-label small" for="bk-cancel">{{ t('Kostenlos stornierbar bis') }}</label><input id="bk-cancel" v-model="stay.cancelUntil" type="date" class="form-control" /></div>
+        <div class="col-12 col-md-6"><label class="form-label small" for="bk-ref">{{ t('Buchungsnummer') }}</label><input id="bk-ref" v-model="stay.bookingRef" class="form-control" /></div>
+        <div class="col-12 col-md-6"><label class="form-label small" for="bk-url">{{ t('Link') }}</label><input id="bk-url" v-model="stay.url" type="url" class="form-control" /></div>
       </div>
     </section>
 
@@ -196,39 +196,39 @@ function addLeg() {
       <div v-for="(l, i) in legs" :key="i" class="card mb-2">
         <div class="card-body row g-2">
           <div class="col-6 col-md-3">
-            <label class="form-label small" :for="`lg-dir-${i}`">Richtung</label>
-            <select :id="`lg-dir-${i}`" v-model="l.direction" class="form-select"><option value="hin">Hinreise</option><option value="rueck">Rückreise</option></select>
+            <label class="form-label small" :for="`lg-dir-${i}`">{{ t('Richtung') }}</label>
+            <select :id="`lg-dir-${i}`" v-model="l.direction" class="form-select"><option value="hin">{{ t('Hinreise') }}</option><option value="rueck">{{ t('Rückreise') }}</option></select>
           </div>
           <div class="col-6 col-md-3">
-            <label class="form-label small" :for="`lg-mode-${i}`">Verkehrsmittel</label>
+            <label class="form-label small" :for="`lg-mode-${i}`">{{ t('Verkehrsmittel') }}</label>
             <select :id="`lg-mode-${i}`" v-model="l.mode" class="form-select"><option v-for="(lab, k) in MODES" :key="k" :value="k">{{ lab }}</option></select>
           </div>
-          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-nr-${i}`">Flug-/Zugnummer</label><input :id="`lg-nr-${i}`" v-model="l.number" class="form-control" /></div>
-          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-from-${i}`">Von</label><input :id="`lg-from-${i}`" v-model="l.from" class="form-control" /></div>
-          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-to-${i}`">Nach</label><input :id="`lg-to-${i}`" v-model="l.to" class="form-control" /></div>
-          <div class="col-12 col-md-4"><label class="form-label small" :for="`lg-date-${i}`">Datum</label><input :id="`lg-date-${i}`" v-model="l.date" type="date" class="form-control" /></div>
-          <div class="col-6 col-md-4"><label class="form-label small" :for="`lg-dep-${i}`">Abfahrt</label><input :id="`lg-dep-${i}`" v-model="l.departTime" type="time" class="form-control" /></div>
-          <div class="col-6 col-md-4"><label class="form-label small" :for="`lg-arr-${i}`">Ankunft</label><input :id="`lg-arr-${i}`" v-model="l.arriveTime" type="time" class="form-control" /></div>
-          <div class="col-12 text-end"><button type="button" class="btn btn-link btn-sm text-danger p-0" @click="legs.splice(i, 1)">Etappe entfernen</button></div>
+          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-nr-${i}`">{{ t('Flug-/Zugnummer') }}</label><input :id="`lg-nr-${i}`" v-model="l.number" class="form-control" /></div>
+          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-from-${i}`">{{ t('Von') }}</label><input :id="`lg-from-${i}`" v-model="l.from" class="form-control" /></div>
+          <div class="col-12 col-md-6"><label class="form-label small" :for="`lg-to-${i}`">{{ t('Nach') }}</label><input :id="`lg-to-${i}`" v-model="l.to" class="form-control" /></div>
+          <div class="col-12 col-md-4"><label class="form-label small" :for="`lg-date-${i}`">{{ t('Datum') }}</label><input :id="`lg-date-${i}`" v-model="l.date" type="date" class="form-control" /></div>
+          <div class="col-6 col-md-4"><label class="form-label small" :for="`lg-dep-${i}`">{{ t('Abfahrt') }}</label><input :id="`lg-dep-${i}`" v-model="l.departTime" type="time" class="form-control" /></div>
+          <div class="col-6 col-md-4"><label class="form-label small" :for="`lg-arr-${i}`">{{ t('Ankunft') }}</label><input :id="`lg-arr-${i}`" v-model="l.arriveTime" type="time" class="form-control" /></div>
+          <div class="col-12 text-end"><button type="button" class="btn btn-link btn-sm text-danger p-0" @click="legs.splice(i, 1)">{{ t('Etappe entfernen') }}</button></div>
         </div>
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm mb-2" @click="addLeg"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>Etappe</button>
+      <button type="button" class="btn btn-outline-secondary btn-sm mb-2" @click="addLeg"><i class="bi bi-plus-lg me-1" aria-hidden="true"></i>{{ t('Etappe') }}</button>
       <div class="small text-body-secondary">
-        Buchungsnummer: {{ guess.bookingRef || '–' }} · Preis: {{ guess.price !== null ? `${guess.price.toLocaleString('de-DE', { minimumFractionDigits: 2 })} ${guess.currency}` : '–' }}
+        {{ t('Buchungsnummer: {ref} · Preis: {price}', { ref: guess.bookingRef || '–', price: guess.price !== null ? `${guess.price.toLocaleString(intlLocale(), { minimumFractionDigits: 2 })} ${guess.currency}` : '–' }) }}
       </div>
     </section>
 
     <!-- Beleg -->
     <section v-else class="card mb-3">
       <div class="card-body">
-        <label class="form-label small" for="bk-doc">Titel</label>
+        <label class="form-label small" for="bk-doc">{{ t('Titel') }}</label>
         <input id="bk-doc" v-model="docTitle" class="form-control mb-1" />
-        <div class="small text-body-secondary">Wird unter Dokumente als „Buchung“ abgelegt – mit Buchungsnummer und einem Auszug des Textes.</div>
+        <div class="small text-body-secondary">{{ t('Wird unter Dokumente als „Buchung“ abgelegt – mit Buchungsnummer und einem Auszug des Textes.') }}</div>
       </div>
     </section>
 
     <button type="button" class="btn btn-primary" :disabled="kind === 'reise' && !legs.length" @click="save">
-      <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ existing && kind === 'unterkunft' ? 'Aktualisieren' : 'Übernehmen' }}
+      <i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ existing && kind === 'unterkunft' ? t('Aktualisieren') : t('Übernehmen') }}
     </button>
   </template>
 </template>

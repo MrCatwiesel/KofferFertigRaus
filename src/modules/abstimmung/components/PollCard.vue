@@ -44,23 +44,23 @@ function tap(optionId: string) {
         <div class="flex-grow-1">
           <h2 class="h5 mb-0">{{ poll.question }}</h2>
           <div class="small text-body-secondary">
-            <template v-if="!open">Beendet</template>
-            <template v-else-if="poll.deadline">Abstimmen bis {{ formatDate(poll.deadline) }}</template>
-            <template v-else>Offen</template>
-            · {{ poll.multiple ? 'mehrere Antworten möglich' : 'eine Antwort' }}
-            <template v-if="poll.createdBy"> · von {{ poll.createdBy }}</template>
-            <template v-if="poll.kind === 'termin' && poll.activityId"> · für „{{ activityTitle(poll.activityId) }}“</template>
+            <template v-if="!open">{{ t('Beendet') }}</template>
+            <template v-else-if="poll.deadline">{{ t('Abstimmen bis {deadline}', { deadline: formatDate(poll.deadline) }) }}</template>
+            <template v-else>{{ t('Offen') }}</template>
+            · {{ poll.multiple ? t('mehrere Antworten möglich') : t('eine Antwort') }}
+            <template v-if="poll.createdBy"> {{ t('· von {createdBy}', { createdBy: poll.createdBy }) }}</template>
+            <template v-if="poll.kind === 'termin' && poll.activityId"> {{ t('· für „{activityTitle}“', { activityTitle: activityTitle(poll.activityId) }) }}</template>
           </div>
         </div>
         <div v-if="editable" class="dropdown">
-          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" :aria-label="`Mehr zu „${poll.question}“`">
+          <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="dropdown" aria-expanded="false" :aria-label="t('Mehr zu „{question}“', { question: poll.question })">
             <i class="bi bi-three-dots" aria-hidden="true"></i>
           </button>
           <ul class="dropdown-menu dropdown-menu-end">
-            <li><RouterLink class="dropdown-item" :to="`/trip/${poll.tripId}/abstimmungen/${poll.id}`"><i class="bi bi-pencil me-2" aria-hidden="true"></i>Bearbeiten</RouterLink></li>
-            <li v-if="!poll.closed"><button type="button" class="dropdown-item" @click="emit('close', true)"><i class="bi bi-stop-circle me-2" aria-hidden="true"></i>Abstimmung beenden</button></li>
-            <li v-else><button type="button" class="dropdown-item" @click="emit('close', false)"><i class="bi bi-play-circle me-2" aria-hidden="true"></i>Wieder öffnen</button></li>
-            <li><button type="button" class="dropdown-item text-danger" @click="emit('remove')"><i class="bi bi-trash me-2" aria-hidden="true"></i>Löschen</button></li>
+            <li><RouterLink class="dropdown-item" :to="`/trip/${poll.tripId}/abstimmungen/${poll.id}`"><i class="bi bi-pencil me-2" aria-hidden="true"></i>{{ t('Bearbeiten') }}</RouterLink></li>
+            <li v-if="!poll.closed"><button type="button" class="dropdown-item" @click="emit('close', true)"><i class="bi bi-stop-circle me-2" aria-hidden="true"></i>{{ t('Abstimmung beenden') }}</button></li>
+            <li v-else><button type="button" class="dropdown-item" @click="emit('close', false)"><i class="bi bi-play-circle me-2" aria-hidden="true"></i>{{ t('Wieder öffnen') }}</button></li>
+            <li><button type="button" class="dropdown-item text-danger" @click="emit('remove')"><i class="bi bi-trash me-2" aria-hidden="true"></i>{{ t('Löschen') }}</button></li>
           </ul>
         </div>
       </div>
@@ -85,24 +85,24 @@ function tap(optionId: string) {
               {{ label(r.option) }}
               <span v-if="r.voters.length" class="d-block small text-body-secondary">{{ r.voters.join(', ') }}</span>
             </span>
-            <i v-if="r.leading && !open" class="bi bi-trophy-fill text-warning" aria-label="vorne"></i>
+            <i v-if="r.leading && !open" class="bi bi-trophy-fill text-warning" :aria-label="t('vorne')"></i>
             <span class="badge rounded-pill text-bg-light border" data-count>{{ r.count }}</span>
           </span>
         </button>
       </div>
 
       <div class="small mt-2 d-flex flex-wrap gap-2 align-items-center">
-        <span>{{ result.voters.length }} {{ result.voters.length === 1 ? 'Stimme' : 'Stimmen' }}</span>
-        <span v-if="open && missing.length" class="text-body-secondary" data-missing>· noch offen: {{ missing.join(', ') }}</span>
-        <button v-if="open && mine" type="button" class="btn btn-link btn-sm p-0 ms-auto" @click="emit('vote', null)">Stimme zurückziehen</button>
+        <span>{{ tn(result.voters.length, '1 Stimme', '{n} Stimmen') }}</span>
+        <span v-if="open && missing.length" class="text-body-secondary" data-missing>{{ t('· noch offen: {join}', { join: missing.join(', ') }) }}</span>
+        <button v-if="open && mine" type="button" class="btn btn-link btn-sm p-0 ms-auto" @click="emit('vote', null)">{{ t('Stimme zurückziehen') }}</button>
       </div>
 
       <div v-if="!open && win.length" class="alert alert-success small py-2 mt-3 mb-0 d-flex flex-wrap align-items-center gap-2" data-result>
         <i class="bi bi-trophy" aria-hidden="true"></i>
-        <span>{{ win.length === 1 ? 'Ergebnis' : 'Gleichstand' }}: <strong>{{ win.map(label).join(' / ') }}</strong></span>
-        <span v-if="adopted" class="ms-auto"><i class="bi bi-check2 me-1" aria-hidden="true"></i>eingetragen</span>
+        <span>{{ win.length === 1 ? t('Ergebnis') : t('Gleichstand') }}: <strong>{{ win.map(label).join(' / ') }}</strong></span>
+        <span v-if="adopted" class="ms-auto"><i class="bi bi-check2 me-1" aria-hidden="true"></i>{{ t('eingetragen') }}</span>
         <button v-else-if="canAdopt" type="button" class="btn btn-sm btn-success ms-auto" data-adopt @click="emit('adopt')">
-          {{ poll.kind === 'termin' ? 'Tag bei der Unternehmung eintragen' : 'Als geplant übernehmen' }}
+          {{ poll.kind === 'termin' ? t('Tag bei der Unternehmung eintragen') : t('Als geplant übernehmen') }}
         </button>
       </div>
     </div>

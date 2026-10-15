@@ -20,6 +20,7 @@ import { DEFAULT_PDF_OPTIONS, type PdfInput, type PdfOptions } from '../pdf-doc'
 import { PAGE_FORMATS, type PageFormat } from '../pdf-layout'
 import type { PdfProgress } from '../pdf'
 import { fileSlug, shareOrDownload } from '@/services/share-file'
+import { t, tn, intlLocale } from '@/i18n'
 
 const props = defineProps<{ tripId: string }>()
 
@@ -48,9 +49,9 @@ const urls = new Map<string, string>()
 const loading = ref(true)
 
 async function load() {
-  const t = await tripRepository.get(props.tripId)
-  if (!t) return
-  trip.value = t
+  const tr = await tripRepository.get(props.tripId)
+  if (!tr) return
+  trip.value = tr
   ;[entries.value, photos.value, routes.value, stays.value, expenses.value] = await Promise.all([
     journalRepository.listByTrip(props.tripId),
     photoRepository.listByTrip(props.tripId),
@@ -122,10 +123,10 @@ const overview = computed(() => (o.routes ? routesSvg(routes.value.map((r) => ({
 const bookedStays = computed(() => stays.value.filter((s) => s.status === 'gebucht').sort((a, b) => a.checkIn.localeCompare(b.checkIn)))
 const money = computed(() => (trip.value && expenses.value.length ? summarize(expenses.value, trip.value.currency, trip.value.startDate, trip.value.endDate) : null))
 
-const dateLong = (d: string) => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
-const dateShort = (d: string) => new Intl.DateTimeFormat('de-DE', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
+const dateLong = (d: string) => new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
+const dateShort = (d: string) => new Intl.DateTimeFormat(intlLocale(), { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${d}T12:00:00`))
 const nights = (a: Accommodation) => Math.max(0, Math.round((Date.parse(a.checkOut) - Date.parse(a.checkIn)) / 86400_000))
-const km = (m: number) => `${(m / 1000).toLocaleString('de-DE', { maximumFractionDigits: 1 })} km`
+const km = (m: number) => `${(m / 1000).toLocaleString(intlLocale(), { maximumFractionDigits: 1 })} km`
 const mood = (v: number) => MOODS.find((m) => m.value === v)?.emoji ?? ''
 const paras = (t: string) => t.trim().split(/\n\s*\n/).filter(Boolean)
 const routeSvg = (r: Route) => trackSvg(r.preview, { width: 420, height: 260, color: r.color, stroke: 3.5 })
@@ -167,33 +168,33 @@ function accentColor(): string {
   return /^#[0-9a-f]{6}$/i.test(v) ? v : '#0d6efd'
 }
 
-function pdfInput(t: Trip): PdfInput {
+function pdfInput(tr: Trip): PdfInput {
   const st = stats.value
-  const coverPhoto = t.cover ? null : pickCover(entries.value, photos.value)
+  const coverPhoto = tr.cover ? null : pickCover(entries.value, photos.value)
   const routeMap = (r: Route) => (mapBlobs.has(`map:${r.id}`) ? { map: { id: `map:${r.id}`, ...ROUTE_MAP } } : {})
   const r2 = (r: Route) => ({ ...routeMap(r), id: r.id, name: r.name, color: r.color, statsText: statsLine(r.stats), trackSvg: trackSvg(r.preview, { width: 600, height: 380, color: r.color, stroke: 3.5 }), profileSvg: profileSvg(r.points, { width: 600, height: 150, color: r.color }) })
   return {
     options: { ...po, layout: o.layout },
     accent: accentColor(),
-    trip: { title: t.title, destination: t.destination, countryNames: (t.countries ?? []).map(countryName).join(', '), startDate: t.startDate, endDate: t.endDate, participants: t.participants ?? [] },
-    cover: t.cover ? { id: 'cover', width: 4000, height: 4000, focusY: t.coverY ?? 50 } : coverPhoto ? { id: coverPhoto.id, width: coverPhoto.width, height: coverPhoto.height, focusY: 50 } : null,
+    trip: { title: tr.title, destination: tr.destination, countryNames: (tr.countries ?? []).map(countryName).join(', '), startDate: tr.startDate, endDate: tr.endDate, participants: tr.participants ?? [] },
+    cover: tr.cover ? { id: 'cover', width: 4000, height: 4000, focusY: tr.coverY ?? 50 } : coverPhoto ? { id: coverPhoto.id, width: coverPhoto.width, height: coverPhoto.height, focusY: 50 } : null,
     stats: o.stats && st
       ? [
-          { value: String(st.days), label: 'Tage' },
-          ...(st.entries ? [{ value: String(st.entries), label: 'Tagebuch-Einträge' }] : []),
-          ...(st.photos ? [{ value: String(st.photos), label: 'Fotos' }] : []),
-          ...(st.routes ? [{ value: km(st.distance), label: `auf ${st.routes} ${st.routes === 1 ? 'Tour' : 'Touren'}` }] : []),
-          ...(st.ascent ? [{ value: `${st.ascent.toLocaleString('de-DE')} m`, label: 'bergauf' }] : [])
+          { value: String(st.days), label: t('Tage') },
+          ...(st.entries ? [{ value: String(st.entries), label: t('Tagebuch-Einträge') }] : []),
+          ...(st.photos ? [{ value: String(st.photos), label: t('Fotos') }] : []),
+          ...(st.routes ? [{ value: km(st.distance), label: tn(st.routes, 'auf 1 Tour', 'auf {n} Touren') }] : []),
+          ...(st.ascent ? [{ value: `${st.ascent.toLocaleString(intlLocale())} m`, label: t('bergauf') }] : [])
         ]
       : [],
     overviewSvg: overview.value,
     overviewMap: o.routes && mapBlobs.has(OVERVIEW.id) ? OVERVIEW : undefined,
     legend: o.routes ? routes.value.map((r) => ({ name: r.name, color: r.color })) : [],
-    stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, `${nights(s)} ${nights(s) === 1 ? 'Nacht' : 'Nächte'}`].filter(Boolean).join(' · ')) : [],
+    stays: o.stays ? bookedStays.value.map((s) => [s.name, s.address, tn(nights(s), '1 Nacht', '{n} Nächte')].filter(Boolean).join(' · ')) : [],
     money: o.expenses && money.value
       ? [
-          `${formatMoney(money.value.total, t.currency)} insgesamt · ${formatMoney(money.value.perDay, t.currency)} pro Tag`,
-          money.value.byCategory.map((c) => `${EXPENSE_CATEGORY[c.category].label}: ${formatMoney(c.amount, t.currency)}`).join(' · ')
+          `${formatMoney(money.value.total, tr.currency)} ${t('insgesamt · {perDay} pro Tag', { perDay: formatMoney(money.value.perDay, tr.currency) })}`,
+          money.value.byCategory.map((c) => `${EXPENSE_CATEGORY[c.category].label}: ${formatMoney(c.amount, tr.currency)}`).join(' · ')
         ]
       : [],
     days: built.value.days.map((d) => ({
@@ -211,8 +212,8 @@ function pdfInput(t: Trip): PdfInput {
 }
 
 async function makePdf() {
-  const t = trip.value
-  if (!t) return
+  const tr = trip.value
+  if (!tr) return
   pdfError.value = ''
   pdfDone.value = ''
   pdfFile.value = null
@@ -222,13 +223,13 @@ async function makePdf() {
     const byId = new Map(photos.value.map((p) => [p.id, p]))
     await loadMaps()
     const blob = await createPdf(
-      pdfInput(t),
-      (id) => (id === 'cover' ? t.cover : id.startsWith('map:') ? mapBlobs.get(id) : (byId.get(id)?.full ?? byId.get(id)?.thumb)),
+      pdfInput(tr),
+      (id) => (id === 'cover' ? tr.cover : id.startsWith('map:') ? mapBlobs.get(id) : (byId.get(id)?.full ?? byId.get(id)?.thumb)),
       (p) => (pdfBusy.value = p)
     )
-    pdfFile.value = new File([blob], `${fileSlug(t.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
+    pdfFile.value = new File([blob], `${fileSlug(tr.title)}-${o.layout}.pdf`, { type: 'application/pdf' })
   } catch (e) {
-    pdfError.value = `PDF konnte nicht erstellt werden: ${(e as Error).message}`
+    pdfError.value = t('PDF konnte nicht erstellt werden: {error}', { error: (e as Error).message })
   } finally {
     pdfBusy.value = null
   }
@@ -237,7 +238,7 @@ async function makePdf() {
 async function sharePdf() {
   if (!pdfFile.value) return
   const r = await shareOrDownload(pdfFile.value)
-  pdfDone.value = r === 'heruntergeladen' ? 'Die PDF-Datei wurde heruntergeladen.' : r === 'geteilt' ? 'Geteilt.' : ''
+  pdfDone.value = r === 'heruntergeladen' ? t('Die PDF-Datei wurde heruntergeladen.') : r === 'geteilt' ? t('Geteilt.') : ''
 }
 
 const printing = ref(false)
@@ -253,79 +254,78 @@ async function print() {
 
 <template>
   <div class="no-print mb-3">
-    <RouterLink :to="`/trip/${tripId}?bereich=danach`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ trip?.title ?? 'Zurück' }}</RouterLink>
-    <h1 class="h3 mb-1 mt-1">Reisebericht</h1>
+    <RouterLink :to="`/trip/${tripId}?bereich=danach`" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ trip?.title ?? t('Zurück') }}</RouterLink>
+    <h1 class="h3 mb-1 mt-1">{{ t('Reisebericht') }}</h1>
     <p class="small text-body-secondary mb-2">
-      „PDF-Datei erstellen“ macht eine fertige Datei zum Verschicken oder Sichern. Das Fotobuch lässt sich in Druckqualität
-      bei vielen Fotobuch-Anbietern hochladen (Format passend wählen, ggf. mit Beschnitt). Die Vorschau unten zeigt den Inhalt.
+      {{ t('„PDF-Datei erstellen“ macht eine fertige Datei zum Verschicken oder Sichern. Das Fotobuch lässt sich in Druckqualität bei vielen Fotobuch-Anbietern hochladen (Format passend wählen, ggf. mit Beschnitt). Die Vorschau unten zeigt den Inhalt.') }}
     </p>
 
     <div class="card">
       <div class="card-body row g-2 align-items-end">
         <div class="col-12 col-md-4">
-          <div class="small fw-semibold mb-1">Art</div>
-          <div class="btn-group btn-group-sm" role="group" aria-label="Art des Berichts">
-            <button type="button" class="btn" :class="o.layout === 'bericht' ? 'btn-primary' : 'btn-outline-primary'" @click="o.layout = 'bericht'">Bericht</button>
-            <button type="button" class="btn" :class="o.layout === 'fotobuch' ? 'btn-primary' : 'btn-outline-primary'" @click="o.layout = 'fotobuch'">Fotobuch</button>
+          <div class="small fw-semibold mb-1">{{ t('Art') }}</div>
+          <div class="btn-group btn-group-sm" role="group" :aria-label="t('Art des Berichts')">
+            <button type="button" class="btn" :class="o.layout === 'bericht' ? 'btn-primary' : 'btn-outline-primary'" @click="o.layout = 'bericht'">{{ t('Bericht') }}</button>
+            <button type="button" class="btn" :class="o.layout === 'fotobuch' ? 'btn-primary' : 'btn-outline-primary'" @click="o.layout = 'fotobuch'">{{ t('Fotobuch') }}</button>
           </div>
         </div>
         <div class="col-6 col-md-3">
-          <label for="r-photos" class="small fw-semibold mb-1 d-block">Fotos</label>
+          <label for="r-photos" class="small fw-semibold mb-1 d-block">{{ t('Fotos') }}</label>
           <select id="r-photos" v-model="o.photos" class="form-select form-select-sm">
-            <option value="alle">alle</option>
-            <option value="vier">höchstens 4 je Eintrag</option>
-            <option value="keine">keine</option>
+            <option value="alle">{{ t('alle') }}</option>
+            <option value="vier">{{ t('höchstens 4 je Eintrag') }}</option>
+            <option value="keine">{{ t('keine') }}</option>
           </select>
         </div>
         <div class="col-12 col-md-5 d-flex flex-wrap gap-3 small">
-          <label class="form-check mb-0"><input v-model="o.onlyHighlights" class="form-check-input" type="checkbox" /> nur Höhepunkte</label>
-          <label class="form-check mb-0"><input v-model="o.routes" class="form-check-input" type="checkbox" /> Touren</label>
-          <label class="form-check mb-0"><input v-model="o.stats" class="form-check-input" type="checkbox" /> Überblick</label>
-          <label class="form-check mb-0"><input v-model="o.stays" class="form-check-input" type="checkbox" /> Unterkünfte</label>
-          <label class="form-check mb-0"><input v-model="o.expenses" class="form-check-input" type="checkbox" /> Ausgaben</label>
+          <label class="form-check mb-0"><input v-model="o.onlyHighlights" class="form-check-input" type="checkbox" /> {{ t('nur Höhepunkte') }}</label>
+          <label class="form-check mb-0"><input v-model="o.routes" class="form-check-input" type="checkbox" /> {{ t('Touren') }}</label>
+          <label class="form-check mb-0"><input v-model="o.stats" class="form-check-input" type="checkbox" /> {{ t('Überblick') }}</label>
+          <label class="form-check mb-0"><input v-model="o.stays" class="form-check-input" type="checkbox" /> {{ t('Unterkünfte') }}</label>
+          <label class="form-check mb-0"><input v-model="o.expenses" class="form-check-input" type="checkbox" /> {{ t('Ausgaben') }}</label>
         </div>
         <div v-if="o.layout === 'fotobuch'" class="col-12 row g-2 m-0 p-0 align-items-end">
           <div class="col-6 col-md-4">
-            <label for="r-format" class="small fw-semibold mb-1 d-block">Seitenformat</label>
+            <label for="r-format" class="small fw-semibold mb-1 d-block">{{ t('Seitenformat') }}</label>
             <select id="r-format" v-model="po.format" class="form-select form-select-sm">
               <option v-for="[k, f] in formats" :key="k" :value="k">{{ f.label }}</option>
             </select>
           </div>
           <div class="col-6 col-md-4">
-            <label for="r-per" class="small fw-semibold mb-1 d-block">Fotos je Seite</label>
+            <label for="r-per" class="small fw-semibold mb-1 d-block">{{ t('Fotos je Seite') }}</label>
             <select id="r-per" v-model.number="po.perPage" class="form-select form-select-sm">
-              <option :value="1">1 (jedes Foto ganzseitig)</option>
-              <option :value="2">bis zu 2</option>
-              <option :value="3">bis zu 3</option>
-              <option :value="4">bis zu 4</option>
+              <option :value="1">{{ t('1 (jedes Foto ganzseitig)') }}</option>
+              <option :value="2">{{ t('bis zu 2') }}</option>
+              <option :value="3">{{ t('bis zu 3') }}</option>
+              <option :value="4">{{ t('bis zu 4') }}</option>
             </select>
           </div>
           <div class="col-12 col-md-4 small">
-            <label class="form-check mb-0"><input v-model="po.bleed" class="form-check-input" type="checkbox" /> 3 mm Beschnitt (für Druckereien)</label>
+            <label class="form-check mb-0"><input v-model="po.bleed" class="form-check-input" type="checkbox" /> {{ t('3 mm Beschnitt (für Druckereien)') }}</label>
           </div>
         </div>
         <div class="col-12">
           <button type="button" class="btn btn-primary me-2" :disabled="loading || !!pdfBusy" data-make-pdf @click="makePdf">
             <span v-if="pdfBusy" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-            <i v-else class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>PDF-Datei erstellen
+            <i v-else class="bi bi-file-earmark-pdf me-1" aria-hidden="true"></i>{{ t('PDF-Datei erstellen') }}
           </button>
-          <select v-model="po.quality" class="form-select form-select-sm d-inline-block w-auto align-middle me-2" aria-label="Bildqualität">
-            <option value="teilen">kleine Datei (zum Teilen)</option>
-            <option value="druck">Druckqualität (300 dpi)</option>
+          <select v-model="po.quality" class="form-select form-select-sm d-inline-block w-auto align-middle me-2" :aria-label="t('Bildqualität')">
+            <option value="teilen">{{ t('kleine Datei (zum Teilen)') }}</option>
+            <option value="druck">{{ t('Druckqualität (300 dpi)') }}</option>
           </select>
           <div v-if="mapsState === 'offline'" class="small text-body-secondary mt-2" data-maps-offline>
-            <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Kartenhintergrund nicht geladen (kein Internet?) – Touren erscheinen nur als Linie.
-            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="retryMaps">Noch einmal versuchen</button>
+            <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>{{ t('Kartenhintergrund nicht geladen (kein Internet?) – Touren erscheinen nur als Linie.') }}
+            <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="retryMaps">{{ t('Noch einmal versuchen') }}</button>
           </div>
           <div v-if="pdfBusy" class="small text-body-secondary mt-2" data-pdf-progress>
-            {{ pdfBusy.step === 'fotos' ? `Fotos vorbereiten … ${pdfBusy.done} / ${pdfBusy.total}` : 'PDF wird zusammengesetzt …' }}
-            <div class="progress mt-1" style="height: 6px" role="progressbar" aria-label="Fortschritt">
+            {{ pdfBusy.step === 'fotos' ? t('Fotos vorbereiten … {done} / {total}', { done: pdfBusy.done, total: pdfBusy.total }) : t('PDF wird zusammengesetzt …') }}
+            <div class="progress mt-1" style="height: 6px" role="progressbar" :aria-label="t('Fortschritt')">
               <div class="progress-bar" :style="{ width: `${pdfBusy.step === 'fotos' ? (pdfBusy.done / Math.max(1, pdfBusy.total)) * 90 : 95}%` }"></div>
             </div>
           </div>
           <div v-if="pdfFile" class="alert alert-success py-2 mt-2 mb-0 d-flex flex-wrap align-items-center gap-2" data-pdf-ready>
             <span><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ pdfFile.name }} ({{ formatBytes(pdfFile.size) }})</span>
-            <button type="button" class="btn btn-sm btn-success" @click="sharePdf"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>Teilen / Sichern</button>
+            <button type="button" class="btn btn-sm btn-success" @click="sharePdf"><i class="bi bi-box-arrow-up me-1" aria-hidden="true"></i>{{ t('Teilen / Sichern') }}</button>
             <span v-if="pdfDone" class="small">{{ pdfDone }}</span>
           </div>
           <div v-if="pdfError" class="alert alert-danger py-2 mt-2 mb-0">{{ pdfError }}</div>
@@ -333,15 +333,15 @@ async function print() {
         <div class="col-12">
           <button type="button" class="btn btn-outline-primary" :disabled="loading || printing" @click="print">
             <span v-if="printing" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-            <i v-else class="bi bi-printer me-1" aria-hidden="true"></i>Drucken
+            <i v-else class="bi bi-printer me-1" aria-hidden="true"></i>{{ t('Drucken') }}
           </button>
-          <span class="small text-body-secondary ms-2">{{ built.days.length }} Tage · {{ photos.length }} Fotos</span>
+          <span class="small text-body-secondary ms-2">{{ tn(built.days.length, '1 Tag', '{n} Tage') }} · {{ tn(photos.length, '1 Foto', '{n} Fotos') }}</span>
         </div>
       </div>
     </div>
   </div>
 
-  <p v-if="loading" class="text-body-secondary no-print">Bericht wird zusammengestellt …</p>
+  <p v-if="loading" class="text-body-secondary no-print">{{ t('Bericht wird zusammengestellt …') }}</p>
 
   <article v-else-if="trip" class="report" :class="`layout-${o.layout}`">
     <!-- Titelseite -->
@@ -359,30 +359,30 @@ async function print() {
 
     <!-- Überblick -->
     <section v-if="(o.stats && stats) || overview || (o.stays && bookedStays.length) || (o.expenses && money)" class="r-page r-overview">
-      <h2 class="r-h2">Überblick</h2>
+      <h2 class="r-h2">{{ t('Überblick') }}</h2>
       <div v-if="o.stats && stats" class="r-stats">
-        <div><b>{{ stats.days }}</b><span>Tage</span></div>
-        <div v-if="stats.entries"><b>{{ stats.entries }}</b><span>Tagebuch-Einträge</span></div>
-        <div v-if="stats.photos"><b>{{ stats.photos }}</b><span>Fotos</span></div>
-        <div v-if="stats.routes"><b>{{ km(stats.distance) }}</b><span>auf {{ stats.routes }} Touren</span></div>
-        <div v-if="stats.ascent"><b>{{ stats.ascent.toLocaleString('de-DE') }} m</b><span>bergauf</span></div>
+        <div><b>{{ stats.days }}</b><span>{{ t('Tage') }}</span></div>
+        <div v-if="stats.entries"><b>{{ stats.entries }}</b><span>{{ t('Tagebuch-Einträge') }}</span></div>
+        <div v-if="stats.photos"><b>{{ stats.photos }}</b><span>{{ t('Fotos') }}</span></div>
+        <div v-if="stats.routes"><b>{{ km(stats.distance) }}</b><span>{{ t('auf {routes} Touren', { routes: stats.routes }) }}</span></div>
+        <div v-if="stats.ascent"><b>{{ stats.ascent.toLocaleString(intlLocale()) }} m</b><span>{{ t('bergauf') }}</span></div>
       </div>
       <figure v-if="overview" class="r-map">
-        <img v-if="mapUrls.get(OVERVIEW.id)" :src="mapUrls.get(OVERVIEW.id)" alt="Karte aller Touren" class="r-mapimg" />
+        <img v-if="mapUrls.get(OVERVIEW.id)" :src="mapUrls.get(OVERVIEW.id)" :alt="t('Karte aller Touren')" class="r-mapimg" />
         <div v-else v-html="overview"></div>
         <figcaption>
           <span v-for="r in routes" :key="r.id" class="r-legend"><i :style="{ background: r.color }"></i>{{ r.name }}</span>
         </figcaption>
       </figure>
       <div v-if="o.stays && bookedStays.length" class="r-block">
-        <h3 class="r-h3">Unterkünfte</h3>
+        <h3 class="r-h3">{{ t('Unterkünfte') }}</h3>
         <p v-for="s in bookedStays" :key="s.id" class="mb-1">
-          <b>{{ s.name }}</b><template v-if="s.address"> · {{ s.address }}</template> · {{ nights(s) }} {{ nights(s) === 1 ? 'Nacht' : 'Nächte' }}
+          <b>{{ s.name }}</b><template v-if="s.address"> · {{ s.address }}</template> · {{ tn(nights(s), '1 Nacht', '{n} Nächte') }}
         </p>
       </div>
       <div v-if="o.expenses && money" class="r-block">
-        <h3 class="r-h3">Ausgaben</h3>
-        <p class="mb-1"><b>{{ formatMoney(money.total, trip.currency) }}</b> insgesamt · {{ formatMoney(money.perDay, trip.currency) }} pro Tag</p>
+        <h3 class="r-h3">{{ t('Ausgaben') }}</h3>
+        <p class="mb-1"><b>{{ formatMoney(money.total, trip.currency) }}</b> {{ t('insgesamt · {perDay} pro Tag', { perDay: formatMoney(money.perDay, trip.currency) }) }}</p>
         <p class="small mb-0">
           <span v-for="c in money.byCategory" :key="c.category" class="me-3">{{ EXPENSE_CATEGORY[c.category].label }}: {{ formatMoney(c.amount, trip.currency) }}</span>
         </p>
@@ -392,11 +392,11 @@ async function print() {
     <!-- Tage -->
     <section v-for="d in built.days" :key="d.date" class="r-day">
       <header class="r-day-head">
-        <span v-if="d.dayNo" class="r-dayno">Tag {{ d.dayNo }}</span>
+        <span v-if="d.dayNo" class="r-dayno">{{ t('Tag {n}', { n: d.dayNo }) }}</span>
         <span class="r-daydate">{{ dateLong(d.date) }}</span>
       </header>
       <div v-for="e in d.entries" :key="e.id" class="r-entry">
-        <h2 class="r-h2">{{ e.title || 'Ohne Titel' }} <span v-if="e.mood" class="r-mood">{{ mood(e.mood) }}</span></h2>
+        <h2 class="r-h2">{{ e.title || t('Ohne Titel') }} <span v-if="e.mood" class="r-mood">{{ mood(e.mood) }}</span></h2>
         <div v-if="e.location" class="r-loc"><i class="bi bi-geo-alt" aria-hidden="true"></i> {{ e.location }}</div>
         <p v-for="(p, k) in paras(e.text)" :key="k" class="r-text">{{ p }}</p>
         <div v-if="e.photos.length" class="r-photos" :style="{ gridTemplateColumns: `repeat(${photoColumns(e.photos.length, o.layout)}, 1fr)` }">
@@ -410,7 +410,7 @@ async function print() {
         <h3 class="r-h3"><i class="bi bi-signpost-2" aria-hidden="true"></i> {{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="t('Karte: {name}', { name: r.name })" class="r-mapimg r-track-map" />
           <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>
@@ -418,19 +418,19 @@ async function print() {
     </section>
 
     <section v-if="built.otherRoutes.length" class="r-day">
-      <header class="r-day-head"><span class="r-daydate">Weitere Touren</span></header>
+      <header class="r-day-head"><span class="r-daydate">{{ t('Weitere Touren') }}</span></header>
       <div v-for="r in built.otherRoutes" :key="r.id" class="r-route">
         <h3 class="r-h3">{{ r.name }}</h3>
         <div class="r-route-stats">{{ statsLine(r.stats) }}</div>
         <div class="r-route-figs">
-          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="`Karte: ${r.name}`" class="r-mapimg r-track-map" />
+          <img v-if="mapUrls.get(`map:${r.id}`)" :src="mapUrls.get(`map:${r.id}`)" :alt="t('Karte: {name}', { name: r.name })" class="r-mapimg r-track-map" />
           <div v-else class="r-track" v-html="routeSvg(r)"></div>
           <div class="r-profile" v-html="profile(r)"></div>
         </div>
       </div>
     </section>
 
-    <footer class="r-footer">Erstellt mit „KofferFertigRaus“</footer>
+    <footer class="r-footer">{{ t('Erstellt mit „KofferFertigRaus“') }}</footer>
   </article>
 </template>
 

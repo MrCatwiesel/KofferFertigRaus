@@ -5,24 +5,25 @@
  */
 import { diffDays } from '../../core/dates'
 import type { SiteActivity, SiteStay } from './types'
+import { t } from '@/i18n'
 
 export const STAY_TYPE: Record<string, { label: string; emoji: string }> = {
-  hotel: { label: 'Hotel', emoji: '🏨' },
-  ferienwohnung: { label: 'Ferienwohnung', emoji: '🏠' },
-  camping: { label: 'Camping', emoji: '⛺' },
-  hostel: { label: 'Hostel', emoji: '🛏️' },
-  privat: { label: 'Bei Freunden', emoji: '🏡' },
-  sonstiges: { label: 'Unterkunft', emoji: '🛏️' }
+  hotel: { label: t('Hotel'), emoji: '🏨' },
+  ferienwohnung: { label: t('Ferienwohnung'), emoji: '🏠' },
+  camping: { label: t('Camping'), emoji: '⛺' },
+  hostel: { label: t('Hostel'), emoji: '🛏️' },
+  privat: { label: t('Bei Freunden'), emoji: '🏡' },
+  sonstiges: { label: t('Unterkunft'), emoji: '🛏️' }
 }
 
 export const ACTIVITY_KIND: Record<string, { label: string; emoji: string }> = {
-  kultur: { label: 'Kultur', emoji: '🏛️' },
-  natur: { label: 'Natur', emoji: '🌲' },
-  aktiv: { label: 'Aktiv', emoji: '🚴' },
-  essen: { label: 'Essen & Trinken', emoji: '🍽️' },
-  entspannung: { label: 'Entspannung', emoji: '🌊' },
-  kinder: { label: 'Für Kinder', emoji: '🎈' },
-  sonstiges: { label: 'Erlebnis', emoji: '✨' }
+  kultur: { label: t('Kultur'), emoji: '🏛️' },
+  natur: { label: t('Natur'), emoji: '🌲' },
+  aktiv: { label: t('Aktiv'), emoji: '🚴' },
+  essen: { label: t('Essen & Trinken'), emoji: '🍽️' },
+  entspannung: { label: t('Entspannung'), emoji: '🌊' },
+  kinder: { label: t('Für Kinder'), emoji: '🎈' },
+  sonstiges: { label: t('Erlebnis'), emoji: '✨' }
 }
 
 /** Unterkunft, wie sie in die Webseite geht (Preis, Buchungsnummer, Notizen kommen nie mit). */

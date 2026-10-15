@@ -2,6 +2,7 @@ import { esc, img, longDate, moodEmoji, paragraphs } from '../logic'
 import type { SiteEntry } from '../types'
 import type { SiteTemplate, TemplateContext } from './types'
 import { activitiesBlock, footer, overviewBlock, routesBlock, staysBlock, statsLine } from './parts'
+import { t } from '@/i18n'
 
 /** Klassisch: Titelbild, Einleitung, dann jeder Tag als Karte mit Fotoraster. */
 function entry(e: SiteEntry, ctx: TemplateContext): string {
@@ -18,7 +19,7 @@ function entry(e: SiteEntry, ctx: TemplateContext): string {
       ${meta ? `<div class="small text-body-secondary mb-2">${meta}</div>` : ''}
       ${paragraphs(e.text)}
       ${rest.length ? `<div class="grid">${rest.map((p) => `<figure>${img(p)}${p.caption ? `<figcaption>${esc(p.caption)}</figcaption>` : ''}</figure>`).join('')}</div>` : ''}
-      ${first?.caption ? `<p class="small text-body-secondary mb-0 mt-2">Titelbild: ${esc(first.caption)}</p>` : ''}
+      ${first?.caption ? `<p class="small text-body-secondary mb-0 mt-2">${t('Titelbild: {caption}', { caption: esc(first.caption) })}</p>` : ''}
     </div>
   </article>`
 }
@@ -56,7 +57,7 @@ export const klassisch: SiteTemplate = {
       .map(
         (d) => `
     <section class="mb-5">
-      <div class="day-label mb-2">${d.dayNumber ? `Tag ${d.dayNumber} · ` : ''}${esc(longDate(d.date))}</div>
+      <div class="day-label mb-2">${d.dayNumber ? `${t('Tag {n}', { n: d.dayNumber })} · ` : ''}${esc(longDate(d.date))}</div>
       ${d.entries.map((e) => entry(e, ctx)).join('')}
       ${routesBlock(d.routes)}
     </section>`

@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 export type PackingCategory =
   | 'kleidung'
   | 'hygiene'
@@ -29,13 +30,13 @@ export interface PackingItem {
 export type PackingDraft = Omit<PackingItem, 'id' | 'tripId' | 'createdAt' | 'updatedAt'>
 
 export const CATEGORY: Record<PackingCategory, { label: string; icon: string; order: number }> = {
-  dokumente: { label: 'Dokumente & Geld', icon: 'passport', order: 1 },
-  kleidung: { label: 'Kleidung', icon: 'bag', order: 2 },
-  hygiene: { label: 'Hygiene & Pflege', icon: 'droplet', order: 3 },
-  gesundheit: { label: 'Gesundheit', icon: 'heart-pulse', order: 4 },
-  technik: { label: 'Technik', icon: 'phone', order: 5 },
-  unterwegs: { label: 'Für unterwegs', icon: 'cup-straw', order: 6 },
-  freizeit: { label: 'Freizeit & Sport', icon: 'sunglasses', order: 7 },
-  kinder: { label: 'Kinder', icon: 'balloon', order: 8 },
-  sonstiges: { label: 'Sonstiges', icon: 'three-dots', order: 9 }
+  dokumente: { label: t('Dokumente & Geld'), icon: 'passport', order: 1 },
+  kleidung: { label: t('Kleidung'), icon: 'bag', order: 2 },
+  hygiene: { label: t('Hygiene & Pflege'), icon: 'droplet', order: 3 },
+  gesundheit: { label: t('Gesundheit'), icon: 'heart-pulse', order: 4 },
+  technik: { label: t('Technik'), icon: 'phone', order: 5 },
+  unterwegs: { label: t('Für unterwegs'), icon: 'cup-straw', order: 6 },
+  freizeit: { label: t('Freizeit & Sport'), icon: 'sunglasses', order: 7 },
+  kinder: { label: t('Kinder'), icon: 'balloon', order: 8 },
+  sonstiges: { label: t('Sonstiges'), icon: 'three-dots', order: 9 }
 }

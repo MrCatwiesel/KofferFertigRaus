@@ -26,12 +26,12 @@ const helpTo = computed(() => ({ path: '/hilfe', query: route.name ? { seite: St
       <div class="d-flex align-items-center gap-3 ms-auto me-md-3">
         <!-- Abgleich-Status (nur wenn eingerichtet) -->
         <RouterLink v-if="syncState.configured" to="/abgleich" class="sync-badge text-decoration-none"
-                    :title="syncState.lastError || (syncState.pending ? `${syncState.pending} Änderungen warten` : 'Abgeglichen')"
-                    aria-label="Geräte-Abgleich">
+                    :title="syncState.lastError || (syncState.pending ? t('{pending} Änderungen warten', { pending: syncState.pending }) : t('Abgeglichen'))"
+                    :aria-label="t('Geräte-Abgleich')">
           <i class="bi" :class="syncState.revoked ? 'bi-person-x text-danger' : syncState.running ? 'bi-arrow-repeat text-primary spin' : syncState.lastError ? 'bi-cloud-slash text-warning' : syncState.pending ? 'bi-cloud-arrow-up text-body-secondary' : 'bi-cloud-check text-success'" aria-hidden="true"></i>
           <span v-if="syncState.pending && !syncState.running" class="badge rounded-pill text-bg-secondary">{{ syncState.pending }}</span>
         </RouterLink>
-        <RouterLink v-if="!isHelp" :to="helpTo" class="help-badge text-decoration-none" title="Hilfe zu dieser Seite" aria-label="Hilfe" data-help-link>
+        <RouterLink v-if="!isHelp" :to="helpTo" class="help-badge text-decoration-none" :title="t('Hilfe zu dieser Seite')" :aria-label="t('Hilfe')" data-help-link>
           <i class="bi bi-question-circle" aria-hidden="true"></i>
         </RouterLink>
       </div>
@@ -43,7 +43,7 @@ const helpTo = computed(() => ({ path: '/hilfe', query: route.name ? { seite: St
         </li>
         <li class="nav-item">
           <RouterLink to="/einstellungen" class="nav-link" active-class="active">
-            <i class="bi bi-gear me-1" aria-hidden="true"></i>Einstellungen
+            <i class="bi bi-gear me-1" aria-hidden="true"></i>{{ t('Einstellungen') }}
           </RouterLink>
         </li>
       </ul>
@@ -51,7 +51,7 @@ const helpTo = computed(() => ({ path: '/hilfe', query: route.name ? { seite: St
   </header>
 
   <div v-if="!online" :inert="lock.locked" class="bg-warning-subtle text-warning-emphasis small text-center py-1">
-    <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>Offline – alle Daten bleiben verfügbar.
+    <i class="bi bi-wifi-off me-1" aria-hidden="true"></i>{{ t('Offline – alle Daten bleiben verfügbar.') }}
   </div>
 
   <main class="container py-3 app-main" :inert="lock.locked" :aria-hidden="lock.locked">
@@ -60,12 +60,12 @@ const helpTo = computed(() => ({ path: '/hilfe', query: route.name ? { seite: St
   </main>
 
   <!-- Untere Navigation für das Handy -->
-  <nav class="bottom-nav d-md-none border-top" :inert="lock.locked" aria-label="Hauptnavigation">
+  <nav class="bottom-nav d-md-none border-top" :inert="lock.locked" :aria-label="t('Hauptnavigation')">
     <RouterLink v-for="item in navItems" :key="item.id" :to="item.to" active-class="active">
       <i :class="`bi bi-${item.icon}`" aria-hidden="true"></i><span>{{ item.title }}</span>
     </RouterLink>
     <RouterLink to="/einstellungen" active-class="active">
-      <i class="bi bi-gear" aria-hidden="true"></i><span>Einstellungen</span>
+      <i class="bi bi-gear" aria-hidden="true"></i><span>{{ t('Einstellungen') }}</span>
     </RouterLink>
   </nav>
 </template>

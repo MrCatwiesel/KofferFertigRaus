@@ -5,11 +5,12 @@ import { myParticipant, people } from '@/core/people'
 import { tripRepository } from '@/modules/trip/public'
 import { isOpen, summaryText } from './logic'
 import { pollRepository } from './repository'
+import { t } from '@/i18n'
 
 /** Modul „Abstimmungen“: gemeinsam entscheiden – jede Person stimmt auf ihrem Gerät ab. */
 export const abstimmungModule: AppModule = {
   id: 'abstimmung',
-  title: 'Abstimmungen',
+  title: t('Abstimmungen'),
   icon: 'hand-thumbs-up',
   order: 32,
   routes: [
@@ -19,7 +20,7 @@ export const abstimmungModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Abstimmungen',
+    title: t('Abstimmungen'),
     icon: 'hand-thumbs-up',
     to: (tripId) => `/trip/${tripId}/abstimmungen`,
     async summary(tripId) {
@@ -32,7 +33,7 @@ export const abstimmungModule: AppModule = {
   reminders: async (trip, today) =>
     (await pollRepository.listByTrip(trip.id))
       .filter((p) => p.deadline && isOpen(p, today))
-      .map((p) => ({ id: `poll:${p.id}:ende`, tripId: trip.id, date: p.deadline, kind: 'frist' as const, title: `Abstimmung endet: ${p.question}`, to: `/trip/${trip.id}/abstimmungen` })),
+      .map((p) => ({ id: `poll:${p.id}:ende`, tripId: trip.id, date: p.deadline, kind: 'frist' as const, title: t('Abstimmung endet: {question}', { question: p.question }), to: `/trip/${trip.id}/abstimmungen` })),
   onTripDelete: (tripId) => pollRepository.removeByTrip(tripId),
   // Beispielreise: erst beim Anlegen nachladen (nicht im Startpaket)
   sampleData: (s) => import('./sample').then((m) => m.pollSample(s))

@@ -6,6 +6,7 @@
 import type { CountryInfo, InfoSection, Mission } from './types'
 
 import { decodeEntities, htmlToText } from '@/core/html-text'
+import { t } from '@/i18n'
 
 export { decodeEntities, htmlToText }
 
@@ -83,7 +84,7 @@ export function parseTravelWarning(json: unknown): Omit<CountryInfo, 'id' | 'tri
   const resp = (json as { response?: Record<string, unknown> & { contentList?: string[] } })?.response
   const id = resp?.contentList?.[0]
   const e = (id ? resp?.[id] : null) as AaEntry | null
-  if (!e?.content) throw new Error('Keine Reisehinweise erhalten.')
+  if (!e?.content) throw new Error(t('Keine Reisehinweise erhalten.'))
   const sections = splitSections(e.content)
   const health = sections.find((s) => /gesundheit/i.test(s.title))
   const vaccText = health?.parts.filter((p) => /impf/i.test(p.title) || /impf/i.test(p.text.slice(0, 300))).map((p) => p.text).join('\n') ?? ''
@@ -104,11 +105,11 @@ export function parseTravelWarning(json: unknown): Omit<CountryInfo, 'id' | 'tri
 
 /** Kurzfassung der Warnlage */
 export function warningLabel(i: Pick<CountryInfo, 'warning' | 'partialWarning' | 'situationWarning' | 'situationPartWarning'>): { level: 'danger' | 'warning' | 'ok'; text: string } {
-  if (i.warning) return { level: 'danger', text: 'Reisewarnung für das ganze Land' }
-  if (i.partialWarning) return { level: 'danger', text: 'Teilreisewarnung für einzelne Gebiete' }
-  if (i.situationWarning) return { level: 'warning', text: 'Warnung wegen besonderer Lage' }
-  if (i.situationPartWarning) return { level: 'warning', text: 'Teilweise Warnung wegen besonderer Lage' }
-  return { level: 'ok', text: 'Keine Reisewarnung' }
+  if (i.warning) return { level: 'danger', text: t('Reisewarnung für das ganze Land') }
+  if (i.partialWarning) return { level: 'danger', text: t('Teilreisewarnung für einzelne Gebiete') }
+  if (i.situationWarning) return { level: 'warning', text: t('Warnung wegen besonderer Lage') }
+  if (i.situationPartWarning) return { level: 'warning', text: t('Teilweise Warnung wegen besonderer Lage') }
+  return { level: 'ok', text: t('Keine Reisewarnung') }
 }
 
 /** Text eines Unterabschnitts suchen (z. B. Abschnitt „Einreise und Zoll“ → „Reisedokumente“) */
@@ -162,13 +163,13 @@ export function parseMissions(entry: unknown): Mission[] {
 export function missionName(m: Pick<Mission, 'description' | 'city'>): string {
   const d = m.description
   const kind = /botschaft/i.test(d) && !/visastelle/i.test(d)
-    ? 'Deutsche Botschaft'
+    ? t('Deutsche Botschaft')
     : /generalkonsulat/i.test(d)
-      ? 'Deutsches Generalkonsulat'
+      ? t('Deutsches Generalkonsulat')
       : /honorarkonsulin/i.test(d)
-        ? 'Honorarkonsulin'
+        ? t('Honorarkonsulin')
         : /honorarkonsul/i.test(d)
-          ? 'Honorarkonsul'
-          : d.replace(/\s*der Bundesrepublik Deutschland/i, '').trim() || 'Vertretung'
+          ? t('Honorarkonsul')
+          : d.replace(/\s*der Bundesrepublik Deutschland/i, '').trim() || t('Vertretung')
   return m.city ? `${kind} ${m.city}` : kind
 }

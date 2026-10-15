@@ -6,6 +6,7 @@ import { countryName, currencyName, currencyOf, flag, inEuRoaming, plugTypeFor, 
 import type { WeatherOutlook } from '@/services/weather'
 import { normName } from './logic'
 import type { PackingCategory, PackingDraft, PackingItem } from './types'
+import { t } from '@/i18n'
 
 export interface SuggestContext {
   days: number
@@ -51,100 +52,100 @@ export function suggestItems(c: SuggestContext): Suggestion[] {
   const add = (key: string, name: string, category: PackingCategory, reason: string, opts: { personal?: boolean; quantity?: number; essential?: boolean } = {}) =>
     out.push({ key, name, category, reason, personal: opts.personal ?? false, quantity: opts.quantity ?? 1, essential: opts.essential })
   const o = c.outlook
-  const when = o ? (o.source === 'vorhersage' ? 'laut Vorhersage' : `in den Vorjahren ${o.years.join('/')}`) : ''
+  const when = o ? (o.source === 'vorhersage' ? t('laut Vorhersage') : t('in den Vorjahren {years}', { years: o.years.join('/') })) : ''
 
   // --- Wetter
   if (o) {
     if (o.rainShare >= 0.3) {
-      add('regenjacke', 'Regenjacke', 'kleidung', `Regen an ${pct(o.rainShare)} der Tage ${when}`, { personal: true })
-      add('schirm', 'Regenschirm', 'unterwegs', `Regen an ${pct(o.rainShare)} der Tage ${when}`)
+      add('regenjacke', t('Regenjacke'), 'kleidung', t('Regen an {share} der Tage {when}', { share: pct(o.rainShare), when }), { personal: true })
+      add('schirm', t('Regenschirm'), 'unterwegs', t('Regen an {share} der Tage {when}', { share: pct(o.rainShare), when }))
     }
-    if (o.rainShare >= 0.5) add('wasserdicht', 'Wasserdichte Schuhe', 'kleidung', 'viel Regen erwartet', { personal: true })
+    if (o.rainShare >= 0.5) add('wasserdicht', t('Wasserdichte Schuhe'), 'kleidung', t('viel Regen erwartet'), { personal: true })
     if (o.minTemp <= 3) {
-      add('muetze', 'Mütze', 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
-      add('handschuhe', 'Handschuhe', 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
-      add('winterjacke', 'Warme Jacke', 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
-    } else if (o.minTemp < 12) add('pullover', 'Pullover oder Fleecejacke', 'kleidung', `abends bis ${o.minTemp} °C ${when}`, { personal: true })
-    if (o.minTemp <= -5) add('thermo', 'Thermounterwäsche', 'kleidung', `Frost bis ${o.minTemp} °C`, { personal: true })
+      add('muetze', t('Mütze'), 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
+      add('handschuhe', t('Handschuhe'), 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
+      add('winterjacke', t('Warme Jacke'), 'kleidung', `bis ${o.minTemp} °C ${when}`, { personal: true })
+    } else if (o.minTemp < 12) add('pullover', t('Pullover oder Fleecejacke'), 'kleidung', t('abends bis {temp} °C {when}', { temp: o.minTemp, when }), { personal: true })
+    if (o.minTemp <= -5) add('thermo', t('Thermounterwäsche'), 'kleidung', t('Frost bis {minTemp} °C', { minTemp: o.minTemp }), { personal: true })
     if (o.maxTemp >= 25) {
-      add('sonnencreme', 'Sonnencreme', 'hygiene', `bis ${o.maxTemp} °C ${when}`)
-      add('sonnenhut', 'Sonnenhut oder Kappe', 'kleidung', `bis ${o.maxTemp} °C ${when}`, { personal: true })
-      add('sonnenbrille', 'Sonnenbrille', 'freizeit', `bis ${o.maxTemp} °C ${when}`, { personal: true })
+      add('sonnencreme', t('Sonnencreme'), 'hygiene', `bis ${o.maxTemp} °C ${when}`)
+      add('sonnenhut', t('Sonnenhut oder Kappe'), 'kleidung', `bis ${o.maxTemp} °C ${when}`, { personal: true })
+      add('sonnenbrille', t('Sonnenbrille'), 'freizeit', `bis ${o.maxTemp} °C ${when}`, { personal: true })
     }
     if (o.maxTemp >= 28) {
-      add('trinkflasche', 'Trinkflasche', 'unterwegs', `Hitze bis ${o.maxTemp} °C`, { personal: true })
-      add('kurz', 'Kurze Hosen / leichte Kleidung', 'kleidung', `Hitze bis ${o.maxTemp} °C`, { personal: true })
+      add('trinkflasche', t('Trinkflasche'), 'unterwegs', t('Hitze bis {maxTemp} °C', { maxTemp: o.maxTemp }), { personal: true })
+      add('kurz', t('Kurze Hosen / leichte Kleidung'), 'kleidung', t('Hitze bis {maxTemp} °C', { maxTemp: o.maxTemp }), { personal: true })
     }
-    if (o.windy) add('windjacke', 'Windjacke', 'kleidung', 'stürmische Tage möglich', { personal: true })
+    if (o.windy) add('windjacke', t('Windjacke'), 'kleidung', t('stürmische Tage möglich'), { personal: true })
   }
 
   // --- Zielland
   for (const cc of c.countries) {
     const land = `${flag(cc)} ${countryName(cc)}`
     const plug = plugTypeFor(cc)
-    if (plug) add(`stecker-${cc}`, `Reisestecker-Adapter Typ ${plug.split(' ')[0]}`, 'technik', `${land}: Steckdosen Typ ${plug}`)
+    if (plug) add(`stecker-${cc}`, t('Reisestecker-Adapter Typ {type}', { type: plug.split(' ')[0] }), 'technik', t('{country}: Steckdosen Typ {type}', { country: land, type: plug }))
     const cur = currencyOf(cc)
-    if (cur && cur !== 'EUR') add(`geld-${cc}`, `Bargeld/Karte in ${currencyName(cur)} (${cur})`, 'dokumente', `${land}: kein Euro`, { essential: true })
-    if (!inEuRoaming(cc)) add(`roaming-${cc}`, 'Datenpaket oder eSIM fürs Handy', 'technik', `${land}: kein EU-Roaming – sonst teuer`)
+    if (cur && cur !== 'EUR') add(`geld-${cc}`, t('Bargeld/Karte in {currency} ({code})', { currency: currencyName(cur), code: cur }), 'dokumente', t('{country}: kein Euro', { country: land }), { essential: true })
+    if (!inEuRoaming(cc)) add(`roaming-${cc}`, t('Datenpaket oder eSIM fürs Handy'), 'technik', t('{country}: kein EU-Roaming – sonst teuer', { country: land }))
     if (c.transport === 'auto' || c.legModes.includes('auto')) {
       const v = vignetteFor(cc)
-      if (v) add(`vignette-${cc}`, `Vignette ${countryName(cc)}`, 'dokumente', `${land}: ${v} – vor der ersten Autobahn kaufen`, { essential: true })
-      if (cc === 'FR') add('critair', "Crit'Air-Umweltplakette", 'dokumente', `${land}: in vielen Städten Pflicht`, { essential: true })
+      if (v) add(`vignette-${cc}`, t('Vignette {country}', { country: countryName(cc) }), 'dokumente', t('{country}: {vignette} – vor der ersten Autobahn kaufen', { country: land, vignette: v }), { essential: true })
+      if (cc === 'FR') add('critair', t('Crit\'Air-Umweltplakette'), 'dokumente', t('{country}: in vielen Städten Pflicht', { country: land }), { essential: true })
     }
   }
   const foreign = c.countries.some((cc) => cc !== 'DE')
   if (foreign && (c.transport === 'auto' || c.legModes.includes('auto')))
-    add('warnweste', 'Warnwesten für alle im Auto', 'unterwegs', 'im Ausland oft für jede Person Pflicht', { quantity: Math.max(1, c.travelers) })
+    add('warnweste', t('Warnwesten für alle im Auto'), 'unterwegs', t('im Ausland oft für jede Person Pflicht'), { quantity: Math.max(1, c.travelers) })
 
   // --- Anreise
   if (c.transport === 'flug' || c.legModes.includes('flug')) {
-    add('fluessig', 'Klarsichtbeutel für Flüssigkeiten (je max. 100 ml)', 'unterwegs', 'Handgepäck im Flugzeug')
-    add('powerbank', 'Powerbank (ins Handgepäck)', 'technik', 'Flug – Akkus nicht ins aufgegebene Gepäck')
+    add('fluessig', t('Klarsichtbeutel für Flüssigkeiten (je max. 100 ml)'), 'unterwegs', t('Handgepäck im Flugzeug'))
+    add('powerbank', t('Powerbank (ins Handgepäck)'), 'technik', t('Flug – Akkus nicht ins aufgegebene Gepäck'))
   }
 
   // --- Unternehmungen, Routen
   const act = c.activityText.toLowerCase()
   const hiking = c.hasRoutes || c.activityCategories.includes('natur') || /wander|tour|gipfel|klamm|alm|berg/.test(act)
   if (hiking) {
-    add('wanderschuhe', 'Wanderschuhe', 'kleidung', c.hasRoutes ? 'Routen geplant' : 'Natur-Unternehmungen', { personal: true })
-    add('rucksack', 'Tagesrucksack', 'unterwegs', 'für Ausflüge')
-    add('blasenpflaster', 'Blasenpflaster', 'gesundheit', 'für Wanderungen')
+    add('wanderschuhe', t('Wanderschuhe'), 'kleidung', c.hasRoutes ? t('Routen geplant') : t('Natur-Unternehmungen'), { personal: true })
+    add('rucksack', t('Tagesrucksack'), 'unterwegs', t('für Ausflüge'))
+    add('blasenpflaster', t('Blasenpflaster'), 'gesundheit', t('für Wanderungen'))
   }
   if ((c.maxElevation ?? 0) >= 1500) {
-    add('stoecke', 'Wanderstöcke', 'freizeit', `Routen bis ${Math.round(c.maxElevation!)} m Höhe`, { personal: true })
-    add('funktionsjacke', 'Funktionsjacke (wind- und wasserdicht)', 'kleidung', `oben kann es kalt werden (bis ${Math.round(c.maxElevation!)} m)`, { personal: true })
-    add('sonnenbrille', 'Sonnenbrille', 'freizeit', 'starke Sonne in den Bergen', { personal: true })
+    add('stoecke', t('Wanderstöcke'), 'freizeit', t('Routen bis {round} m Höhe', { round: Math.round(c.maxElevation!) }), { personal: true })
+    add('funktionsjacke', t('Funktionsjacke (wind- und wasserdicht)'), 'kleidung', t('oben kann es kalt werden (bis {round} m)', { round: Math.round(c.maxElevation!) }), { personal: true })
+    add('sonnenbrille', t('Sonnenbrille'), 'freizeit', t('starke Sonne in den Bergen'), { personal: true })
   }
   const water = c.seaside || /baden|strand|schwimm|therme|see\b|bad\b/.test(act)
   if (water) {
-    add('badesachen', 'Badesachen', 'kleidung', c.seaside ? 'Reiseziel am Wasser' : 'Baden geplant', { personal: true })
-    add('badetuch', 'Strand- oder Badetuch', 'freizeit', 'zum Baden', { personal: true })
+    add('badesachen', t('Badesachen'), 'kleidung', c.seaside ? t('Reiseziel am Wasser') : t('Baden geplant'), { personal: true })
+    add('badetuch', t('Strand- oder Badetuch'), 'freizeit', t('zum Baden'), { personal: true })
   }
   if (c.activityCategories.includes('entspannung') || /therme|spa|sauna|wellness/.test(act))
-    add('badeschlappen', 'Badeschlappen', 'kleidung', 'Therme/Wellness', { personal: true })
-  if (c.activityCategories.includes('aktiv') && /rad|bike|fahrrad/.test(act)) add('radhelm', 'Fahrradhelm', 'freizeit', 'Radtour geplant', { personal: true })
+    add('badeschlappen', t('Badeschlappen'), 'kleidung', 'Therme/Wellness', { personal: true })
+  if (c.activityCategories.includes('aktiv') && /rad|bike|fahrrad/.test(act)) add('radhelm', t('Fahrradhelm'), 'freizeit', t('Radtour geplant'), { personal: true })
 
   // --- Unterkunft
   if (c.accommodationTypes.includes('camping')) {
-    add('stirnlampe', 'Stirnlampe', 'technik', 'Camping', { personal: true })
-    add('schlafsack', 'Schlafsack', 'sonstiges', 'Camping', { personal: true })
-    add('campinggeschirr', 'Campinggeschirr & Spülzeug', 'sonstiges', 'Camping')
+    add('stirnlampe', t('Stirnlampe'), 'technik', t('Camping'), { personal: true })
+    add('schlafsack', t('Schlafsack'), 'sonstiges', t('Camping'), { personal: true })
+    add('campinggeschirr', t('Campinggeschirr & Spülzeug'), 'sonstiges', t('Camping'))
   }
   if (c.accommodationTypes.includes('hostel')) {
-    add('schloss', 'Vorhängeschloss für den Spind', 'unterwegs', 'Hostel')
-    add('ohrstoepsel', 'Ohrstöpsel', 'hygiene', 'Hostel', { personal: true })
+    add('schloss', t('Vorhängeschloss für den Spind'), 'unterwegs', t('Hostel'))
+    add('ohrstoepsel', t('Ohrstöpsel'), 'hygiene', t('Hostel'), { personal: true })
   }
-  if (c.accommodationTypes.includes('ferienwohnung')) add('kueche', 'Spültabs, Geschirrtuch, Grundgewürze', 'sonstiges', 'Ferienwohnung mit Küche')
+  if (c.accommodationTypes.includes('ferienwohnung')) add('kueche', t('Spültabs, Geschirrtuch, Grundgewürze'), 'sonstiges', t('Ferienwohnung mit Küche'))
 
   // --- Gesundheit laut Reisehinweisen
   const health = c.healthText.toLowerCase()
   if (/malaria/.test(health)) {
-    add('muecken', 'Mückenschutz (tropentauglich, DEET/Icaridin)', 'gesundheit', 'Malaria-Gebiet laut Auswärtigem Amt')
-    add('moskitonetz', 'Moskitonetz', 'gesundheit', 'Malaria-Gebiet laut Auswärtigem Amt')
-  } else if (/dengue|zika|chikungunya|mücke/.test(health)) add('muecken', 'Mückenschutz', 'gesundheit', 'Mücken übertragen Krankheiten (Reisehinweise)')
+    add('muecken', t('Mückenschutz (tropentauglich, DEET/Icaridin)'), 'gesundheit', t('Malaria-Gebiet laut Auswärtigem Amt'))
+    add('moskitonetz', t('Moskitonetz'), 'gesundheit', t('Malaria-Gebiet laut Auswärtigem Amt'))
+  } else if (/dengue|zika|chikungunya|mücke/.test(health)) add('muecken', t('Mückenschutz'), 'gesundheit', t('Mücken übertragen Krankheiten (Reisehinweise)'))
 
   // --- Dauer
-  if (c.days > 7) add('waschmittel', 'Reisewaschmittel', 'hygiene', `${c.days} Tage unterwegs`)
+  if (c.days > 7) add('waschmittel', t('Reisewaschmittel'), 'hygiene', t('{days} Tage unterwegs', { days: c.days }))
 
   // Doppelte Regeln zusammenfassen (z. B. Sonnenbrille aus Wetter und Bergen) – erster Grund gewinnt, weitere angehängt
   const byKey = new Map<string, Suggestion>()

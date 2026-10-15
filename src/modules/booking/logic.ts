@@ -3,6 +3,7 @@
  * Reine Logik (testbar); die Ansicht zeigt die Entwürfe zum Prüfen an.
  */
 import type { BookingGuess, LegGuess, StayGuess } from './parse'
+import { t } from '@/i18n'
 
 export interface TripRef {
   startDate: string
@@ -10,7 +11,7 @@ export interface TripRef {
   currency: string
 }
 
-export const MODE_LABEL: Record<LegGuess['mode'], string> = { flug: 'Flug', bahn: 'Bahn', bus: 'Bus', faehre: 'Fähre', auto: 'Auto', sonstiges: 'Sonstiges' }
+export const MODE_LABEL: Record<LegGuess['mode'], string> = { flug: t('Flug'), bahn: t('Bahn'), bus: t('Bus'), faehre: t('Fähre'), auto: t('Auto'), sonstiges: t('Sonstiges') }
 
 /** Hin- oder Rückreise: näher am Reisebeginn → hin, näher am Ende → zurück */
 export function directionOf(date: string, trip: Pick<TripRef, 'startDate' | 'endDate'>): 'hin' | 'rueck' {
@@ -28,7 +29,7 @@ export function outsideTrip(dates: string[], trip: Pick<TripRef, 'startDate' | '
 
 export function stayDraft(s: StayGuess, notes: string) {
   return {
-    name: s.name.trim() || 'Unterkunft',
+    name: s.name.trim() || t('Unterkunft'),
     type: s.type,
     address: s.address,
     url: s.url,
@@ -61,7 +62,7 @@ export function legDrafts(g: Pick<BookingGuess, 'legs' | 'price' | 'currency' | 
     tolls: null,
     bookingRef: g.bookingRef,
     url: '',
-    notes: [l.number && `${MODE_LABEL[l.mode]} ${l.number}`, i === 0 && g.price !== null && g.legs.length > 1 ? 'Preis gilt für alle Etappen dieser Buchung.' : '', notes].filter(Boolean).join('\n')
+    notes: [l.number && `${MODE_LABEL[l.mode]} ${l.number}`, i === 0 && g.price !== null && g.legs.length > 1 ? t('Preis gilt für alle Etappen dieser Buchung.') : '', notes].filter(Boolean).join('\n')
   }))
 }
 

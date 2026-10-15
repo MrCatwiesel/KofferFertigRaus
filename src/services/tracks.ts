@@ -1,3 +1,4 @@
+import { intlLocale } from '@/i18n'
 /**
  * Strecken zeichnen und beschreiben – reine Funktionen ohne Datenbank.
  * Genutzt von Routen-Modul, Reise-Webseite und Lese-Link-Seite.
@@ -40,7 +41,7 @@ export function bounds(points: readonly (readonly [number, number, ...unknown[]]
 }
 
 export function formatDistance(m: number): string {
-  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString('de-DE', { maximumFractionDigits: m < 100000 ? 1 : 0 })} km`
+  return m < 1000 ? `${Math.round(m)} m` : `${(m / 1000).toLocaleString(intlLocale(), { maximumFractionDigits: m < 100000 ? 1 : 0 })} km`
 }
 
 export function formatDuration(s: number | null): string {
@@ -55,8 +56,8 @@ export function formatDuration(s: number | null): string {
 export function statsLine(st: TrackSummary): string {
   return [
     formatDistance(st.distance),
-    st.ascent ? `↗ ${st.ascent.toLocaleString('de-DE')} m` : '',
-    st.descent ? `↘ ${st.descent.toLocaleString('de-DE')} m` : '',
+    st.ascent ? `↗ ${st.ascent.toLocaleString(intlLocale())} m` : '',
+    st.descent ? `↘ ${st.descent.toLocaleString(intlLocale())} m` : '',
     formatDuration(st.duration)
   ]
     .filter(Boolean)
@@ -126,7 +127,7 @@ export function profileSvg(points: readonly PlainPoint[], opts: { width?: number
   const y = (e: number) => top + (1 - (e - minE) / spanE) * (H - top - bottom)
   const line = data.map((p, i) => `${i ? 'L' : 'M'}${x(p.d).toFixed(1)} ${y(p.e).toFixed(1)}`).join('')
   const area = `${line}L${x(total).toFixed(1)} ${H - bottom}L${left} ${H - bottom}Z`
-  const label = (v: number) => `${Math.round(v).toLocaleString('de-DE')} m`
+  const label = (v: number) => `${Math.round(v).toLocaleString(intlLocale())} m`
   return `<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" class="nww-profile" role="img" aria-label="Höhenprofil von ${label(minE)} bis ${label(maxE)}"><path d="${area}" fill="${color}" opacity=".18"/><path d="${line}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/><line x1="${left}" y1="${H - bottom}" x2="${W - right}" y2="${H - bottom}" stroke="currentColor" opacity=".25"/><g font-size="11" fill="currentColor" opacity=".7" font-family="system-ui,sans-serif"><text x="${left - 6}" y="${y(maxE) + 4}" text-anchor="end">${label(maxE)}</text><text x="${left - 6}" y="${y(minE) + 4}" text-anchor="end">${label(minE)}</text><text x="${left}" y="${H - 5}">0</text><text x="${W - right}" y="${H - 5}" text-anchor="end">${formatDistance(total)}</text></g></svg>`
 }
 

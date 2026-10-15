@@ -1,3 +1,4 @@
+import { t } from '@/i18n'
 /** Ein Tagebucheintrag – meist einer pro Tag, mehrere sind möglich. */
 export interface JournalEntry {
   id: string
@@ -63,9 +64,9 @@ export interface VoiceNote {
 }
 
 export const MOODS: { value: number; emoji: string; label: string }[] = [
-  { value: 5, emoji: '😍', label: 'Traumhaft' },
-  { value: 4, emoji: '😊', label: 'Schön' },
-  { value: 3, emoji: '🙂', label: 'Okay' },
-  { value: 2, emoji: '😕', label: 'Durchwachsen' },
-  { value: 1, emoji: '😩', label: 'Anstrengend' }
+  { value: 5, emoji: '😍', label: t('Traumhaft') },
+  { value: 4, emoji: '😊', label: t('Schön') },
+  { value: 3, emoji: '🙂', label: t('Okay') },
+  { value: 2, emoji: '😕', label: t('Durchwachsen') },
+  { value: 1, emoji: '😩', label: t('Anstrengend') }
 ]

@@ -3,11 +3,12 @@ import { tripRepository } from '@/modules/trip/public'
 import { contactRepository, documentRepository } from './repository'
 import { summarizeDocs } from './logic'
 import { documentReminders } from './reminders'
+import { t, tn } from '@/i18n'
 
 /** Modul "Dokumente & Notfall" (Meilenstein M2). */
 export const documentsModule: AppModule = {
   id: 'documents',
-  title: 'Dokumente',
+  title: t('Dokumente'),
   icon: 'folder2-open',
   order: 50,
   routes: [
@@ -20,17 +21,17 @@ export const documentsModule: AppModule = {
   reminders: async (trip, today) => documentReminders(await documentRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
-    title: 'Dokumente & Notfall',
+    title: t('Dokumente & Notfall'),
     icon: 'folder2-open',
     to: (tripId) => `/trip/${tripId}/dokumente`,
     async summary(tripId) {
       const [trip, docs] = await Promise.all([tripRepository.get(tripId), documentRepository.listByTrip(tripId)])
-      if (!trip || docs.length === 0) return 'Noch leer – mit Vorschlägen starten'
+      if (!trip || docs.length === 0) return t('Noch leer – mit Vorschlägen starten')
       const s = summarizeDocs(docs, trip.endDate)
-      const parts = [`${s.total} Dokumente`]
-      if (s.missing) parts.push(`${s.missing} fehlen`)
-      if (s.problems) parts.push(`${s.problems} Gültigkeit prüfen`)
-      if (!s.missing && !s.problems) parts.push('alles in Ordnung')
+      const parts = [tn(s.total, '1 Dokument', '{n} Dokumente')]
+      if (s.missing) parts.push(t('{n} fehlen', { n: s.missing }))
+      if (s.problems) parts.push(t('{n} Gültigkeit prüfen', { n: s.problems }))
+      if (!s.missing && !s.problems) parts.push(t('alles in Ordnung'))
       return parts.join(' · ')
     }
   },

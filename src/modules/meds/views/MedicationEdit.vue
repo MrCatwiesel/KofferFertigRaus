@@ -6,6 +6,7 @@ import { PersonSelect, TripContextHeader, VisibilitySelect, tripRepository, type
 import { medicationRepository } from '../repository'
 import { DEFAULT_RESERVE_DAYS, emptyMedicationDraft, normalizeTimes, stockStatus, unitsNeeded, validateMedication } from '../logic'
 import { KIND, type MedicationDraft } from '../types'
+import { t } from '@/i18n'
 
 const props = defineProps<{ tripId: string; id?: string }>()
 const router = useRouter()
@@ -60,23 +61,23 @@ async function save() {
 }
 
 async function remove() {
-  if (!props.id || !confirm(`„${draft.name}“ löschen?`)) return
+  if (!props.id || !confirm(t('„{name}“ löschen?', { name: draft.name }))) return
   await medicationRepository.remove(props.id)
   router.replace(listPath.value)
 }
 </script>
 
 <template>
-  <TripContextHeader :trip-id="tripId" :title="id ? 'Medikament bearbeiten' : 'Neues Medikament'" />
+  <TripContextHeader :trip-id="tripId" :title="id ? t('Medikament bearbeiten') : t('Neues Medikament')" />
 
   <form class="row g-3" novalidate @submit.prevent="save">
     <div class="col-12 col-md-8">
-      <label for="name" class="form-label">Name</label>
+      <label for="name" class="form-label">{{ t('Name') }}</label>
       <input id="name" v-model="draft.name" class="form-control" :class="{ 'is-invalid': submitted && errors.name }" />
       <div class="invalid-feedback">{{ errors.name }}</div>
     </div>
     <div class="col-12 col-md-4">
-      <label for="person" class="form-label">Für wen?</label>
+      <label for="person" class="form-label">{{ t('Für wen?') }}</label>
       <PersonSelect v-model="draft.person" :trip-id="tripId" input-id="person" privacy />
     </div>
     <div class="col-12">
@@ -84,8 +85,8 @@ async function remove() {
     </div>
 
     <div class="col-12">
-      <label class="form-label d-block">Art</label>
-      <div class="btn-group flex-wrap" role="group" aria-label="Art">
+      <label class="form-label d-block">{{ t('Art') }}</label>
+      <div class="btn-group flex-wrap" role="group" :aria-label="t('Art')">
         <template v-for="(k, key) in KIND" :key="key">
           <input :id="`kind-${key}`" v-model="draft.kind" type="radio" class="btn-check" :value="key" />
           <label class="btn btn-outline-primary" :for="`kind-${key}`" :title="k.hint">
@@ -97,33 +98,33 @@ async function remove() {
 
     <template v-if="draft.kind === 'dauer'">
       <div class="col-12 col-md-6">
-        <label for="dose" class="form-label">Dosis (wie verordnet)</label>
-        <input id="dose" v-model="draft.dose" class="form-control" placeholder="z. B. 1 Tablette" />
+        <label for="dose" class="form-label">{{ t('Dosis (wie verordnet)') }}</label>
+        <input id="dose" v-model="draft.dose" class="form-control" :placeholder="t('z. B. 1 Tablette')" />
       </div>
       <div class="col-6 col-md-3">
-        <label for="units" class="form-label">Stück pro Einnahme</label>
+        <label for="units" class="form-label">{{ t('Stück pro Einnahme') }}</label>
         <input id="units" v-model.number="draft.unitsPerDose" type="number" min="0.25" step="0.25" class="form-control"
                :class="{ 'is-invalid': submitted && errors.unitsPerDose }" />
         <div class="invalid-feedback">{{ errors.unitsPerDose }}</div>
       </div>
       <div class="col-6 col-md-3">
-        <label for="stock" class="form-label">Vorrat (Stück)</label>
+        <label for="stock" class="form-label">{{ t('Vorrat (Stück)') }}</label>
         <input id="stock" v-model.number="draft.stockUnits" type="number" min="0" step="1" class="form-control"
-               :class="{ 'is-invalid': submitted && errors.stockUnits }" placeholder="optional" />
+               :class="{ 'is-invalid': submitted && errors.stockUnits }" :placeholder="t('optional')" />
         <div class="invalid-feedback">{{ errors.stockUnits }}</div>
       </div>
 
       <div class="col-12">
-        <label class="form-label d-block">Einnahmezeiten</label>
+        <label class="form-label d-block">{{ t('Einnahmezeiten') }}</label>
         <div class="d-flex flex-wrap gap-2 align-items-center">
-          <div v-for="(t, i) in draft.times" :key="i" class="input-group w-auto">
-            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="`Einnahmezeit ${i + 1}`" />
-            <button type="button" class="btn btn-outline-secondary" aria-label="Zeit entfernen" @click="removeTime(i)">
+          <div v-for="(time, i) in draft.times" :key="i" class="input-group w-auto">
+            <input v-model="draft.times[i]" type="time" class="form-control" :aria-label="t('Einnahmezeit {x}', { x: i + 1 })" />
+            <button type="button" class="btn btn-outline-secondary" :aria-label="t('Zeit entfernen')" @click="removeTime(i)">
               <i class="bi bi-x" aria-hidden="true"></i>
             </button>
           </div>
           <button type="button" class="btn btn-sm btn-outline-primary" @click="addTime">
-            <i class="bi bi-plus" aria-hidden="true"></i> Zeit
+            <i class="bi bi-plus" aria-hidden="true"></i> {{ t('Zeit') }}
           </button>
         </div>
         <div v-if="submitted && errors.times" class="text-danger small mt-1">{{ errors.times }}</div>
@@ -131,46 +132,46 @@ async function remove() {
 
       <div v-if="need !== null" class="col-12">
         <div class="alert py-2 mb-0" :class="stock.state === 'knapp' ? 'alert-danger' : stock.state === 'ok' ? 'alert-success' : 'alert-light border'">
-          Für {{ days }} Reisetage + {{ DEFAULT_RESERVE_DAYS }} Tage Reserve: <strong>{{ need }} Stück</strong>.
-          <template v-if="stock.state === 'knapp'"> Es fehlen {{ stock.missing }} – rechtzeitig Rezept besorgen.</template>
-          <template v-else-if="stock.state === 'ok'"> Vorrat reicht.</template>
+          {{ t('Für {days} Reisetage + {DEFAULT_RESERVE_DAYS} Tage Reserve:', { days, DEFAULT_RESERVE_DAYS }) }} <strong>{{ t('{need} Stück', { need }) }}</strong>.
+          <template v-if="stock.state === 'knapp'"> {{ t('Es fehlen {missing} – rechtzeitig Rezept besorgen.', { missing: stock.missing }) }}</template>
+          <template v-else-if="stock.state === 'ok'"> {{ t('Vorrat reicht.') }}</template>
         </div>
       </div>
     </template>
 
     <div class="col-12 col-md-6">
-      <label for="exp" class="form-label">Haltbar bis</label>
+      <label for="exp" class="form-label">{{ t('Haltbar bis') }}</label>
       <input id="exp" v-model="draft.expiryDate" type="date" class="form-control" />
     </div>
     <div class="col-12 d-flex flex-wrap gap-4">
       <div class="form-check form-switch">
         <input id="rx" v-model="draft.prescription" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="rx">Rezeptpflichtig</label>
+        <label class="form-check-label" for="rx">{{ t('Rezeptpflichtig') }}</label>
       </div>
       <div class="form-check form-switch">
         <input id="hand" v-model="draft.handLuggage" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="hand">Ins Handgepäck</label>
+        <label class="form-check-label" for="hand">{{ t('Ins Handgepäck') }}</label>
       </div>
       <div class="form-check form-switch">
         <input id="cool" v-model="draft.cooling" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="cool">Kühlen</label>
+        <label class="form-check-label" for="cool">{{ t('Kühlen') }}</label>
       </div>
       <div class="form-check form-switch">
         <input id="packed" v-model="draft.packed" class="form-check-input" type="checkbox" role="switch" />
-        <label class="form-check-label" for="packed">Eingepackt</label>
+        <label class="form-check-label" for="packed">{{ t('Eingepackt') }}</label>
       </div>
     </div>
     <div class="col-12">
-      <label for="notes" class="form-label">Notizen</label>
+      <label for="notes" class="form-label">{{ t('Notizen') }}</label>
       <textarea id="notes" v-model="draft.notes" rows="2" class="form-control"
-                placeholder="z. B. Wirkstoff, Arzt-Bescheinigung für den Zoll, Hinweise"></textarea>
+                :placeholder="t('z. B. Wirkstoff, Arzt-Bescheinigung für den Zoll, Hinweise')"></textarea>
     </div>
 
     <div class="col-12 d-flex gap-2">
-      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>Speichern</button>
-      <RouterLink :to="listPath" class="btn btn-outline-secondary">Abbrechen</RouterLink>
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1" aria-hidden="true"></i>{{ t('Speichern') }}</button>
+      <RouterLink :to="listPath" class="btn btn-outline-secondary">{{ t('Abbrechen') }}</RouterLink>
       <button v-if="id" type="button" class="btn btn-outline-danger ms-auto" @click="remove">
-        <i class="bi bi-trash me-1" aria-hidden="true"></i>Löschen
+        <i class="bi bi-trash me-1" aria-hidden="true"></i>{{ t('Löschen') }}
       </button>
     </div>
   </form>

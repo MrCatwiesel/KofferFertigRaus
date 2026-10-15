@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, reactive, ref, shallowRef } from 'vue'
 import { ServerClient } from '../sync/client'
 import { ago } from '../sync/logic'
+import { t } from '@/i18n'
 
 type TargetType = 'ordner' | 'smb' | 'ssh' | 'webdav'
 interface Target {
@@ -35,9 +36,9 @@ interface Status {
 }
 
 const TYPE_INFO: Record<TargetType, { label: string; icon: string; hint: string }> = {
-  ordner: { label: 'Ordner / Platte', icon: 'device-hdd', hint: 'Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe' },
-  smb: { label: 'SMB-Freigabe', icon: 'hdd-network', hint: 'Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen' },
-  ssh: { label: 'SSH / rsync', icon: 'terminal', hint: 'Anderer Linux-Rechner oder NAS mit SSH – überträgt nur Änderungen' },
+  ordner: { label: t('Ordner / Platte'), icon: 'device-hdd', hint: t('Eingehängte USB-Platte oder eine in Proxmox eingebundene SMB-/NFS-Freigabe') },
+  smb: { label: t('SMB-Freigabe'), icon: 'hdd-network', hint: t('Windows-Freigabe, Synology, QNAP, FRITZ!Box-NAS – direkt, ohne Einhängen') },
+  ssh: { label: 'SSH / rsync', icon: 'terminal', hint: t('Anderer Linux-Rechner oder NAS mit SSH – überträgt nur Änderungen') },
   webdav: { label: 'WebDAV', icon: 'cloud-upload', hint: 'Nextcloud, ownCloud, Synology WebDAV, Hetzner Storage Box' }
 }
 
@@ -58,7 +59,7 @@ let poll: ReturnType<typeof setInterval> | undefined
 async function load() {
   client.value = await ServerClient.fromSync()
   if (!client.value) {
-    error.value = 'Der Geräte-Abgleich ist nicht eingerichtet.'
+    error.value = t('Der Geräte-Abgleich ist nicht eingerichtet.')
     loading.value = false
     return
   }
@@ -84,7 +85,7 @@ function watchRun() {
     await load()
     if ((!pending.value && !status.value?.running) || ++rounds > 200) {
       clearInterval(poll)
-      info.value = 'Fertig – das Ergebnis steht bei den Zielen.'
+      info.value = t('Fertig – das Ergebnis steht bei den Zielen.')
     }
   }, 3000)
 }
@@ -98,7 +99,7 @@ onUnmounted(() => clearInterval(poll))
 async function start(target: Target | null, test: boolean) {
   if (!client.value) return
   error.value = ''
-  info.value = test ? `Teste „${target?.name}“ …` : 'Sicherung angestoßen – das kann je nach Fotomenge einige Minuten dauern.'
+  info.value = test ? t('Teste „{name}“ …', { name: target?.name }) : t('Sicherung angestoßen – das kann je nach Fotomenge einige Minuten dauern.')
   try {
     await client.value.json('/api/admin/sicherung/jetzt', 'POST', { test, target: target?.id ?? null })
     pending.value = true
@@ -143,13 +144,13 @@ async function saveEdit() {
   if (editIndex.value >= 0) list[editIndex.value] = editing.value
   else list.push(editing.value)
   if (await save(list)) {
-    info.value = `„${editing.value.name}“ gespeichert. Tipp: gleich „Testen“.`
+    info.value = t('„{name}“ gespeichert. Tipp: gleich „Testen“.', { name: editing.value.name })
     editing.value = null
   }
 }
 
 async function remove(i: number) {
-  if (!confirm(`Ziel „${targets.value[i].name}“ entfernen? Bereits gesicherte Dateien dort bleiben erhalten.`)) return
+  if (!confirm(t('Ziel „{x}“ entfernen? Bereits gesicherte Dateien dort bleiben erhalten.', { x: targets.value[i].name }))) return
   await save(targets.value.filter((_, j) => j !== i))
 }
 
@@ -168,29 +169,28 @@ const needsKey = computed(() => editing.value?.type === 'ssh' || targets.value.s
 async function copyKey() {
   try {
     await navigator.clipboard.writeText(sshKey.value)
-    info.value = 'Schlüssel kopiert.'
+    info.value = t('Schlüssel kopiert.')
   } catch {
     /* Feld ist markierbar */
   }
 }
 
 const running = computed(() => pending.value || !!status.value?.running)
-const passwordLabel = computed(() => (editing.value?.hasPassword ? 'Passwort (leer lassen = unverändert)' : 'Passwort'))
+const passwordLabel = computed(() => (editing.value?.hasPassword ? t('Passwort (leer lassen = unverändert)') : t('Passwort')))
 const form = reactive({ showPw: false })
 </script>
 
 <template>
   <div class="mb-3">
-    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> Geräte-Abgleich</RouterLink>
-    <h1 class="h3 mb-0 mt-1">Server-Sicherung</h1>
-    <p class="text-body-secondary small mb-0">Wohin der Server jede Nacht deine Reisen, Fotos und Einstellungen sichert.</p>
+    <RouterLink to="/abgleich" class="small text-decoration-none"><i class="bi bi-chevron-left" aria-hidden="true"></i> {{ t('Geräte-Abgleich') }}</RouterLink>
+    <h1 class="h3 mb-0 mt-1">{{ t('Server-Sicherung') }}</h1>
+    <p class="text-body-secondary small mb-0">{{ t('Wohin der Server jede Nacht deine Reisen, Fotos und Einstellungen sichert.') }}</p>
   </div>
 
   <div v-if="error" class="alert alert-danger">{{ error }}</div>
   <div v-if="info" class="alert alert-info small py-2" role="status">{{ info }}</div>
   <div v-if="!installed && !loading" class="alert alert-warning small">
-    Auf dem Server ist die Sicherung noch nicht vollständig eingerichtet. Im Container einmal
-    <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> ausführen.
+    <Tx text="Auf dem Server ist die Sicherung noch nicht vollständig eingerichtet. Im Container einmal {cmd} ausführen."><template #cmd><code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code></template></Tx>
   </div>
 
   <!-- Sicherung im Container -->
@@ -198,49 +198,49 @@ const form = reactive({ showPw: false })
     <div class="card-body d-flex flex-wrap align-items-center gap-3">
       <i class="bi bi-archive fs-2 text-primary" aria-hidden="true"></i>
       <div class="flex-grow-1">
-        <div class="fw-semibold">Tägliche Sicherung im Container</div>
+        <div class="fw-semibold">{{ t('Tägliche Sicherung im Container') }}</div>
         <div class="small text-body-secondary">
-          <template v-if="status?.local">Zuletzt {{ ago(status.local.at) }} · {{ status.local.size }}</template>
-          <template v-else>Noch keine Sicherung gemeldet</template>
-          · danach an alle eingeschalteten Ziele unten
+          <template v-if="status?.local">{{ t('Zuletzt {ago} · {size}', { ago: ago(status.local.at), size: status.local.size }) }}</template>
+          <template v-else>{{ t('Noch keine Sicherung gemeldet') }}</template>
+          {{ t('· danach an alle eingeschalteten Ziele unten') }}
         </div>
       </div>
       <button type="button" class="btn btn-primary" :disabled="running || loading" @click="start(null, false)">
         <span v-if="running" class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>
-        <i v-else class="bi bi-play-fill me-1" aria-hidden="true"></i>{{ running ? 'Läuft …' : 'Jetzt sichern' }}
+        <i v-else class="bi bi-play-fill me-1" aria-hidden="true"></i>{{ running ? t('Läuft …') : t('Jetzt sichern') }}
       </button>
     </div>
   </div>
 
   <!-- Ziele -->
-  <h2 class="h6 text-body-secondary">Weitere Ziele ({{ targets.length }})</h2>
-  <div v-if="loading" class="small text-body-secondary mb-3"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>Lade …</div>
-  <div v-for="(t, i) in targets" :key="t.id" class="card mb-2" :class="{ 'opacity-75': !t.enabled }">
+  <h2 class="h6 text-body-secondary">{{ t('Weitere Ziele ({n})', { n: targets.length }) }}</h2>
+  <div v-if="loading" class="small text-body-secondary mb-3"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade …') }}</div>
+  <div v-for="(target, i) in targets" :key="target.id" class="card mb-2" :class="{ 'opacity-75': !target.enabled }">
     <div class="card-body">
       <div class="d-flex align-items-start gap-2">
-        <i :class="`bi bi-${TYPE_INFO[t.type].icon} fs-4`" aria-hidden="true"></i>
+        <i :class="`bi bi-${TYPE_INFO[target.type].icon} fs-4`" aria-hidden="true"></i>
         <div class="flex-grow-1 min-w-0">
-          <div class="fw-semibold">{{ t.name }} <span class="badge text-bg-light border ms-1">{{ TYPE_INFO[t.type].label }}</span></div>
-          <div class="small text-body-secondary text-truncate font-monospace">{{ where(t) }}</div>
-          <div class="small text-body-secondary">behält {{ t.keep }} Stände</div>
-          <div v-if="t.id && status?.targets[t.id]?.at" class="small mt-1" :class="status.targets[t.id].ok ? 'text-success' : 'text-danger'">
-            <i class="bi" :class="status.targets[t.id].ok ? 'bi-check-circle' : 'bi-x-circle'" aria-hidden="true"></i>
-            Sicherung {{ ago(status.targets[t.id].at) }}: {{ status.targets[t.id].message }}
+          <div class="fw-semibold">{{ target.name }} <span class="badge text-bg-light border ms-1">{{ TYPE_INFO[target.type].label }}</span></div>
+          <div class="small text-body-secondary text-truncate font-monospace">{{ where(target) }}</div>
+          <div class="small text-body-secondary">{{ t('behält {keep} Stände', { keep: target.keep }) }}</div>
+          <div v-if="target.id && status?.targets[target.id]?.at" class="small mt-1" :class="status.targets[target.id].ok ? 'text-success' : 'text-danger'">
+            <i class="bi" :class="status.targets[target.id].ok ? 'bi-check-circle' : 'bi-x-circle'" aria-hidden="true"></i>
+            {{ t('Sicherung {ago}: {x}', { ago: ago(status.targets[target.id].at), x: status.targets[target.id].message }) }}
           </div>
-          <div v-if="t.id && status?.targets[t.id]?.lastTest" class="small" :class="status.targets[t.id].lastTest!.ok ? 'text-success' : 'text-danger'">
-            <i class="bi" :class="status.targets[t.id].lastTest!.ok ? 'bi-plug' : 'bi-exclamation-triangle'" aria-hidden="true"></i>
-            Test {{ ago(status.targets[t.id].lastTest!.at) }}: {{ status.targets[t.id].lastTest!.message }}
+          <div v-if="target.id && status?.targets[target.id]?.lastTest" class="small" :class="status.targets[target.id].lastTest!.ok ? 'text-success' : 'text-danger'">
+            <i class="bi" :class="status.targets[target.id].lastTest!.ok ? 'bi-plug' : 'bi-exclamation-triangle'" aria-hidden="true"></i>
+            {{ t('Test {ago}: {x}', { ago: ago(status.targets[target.id].lastTest!.at), x: status.targets[target.id].lastTest!.message }) }}
           </div>
         </div>
         <div class="form-check form-switch flex-none">
-          <input :id="`en-${t.id}`" class="form-check-input" type="checkbox" role="switch" :checked="t.enabled" :disabled="saving" @change="toggle(i)" />
-          <label class="visually-hidden" :for="`en-${t.id}`">Eingeschaltet</label>
+          <input :id="`en-${target.id}`" class="form-check-input" type="checkbox" role="switch" :checked="target.enabled" :disabled="saving" @change="toggle(i)" />
+          <label class="visually-hidden" :for="`en-${target.id}`">{{ t('Eingeschaltet') }}</label>
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2 mt-2">
-        <button type="button" class="btn btn-sm btn-outline-primary" :disabled="running" @click="start(t, true)"><i class="bi bi-plug me-1" aria-hidden="true"></i>Testen</button>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @click="edit(i)">Bearbeiten</button>
-        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="remove(i)"><i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">Entfernen</span></button>
+        <button type="button" class="btn btn-sm btn-outline-primary" :disabled="running" @click="start(target, true)"><i class="bi bi-plug me-1" aria-hidden="true"></i>{{ t('Testen') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="edit(i)">{{ t('Bearbeiten') }}</button>
+        <button type="button" class="btn btn-sm btn-outline-danger ms-auto" @click="remove(i)"><i class="bi bi-trash" aria-hidden="true"></i><span class="visually-hidden">{{ t('Entfernen') }}</span></button>
       </div>
     </div>
   </div>
@@ -248,78 +248,81 @@ const form = reactive({ showPw: false })
   <!-- Bearbeiten -->
   <div v-if="editing" class="card border-primary mb-3">
     <div class="card-body">
-      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? 'Ziel bearbeiten' : `Neues Ziel: ${TYPE_INFO[editing.type].label}` }}</h2>
+      <h2 class="h6"><i :class="`bi bi-${TYPE_INFO[editing.type].icon} me-1`" aria-hidden="true"></i>{{ editIndex >= 0 ? t('Ziel bearbeiten') : t('Neues Ziel: {x}', { x: TYPE_INFO[editing.type].label }) }}</h2>
       <p class="small text-body-secondary">{{ TYPE_INFO[editing.type].hint }}</p>
       <form class="row g-2" @submit.prevent="saveEdit">
         <div class="col-12 col-sm-8">
-          <label class="form-label small mb-1" for="t-name">Name</label>
+          <label class="form-label small mb-1" for="t-name">{{ t('Name') }}</label>
           <input id="t-name" v-model="editing.name" class="form-control form-control-sm" maxlength="60" required />
         </div>
         <div class="col-12 col-sm-4">
-          <label class="form-label small mb-1" for="t-keep">Stände behalten</label>
+          <label class="form-label small mb-1" for="t-keep">{{ t('Stände behalten') }}</label>
           <input id="t-keep" v-model.number="editing.keep" type="number" min="1" max="60" class="form-control form-control-sm" />
         </div>
 
         <template v-if="editing.type === 'ordner'">
           <div class="col-12">
-            <label class="form-label small mb-1" for="t-path">Ordner im Container</label>
-            <input id="t-path" v-model="editing.path" class="form-control form-control-sm font-monospace" placeholder="/mnt/sicherung" required />
+            <label class="form-label small mb-1" for="t-path">{{ t('Ordner im Container') }}</label>
+            <input id="t-path" v-model="editing.path" class="form-control form-control-sm font-monospace" :placeholder="t('/mnt/sicherung')" required />
             <div class="form-text">
-              Für NFS oder eine SMB-Freigabe, die Proxmox einbindet: in Proxmox <em>Datacenter → Storage → Hinzufügen</em>, dann auf dem Host
-              <code>pct set &lt;CT-ID&gt; -mp0 /mnt/pve/&lt;name&gt;,mp=/mnt/sicherung</code> – und hier <code>/mnt/sicherung</code> eintragen.
+              <Tx text="Für NFS oder eine SMB-Freigabe, die Proxmox einbindet: in Proxmox {menu}, dann auf dem Host {cmd} – und hier {path} eintragen.">
+                <template #menu><em>Datacenter → Storage → Add</em></template>
+                <template #cmd><code>pct set &lt;CT-ID&gt; -mp0 /mnt/pve/&lt;name&gt;,mp=/mnt/sicherung</code></template>
+                <template #path><code>/mnt/sicherung</code></template>
+              </Tx>
             </div>
           </div>
         </template>
 
         <template v-if="editing.type === 'smb'">
           <div class="col-7">
-            <label class="form-label small mb-1" for="t-host">Server</label>
-            <input id="t-host" v-model="editing.host" class="form-control form-control-sm" placeholder="192.168.5.10 oder nas" required />
+            <label class="form-label small mb-1" for="t-host">{{ t('Server') }}</label>
+            <input id="t-host" v-model="editing.host" class="form-control form-control-sm" :placeholder="t('192.168.5.10 oder nas')" required />
           </div>
           <div class="col-5">
-            <label class="form-label small mb-1" for="t-share">Freigabe</label>
-            <input id="t-share" v-model="editing.share" class="form-control form-control-sm" placeholder="backup" required />
+            <label class="form-label small mb-1" for="t-share">{{ t('Freigabe') }}</label>
+            <input id="t-share" v-model="editing.share" class="form-control form-control-sm" :placeholder="t('backup')" required />
           </div>
           <div class="col-12">
-            <label class="form-label small mb-1" for="t-sub">Unterordner (optional)</label>
-            <input id="t-sub" v-model="editing.path" class="form-control form-control-sm" placeholder="Reise-App" />
+            <label class="form-label small mb-1" for="t-sub">{{ t('Unterordner (optional)') }}</label>
+            <input id="t-sub" v-model="editing.path" class="form-control form-control-sm" :placeholder="t('Reise-App')" />
           </div>
           <div class="col-6">
-            <label class="form-label small mb-1" for="t-user">Benutzer</label>
+            <label class="form-label small mb-1" for="t-user">{{ t('Benutzer') }}</label>
             <input id="t-user" v-model="editing.user" class="form-control form-control-sm" autocomplete="off" />
           </div>
           <div class="col-6">
-            <label class="form-label small mb-1" for="t-dom">Domäne (meist leer)</label>
-            <input id="t-dom" v-model="editing.domain" class="form-control form-control-sm" placeholder="WORKGROUP" />
+            <label class="form-label small mb-1" for="t-dom">{{ t('Domäne (meist leer)') }}</label>
+            <input id="t-dom" v-model="editing.domain" class="form-control form-control-sm" :placeholder="t('WORKGROUP')" />
           </div>
         </template>
 
         <template v-if="editing.type === 'ssh'">
           <div class="col-8">
-            <label class="form-label small mb-1" for="t-host2">Server</label>
+            <label class="form-label small mb-1" for="t-host2">{{ t('Server') }}</label>
             <input id="t-host2" v-model="editing.host" class="form-control form-control-sm" placeholder="192.168.5.10" required />
           </div>
           <div class="col-4">
-            <label class="form-label small mb-1" for="t-port">Port</label>
+            <label class="form-label small mb-1" for="t-port">{{ t('Port') }}</label>
             <input id="t-port" v-model.number="editing.port" type="number" min="1" max="65535" class="form-control form-control-sm" />
           </div>
           <div class="col-6">
-            <label class="form-label small mb-1" for="t-user2">Benutzer</label>
+            <label class="form-label small mb-1" for="t-user2">{{ t('Benutzer') }}</label>
             <input id="t-user2" v-model="editing.user" class="form-control form-control-sm" required autocomplete="off" />
           </div>
           <div class="col-6">
-            <label class="form-label small mb-1" for="t-path2">Zielordner</label>
-            <input id="t-path2" v-model="editing.path" class="form-control form-control-sm font-monospace" placeholder="/volume1/backup" required />
+            <label class="form-label small mb-1" for="t-path2">{{ t('Zielordner') }}</label>
+            <input id="t-path2" v-model="editing.path" class="form-control form-control-sm font-monospace" :placeholder="t('/volume1/backup')" required />
           </div>
         </template>
 
         <template v-if="editing.type === 'webdav'">
           <div class="col-12">
-            <label class="form-label small mb-1" for="t-url">Adresse (Ordner)</label>
-            <input id="t-url" v-model="editing.url" class="form-control form-control-sm font-monospace" placeholder="https://cloud.example.de/remote.php/dav/files/marco/Sicherung" required />
+            <label class="form-label small mb-1" for="t-url">{{ t('Adresse (Ordner)') }}</label>
+            <input id="t-url" v-model="editing.url" class="form-control form-control-sm font-monospace" :placeholder="t('https://cloud.example.de/remote.php/dav/files/marco/Sicherung')" required />
           </div>
           <div class="col-12">
-            <label class="form-label small mb-1" for="t-user3">Benutzer</label>
+            <label class="form-label small mb-1" for="t-user3">{{ t('Benutzer') }}</label>
             <input id="t-user3" v-model="editing.user" class="form-control form-control-sm" autocomplete="off" />
           </div>
         </template>
@@ -328,16 +331,16 @@ const form = reactive({ showPw: false })
           <label class="form-label small mb-1" for="t-pw">{{ passwordLabel }}</label>
           <div class="input-group input-group-sm">
             <input id="t-pw" v-model="editing.password" :type="form.showPw ? 'text' : 'password'" class="form-control" autocomplete="new-password" />
-            <button type="button" class="btn btn-outline-secondary" :aria-label="form.showPw ? 'Verbergen' : 'Anzeigen'" @click="form.showPw = !form.showPw">
+            <button type="button" class="btn btn-outline-secondary" :aria-label="form.showPw ? t('Verbergen') : t('Anzeigen')" @click="form.showPw = !form.showPw">
               <i class="bi" :class="form.showPw ? 'bi-eye-slash' : 'bi-eye'" aria-hidden="true"></i>
             </button>
           </div>
-          <div class="form-text">Wird nur auf deinem Server gespeichert und nie wieder an die App geschickt. Tipp: eigenen Benutzer nur für Sicherungen anlegen.</div>
+          <div class="form-text">{{ t('Wird nur auf deinem Server gespeichert und nie wieder an die App geschickt. Tipp: eigenen Benutzer nur für Sicherungen anlegen.') }}</div>
         </div>
 
         <div class="col-12 d-flex gap-2 mt-2">
-          <button type="submit" class="btn btn-primary btn-sm" :disabled="saving">Speichern</button>
-          <button type="button" class="btn btn-outline-secondary btn-sm" @click="editing = null">Abbrechen</button>
+          <button type="submit" class="btn btn-primary btn-sm" :disabled="saving">{{ t('Speichern') }}</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" @click="editing = null">{{ t('Abbrechen') }}</button>
         </div>
       </form>
     </div>
@@ -346,7 +349,7 @@ const form = reactive({ showPw: false })
   <!-- Hinzufügen -->
   <div v-if="!editing" class="card mb-3">
     <div class="card-body">
-      <h2 class="h6">Ziel hinzufügen</h2>
+      <h2 class="h6">{{ t('Ziel hinzufügen') }}</h2>
       <div class="row g-2">
         <div v-for="(ti, type) in TYPE_INFO" :key="type" class="col-12 col-sm-6">
           <button type="button" class="btn btn-outline-primary w-100 text-start h-100" :disabled="targets.length >= 8" @click="add(type)">
@@ -361,24 +364,31 @@ const form = reactive({ showPw: false })
   <!-- SSH-Schlüssel -->
   <div v-if="needsKey" class="card mb-3">
     <div class="card-body">
-      <h2 class="h6"><i class="bi bi-key me-1" aria-hidden="true"></i>Schlüssel für SSH-Ziele</h2>
+      <h2 class="h6"><i class="bi bi-key me-1" aria-hidden="true"></i>{{ t('Schlüssel für SSH-Ziele') }}</h2>
       <template v-if="sshKey">
-        <p class="small">Diesen öffentlichen Schlüssel beim Ziel für den Benutzer in <code>~/.ssh/authorized_keys</code> eintragen (Synology: Benutzer-Home aktivieren, SSH einschalten):</p>
+        <p class="small"><Tx text="Diesen öffentlichen Schlüssel beim Ziel für den Benutzer in {file} eintragen (Synology: Benutzer-Home aktivieren, SSH einschalten):"><template #file><code>~/.ssh/authorized_keys</code></template></Tx></p>
         <textarea class="form-control form-control-sm font-monospace mb-2" rows="3" readonly :value="sshKey" @focus="($event.target as HTMLTextAreaElement).select()"></textarea>
-        <button type="button" class="btn btn-sm btn-outline-secondary" @click="copyKey"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>Kopieren</button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="copyKey"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ t('Kopieren') }}</button>
       </template>
-      <p v-else class="small mb-0">Noch kein Schlüssel – im Container einmal <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> ausführen.</p>
+      <p v-else class="small mb-0"><Tx text="Noch kein Schlüssel – im Container einmal {cmd} ausführen."><template #cmd><code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code></template></Tx></p>
     </div>
   </div>
 
   <details class="small mb-3">
-    <summary>Wie wird gesichert – und wie hole ich es zurück?</summary>
+    <summary>{{ t('Wie wird gesichert – und wie hole ich es zurück?') }}</summary>
     <ul class="mt-2">
-      <li>Jede Nacht entsteht im Container eine Sicherung (Datenbank, Fotos, Einstellungen mit Schlüsseln). Danach wird sie an alle eingeschalteten Ziele übertragen.</li>
-      <li><strong>Ordner, SSH:</strong> je Stand ein Ordner <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>; Fotos liegen trotzdem nur einmal da.</li>
-      <li><strong>SMB, WebDAV:</strong> je Stand Datenbank und Einstellungen in <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>, alle Fotos gemeinsam in <code>nix-wie-weg/fotos</code> (nur neue werden hochgeladen).</li>
-      <li>Zurückholen: Stand in den Container nach <code>/var/backups/koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code> kopieren (bei SMB/WebDAV den Ordner <code>fotos</code> als <code>blobs</code> dazu), dann <code>restore.sh &lt;datum_uhrzeit&gt;</code>.</li>
-      <li>Die Sicherung enthält deine Schlüssel – Ziel nur dort, wo niemand Fremdes Zugriff hat.</li>
+      <li>{{ t('Jede Nacht entsteht im Container eine Sicherung (Datenbank, Fotos, Einstellungen mit Schlüsseln). Danach wird sie an alle eingeschalteten Ziele übertragen.') }}</li>
+      <li><strong>{{ t('Ordner, SSH:') }}</strong> {{ t('je Stand ein Ordner') }} <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>{{ t('; Fotos liegen trotzdem nur einmal da.') }}</li>
+      <li><strong>{{ t('SMB, WebDAV:') }}</strong> {{ t('je Stand Datenbank und Einstellungen in') }} <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>{{ t(', alle Fotos gemeinsam in') }} <code>nix-wie-weg/fotos</code> {{ t('(nur neue werden hochgeladen).') }}</li>
+      <li>
+        <Tx text="Zurückholen: Stand in den Container nach {path} kopieren (bei SMB/WebDAV den Ordner {photos} als {blobs} dazu), dann {cmd}.">
+          <template #path><code>/var/backups/koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code></template>
+          <template #photos><code>fotos</code></template>
+          <template #blobs><code>blobs</code></template>
+          <template #cmd><code>restore.sh &lt;datum_uhrzeit&gt;</code></template>
+        </Tx>
+      </li>
+      <li>{{ t('Die Sicherung enthält deine Schlüssel – Ziel nur dort, wo niemand Fremdes Zugriff hat.') }}</li>
     </ul>
   </details>
 </template>

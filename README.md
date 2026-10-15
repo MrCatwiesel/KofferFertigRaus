@@ -10,6 +10,7 @@ Reise-App von der Planung bis zur Reise-Webseite – offline zuerst, als install
 - **Erinnern & teilen:** Reisetagebuch mit Fotos, Reise-Webseite als eine HTML-Datei, Anbindung an die eigene **Piwigo**-Galerie
 - **Zusammen reisen:** alle Geräte automatisch abgleichen über einen eigenen kleinen Server (`server/`), oder ohne Server per Datei
 - **Mit Freunden teilen:** Lese-Links je Reise (nur Highlights oder ganzes Tagebuch), eigene Reisegruppen für Freunde
+- **Sprachen:** Deutsch und Englisch (Gerätesprache, umstellbar); weitere Sprache = eine Datei `src/i18n/locales/<code>.ts` (Vorlage: `node build/i18n-keys.mjs neu it`) plus Hilfe `src/help/topics.<code>.ts`
 
 **App online:** https://mrcatwiesel.github.io/KofferFertigRaus/
 

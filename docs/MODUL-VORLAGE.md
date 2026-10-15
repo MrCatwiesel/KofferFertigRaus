@@ -91,4 +91,5 @@ registerModule(packingModule)
 - [ ] Daten erscheinen im Backup-Export
 - [ ] Eintrag in `CHANGELOG.md`
 - [ ] Hilfe: Routen-Namen der neuen Seiten bei einem Thema in `src/help/topics.de.ts` unter `routes` eintragen (oder ein neues Thema schreiben) – `src/help/__tests__/topics.test.ts` prüft, dass jede Seite ein Thema hat
+- [ ] Mehrsprachig: alle sichtbaren Texte über `t('Deutscher Text', { platzhalter })` (in Vorlagen ohne Import), Einzahl/Mehrzahl mit `tn(n, '1 Foto', '{n} Fotos')`, Sätze mit Link/Code darin mit `<Tx text="… {link} …">` und Slot. Texte in Konstanten auf Modulebene dürfen `t()` nutzen (die Sprache steht beim Start fest). Danach die englischen Einträge in `src/i18n/locales/en.ts` ergänzen – Liste: `node build/i18n-keys.mjs fehlend en`; der Test `src/i18n/__tests__/messages.test.ts` meldet fehlende. Hilfetext auch in `src/help/topics.en.ts`
 - [ ] Beispielreise: wenn sinnvoll `sampleData` in der Modul-Definition (eigene `sample.ts`) – legt Beispiel-Einträge für `SampleTrip.tripId` an; Kartenpunkte über `sample.locations`

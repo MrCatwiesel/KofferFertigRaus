@@ -1,5 +1,16 @@
 # Änderungsprotokoll
 
+## 1.37.0 – 2026-10-15 (Server 1.21.0)
+
+### Neu: Englisch
+- Die App gibt es jetzt auf **Deutsch und Englisch**. Sie startet in der Sprache des Geräts (andere Gerätesprachen: Englisch); umstellen unter *Einstellungen → Sprache · Language* oder gleich im ersten Schritt der Einführung – gilt je Gerät
+- Übersetzt sind alle Seiten, Meldungen, die Hilfe, Vorlagen und Vorschläge der Packliste, die Reiseapotheke, die Beispielreise, Reisebericht/Fotobuch (PDF) und die Reise-Webseite. Datum, Zahlen und Geldbeträge erscheinen im Format der Sprache
+- **Lese-Links** zeigen sich in der Sprache der Betrachter – Freunde aus dem Ausland lesen eure Reise auf Englisch
+- **Benachrichtigungen** vom eigenen Server (Neues von den Mitreisenden, Unwetter, Testnachricht) kommen in der Sprache des Geräts – dafür den Server auf 1.21 aktualisieren
+- Öffnungszeiten werden auch auf Englisch erkannt („Tue–Sun 10–18“), Ländernamen im Reiseziel in beiden Sprachen
+- Eigene Einträge bleiben, wie sie geschrieben wurden. Die Reisehinweise des Auswärtigen Amts und „Was ist neu“ gibt es weiterhin nur auf Deutsch
+- Vorbereitet für weitere Sprachen (Italienisch, Griechisch, Französisch): je Sprache eine Datei
+
 ## 1.36.0 – 2026-10-15
 
 ### Neu: Hilfe & Einführung

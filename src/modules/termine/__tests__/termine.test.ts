@@ -19,11 +19,11 @@ describe('Termine aus den Bereichen', () => {
     expect(list[0]).toMatchObject({ kind: 'frist', date: '2026-11-10' })
     expect(list[1]).toMatchObject({ endDate: '2026-11-23', location: 'Fusch 1' })
   })
-  it('Flug: Abflug mit Uhrzeit und Online-Check-in am Vortag', () => {
+  it('Flug: Abflug mit Uhrzeit (Online-Check-in kommt aus den Abreise-Checklisten)', () => {
     const leg = { id: 'l1', tripId: 't1', direction: 'hin', position: 0, mode: 'flug', from: 'NUE', to: 'PMI', date: '2026-11-20', departTime: '06:40', arriveTime: '09:05', distanceKm: null, cost: null, currency: 'EUR', consumption: null, fuelPrice: null, tolls: null, bookingRef: 'XY12', url: '', notes: '', createdAt: '', updatedAt: '' } as const
-    const [flight, checkin] = travelReminders([leg], trip)
-    expect(flight).toMatchObject({ time: '06:40', endTime: '09:05', title: 'Flug: NUE → PMI', alarmMinutes: 180 })
-    expect(checkin).toMatchObject({ date: '2026-11-19', kind: 'frist', title: 'Online-Check-in: NUE → PMI' })
+    const list = travelReminders([leg], trip)
+    expect(list).toHaveLength(1)
+    expect(list[0]).toMatchObject({ time: '06:40', endTime: '09:05', title: 'Flug: NUE → PMI', alarmMinutes: 180 })
   })
   it('Unternehmung mit Buchung: Aufgabe eine Woche vorher', () => {
     const a = { id: 'x1', tripId: 't1', title: 'Gletscherführung', category: 'natur', place: '', url: '', setting: 'aussen', priority: 1, durationHours: null, pricePerPerson: null, currency: 'EUR', openingHours: '', bookingRequired: true, status: 'geplant', plannedDate: '2026-11-22', notes: '', createdAt: '', updatedAt: '' } as const

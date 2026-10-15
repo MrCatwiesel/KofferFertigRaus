@@ -4,6 +4,7 @@ import { accommodationModule } from './accommodation'
 import { activityModule } from './activity'
 import { travelModule } from './travel'
 import { packingModule } from './packing'
+import { checklistenModule } from './checklisten'
 import { medsModule } from './meds'
 import { documentsModule } from './documents'
 import { dayplannerModule } from './dayplanner'
@@ -36,6 +37,7 @@ export function registerAllModules(): void {
   registerModule(activityModule)
   registerModule(abstimmungModule)
   registerModule(packingModule)
+  registerModule(checklistenModule)
   registerModule(medsModule)
   registerModule(reiseinfoModule)
   registerModule(laenderModule)

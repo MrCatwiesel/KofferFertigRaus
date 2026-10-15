@@ -420,7 +420,7 @@ function resetTexts() {
             <summary>{{ t('Wie bringe ich die Seite ins Internet?') }}</summary>
             <ol class="mt-2 ps-3 mb-0">
               <li>{{ t('Auf github.com ein neues') }} <strong>{{ t('öffentliches') }}</strong> {{ t('Repository anlegen, z. B. „reise-gardasee“.') }}</li>
-              <li>{{ t('„Add file → Upload files“: die Datei hochladen und in') }} <code>index.html</code> {{ t('umbenennen.') }}</li>
+              <li><Tx text="„Add file → Upload files“: die Datei hochladen und in {name} umbenennen."><template #name><code>index.html</code></template></Tx></li>
               <li>{{ t('Settings → Pages → „Deploy from a branch“, Branch') }} <code>main</code>{{ t(', Speichern.') }}</li>
               <li>{{ t('Nach 1–2 Minuten ist sie erreichbar unter') }} <code>https://&lt;name&gt;.github.io/reise-gardasee/</code>.</li>
             </ol>

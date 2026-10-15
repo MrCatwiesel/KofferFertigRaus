@@ -1,7 +1,7 @@
 /**
  * Übersetzungs-Schlüssel aus dem Quelltext sammeln (für den Test und für neue Sprachen).
  *
- * Gefunden werden die deutschen Texte in `t('…')`, `tk('…')` und `tn(n, '…', '…')`.
+ * Gefunden werden die deutschen Texte in `t('…')`, `tk('…')`, `tn(n, '…', '…')` und `<Tx text="…">`.
  * Schlüssel müssen feste Texte sein (keine `${…}` darin) – Werte kommen als Platzhalter `{name}` hinein.
  *
  * Aufruf von der Kommandozeile:
@@ -16,6 +16,9 @@ const Q = String.raw`(['"\x60])((?:\\.|(?!\1)[^\\])*)\1`
 const SINGLE = new RegExp(String.raw`(?<![\w.$])(?:t|tk)\(\s*` + Q, 'g')
 const Q2 = String.raw`(['"\x60])((?:\\.|(?!\3)[^\\])*)\3`
 const PLURAL = new RegExp(String.raw`(?<![\w.$])tn\(\s*(?:[^,()]|\((?:[^()]|\([^()]*\))*\))+?,\s*` + Q + String.raw`\s*,\s*` + Q2, 'g')
+
+/** <Tx text="…"> in Vorlagen */
+const TX = /<Tx\b[^>]*?\stext="([^"]*)"/g
 
 function unescape(s) {
   return s.replace(/\\(.)/g, (_, c) => (c === 'n' ? '\n' : c))
@@ -57,6 +60,7 @@ export function collectKeys(root) {
     const text = stripComments(readFileSync(file, 'utf8'))
     const rel = relative(root, file)
     for (const m of text.matchAll(SINGLE)) add(unescape(m[2]), rel)
+    for (const m of text.matchAll(TX)) add(m[1], rel)
     for (const m of text.matchAll(PLURAL)) {
       add(unescape(m[2]), rel)
       add(unescape(m[4]), rel)

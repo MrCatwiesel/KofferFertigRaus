@@ -357,9 +357,11 @@ async function copyKey() {
         </div>
         <div v-if="isCode" class="form-text text-success"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>{{ t('Einladungscode erkannt – gilt einmal.') }}</div>
         <div v-else class="form-text">
-          {{ t('Einladungscode (z. B.') }} <code>ABCD-EFGH-JKLM</code>{{ t(') von einem anderen Gerät – oder den Schlüssel der Reisegruppe. Noch keinen?') }}
-          <button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">{{ t('Schlüssel erzeugen') }}</button>
-          {{ t('und beim Server als') }} <code>NWW_KEYS</code> {{ t('eintragen.') }}
+          <Tx text="Einladungscode (z. B. {example}) von einem anderen Gerät – oder den Schlüssel der Reisegruppe. Noch keinen? {button} und beim Server als {setting} eintragen.">
+            <template #example><code>ABCD-EFGH-JKLM</code></template>
+            <template #button><button type="button" class="btn btn-link btn-sm p-0 align-baseline" @click="newKey">{{ t('Schlüssel erzeugen') }}</button></template>
+            <template #setting><code>NWW_KEYS</code></template>
+          </Tx>
         </div>
         <div v-if="invitePerson?.needsPassword" class="row g-2 mt-2" data-new-password>
           <div class="col-12 small fw-semibold">{{ t('Passwort für {person} festlegen', { person: invitePerson.person }) }}</div>

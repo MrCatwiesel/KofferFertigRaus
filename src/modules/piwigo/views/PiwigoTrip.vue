@@ -111,12 +111,14 @@ async function discardQueue() {
   <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
 
   <div v-else-if="state === 'no-sync'" class="alert alert-info">
-    {{ t('Piwigo läuft über deinen eigenen Abgleich-Server. Richte zuerst den') }}
-    <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('ein.') }}
+    <Tx text="Piwigo läuft über deinen eigenen Abgleich-Server. Richte zuerst den {link} ein."><template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink></template></Tx>
   </div>
 
   <div v-else-if="state === 'no-piwigo'" class="alert alert-info">
-    {{ t('Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet (') }}<code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code> {{ t('– Anleitung in') }} <code>server/README.md</code>{{ t('), oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).') }}
+    <Tx text="Piwigo ist für diese Reisegruppe nicht verfügbar: Entweder ist es auf dem Server noch nicht eingerichtet ({settings} – Anleitung in {readme}), oder der Besitzer des Servers hat es für diese Gruppe nicht freigegeben (Einstellungen → Reisegruppen).">
+      <template #settings><code>NWW_PIWIGO_URL</code>, <code>NWW_PIWIGO_KEY_ID</code>, <code>NWW_PIWIGO_SECRET</code></template>
+      <template #readme><code>server/README.md</code></template>
+    </Tx>
   </div>
 
   <template v-else>

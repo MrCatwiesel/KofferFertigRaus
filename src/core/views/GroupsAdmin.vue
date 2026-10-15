@@ -139,7 +139,7 @@ const canShare = typeof navigator !== 'undefined' && !!navigator.share
   </p>
 
   <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
-  <div v-else-if="state === 'no-sync'" class="alert alert-info">{{ t('Zuerst den') }} <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('einrichten.') }}</div>
+  <div v-else-if="state === 'no-sync'" class="alert alert-info"><Tx text="Zuerst den {link} einrichten."><template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink></template></Tx></div>
   <div v-else-if="state === 'not-admin'" class="alert alert-info">{{ t('Reisegruppen verwaltet nur der Besitzer des Servers.') }}</div>
   <div v-else-if="state === 'error'" class="alert alert-warning d-flex gap-2">
     <span class="flex-grow-1">{{ message }}</span>

@@ -65,15 +65,16 @@ const when = (iso: string | null) => (iso ? new Intl.DateTimeFormat(intlLocale()
   <div v-if="info" class="alert alert-success" role="status">{{ info }}</div>
 
   <div v-if="!syncState.configured" class="alert alert-info">
-    {{ t('Benachrichtigungen kommen über den eigenen Server. Erst den') }} <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('einrichten.') }}
+    <Tx text="Benachrichtigungen kommen über den eigenen Server. Erst den {link} einrichten."><template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink></template></Tx>
   </div>
   <div v-else-if="loading" class="small text-body-secondary"><span class="spinner-border spinner-border-sm me-1" aria-hidden="true"></span>{{ t('Lade …') }}</div>
   <div v-else-if="tooOld" class="alert alert-warning" data-push-too-old>
     {{ t('Der Server kennt noch keine Benachrichtigungen. Bitte den Server auf Version 1.17 aktualisieren (im Container:') }} <code>update.sh</code>).
   </div>
   <div v-else-if="noDevice" class="alert alert-warning">
-    {{ t('Dieses Gerät ist noch mit dem Schlüssel der Reisegruppe verbunden. Für Benachrichtigungen bitte unter') }}
-    <RouterLink to="/abgleich">{{ t('Geräte-Abgleich → Verbindung') }}</RouterLink> {{ t('als eigenes Gerät anmelden.') }}
+    <Tx text="Dieses Gerät ist noch mit dem Schlüssel der Reisegruppe verbunden. Für Benachrichtigungen bitte unter {link} als eigenes Gerät anmelden.">
+      <template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich → Verbindung') }}</RouterLink></template>
+    </Tx>
   </div>
 
   <template v-else-if="status">

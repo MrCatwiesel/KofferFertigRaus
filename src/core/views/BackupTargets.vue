@@ -190,8 +190,7 @@ const form = reactive({ showPw: false })
   <div v-if="error" class="alert alert-danger">{{ error }}</div>
   <div v-if="info" class="alert alert-info small py-2" role="status">{{ info }}</div>
   <div v-if="!installed && !loading" class="alert alert-warning small">
-    {{ t('Auf dem Server ist die Sicherung noch nicht vollständig eingerichtet. Im Container einmal') }}
-    <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> {{ t('ausführen.') }}
+    <Tx text="Auf dem Server ist die Sicherung noch nicht vollständig eingerichtet. Im Container einmal {cmd} ausführen."><template #cmd><code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code></template></Tx>
   </div>
 
   <!-- Sicherung im Container -->
@@ -266,8 +265,11 @@ const form = reactive({ showPw: false })
             <label class="form-label small mb-1" for="t-path">{{ t('Ordner im Container') }}</label>
             <input id="t-path" v-model="editing.path" class="form-control form-control-sm font-monospace" :placeholder="t('/mnt/sicherung')" required />
             <div class="form-text">
-              {{ t('Für NFS oder eine SMB-Freigabe, die Proxmox einbindet: in Proxmox') }} <em>{{ t('Datacenter → Storage → Hinzufügen') }}</em>{{ t(', dann auf dem Host') }}
-              <code>pct set &lt;CT-ID&gt; -mp0 /mnt/pve/&lt;name&gt;,mp=/mnt/sicherung</code> {{ t('– und hier') }} <code>/mnt/sicherung</code> {{ t('eintragen.') }}
+              <Tx text="Für NFS oder eine SMB-Freigabe, die Proxmox einbindet: in Proxmox {menu}, dann auf dem Host {cmd} – und hier {path} eintragen.">
+                <template #menu><em>Datacenter → Storage → Add</em></template>
+                <template #cmd><code>pct set &lt;CT-ID&gt; -mp0 /mnt/pve/&lt;name&gt;,mp=/mnt/sicherung</code></template>
+                <template #path><code>/mnt/sicherung</code></template>
+              </Tx>
             </div>
           </div>
         </template>
@@ -364,11 +366,11 @@ const form = reactive({ showPw: false })
     <div class="card-body">
       <h2 class="h6"><i class="bi bi-key me-1" aria-hidden="true"></i>{{ t('Schlüssel für SSH-Ziele') }}</h2>
       <template v-if="sshKey">
-        <p class="small">{{ t('Diesen öffentlichen Schlüssel beim Ziel für den Benutzer in') }} <code>~/.ssh/authorized_keys</code> {{ t('eintragen (Synology: Benutzer-Home aktivieren, SSH einschalten):') }}</p>
+        <p class="small"><Tx text="Diesen öffentlichen Schlüssel beim Ziel für den Benutzer in {file} eintragen (Synology: Benutzer-Home aktivieren, SSH einschalten):"><template #file><code>~/.ssh/authorized_keys</code></template></Tx></p>
         <textarea class="form-control form-control-sm font-monospace mb-2" rows="3" readonly :value="sshKey" @focus="($event.target as HTMLTextAreaElement).select()"></textarea>
         <button type="button" class="btn btn-sm btn-outline-secondary" @click="copyKey"><i class="bi bi-clipboard me-1" aria-hidden="true"></i>{{ t('Kopieren') }}</button>
       </template>
-      <p v-else class="small mb-0">{{ t('Noch kein Schlüssel – im Container einmal') }} <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> {{ t('ausführen.') }}</p>
+      <p v-else class="small mb-0"><Tx text="Noch kein Schlüssel – im Container einmal {cmd} ausführen."><template #cmd><code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code></template></Tx></p>
     </div>
   </div>
 
@@ -378,7 +380,14 @@ const form = reactive({ showPw: false })
       <li>{{ t('Jede Nacht entsteht im Container eine Sicherung (Datenbank, Fotos, Einstellungen mit Schlüsseln). Danach wird sie an alle eingeschalteten Ziele übertragen.') }}</li>
       <li><strong>{{ t('Ordner, SSH:') }}</strong> {{ t('je Stand ein Ordner') }} <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>{{ t('; Fotos liegen trotzdem nur einmal da.') }}</li>
       <li><strong>{{ t('SMB, WebDAV:') }}</strong> {{ t('je Stand Datenbank und Einstellungen in') }} <code>koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code>{{ t(', alle Fotos gemeinsam in') }} <code>nix-wie-weg/fotos</code> {{ t('(nur neue werden hochgeladen).') }}</li>
-      <li>{{ t('Zurückholen: Stand in den Container nach') }} <code>/var/backups/koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code> {{ t('kopieren (bei SMB/WebDAV den Ordner') }} <code>fotos</code> {{ t('als') }} <code>blobs</code> {{ t('dazu), dann') }} <code>restore.sh &lt;datum_uhrzeit&gt;</code>.</li>
+      <li>
+        <Tx text="Zurückholen: Stand in den Container nach {path} kopieren (bei SMB/WebDAV den Ordner {photos} als {blobs} dazu), dann {cmd}.">
+          <template #path><code>/var/backups/koffer-fertig-raus/&lt;datum_uhrzeit&gt;</code></template>
+          <template #photos><code>fotos</code></template>
+          <template #blobs><code>blobs</code></template>
+          <template #cmd><code>restore.sh &lt;datum_uhrzeit&gt;</code></template>
+        </Tx>
+      </li>
       <li>{{ t('Die Sicherung enthält deine Schlüssel – Ziel nur dort, wo niemand Fremdes Zugriff hat.') }}</li>
     </ul>
   </details>

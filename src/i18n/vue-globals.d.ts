@@ -2,6 +2,9 @@
 export {}
 
 declare module 'vue' {
+  interface GlobalComponents {
+    Tx: typeof import('./Tx').default
+  }
   interface ComponentCustomProperties {
     t: typeof import('./index').t
     tn: typeof import('./index').tn

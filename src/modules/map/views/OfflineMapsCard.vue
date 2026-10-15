@@ -165,13 +165,11 @@ const kmLabel = (b: Bbox) => {
 
       <!-- Neuen Ausschnitt speichern -->
       <div v-if="noServer" class="alert alert-secondary small mb-0">
-        {{ t('Offline-Karten erstellt dein eigener Server. Richte zuerst den') }}
-        <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('ein.') }}
+        <Tx text="Offline-Karten erstellt dein eigener Server. Richte zuerst den {link} ein."><template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink></template></Tx>
       </div>
       <div v-else-if="!online" class="small text-body-secondary">{{ t('Neue Ausschnitte kannst du speichern, sobald wieder Internet da ist.') }}</div>
       <div v-else-if="serverReady === false" class="alert alert-secondary small mb-0">
-        {{ t('Dein Server kann noch keine Offline-Karten erstellen. Im Container einmal') }}
-        <code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code> {{ t('ausführen – danach geht es.') }}
+        <Tx text="Dein Server kann noch keine Offline-Karten erstellen. Im Container einmal {cmd} ausführen – danach geht es."><template #cmd><code>/opt/koffer-fertig-raus/server/proxmox/update.sh</code></template></Tx>
       </div>
       <template v-else>
         <div class="row g-2 align-items-end mb-2">
@@ -190,7 +188,9 @@ const kmLabel = (b: Bbox) => {
           </div>
         </div>
         <p class="small text-body-secondary mb-2">
-          {{ t('Gespeichert wird der') }} <strong>{{ t('aktuelle Kartenausschnitt') }}</strong><template v-if="size"> {{ t('(ca. {width} × {height} km)', { width: size.width, height: size.height }) }}</template>{{ t('. {find}. Meist 5–80 MB.', { find: DETAIL_LEVELS.find((d) => d.zoom === zoom)?.hint }) }}
+          <Tx text="Gespeichert wird der {area}{size}. {detail}. Meist 5–80 MB." :params="{ size: size ? ' ' + t('(ca. {width} × {height} km)', { width: size.width, height: size.height }) : '', detail: DETAIL_LEVELS.find((d) => d.zoom === zoom)?.hint }">
+            <template #area><strong>{{ t('aktuelle Kartenausschnitt') }}</strong></template>
+          </Tx>
         </p>
         <div v-if="tooLarge" class="small text-warning-emphasis mb-2">{{ t('Der Ausschnitt ist zu groß – bitte etwas näher heranzoomen.') }}</div>
         <button type="button" class="btn btn-primary btn-sm" :disabled="!!busy || tooLarge || !viewBbox" @click="order">

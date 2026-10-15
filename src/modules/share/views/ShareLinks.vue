@@ -139,7 +139,7 @@ async function changeExpiry(link: ShareLink, e: Event) {
   <div v-if="state === 'loading'" class="text-center my-5"><span class="spinner-border text-primary" :aria-label="t('Lädt')"></span></div>
 
   <div v-else-if="state === 'no-sync'" class="alert alert-info">
-    {{ t('Lese-Links laufen über deinen eigenen Server. Richte zuerst den') }} <RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink> {{ t('ein.') }}
+    <Tx text="Lese-Links laufen über deinen eigenen Server. Richte zuerst den {link} ein."><template #link><RouterLink to="/abgleich">{{ t('Geräte-Abgleich') }}</RouterLink></template></Tx>
   </div>
 
   <div v-else-if="state === 'old-server'" class="alert alert-warning">

@@ -118,7 +118,7 @@ async function save() {
 
         <template v-if="draft.kind === 'unternehmung'">
           <p v-if="!choosable.length" class="small text-body-secondary">
-            {{ t('Noch keine Unternehmungen – erst unter') }} <RouterLink :to="`/trip/${tripId}/unternehmungen`">{{ t('Unternehmungen') }}</RouterLink> {{ t('Ideen sammeln.') }}
+            <Tx text="Noch keine Unternehmungen – erst unter {link} Ideen sammeln."><template #link><RouterLink :to="`/trip/${tripId}/unternehmungen`">{{ t('Unternehmungen') }}</RouterLink></template></Tx>
           </p>
           <div v-for="a in choosable" :key="a.id" class="form-check">
             <input :id="`act-${a.id}`" class="form-check-input" type="checkbox" :checked="chosenActivity(a.id)" @change="toggleActivity(a)" />

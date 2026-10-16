@@ -2,7 +2,8 @@
 # Einmalig in GitHub: Settings → Pages → Source: "GitHub Actions".
 # Außerdem (ohne GitHub Pages):
 #   - Wartungszweig 1.x  → fertige App im Release "app-1.x" (für update.sh kanal 1.x)
-#   - Versions-Tag v*    → eigenes Release mit der fertigen App, wird nie überschrieben (update.sh version …)
+#   - jede neue Version (package.json) auf main oder 1.x → Tag vX.Y.Z und eigenes Release mit der fertigen App,
+#     das nie überschrieben wird (update.sh version …). Tags legt die CI an – direkt pushen geht aus der Claude-Umgebung nicht.
 name: Build und Veröffentlichen
 
 on:
@@ -101,7 +102,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          sparse-checkout: CHANGELOG.md
+          sparse-checkout: |
+            CHANGELOG.md
+            package.json
       - uses: actions/download-artifact@v4
         with:
           name: koffer-fertig-raus-app
@@ -134,6 +137,16 @@ jobs:
               gh release upload "$GITHUB_REF_NAME" koffer-fertig-raus-app.zip # ohne --clobber: eine Version wird nie überschrieben
               ;;
           esac
+          # Neue Version auf einem Zweig → Tag und festes Release (gibt es die Version schon, bleibt sie unangetastet)
+          if [[ $GITHUB_REF == refs/heads/* ]]; then
+            ver="v$(node -p "require('./package.json').version")"
+            if ! gh release view "$ver" >/dev/null 2>&1; then
+              awk '/^## /{n++} n==1' CHANGELOG.md > notes.md
+              printf '\n---\nAuf dem eigenen Server genau diese Version installieren: `update.sh version %s`\n' "${ver#v}" >> notes.md
+              gh release create "$ver" koffer-fertig-raus-app.zip --target "$GITHUB_SHA" \
+                --title "KofferFertigRaus $ver" --notes-file notes.md --latest=false
+            fi
+          fi
 
   deploy:
     needs: [build, klicktest]

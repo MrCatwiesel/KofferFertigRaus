@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # KofferFertigRaus – Abgleich-Server und App aktualisieren (im Container, als root).
 # Läuft täglich automatisch (koffer-fertig-raus-update.timer) und kann jederzeit von Hand gestartet werden:
-#   /opt/koffer-fertig-raus/server/proxmox/update.sh            aktualisieren
-#   /opt/koffer-fertig-raus/server/proxmox/update.sh zurueck    zur vorigen Version von App und Server zurück
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh                 aktualisieren (im eingestellten Kanal)
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh zurueck         zur vorigen Version von App und Server zurück
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh kanal           zeigt den Kanal
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh kanal 1.x       Kanal wechseln und gleich aktualisieren:
+#        main      neueste Fassung (Standard)
+#        1.x       nur noch Fehlerbehebungen der Version 1 – kein Sprung auf 2.0
+#        v1.43.0   genau diese Version, keine Updates mehr (fest)
+#   /opt/koffer-fertig-raus/server/proxmox/update.sh version 1.43.0  dasselbe wie „kanal v1.43.0“
 #
 # Sicherheitsnetz:
 #   - vor jedem Server-Update wird eine Datensicherung angelegt (backup.sh)
@@ -10,22 +16,55 @@
 #   - die vorige App bleibt in /opt/koffer-fertig-raus-app.vorher liegen (für "zurueck")
 set -euo pipefail
 
-SRC=/opt/koffer-fertig-raus
-APP=/opt/koffer-fertig-raus-app
+R=${KFR_ROOT:-} # nur für Tests: alles unterhalb dieses Ordners
+SRC=$R/opt/koffer-fertig-raus
+APP=$R/opt/koffer-fertig-raus-app
 PREV_APP=$APP.vorher
-STATE=/var/lib/koffer-fertig-raus-update
-APP_URL="https://github.com/MrCatwiesel/KofferFertigRaus/releases/download/app/koffer-fertig-raus-app.zip"
+STATE=$R/var/lib/koffer-fertig-raus-update
+RELEASES=${KFR_RELEASES:-https://github.com/MrCatwiesel/KofferFertigRaus/releases/download}
 HEALTH=http://127.0.0.1:8787/api/health
 HERE="$SRC/server/proxmox"
 
 [[ $EUID -eq 0 ]] || { echo "Bitte als root ausführen."; exit 1; }
 
 # Einmaliger Umzug vom alten Namen (bis 1.33 hieß alles „nix-wie-weg“), danach mit dieser Fassung am neuen Ort weiter
-if [[ -d /opt/nix-wie-weg/.git && ! -e $SRC ]]; then
+if [[ -z $R && -d /opt/nix-wie-weg/.git && ! -e $SRC ]]; then
   bash /opt/nix-wie-weg/server/proxmox/umzug.sh
   exec bash "$HERE/update.sh" "$@"
 fi
 install -d -m 700 "$STATE"
+
+# ---------- Kanal: welcher Stand installiert wird ----------
+# main = neueste Fassung · 1.x (o. ä.) = Wartungszweig · vX.Y.Z = feste Version
+kanal() { local k; k=$(cat "$STATE/kanal" 2>/dev/null || true); echo "${k:-main}"; }
+valid_kanal() { [[ $1 =~ ^(main|[0-9]+\.x|v[0-9]+\.[0-9]+\.[0-9]+)$ ]]; }
+# Release mit der fertigen App: main → „app“, Zweig 1.x → „app-1.x“, Version → ihr eigenes Release
+app_release() { case $1 in main) echo app ;; v*) echo "$1" ;; *) echo "app-$1" ;; esac; }
+
+if [[ ${1:-} == version ]]; then
+  [[ -n ${2:-} ]] || { echo "Welche Version? z. B.: update.sh version 1.43.0"; exit 1; }
+  set -- kanal "v${2#v}"
+fi
+if [[ ${1:-} == kanal ]]; then
+  if [[ -z ${2:-} ]]; then
+    echo "Kanal: $(kanal)"
+    exit 0
+  fi
+  valid_kanal "$2" || { echo "Unbekannter Kanal „$2“ – möglich: main, 1.x, v1.43.0 …"; exit 1; }
+  if [[ $2 == v* ]]; then
+    git -C "$SRC" fetch -q origin "+refs/tags/$2:refs/tags/$2" 2>/dev/null || { echo "Version $2 gibt es nicht."; exit 1; }
+    echo "Hinweis: Ein Server, der schon eine neuere Version hatte, kann mit einer älteren Datenbank-Fassung"
+    echo "         Probleme haben. Sicherster Rückweg ist die Momentaufnahme des Containers (pct rollback)."
+  elif [[ $2 != main ]]; then
+    git -C "$SRC" fetch -q origin "+refs/heads/$2:refs/remotes/origin/$2" 2>/dev/null || { echo "Kanal $2 gibt es nicht."; exit 1; }
+  fi
+  echo "$2" > "$STATE/kanal"
+  echo "Kanal ist jetzt: $2"
+  exec bash "$HERE/update.sh"
+fi
+KANAL=$(kanal)
+valid_kanal "$KANAL" || { echo "!! Kanal „$KANAL“ in $STATE/kanal ist ungültig." >&2; exit 1; }
+APP_URL="$RELEASES/$(app_release "$KANAL")/koffer-fertig-raus-app.zip"
 
 # Stände von vor der Umbenennung erwarten die alten Ordner und Dienste → dorthin nicht zurück
 after_rename() { git -C "$SRC" cat-file -e "$1:server/proxmox/umzug.sh" 2>/dev/null; }
@@ -46,10 +85,11 @@ install_units() {
     koffer-fertig-raus-backup.service koffer-fertig-raus-backup.timer koffer-fertig-raus-backup.path; do
     [[ -f $HERE/$u ]] && units+=("$HERE/$u") # ältere Versionen (nach Rückweg) haben nicht alle
   done
-  install -m 644 "${units[@]}" /etc/systemd/system/
+  install -d "$R/etc/systemd/system"
+  install -m 644 "${units[@]}" "$R/etc/systemd/system/"
   systemctl daemon-reload
   for u in koffer-fertig-raus-update.timer koffer-fertig-raus-backup.timer koffer-fertig-raus-backup.path; do
-    if [[ -f /etc/systemd/system/$u ]]; then systemctl enable -q --now "$u"; fi
+    if [[ -f $R/etc/systemd/system/$u ]]; then systemctl enable -q --now "$u"; fi
   done
 }
 
@@ -82,9 +122,22 @@ if [[ ${1:-} == zurueck ]]; then
 fi
 
 # ---------- 1. Programm des Servers (Git) ----------
-old=$(git -C "$SRC" rev-parse HEAD)                  # die Version, die gerade läuft
-git -C "$SRC" checkout -q main 2>/dev/null || true # nach "zurueck" wieder auf den Hauptzweig
-git -C "$SRC" pull --ff-only -q
+old=$(git -C "$SRC" rev-parse HEAD) # die Version, die gerade läuft
+# Stand des Kanals holen (nach "zurueck" geht es so auch wieder auf den Kanal)
+case $KANAL in
+  main)
+    git -C "$SRC" checkout -q main 2>/dev/null || true
+    git -C "$SRC" pull --ff-only -q
+    ;;
+  v*)
+    git -C "$SRC" fetch -q origin "+refs/tags/$KANAL:refs/tags/$KANAL"
+    git -C "$SRC" checkout -q --detach "refs/tags/$KANAL"
+    ;;
+  *)
+    git -C "$SRC" fetch -q origin "+refs/heads/$KANAL:refs/remotes/origin/$KANAL"
+    git -C "$SRC" checkout -q -B "$KANAL" "origin/$KANAL"
+    ;;
+esac
 new=$(git -C "$SRC" rev-parse HEAD)
 
 # Hat sich dieses Skript selbst geändert? Dann gleich mit der neuen Fassung weitermachen.
@@ -109,10 +162,12 @@ if curl -fsSL "$APP_URL" -o "$tmp/app.zip" && unzip -q "$tmp/app.zip" -d "$tmp/a
     echo "App aktualisiert auf $(head -n1 "$APP/app-version.txt") (vorige Version bleibt für 'update.sh zurueck')."
   fi
 else
-  echo "!! App konnte nicht geladen werden – die bisherige bleibt in Betrieb." >&2
+  echo "!! App ($KANAL) konnte nicht geladen werden – die bisherige bleibt in Betrieb." >&2
 fi
+[[ $KANAL == main ]] || echo "Kanal: $KANAL (zurück zur neuesten Fassung: update.sh kanal main)"
 
 # ---------- Werkzeuge für Sicherungsziele (SMB, SSH/rsync) und SSH-Schlüssel ----------
+if [[ -z $R ]]; then # im Test (KFR_ROOT) nicht
 missing=()
 command -v rsync >/dev/null || missing+=(rsync)
 command -v smbclient >/dev/null || missing+=(smbclient)
@@ -156,6 +211,7 @@ if ! /usr/local/bin/pmtiles version 2>/dev/null | grep -q "pmtiles $PMTILES_VERS
     echo "!! pmtiles konnte nicht installiert werden – Offline-Karten bleiben aus." >&2
   fi
 fi
+fi # Ende: nicht im Test
 
 # ---------- 3. Server neu starten, wenn sich sein Programm geändert hat ----------
 if [[ $old != "$new" ]]; then

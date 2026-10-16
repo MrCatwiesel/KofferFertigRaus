@@ -1,10 +1,14 @@
 # Baut die App bei jedem Push auf "main" und veröffentlicht sie auf GitHub Pages.
 # Einmalig in GitHub: Settings → Pages → Source: "GitHub Actions".
+# Außerdem (ohne GitHub Pages):
+#   - Wartungszweig 1.x  → fertige App im Release "app-1.x" (für update.sh kanal 1.x)
+#   - Versions-Tag v*    → eigenes Release mit der fertigen App, wird nie überschrieben (update.sh version …)
 name: Build und Veröffentlichen
 
 on:
   push:
-    branches: [main]
+    branches: [main, '1.x']
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -13,7 +17,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -90,26 +94,50 @@ jobs:
   # Fertige App als ZIP im Release "app" – für das eigene Hosting (server/proxmox/update.sh)
   release:
     needs: [build, klicktest]
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: CHANGELOG.md
       - uses: actions/download-artifact@v4
         with:
           name: koffer-fertig-raus-app
           path: dist
-      - run: cd dist && zip -qr ../koffer-fertig-raus-app.zip . && cp ../koffer-fertig-raus-app.zip ../nix-wie-weg-app.zip # alter Name: für Server, die noch das alte update.sh haben
+      - run: cd dist && zip -qr ../koffer-fertig-raus-app.zip .
       - env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          gh release view app >/dev/null 2>&1 || gh release create app --title "App – neuester Stand" \
-            --notes "Automatisch gebaut bei jeder Änderung. Zum Selbst-Hosten: server/proxmox/update.sh lädt diese Datei." --latest=false
-          gh release upload app koffer-fertig-raus-app.zip nix-wie-weg-app.zip --clobber
+          case "$GITHUB_REF" in
+            refs/heads/main)
+              # alter Name zusätzlich: für Server, die noch das alte update.sh haben
+              cp koffer-fertig-raus-app.zip nix-wie-weg-app.zip
+              gh release view app >/dev/null 2>&1 || gh release create app --title "App – neuester Stand" \
+                --notes "Automatisch gebaut bei jeder Änderung. Zum Selbst-Hosten: server/proxmox/update.sh lädt diese Datei." --latest=false
+              gh release upload app koffer-fertig-raus-app.zip nix-wie-weg-app.zip --clobber
+              ;;
+            refs/heads/*)
+              name="app-$GITHUB_REF_NAME"
+              gh release view "$name" >/dev/null 2>&1 || gh release create "$name" --title "App – Wartungszweig $GITHUB_REF_NAME" \
+                --notes "Fehlerbehebungen für Version ${GITHUB_REF_NAME%.x}. Auf dem eigenen Server: update.sh kanal $GITHUB_REF_NAME" --latest=false
+              gh release upload "$name" koffer-fertig-raus-app.zip --clobber
+              ;;
+            refs/tags/v*)
+              # Notizen: der erste Abschnitt des CHANGELOG
+              awk '/^## /{n++} n==1' CHANGELOG.md > notes.md
+              printf '\n---\nAuf dem eigenen Server genau diese Version installieren: `update.sh version %s`\n' "${GITHUB_REF_NAME#v}" >> notes.md
+              gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || gh release create "$GITHUB_REF_NAME" --verify-tag \
+                --title "KofferFertigRaus $GITHUB_REF_NAME" --notes-file notes.md --latest=false
+              gh release upload "$GITHUB_REF_NAME" koffer-fertig-raus-app.zip # ohne --clobber: eine Version wird nie überschrieben
+              ;;
+          esac
 
   deploy:
     needs: [build, klicktest]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages

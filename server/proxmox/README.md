@@ -107,6 +107,8 @@ muss `{"ok":true,…}` zeigen.
 | --- | --- |
 | Aktualisieren | automatisch täglich gegen 4 Uhr; von Hand `/opt/koffer-fertig-raus/server/proxmox/update.sh` |
 | Zur vorigen Version | `/opt/koffer-fertig-raus/server/proxmox/update.sh zurueck` |
+| Kanal zeigen / wechseln | `update.sh kanal` · `update.sh kanal 1.x` · `update.sh kanal main` (siehe unten) |
+| Genau eine Version | `/opt/koffer-fertig-raus/server/proxmox/update.sh version 1.43.0` |
 | Sichern | automatisch täglich gegen 3:30 Uhr; von Hand `/opt/koffer-fertig-raus/server/proxmox/backup.sh` |
 | Sicherung zurückspielen | `/opt/koffer-fertig-raus/server/proxmox/restore.sh` (zeigt die Liste), dann `restore.sh <name>` |
 | Status | `systemctl status koffer-fertig-raus-sync` · Zeitpläne: `systemctl list-timers 'koffer-fertig-raus*'` |
@@ -118,6 +120,20 @@ muss `{"ok":true,…}` zeigen.
 - Vor jedem Update des Server-Programms wird automatisch gesichert.
 - Startet der Server nach einem Update nicht sauber, geht `update.sh` von selbst auf die vorige Version zurück (und meldet das im Protokoll `journalctl -u koffer-fertig-raus-update`).
 - Die vorige App-Version bleibt in `/opt/koffer-fertig-raus-app.vorher`; `update.sh zurueck` tauscht App und Server zurück.
+
+### Kanäle: neueste Fassung, Wartungszweig oder feste Version
+`update.sh` (auch das automatische um 4 Uhr) installiert, was im **Kanal** eingestellt ist:
+
+| Kanal | Was kommt | Einstellen |
+| --- | --- | --- |
+| `main` (Standard) | immer die neueste Fassung | `update.sh kanal main` |
+| `1.x` | nur Fehlerbehebungen von Version 1 – kein Sprung auf 2.0 | `update.sh kanal 1.x` |
+| `v1.43.0` | genau diese Version, keine Updates mehr | `update.sh version 1.43.0` |
+
+Der Wechsel lädt sofort App und Server des Kanals (vorher wird wie immer gesichert). Jede Version hat auf GitHub ein
+eigenes Release, das nie überschrieben wird. Achtung beim Zurückgehen auf eine **ältere** Version: Hat eine neuere den
+Aufbau der Datenbank verändert, ist die Momentaufnahme des Containers (`pct snapshot` vor dem Update, `pct rollback`
+zum Zurückgehen – auf dem Proxmox-Host) der sicherste Weg.
 
 ### Umzug vom alten Namen „nix-wie-weg“
 Bis Version 1.33 hießen Ordner und Dienste `nix-wie-weg`. Das nächste `update.sh` (auch das automatische um 4 Uhr) zieht

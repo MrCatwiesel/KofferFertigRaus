@@ -12,6 +12,10 @@
 - Der **Sprachführer** nutzt jetzt die Allergien der Personen (mit Auswahl, wenn mehrere welche haben); bisher nur auf dem Gerät gespeicherte Allergien lassen sich einmal einer Person zuordnen. Neue Sätze im Notfall-Teil: Diabetes, Asthma, Herzschrittmacher
 - Im **Tagesplan** steht bei Restaurants ein Verweis auf die Allergie-Karte
 
+### Eigener Server: Kanäle und feste Versionen
+- `update.sh kanal 1.x` hält den Server bei Version 1 (nur Fehlerbehebungen), `update.sh version 1.43.0` genau bei dieser Version; `update.sh kanal main` holt wieder die neueste Fassung
+- Jede Version bekommt auf GitHub ein eigenes Release mit der fertigen App, das nie überschrieben wird
+
 ## 1.42.0 – 2026-10-15
 
 ### Neu: Eigene Allergien im Sprachführer

@@ -69,8 +69,8 @@ export default defineConfig(({ command }) => ({
         globPatterns: ['**/*.{js,mjs,css,html,svg,woff2}'],
         // Push-Benachrichtigungen anzeigen und beim Antippen die App öffnen (public/push-sw.js)
         importScripts: ['push-sw.js'],
-        // Lese-Links (/s/<code>) und die Schnittstelle nie durch die App-Startseite ersetzen
-        navigateFallbackDenylist: [/\/s\/[A-Za-z0-9_-]+$/, /\/api\//],
+        // Lese-Links (/s/<code>), die Schnittstelle und die Vorschau auf Version 2 (/beta/) nie durch die App-Startseite ersetzen
+        navigateFallbackDenylist: [/\/s\/[A-Za-z0-9_-]+$/, /\/api\//, /\/beta(\/|$)/],
         runtimeCaching: [
           {
             // Angesehene Kartenkacheln für unterwegs merken (kein Massen-Download – OSM-Nutzungsregeln)

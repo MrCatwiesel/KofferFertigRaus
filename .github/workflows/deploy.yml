@@ -1,4 +1,6 @@
 # Baut die App bei jedem Push auf "main" und veröffentlicht sie auf GitHub Pages.
+# Vorschau auf Version 2: Zweig v2 wird mitgebaut und liegt auf GitHub Pages unter /beta/ (eigener Service Worker,
+# kein Release, kein Tag – der eigene Server bekommt davon nichts).
 # Einmalig in GitHub: Settings → Pages → Source: "GitHub Actions".
 # Außerdem (ohne GitHub Pages):
 #   - Wartungszweig 1.x  → fertige App im Release "app-1.x" (für update.sh kanal 1.x)
@@ -8,7 +10,7 @@ name: Build und Veröffentlichen
 
 on:
   push:
-    branches: [main, '1.x']
+    branches: [main, '1.x', v2]
     tags: ['v*']
   workflow_dispatch:
 
@@ -39,9 +41,6 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: koffer-fertig-raus-app
-          path: dist
-      - uses: actions/upload-pages-artifact@v3
-        with:
           path: dist
 
   # Eigener Job: zeigt Typfehler deutlich (rot), blockiert die Veröffentlichung aber nicht
@@ -95,7 +94,7 @@ jobs:
   # Fertige App als ZIP im Release "app" – für das eigene Hosting (server/proxmox/update.sh)
   release:
     needs: [build, klicktest]
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref != 'refs/heads/v2'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -148,9 +147,44 @@ jobs:
             fi
           fi
 
-  deploy:
+  # GitHub Pages: Hauptadresse = main, /beta/ = Zweig v2 (beides bei jedem Push auf main oder v2 neu gebaut)
+  pages:
     needs: [build, klicktest]
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v2'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          path: main
+      - id: v2
+        run: |
+          if git -C main ls-remote --exit-code --heads origin v2 >/dev/null; then echo "da=1" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v5
+        if: steps.v2.outputs.da == '1'
+        with:
+          ref: v2
+          path: v2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - run: npm ci --no-audit --no-fund && npm run build
+        working-directory: main
+      - run: echo "$(node -p "require('./package.json').version") $(git rev-parse --short HEAD)" > dist/app-version.txt
+        working-directory: main
+      - if: steps.v2.outputs.da == '1'
+        run: npm ci --no-audit --no-fund && npm run build && cp -r dist ../main/dist/beta
+        working-directory: v2
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: main/dist
+
+  deploy:
+    needs: pages
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v2'
+    concurrency:
+      group: pages-deploy
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     environment:
       name: github-pages

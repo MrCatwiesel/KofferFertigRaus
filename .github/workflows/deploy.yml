@@ -147,10 +147,23 @@ jobs:
             fi
           fi
 
-  # GitHub Pages: Hauptadresse = main, /beta/ = Zweig v2 (beides bei jedem Push auf main oder v2 neu gebaut)
+  # GitHub Pages: Hauptadresse = main, /beta/ = Zweig v2. Veröffentlichen darf nur main (Schutz der Umgebung
+  # „github-pages“) – ein Push auf v2 stößt deshalb nach grünen Tests den Lauf auf main an (Job beta).
+  beta:
+    needs: [build, klicktest]
+    if: github.ref == 'refs/heads/v2' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run deploy.yml --ref main
+
   pages:
     needs: [build, klicktest]
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v2'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -181,7 +194,7 @@ jobs:
 
   deploy:
     needs: pages
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/v2'
+    if: github.ref == 'refs/heads/main'
     concurrency:
       group: pages-deploy
       cancel-in-progress: false

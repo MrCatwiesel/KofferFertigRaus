@@ -20,6 +20,8 @@ export const abstimmungModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'programm',
+    keywords: t('Umfrage, abstimmen, entscheiden'),
     title: t('Abstimmungen'),
     icon: 'hand-thumbs-up',
     to: (tripId) => `/trip/${tripId}/abstimmungen`,

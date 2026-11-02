@@ -26,7 +26,7 @@ export const help: HelpContent = {
       title: 'So funktioniert die App',
       icon: 'signpost-split',
       group: 'start',
-      summary: 'Eine Reise anlegen, die Reiseseite mit ihren Reitern, die Beispielreise.',
+      summary: 'Eine Reise anlegen, die Reiseseite mit „Jetzt wichtig“ und den Themen-Gruppen, die Beispielreise.',
       routes: ['help', 'help-topic', 'intro'],
       keywords: 'anfang einstieg start überblick tour beispielreise beispiel',
       body: `
@@ -34,16 +34,16 @@ KofferFertigRaus begleitet eine Reise von der ersten Idee bis zur Erinnerung: pl
 
 ## In drei Schritten loslegen
 1. Unter **Reisen** auf **Neue Reise** tippen und Name, Reiseziel und Zeitraum eintragen. Alles andere ist freiwillig.
-2. Die Reise öffnen. Die **Reiseseite** zeigt alle Bereiche als Kacheln – Anreise, Unterkünfte, Unternehmungen, Packliste und so weiter.
+2. Die Reise öffnen. Die **Reiseseite** zeigt oben, was **jetzt wichtig** ist, darunter alle Bereiche in acht Themen-Gruppen.
 3. Einfach einen Bereich antippen und loslegen. Jeder Bereich funktioniert für sich; nichts muss vollständig ausgefüllt sein.
 
-## Die Reiter der Reiseseite
-- **Planung** – alles vor der Reise: Anreise, Unterkünfte, Ideen, Packliste, Dokumente, Reiseapotheke, Termine.
-- **Unterwegs** – das Wichtigste für den Tag: große Knöpfe **Heute** und **Notfall**, Karte, Ausgaben, Tagebuch.
-- **Danach** – Tagebuch fertig schreiben, Ausgaben abrechnen, Reisebericht und Fotobuch.
-- **Teilen** – Reise-Webseite, Lese-Links für Freunde, Fotos in Piwigo.
+## So ist die Reiseseite aufgebaut
+- **Jetzt wichtig** – drei Abkürzungen, die zur Reisephase passen: vorher z. B. die nächsten Fristen und die Packliste, unterwegs **Heute**, **Ausgabe erfassen** und das Tagebuch, danach Tagebuch, Fotobuch und Abrechnen. Die Phase stellt die App nach dem Datum ein; mit **Vorher · Unterwegs · Danach** schaltest du um.
+- **Angeheftet** – was du oft brauchst, heftest du mit dem **Stern** oben an.
+- **Suchen** – ein Wort genügt, z. B. „Hotel“, „Wetter“ oder „Impfung“.
+- **Alles zur Reise** – acht Gruppen: Anreise & Wohnen · Tagesprogramm · Karte & Touren · Packen & Erledigen · Gesundheit & Papiere · Land & Sprache · Geld · Erinnern & Teilen. Jede Funktion steht in genau einer Gruppe. Antippen öffnet die Gruppe, „Zurück“ schließt sie wieder.
 
-Die App öffnet automatisch den passenden Reiter: vor der Reise „Planung“, während der Reise „Unterwegs“, danach „Danach“. Welche Bereiche wo stehen, stellst du unter [Aussehen](#/hilfe/aussehen) ein.
+Wie stark sich Kacheln und Gruppen bewegen, stellst du unter [Aussehen](#/hilfe/aussehen) ein (Effekte aus, dezent oder stark).
 
 ## Zum Ausprobieren: die Beispielreise
 Solange noch keine Reise angelegt ist, bietet die Startseite eine **Beispielreise** an den Gardasee an – mit Anreise, Unterkunft, Unternehmungen, Packliste, Ausgaben und zwei Tagebuch-Einträgen. Daran siehst du, wie alles zusammenspielt. Oben auf ihrer Reiseseite löschst du sie mit einem Tipp wieder.
@@ -129,7 +129,7 @@ Unter **Reisen** → **Neue Reise**. Pflicht sind nur Name, Reiseziel und Zeitra
 - **Anreise** und **Budget gesamt** – für Vorschläge und den Budget-Vergleich bei den [Ausgaben](#/hilfe/ausgaben).
 
 ## Die Reiseseite
-Oben Titelbild, Zeitraum und die Eckdaten, darunter die Bereiche als Kacheln – sortiert in die Reiter **Planung**, **Unterwegs**, **Danach** und **Teilen**. Jede Kachel zeigt eine kurze Zusammenfassung, z. B. „12 von 30 eingepackt“.
+Oben Titelbild, Zeitraum und die Eckdaten, darunter **Jetzt wichtig**, **Angeheftet**, die **Suche** und die acht **Themen-Gruppen**. In einer geöffneten Gruppe zeigt jeder Bereich eine kurze Zusammenfassung, z. B. „12 von 30 eingepackt“; der **Stern** heftet ihn oben auf der Reiseseite an.
 
 Über das Menü oben (drei Punkte) erreichst du **Bearbeiten**, **Titelbild ändern**, **Mit Mitreisenden teilen**, **Ins Archiv legen** und **Löschen**.
 
@@ -376,7 +376,7 @@ Standardmäßig alle Mitreisenden – im Notfall sollen sie helfen können. Ist 
 ## Notfall-Seite
 Während der Reise steht oben in der Kopfzeile ein rotes **Herz** – es öffnet die Notfall-Seite:
 - **Notruf** des Landes (aus dem [Länder-Spickzettel](#/hilfe/laender)) – antippen ruft an. Bei mehreren Ländern oben wählen.
-- Auch der große Knopf **Notfall** im Reiter „Unterwegs“ der Reiseseite führt hierher.
+- Auf der Reiseseite steht sie außerdem unter **Gesundheit & Papiere** (und lässt sich anheften).
 - Für jede Person die Allergien, Erkrankungen und Blutgruppe **in der Landessprache**, mit Übersetzung darunter, dazu Dauer- und Notfallmedikamente aus der [Reiseapotheke](#/hilfe/apotheke).
 - **Groß zeigen** zum Hinhalten, **Vorlesen**, und die eigenen Notfallnummern.
 
@@ -829,7 +829,7 @@ Unter Geräte-Abgleich → **Benachrichtigungen** einmal **Einschalten** – das
       icon: 'download',
       group: 'einstellungen',
       summary: 'Sicherung als Datei, einlesen, Sicherung auf dem Server.',
-      routes: ['settings', 'backup-targets'],
+      routes: ['settings', 'data', 'about', 'backup-targets'],
       keywords: 'backup sichern exportieren importieren einlesen wiederherstellen datei speicher nas sicherungsziel',
       body: `
 ## Sicherung als Datei
@@ -853,19 +853,18 @@ Mit [Geräte-Abgleich](#/hilfe/abgleich) sichert dein Server jede Nacht alle Rei
       group: 'einstellungen',
       summary: 'Designs, Hintergrund, Schriftgröße und die Aufteilung der Reiseseite.',
       routes: ['appearance'],
-      keywords: 'design farbe dunkel hell schrift schriftgröße hintergrund foto kacheln reiter layout',
+      keywords: 'design farbe dunkel hell schrift schriftgröße hintergrund foto kacheln layout effekte bewegung zoom animation angeheftet',
       body: `
 Einstellungen → **Aussehen**. Alles wirkt sofort und gilt für dieses Gerät.
 
 - **Design** – 18 Stile mit eigenen Farben und Schriften; hell, dunkel oder wie das Gerät.
 - **Schriftgröße** und **Ecken**.
+- **Effekte** – wie sich Kacheln bewegen: **Stark** (die gewählte Kachel zoomt heran, die Nachbarn treten zurück, Gruppen federn aus ihrer Kachel auf), **Dezent** oder **Aus**. Ist am Gerät „Bewegung reduzieren“ eingeschaltet, bleibt alles ruhig.
 - **Hintergrund** – eigenes Foto oder Muster, mit Schleier, Unschärfe und Farbsättigung.
 
 ## Reiseseite
-- Bereiche als **Kacheln**, **große Kacheln** oder **kompakte Liste**.
-- Titelbild groß, mittel, klein oder keines.
-- **Reiter** an oder aus, passender Reiter nach Datum.
-- **Welche Bereiche stehen wo?** – Bereiche zwischen Planung, Unterwegs, Danach und Teilen verschieben. Bereiche, die in keinem Reiter stehen, bleiben unter „Weitere Bereiche“ erreichbar.
+- Titelbild groß, mittel, klein oder keines; Eckdaten und Zusammenfassungen an oder aus.
+- **Angeheftet** – Reihenfolge ändern oder lösen. Anheften geht auf der Reiseseite mit dem Stern in einer geöffneten Gruppe.
 `
     },
     {

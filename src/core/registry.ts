@@ -11,8 +11,15 @@ import type { SampleTrip } from './sample'
 /** Abschnitte der Reiseseite: vor, während und nach der Reise, dazu Teilen & Archiv */
 export type TripPhase = 'planung' | 'unterwegs' | 'danach' | 'teilen'
 
+/** Themen-Gruppen der Reiseseite (ab 2.0) – jede Funktion steht in genau einer (siehe core/trip-groups.ts) */
+export type TripGroupId = 'anreise' | 'programm' | 'karte' | 'packen' | 'gesundheit' | 'land' | 'geld' | 'erinnern'
+
 export interface TripSection {
   title: string
+  /** Themen-Gruppe auf der Reiseseite (ab 2.0); ohne Angabe unter „Weitere“ */
+  group?: TripGroupId
+  /** Weitere Suchwörter, durch Komma getrennt (z. B. „Hotel, Ferienwohnung“) */
+  keywords?: string
   /** In welchen Reitern der Reiseseite der Bereich erscheint (Standard: nur Planung) */
   phases?: TripPhase[]
   /** Bootstrap-Icon-Name ohne "bi-" */

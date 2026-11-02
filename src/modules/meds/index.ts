@@ -21,6 +21,8 @@ export const medsModule: AppModule = {
   reminders: async (trip, today) => medsReminders(await medicationRepository.listByTrip(trip.id), await vaccinationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'gesundheit',
+    keywords: t('Medikamente, Impfung, Apotheke'),
     title: t('Reiseapotheke'),
     icon: 'capsule',
     to: (tripId) => `/trip/${tripId}/apotheke`,

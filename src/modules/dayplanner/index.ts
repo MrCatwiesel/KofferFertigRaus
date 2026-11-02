@@ -21,6 +21,8 @@ export const dayplannerModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'programm',
+    keywords: t('Wetter, Heute, Tag, Plan'),
     title: t('Tagesplaner & Wetter'),
     icon: 'cloud-sun',
     to: (tripId) => `/trip/${tripId}/tagesplan`,

@@ -20,6 +20,8 @@ export const accommodationModule: AppModule = {
   reminders: async (trip, today) => accommodationReminders(await accommodationRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'anreise',
+    keywords: t('Hotel, Ferienwohnung, Camping, Übernachtung, Check-in'),
     title: t('Unterkünfte'),
     icon: 'house-door',
     to: (tripId) => `/trip/${tripId}/unterkuenfte`,

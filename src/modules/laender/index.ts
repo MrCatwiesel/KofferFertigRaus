@@ -12,6 +12,8 @@ export const laenderModule: AppModule = {
   routes: [{ path: '/trip/:tripId/laender', name: 'laender', component: () => import('./views/LaenderView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'land',
+    keywords: t('Steckdose, Trinkgeld, Maut, Notruf'),
     title: t('Länder-Spickzettel'),
     icon: 'card-checklist',
     to: (tripId) => `/trip/${tripId}/laender`,

@@ -10,6 +10,8 @@ export const bookingModule: AppModule = {
   routes: [{ path: '/trip/:tripId/buchung', name: 'booking-import', component: () => import('./views/BookingImport.vue'), props: true }],
   tripSection: {
     phases: ['planung'],
+    group: 'anreise',
+    keywords: t('Bestätigung, E-Mail, PDF, Import'),
     title: t('Buchung einlesen'),
     icon: 'file-earmark-arrow-down',
     to: (tripId) => `/trip/${tripId}/buchung`,

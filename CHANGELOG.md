@@ -1,5 +1,22 @@
 # Änderungsprotokoll
 
+## 2.0.0 – Vorschau (in Arbeit)
+
+### Neu: einfachere Menüführung
+- **Reiseseite ohne Reiter:** Statt vier Reitern mit 47 Kacheln (viele doppelt) gibt es eine Seite. Oben steht **Jetzt wichtig** – drei Abkürzungen, die zur Reisephase passen (vorher, unterwegs, danach; umschaltbar). Darunter **Alles zur Reise** in acht Gruppen: Anreise & Wohnen · Tagesprogramm · Karte & Touren · Packen & Erledigen · Gesundheit & Papiere · Land & Sprache · Geld · Erinnern & Teilen. Jede Funktion steht in genau einer Gruppe
+- **Suchen:** ein Wort genügt – „Hotel“, „Wetter“, „Impfung“ – und die passende Funktion öffnet sich
+- **Anheften:** in einer geöffneten Gruppe mit dem Stern; Angeheftetes steht oben auf jeder Reiseseite (je Gerät)
+- **Einstellungen in vier Gruppen:** Dieses Gerät · Daten & Sicherung · Gemeinsam reisen · Hilfe & Info. Datensicherung und „Über die App“ haben eigene Seiten
+- Die Notfall-Seite steht jetzt auch unter Gesundheit & Papiere
+
+### Neu: Effekte
+- Die gewählte Kachel **zoomt heran**, die Nachbarn treten zurück; Gruppen **öffnen sich aus ihrer Kachel** und federn auf, die Einträge schweben nacheinander herein
+- Einstellbar unter *Aussehen → Effekte*: **Stark**, **Dezent** oder **Aus**. Ist am Gerät „Bewegung reduzieren“ eingeschaltet, bleibt alles ruhig
+
+### Gut zu wissen
+- Gleiche Daten wie Version 1.43 – nichts wird umgebaut, Sicherungen sind in beide Richtungen lesbar
+- Vorschau unter https://mrcatwiesel.github.io/KofferFertigRaus/beta/ – der eigene Server bleibt bei Version 1
+
 ## 1.43.0 – 2026-10-15 (Server 1.23.0)
 
 ### Neu: Gesundheit & Notfall

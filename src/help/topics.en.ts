@@ -22,7 +22,7 @@ export const help: HelpContent = {
       title: 'How the app works',
       icon: 'signpost-split',
       group: 'start',
-      summary: 'Create a trip, the trip page and its tabs, the sample trip.',
+      summary: 'Create a trip, the trip page with “Important now” and the topic groups, the sample trip.',
       routes: ['help', 'help-topic', 'intro'],
       keywords: 'start beginning overview tour sample example first steps',
       body: `
@@ -30,16 +30,16 @@ KofferFertigRaus accompanies a trip from the first idea to the memories: plan, p
 
 ## Get going in three steps
 1. Under **Trips**, tap **New trip** and enter a name, destination and dates. Everything else is optional.
-2. Open the trip. The **trip page** shows all areas as tiles – getting there, accommodation, activities, packing list and so on.
+2. Open the trip. The **trip page** shows what is **important now** at the top, and all areas in eight topic groups below.
 3. Just tap an area and get started. Each area works on its own; nothing has to be filled in completely.
 
-## The tabs of the trip page
-- **Planning** – everything before the trip: getting there, accommodation, ideas, packing list, documents, medicine kit, dates.
-- **On the road** – the essentials for the day: big **Today** and **Emergency** buttons, map, expenses, journal.
-- **Afterwards** – finish the journal, settle expenses, trip report and photo book.
-- **Share** – trip website, read-only links for friends, photos in Piwigo.
+## How the trip page is organised
+- **Important now** – three shortcuts that suit the trip phase: before the trip e.g. the next deadlines and the packing list, on the road **Today**, **Add expense** and the diary, afterwards diary, photo book and settling up. The app sets the phase from the dates; switch with **Before · On the road · Afterwards**.
+- **Pinned** – pin what you use often to the top with the **star**.
+- **Search** – one word is enough, e.g. “hotel”, “weather” or “vaccination”.
+- **Everything for this trip** – eight groups: Travel & stay · Daily plan · Map & tours · Packing & to-dos · Health & documents · Country & language · Money · Memories & sharing. Every function is in exactly one group. Tap to open a group, “Back” closes it again.
 
-The app automatically opens the matching tab: “Planning” before the trip, “On the road” during it, “Afterwards” after it. You can choose which areas go where under [Appearance](#/hilfe/aussehen).
+How much tiles and groups move is set under [Appearance](#/hilfe/aussehen) (effects off, subtle or strong).
 
 ## To try things out: the sample trip
 As long as you haven't created a trip yet, the start page offers a **sample trip** to Lake Garda – with getting there, accommodation, activities, packing list, expenses and two journal entries. It shows how everything fits together. Delete it again with one tap at the top of its trip page.
@@ -125,7 +125,7 @@ Under **Trips** → **New trip**. Only name, destination and dates are required.
 - **Getting there** and **Total budget** – for suggestions and the budget comparison under [Expenses](#/hilfe/ausgaben).
 
 ## The trip page
-At the top the cover picture, dates and key facts, below that the areas as tiles – sorted into the tabs **Planning**, **On the road**, **Afterwards** and **Share**. Each tile shows a short summary, e.g. “12 of 30 packed”.
+At the top the cover picture, dates and key facts, below that **Important now**, **Pinned**, the **search** and the eight **topic groups**. In an open group each area shows a short summary, e.g. “12 of 30 packed”; the **star** pins it to the top of the trip page.
 
 The menu at the top (three dots) gives you **Edit**, **Change cover picture**, **Share with travel companions**, **Put in archive** and **Delete**.
 
@@ -372,7 +372,7 @@ By default all fellow travellers – in an emergency they should be able to help
 ## Emergency page
 During the trip a red **heart** appears in the header – it opens the emergency page:
 - The country's **emergency numbers** (from the [Country cheat sheet](#/hilfe/laender)) – tap to call. With several countries, choose at the top.
-- The large **Emergency** button in the “On the road” tab of the trip page also leads here.
+- On the trip page it is also listed under **Health & documents** (and can be pinned).
 - For each person the allergies, conditions and blood type **in the local language**, with a translation underneath, plus regular and emergency medication from the [travel pharmacy](#/hilfe/apotheke).
 - **Show large** to hold up, **Read aloud**, and your own emergency numbers.
 
@@ -827,7 +827,7 @@ Under Device sync → **Notifications**, tap **Turn on** once – the device ask
       icon: 'download',
       group: 'einstellungen',
       summary: 'Backup as a file, importing, backup on the server.',
-      routes: ['settings', 'backup-targets'],
+      routes: ['settings', 'data', 'about', 'backup-targets'],
       keywords: 'backup save export import restore file storage nas destination',
       body: `
 ## Backup as a file
@@ -851,19 +851,18 @@ With [device sync](#/hilfe/abgleich), your server backs up all trips and photos 
       group: 'einstellungen',
       summary: 'Themes, background, font size and the layout of the trip page.',
       routes: ['appearance'],
-      keywords: 'theme design colour dark light font size background photo tiles tabs layout',
+      keywords: 'theme design colour dark light font size background photo tiles layout effects motion zoom animation pinned',
       body: `
 Settings → **Appearance**. Everything takes effect immediately and applies to this device.
 
 - **Theme** – 18 styles with their own colours and fonts; light, dark or same as the device.
 - **Font size** and **corners**.
+- **Effects** – how tiles move: **Strong** (the chosen tile zooms in, its neighbours step back, groups spring open from their tile), **Subtle** or **Off**. If “Reduce motion” is switched on on the device, everything stays still.
 - **Background** – your own photo or a pattern, with veil, blur and saturation.
 
 ## Trip page
-- Areas as **tiles**, **large tiles** or **compact list**.
-- Cover picture large, medium, small or none.
-- **Tabs** on or off, matching tab by date.
-- **Which areas go where?** – move areas between Planning, On the road, Afterwards and Share. Areas that are in no tab remain reachable under “More areas”.
+- Cover picture large, medium, small or none; key facts and summaries on or off.
+- **Pinned** – change the order or unpin. Pin on the trip page with the star in an open group.
 
 The **language** is set under Settings → **Language** (per device).
 `

@@ -266,7 +266,7 @@ test('Lasttest: viele Reisen, Fotos und Routen', async ({ baseURL }) => {
 
   // Sicherung mit allen Fotos exportieren und wieder einlesen
   const backup: Record<string, unknown> = {}
-  await page.goto('/#/einstellungen')
+  await page.goto('/#/einstellungen/daten')
   await page.locator('#photos').check()
   let t1 = Date.now()
   const [download] = await Promise.all([
@@ -281,7 +281,7 @@ test('Lasttest: viele Reisen, Fotos und Routen', async ({ baseURL }) => {
     const { statSync } = await import('node:fs')
     backup.exportMB = Math.round(statSync(file).size / 1e6)
     await page.goto('/leer.html')
-    await page.goto('/#/einstellungen')
+    await page.goto('/#/einstellungen/daten')
     t1 = Date.now()
     await page.locator('input[type=file][accept="application/json"]').setInputFiles(file)
     const done = page.locator('.alert')

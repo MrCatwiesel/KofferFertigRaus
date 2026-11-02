@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useLiveQuery } from '@/core/composables'
 import { flag } from '@/core/countries'
-import { getTripSections, type TripPhase } from '@/core/registry'
-import { sectionsIn, unplaced } from '@/core/trip-layout'
+import { getReminders, getTripSections } from '@/core/registry'
+import { groupEntries, searchEntries, type GroupEntry } from '@/core/trip-groups'
+import { togglePin } from '@/core/trip-layout'
+import { todayIso } from '@/core/dates'
 import { appearance } from '@/ui/appearance'
+import ZoomGroups, { type ZoomGroup } from '@/ui/ZoomGroups.vue'
 import { tripRepository } from '../repository'
-import { budgetPerPersonDay, defaultTripTab, formatDate, formatMoney, tripDays, tripPhase, tripStatusText } from '../logic'
+import { budgetPerPersonDay, formatDate, formatMoney, tripDays, tripPhase, tripStatusText } from '../logic'
+import { nowCards, nowPhaseOf, type NowPhase } from '../now'
 import { TRANSPORT_LABELS, type Trip } from '../types'
 import TripCover from '../components/TripCover.vue'
-import SectionTiles from '../components/SectionTiles.vue'
 import ReadOnlyNote from '../components/ReadOnlyNote.vue'
 import { canEdit } from '@/core/people'
 import { t, tn } from '@/i18n'
@@ -20,26 +23,9 @@ const router = useRouter()
 const route = useRoute()
 
 const trip = useLiveQuery(() => tripRepository.get(props.id), undefined as Trip | undefined)
-
-const TABS: { id: TripPhase; label: string; icon: string; intro: string }[] = [
-  { id: 'planung', label: t('Planung'), icon: 'clipboard-check', intro: t('Alles vorbereiten – von der Anreise bis zur Packliste.') },
-  { id: 'unterwegs', label: t('Unterwegs'), icon: 'compass', intro: t('Was ihr während der Reise braucht – griffbereit, auch offline.') },
-  { id: 'danach', label: t('Danach'), icon: 'stars', intro: t('Erinnerungen festhalten, abrechnen, Fotos sortieren.') },
-  { id: 'teilen', label: t('Teilen & Archiv'), icon: 'send', intro: t('Webseite und Lese-Links für Freunde – und die Reise ins Archiv legen.') }
-]
-
-/** Gewählter Bereich steht in der Adresse (?bereich=…), damit „Zurück“ wieder dort landet */
-const tab = computed<TripPhase>(() => {
-  const q = route.query.bereich
-  if (TABS.some((t) => t.id === q)) return q as TripPhase
-  return trip.value && layout.value.autoTab ? defaultTripTab(trip.value) : 'planung'
-})
-/** Aufteilung der Reiseseite (Einstellungen → Aussehen → Reiseseite) */
+/** Aussehen der Reiseseite (Einstellungen → Aussehen → Reiseseite) */
 const layout = computed(() => appearance.layout)
-const nowTab = computed(() => (trip.value ? defaultTripTab({ ...trip.value, archived: false }) : null))
-function select(id: TripPhase) {
-  void router.replace({ query: { ...route.query, bereich: id } })
-}
+const today = todayIso()
 
 const facts = computed(() => {
   const tp = trip.value
@@ -55,22 +41,6 @@ const facts = computed(() => {
 
 /** Bereiche, die andere Module beisteuern (Unterkünfte, Unternehmungen …) */
 const sections = getTripSections()
-const indexed = sections.map((s, i) => ({ ...s, s, i }))
-const pick = (list: typeof indexed) => list.map(({ s, i }) => ({ s, i }))
-const visible = computed(() => pick(sectionsIn(tab.value, indexed, layout.value)))
-/** Ohne Reiter: alle Bereiche untereinander, jeder nur einmal (im ersten passenden Abschnitt) */
-const groups = computed(() => {
-  const seen = new Set<string>()
-  return TABS.map((t) => {
-    const items = sectionsIn(t.id, indexed, layout.value).filter((x) => !seen.has(x.moduleId))
-    items.forEach((x) => seen.add(x.moduleId))
-    return { ...t, items: pick(items) }
-  }).filter((g) => g.items.length)
-})
-/** Bereiche, die in keinem Reiter stehen – bleiben hier erreichbar */
-const extra = computed(() => pick(unplaced(indexed, layout.value)))
-const isTravelling = computed(() => !!trip.value && tripPhase(trip.value.startDate, trip.value.endDate) === 'unterwegs')
-const showQuick = computed(() => layout.value.quick && (layout.value.tabs ? tab.value === 'unterwegs' : isTravelling.value))
 
 /** Zusammenfassungen und geplante Kosten aller Bereiche – aktualisieren sich live. */
 const sectionData = useLiveQuery(
@@ -82,6 +52,73 @@ const sectionData = useLiveQuery(
       }))
     ),
   [] as { summary: string; cost: number }[]
+)
+
+/** Alle Einträge der Reiseseite: Bereiche der Module und zwei feste Seiten der Reise */
+interface Entry extends GroupEntry {
+  to: string
+  summary: string
+}
+const entries = computed<Entry[]>(() => [
+  ...sections.map((s, i) => ({ id: s.moduleId, title: s.title, icon: s.icon, group: s.group, keywords: s.keywords, to: s.to(props.id), summary: sectionData.value[i]?.summary ?? '' })),
+  { id: 'sos', title: t('Notfall-Seite'), icon: 'heart-pulse', group: 'gesundheit', keywords: t('Notruf, Hilfe, Botschaft, Notfall'), to: `/trip/${props.id}/sos`, summary: t('Nummern, Botschaft, Allergien – auch zum Zeigen') },
+  { id: 'share-trip', title: t('Mit Mitreisenden teilen'), icon: 'people', group: 'erinnern', keywords: t('Datei, Mitreisende, übertragen'), to: `/trip/${props.id}/teilen`, summary: t('Reise als Datei weitergeben') }
+])
+const sub = (e: Entry) => (layout.value.summaries ? e.summary : '')
+
+const zoomGroups = computed<ZoomGroup[]>(() =>
+  groupEntries(entries.value).map(({ group, items }) => ({
+    id: group.id,
+    title: group.title,
+    icon: group.icon,
+    color: group.color,
+    sub: items.map((e) => e.title).join(' · '),
+    items: items.map((e) => ({ id: e.id, title: e.title, icon: e.icon, to: e.to, sub: sub(e) }))
+  }))
+)
+const colorOf = (e: Entry) => zoomGroups.value.find((g) => g.items.some((i) => i.id === e.id))?.color ?? 'var(--nww-primary)'
+
+/** Angeheftet (je Gerät) */
+const pinnedItems = computed(() => layout.value.pinned.map((id) => entries.value.find((e) => e.id === id)).filter((e): e is Entry => !!e))
+function pin(id: string) {
+  appearance.layout = togglePin(appearance.layout, id)
+}
+
+/** Suche über alle Funktionen der Reise */
+const query = ref('')
+const results = computed(() => searchEntries(entries.value, query.value))
+function openFirst() {
+  if (results.value[0]) void router.push(results.value[0].to)
+}
+
+/** „Jetzt wichtig“: Phase aus dem Datum, umschaltbar (?phase=…) */
+const PHASES: { id: NowPhase; label: string }[] = [
+  { id: 'vorher', label: t('Vorher') },
+  { id: 'unterwegs', label: t('Unterwegs') },
+  { id: 'danach', label: t('Danach') }
+]
+const autoPhase = computed<NowPhase>(() => (trip.value ? nowPhaseOf(trip.value, today) : 'vorher'))
+const phase = computed<NowPhase>(() => {
+  const q = route.query.phase
+  return PHASES.some((p) => p.id === q) ? (q as NowPhase) : autoPhase.value
+})
+function setPhase(id: NowPhase) {
+  const q = { ...route.query }
+  if (id === autoPhase.value) delete q.phase
+  else q.phase = id
+  void router.replace({ query: q })
+}
+const reminders = useLiveQuery(async () => {
+  const tp = await tripRepository.get(props.id)
+  return tp ? getReminders(tp, today) : []
+}, [])
+const now = computed(() =>
+  nowCards(
+    phase.value,
+    entries.value.map((e) => ({ moduleId: e.id, title: e.title, icon: e.icon, to: e.to, summary: e.summary })),
+    reminders.value,
+    today
+  )
 )
 
 const budgetCheck = computed(() => {
@@ -172,56 +209,65 @@ async function remove() {
       <span v-for="f in facts" :key="f.icon" class="fact"><i :class="`bi bi-${f.icon} me-1`" aria-hidden="true"></i>{{ f.value }}</span>
     </div>
 
-    <!-- Bereiche: vor, während und nach der Reise -->
-    <template v-if="layout.tabs">
-      <nav class="phase-tabs mb-2" :aria-label="t('Bereiche der Reise')">
-        <button v-for="tabItem in TABS" :key="tabItem.id" type="button" class="phase-tab" :class="{ active: tab === tabItem.id }" :aria-current="tab === tabItem.id ? 'page' : undefined"
-                @click="select(tabItem.id)">
-          <i :class="`bi bi-${tabItem.icon}`" aria-hidden="true"></i>
-          <span>{{ tabItem.label }}</span>
-          <span v-if="nowTab === tabItem.id" class="now-dot" :title="t('Passt gerade')"></span>
-        </button>
-      </nav>
-      <div class="d-flex align-items-center gap-2 mb-3">
-        <p class="small text-body-secondary mb-0 flex-grow-1 on-bg">{{ TABS.find((t) => t.id === tab)!.intro }}</p>
-        <RouterLink to="/einstellungen/aussehen?teil=reiseseite" class="btn btn-link btn-sm p-0 text-nowrap"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('Anpassen') }}</RouterLink>
+    <!-- Jetzt wichtig: passt zur Reisephase, versteckt aber nichts -->
+    <section class="mb-4" data-now>
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <h2 class="h5 mb-0 on-bg">{{ t('Jetzt wichtig') }}</h2>
+        <div class="now-phase" role="group" :aria-label="t('Reisephase')">
+          <button v-for="p in PHASES" :key="p.id" type="button" :class="{ active: phase === p.id }" :aria-pressed="phase === p.id" :data-phase="p.id" @click="setPhase(p.id)">
+            {{ p.label }}<span v-if="p.id === autoPhase" class="now-dot" :title="t('Passt gerade')"></span>
+          </button>
+        </div>
       </div>
-    </template>
+      <div class="now-grid fx-grid">
+        <RouterLink v-for="c in now" :key="c.id" :to="c.to" class="now-card fx-tile" :data-now-card="c.id">
+          <i :class="`bi bi-${c.icon}`" aria-hidden="true"></i>
+          <span class="min-w-0">
+            <span class="d-block fw-semibold">{{ c.title }}</span>
+            <span v-if="c.sub" class="d-block small text-body-secondary text-truncate">{{ c.sub }}</span>
+          </span>
+        </RouterLink>
+      </div>
+    </section>
 
-    <!-- Unterwegs: das Wichtigste zuerst -->
-    <div v-if="showQuick" class="row g-2 mb-3">
-      <div class="col-6">
-        <RouterLink to="/heute" class="quick quick-primary"><i class="bi bi-sun" aria-hidden="true"></i>{{ t('Heute') }}</RouterLink>
+    <!-- Angeheftet (je Gerät, Stern in den Gruppen) -->
+    <section v-if="pinnedItems.length" class="mb-4" data-pinned>
+      <h2 class="h6 text-body-secondary mb-2 on-bg"><i class="bi bi-star-fill me-1 pin-star" aria-hidden="true"></i>{{ t('Angeheftet') }}</h2>
+      <div class="pin-row fx-grid">
+        <RouterLink v-for="e in pinnedItems" :key="e.id" :to="e.to" class="pin-chip fx-tile" :style="{ '--zg': colorOf(e) }" :data-pinned-item="e.id">
+          <i :class="`bi bi-${e.icon}`" aria-hidden="true"></i>{{ e.title }}
+        </RouterLink>
       </div>
-      <div class="col-6">
-        <RouterLink :to="`/trip/${trip.id}/sos`" class="quick quick-danger" data-quick-sos><i class="bi bi-heart-pulse" aria-hidden="true"></i>{{ t('Notfall') }}</RouterLink>
-      </div>
-    </div>
+    </section>
 
-    <SectionTiles v-if="layout.tabs" :items="visible" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" :view="layout.view"
-                  :summaries="layout.summaries" :show-cost="tab === 'planung'" />
-    <template v-else>
-      <section v-for="g in groups" :key="g.id">
-        <h2 class="h6 text-body-secondary d-flex align-items-center gap-2 mt-2 on-bg"><i :class="`bi bi-${g.icon}`" aria-hidden="true"></i>{{ g.label }}
-          <span v-if="nowTab === g.id" class="now-dot position-static" :title="t('Passt gerade')"></span></h2>
-        <SectionTiles :items="g.items" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" :view="layout.view"
-                      :summaries="layout.summaries" :show-cost="g.id === 'planung'" />
-      </section>
-      <div class="text-end mb-3">
+    <!-- Alles zur Reise: Suche und Themen-Gruppen -->
+    <section class="mb-4">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <h2 class="h5 mb-0 on-bg">{{ t('Alles zur Reise') }}</h2>
         <RouterLink to="/einstellungen/aussehen?teil=reiseseite" class="btn btn-link btn-sm p-0"><i class="bi bi-sliders me-1" aria-hidden="true"></i>{{ t('Anpassen') }}</RouterLink>
       </div>
-    </template>
-
-    <!-- Sicherheitsnetz: Bereiche ohne Reiter bleiben erreichbar -->
-    <details v-if="extra.length" class="mb-4 extra">
-      <summary class="small text-body-secondary on-bg">{{ t('Weitere Bereiche ({n})', { n: extra.length }) }}</summary>
-      <div class="mt-2">
-        <SectionTiles :items="extra" :data="sectionData" :trip-id="trip.id" :currency="trip.currency" view="liste" :summaries="layout.summaries" :show-cost="false" />
+      <form class="search mb-3" role="search" @submit.prevent="openFirst">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input v-model="query" type="search" class="form-control" :placeholder="t('Suchen, z. B. Hotel, Packliste, Wetter …')" :aria-label="t('Funktion suchen')" data-trip-search />
+      </form>
+      <div v-if="query.trim()" data-search-results>
+        <div v-if="results.length" class="list-group">
+          <RouterLink v-for="e in results" :key="e.id" :to="e.to" class="list-group-item list-group-item-action d-flex align-items-center gap-3" :data-section="e.id">
+            <i :class="`bi bi-${e.icon} fs-5`" :style="{ color: colorOf(e) }" aria-hidden="true"></i>
+            <span class="min-w-0 flex-grow-1">
+              <span class="d-block fw-semibold">{{ e.title }}</span>
+              <span v-if="sub(e)" class="d-block small text-body-secondary text-truncate">{{ sub(e) }}</span>
+            </span>
+            <i class="bi bi-chevron-right text-body-secondary" aria-hidden="true"></i>
+          </RouterLink>
+        </div>
+        <p v-else class="text-body-secondary on-bg">{{ t('Nichts gefunden. Andere Wörter probieren – oder unten in den Gruppen schauen.') }}</p>
       </div>
-    </details>
+      <ZoomGroups v-else :groups="zoomGroups" pinnable :pinned="layout.pinned" @pin="pin" />
+    </section>
 
     <!-- Budgetvergleich -->
-    <div v-if="budgetCheck && (!layout.tabs || tab === 'planung' || tab === 'danach')" class="card mb-4">
+    <div v-if="budgetCheck" class="card mb-4">
       <div class="card-body py-2">
         <div class="d-flex justify-content-between small mb-1">
           <span>{{ t('Geplante Kosten') }}</span>
@@ -239,7 +285,7 @@ async function remove() {
       </div>
     </div>
 
-    <div v-if="trip.notes && (!layout.tabs || tab === 'planung')" class="card mb-4">
+    <div v-if="trip.notes" class="card mb-4">
       <div class="card-body">
         <h2 class="h6 text-body-secondary">{{ t('Notizen') }}</h2>
         <p class="mb-0" style="white-space: pre-line">{{ trip.notes }}</p>
@@ -247,7 +293,7 @@ async function remove() {
     </div>
 
     <!-- Archiv -->
-    <div v-if="!layout.tabs || tab === 'teilen'" class="card mb-4">
+    <div class="card mb-4">
       <div class="card-body d-flex flex-wrap align-items-center gap-3">
         <i class="bi bi-archive fs-3 text-primary" aria-hidden="true"></i>
         <div class="flex-grow-1">
@@ -325,77 +371,107 @@ async function remove() {
 .fact .bi {
   color: var(--nww-primary);
 }
-.phase-tabs {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.25rem;
-  padding: 0.25rem;
+.now-phase {
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
   background: var(--nww-card-bg);
   border: var(--nww-border-width) solid var(--nww-border);
-  border-radius: var(--bs-border-radius-lg);
-  box-shadow: var(--nww-shadow);
+  border-radius: 999px;
 }
-.phase-tab {
+.now-phase button {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.1rem;
-  padding: 0.5rem 0.25rem;
-  font-size: 0.85rem;
+  min-height: 2.5rem;
+  padding: 0 0.9rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  line-height: 1.15;
   color: var(--nww-muted);
   background: none;
   border: 0;
-  border-radius: var(--bs-border-radius);
+  border-radius: 999px;
 }
-.phase-tab .bi {
-  font-size: 1.2rem;
-}
-.phase-tab.active {
+.now-phase button.active {
   color: var(--nww-on-primary);
   background: var(--nww-primary);
-}
-[data-nww-gradient] .phase-tab.active {
-  background: linear-gradient(135deg, var(--nww-primary), var(--nww-accent));
-}
-[data-nww-upper] .phase-tab {
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.75rem;
 }
 .now-dot {
   position: absolute;
-  top: 0.4rem;
-  right: 0.6rem;
-  width: 0.5rem;
-  height: 0.5rem;
+  top: 0.35rem;
+  right: 0.35rem;
+  width: 0.45rem;
+  height: 0.45rem;
   border-radius: 50%;
   background: var(--nww-accent);
 }
-.quick {
+.now-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+@media (min-width: 576px) {
+  .now-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.now-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  height: 100%;
-  padding: 0.85rem;
-  font-weight: 700;
+  gap: 0.75rem;
+  min-height: 4.5rem;
+  padding: 0.85rem 1rem;
+  color: var(--nww-text);
   text-decoration: none;
+  background: var(--nww-card-bg);
+  border: 2px solid rgba(var(--nww-primary-rgb), 0.45);
   border-radius: var(--bs-border-radius-lg);
   box-shadow: var(--nww-shadow);
 }
-.quick .bi {
-  font-size: 1.3rem;
+.now-card:hover {
+  color: var(--nww-text);
 }
-.quick-primary {
-  color: var(--nww-on-primary);
-  background: var(--nww-primary);
+.now-card > .bi {
+  font-size: 1.5rem;
+  color: var(--nww-primary);
 }
-.quick-danger {
-  color: #fff;
-  background: #c0392b;
+.pin-star {
+  color: #d99a00;
+}
+.pin-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  font-weight: 600;
+  color: var(--nww-text);
+  text-decoration: none;
+  background: color-mix(in srgb, var(--zg) 13%, var(--nww-card-bg));
+  border: var(--nww-border-width) solid color-mix(in srgb, var(--zg) 30%, var(--nww-border));
+  border-radius: 999px;
+}
+.pin-chip .bi {
+  color: var(--zg);
+}
+.search {
+  position: relative;
+}
+.search .bi {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--nww-muted);
+  pointer-events: none;
+}
+.search input {
+  min-height: 2.9rem;
+  padding-left: 2.5rem;
+  border-radius: 999px;
 }
 .min-w-0 {
   min-width: 0;

@@ -28,6 +28,8 @@ export interface TripLayout {
   placement: Record<string, TripPhase[]>
   /** Eigene Reihenfolge je Reiter (Modul-Kennungen); nicht genannte folgen in der Standard-Reihenfolge */
   order: Partial<Record<TripPhase, string[]>>
+  /** Ab 2.0: oben auf der Reiseseite angeheftete Bereiche (Modul-Kennungen), in dieser Reihenfolge */
+  pinned: string[]
 }
 
 export const DEFAULT_LAYOUT: TripLayout = {
@@ -39,7 +41,8 @@ export const DEFAULT_LAYOUT: TripLayout = {
   facts: true,
   quick: true,
   placement: {},
-  order: {}
+  order: {},
+  pinned: []
 }
 
 /** Was die Logik von einem Bereich braucht */
@@ -109,6 +112,13 @@ export function normalizeLayout(raw: unknown): TripLayout {
     facts: pick('facts', bool),
     quick: pick('quick', bool),
     placement,
-    order
+    order,
+    pinned: Array.isArray(r.pinned) ? [...new Set(r.pinned.filter((x): x is string => typeof x === 'string'))].slice(0, 12) : []
   }
+}
+
+/** Bereich anheften oder lösen (höchstens 12 angeheftete) */
+export function togglePin(l: TripLayout, id: string): TripLayout {
+  const pinned = l.pinned.includes(id) ? l.pinned.filter((x) => x !== id) : [...l.pinned, id].slice(-12)
+  return { ...l, pinned }
 }

@@ -47,8 +47,8 @@ test('Freie Abstimmung: anlegen, abstimmen als verschiedene Teilnehmer, beenden'
   await page.goto('/#/trip/t1/termine')
   await expect(page.locator('body')).toContainText('Abstimmung endet: Wo essen wir heute?')
   await page.goto('/#/trip/t1')
-  await page.getByText('Planung', { exact: true }).click() // Reise liegt zurück → Seite öffnet „Danach“
-  await expect(page.locator('body')).toContainText('1 offen')
+  await page.locator('[data-group=programm]').click()
+  await expect(page.locator('[data-open-group=programm] [data-section=abstimmung]')).toContainText('1 offen')
 
   await page.goto('/#/trip/t1/abstimmungen')
   await card.getByRole('button', { name: /Mehr zu/ }).click()

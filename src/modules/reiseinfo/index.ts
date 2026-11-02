@@ -15,6 +15,8 @@ export const reiseinfoModule: AppModule = {
   routes: [{ path: '/trip/:tripId/reisehinweise', name: 'reiseinfo', component: () => import('./views/ReiseinfoView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'land',
+    keywords: t('Auswärtiges Amt, Sicherheit, Botschaft, Einreise'),
     title: t('Reisehinweise'),
     icon: 'shield-exclamation',
     to: (tripId) => `/trip/${tripId}/reisehinweise`,

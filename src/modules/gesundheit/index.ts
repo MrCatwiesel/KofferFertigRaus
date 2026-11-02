@@ -18,6 +18,8 @@ export const gesundheitModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'gesundheit',
+    keywords: t('Allergie, Erkrankung, Notfallkarte'),
     title: t('Allergien & Gesundheit'),
     icon: 'heart-pulse',
     to: (tripId) => `/trip/${tripId}/dokumente?tab=gesundheit`,

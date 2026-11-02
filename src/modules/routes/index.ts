@@ -17,6 +17,8 @@ export const routesModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs', 'danach'],
+    group: 'karte',
+    keywords: t('GPX, Wandern, Radtour, Strecke, Route planen'),
     title: t('Routen & Touren'),
     icon: 'signpost-2',
     to: (tripId) => `/trip/${tripId}/routen`,

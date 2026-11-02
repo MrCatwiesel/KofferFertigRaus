@@ -10,6 +10,8 @@ export const shareModule: AppModule = {
   routes: [{ path: '/trip/:tripId/freigabe', name: 'share-links', component: () => import('./views/ShareLinks.vue'), props: true }],
   tripSection: {
     phases: ['teilen'],
+    group: 'erinnern',
+    keywords: t('Lese-Link, Freigabe, Passwort'),
     title: t('Für Freunde freigeben'),
     icon: 'eye',
     to: (tripId) => `/trip/${tripId}/freigabe`,

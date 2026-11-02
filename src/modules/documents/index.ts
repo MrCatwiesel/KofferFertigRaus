@@ -21,6 +21,8 @@ export const documentsModule: AppModule = {
   reminders: async (trip, today) => documentReminders(await documentRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'gesundheit',
+    keywords: t('Pass, Ausweis, Versicherung, Tickets, Notfallkontakte'),
     title: t('Dokumente & Notfall'),
     icon: 'folder2-open',
     to: (tripId) => `/trip/${tripId}/dokumente`,

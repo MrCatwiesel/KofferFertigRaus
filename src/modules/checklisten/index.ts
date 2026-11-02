@@ -18,6 +18,8 @@ export const checklistenModule: AppModule = {
   routes: [{ path: '/trip/:tripId/checklisten', name: 'checklists', component: () => import('./views/ChecklistsView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'packen',
+    keywords: t('Abreise, Haus, erledigen'),
     title: t('Abreise-Checklisten'),
     icon: 'clipboard-check',
     to: (tripId) => `/trip/${tripId}/checklisten`,

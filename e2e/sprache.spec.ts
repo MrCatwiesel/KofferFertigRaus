@@ -21,7 +21,8 @@ test.describe('Englisches Gerät', () => {
     await page.locator('[data-welcome-sample]').click()
     await expect(page).toHaveURL(/#\/trip\/[^/]+$/)
     await expect(page.locator('body')).toContainText('Sample: Lake Garda')
-    await expect(page.locator('body')).toContainText('Planning')
+    await expect(page.locator('body')).toContainText('Important now')
+    await expect(page.locator('[data-group=packen]')).toContainText('Packing & to-dos')
     const tripId = page.url().split('/').pop()!
     await page.goto(`/#/trip/${tripId}/packliste`)
     await expect(page.locator('body')).toContainText('Toothbrush & toothpaste')

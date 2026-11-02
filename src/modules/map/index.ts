@@ -14,6 +14,8 @@ export const mapModule: AppModule = {
   routes: [{ path: '/trip/:tripId/karte', name: 'map', component: () => import('./views/MapView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'karte',
+    keywords: t('Orte, Offline-Karten, Fotos auf der Karte'),
     title: t('Karte'),
     icon: 'map',
     to: (tripId) => `/trip/${tripId}/karte`,

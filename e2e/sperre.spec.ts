@@ -11,6 +11,7 @@ test('App-Sperre: Code, Fehlversuch, Neustart gesperrt, Face ID, ausschalten', a
 
   await seed(page, { trips: [trip()] })
   await page.goto('/#/einstellungen')
+  await page.locator('[data-group=geraet]').click()
   await page.getByRole('link', { name: /App-Sperre/ }).click()
   await page.locator('#p1').fill('2468')
   await page.locator('#p2').fill('2469')

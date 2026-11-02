@@ -19,6 +19,8 @@ export const expensesModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs', 'danach'],
+    group: 'geld',
+    keywords: t('Geld, Kosten, Budget, Abrechnung, Belege, Währung'),
     title: t('Ausgaben'),
     icon: 'wallet2',
     to: (tripId) => `/trip/${tripId}/ausgaben`,

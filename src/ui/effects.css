@@ -1,0 +1,121 @@
+/*
+ * Bewegung (ab 2.0): gewählte Kacheln zoomen heran, Gruppen öffnen sich aus ihrer Kachel – ähnlich Compiz.
+ * Stufe je Gerät unter Einstellungen → Aussehen: html[data-nww-fx="aus|dezent|stark"].
+ * „Bewegung reduzieren“ im Betriebssystem schaltet alles ab.
+ *
+ * Klassen:  .fx-grid  Behälter einer Kachelgruppe (Nachbarn treten zurück)
+ *           .fx-tile  Kachel, die heranzoomt
+ *           .fx-item  Eintrag in einer geöffneten Gruppe (schwebt nacheinander herein)
+ *           .fx-panel geöffnete Gruppe (Vue-Transition „fx-zoom“)
+ */
+.fx-tile {
+  transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s, opacity 0.28s, filter 0.28s;
+}
+.fx-item {
+  transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s;
+}
+
+/* Dezent: leicht vergrößern */
+@media (hover: hover) {
+  [data-nww-fx='dezent'] .fx-tile:hover,
+  [data-nww-fx='dezent'] .fx-tile:focus-visible {
+    transform: scale(1.04);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.14);
+  }
+  [data-nww-fx='dezent'] .fx-item:hover {
+    transform: scale(1.02);
+  }
+}
+[data-nww-fx='dezent'] .fx-tile:active {
+  transform: scale(0.97);
+}
+
+/* Stark: gewählte Kachel groß, Nachbarn treten zurück */
+@media (hover: hover) {
+  [data-nww-fx='stark'] .fx-grid:hover .fx-tile {
+    opacity: 0.6;
+    transform: scale(0.95);
+    filter: saturate(0.55);
+  }
+  [data-nww-fx='stark'] .fx-grid .fx-tile:hover,
+  [data-nww-fx='stark'] .fx-grid .fx-tile:focus-visible {
+    position: relative;
+    z-index: 2;
+    opacity: 1;
+    transform: scale(1.12);
+    filter: none;
+    box-shadow: 0 22px 44px rgba(0, 0, 0, 0.24);
+  }
+  [data-nww-fx='stark'] .fx-item:hover,
+  [data-nww-fx='stark'] .fx-item:focus-visible {
+    transform: scale(1.05);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.18);
+  }
+}
+[data-nww-fx='stark'] .fx-grid .fx-tile:focus-visible {
+  position: relative;
+  z-index: 2;
+  transform: scale(1.12);
+}
+/* Antippen: kurzes Wackeln (auch auf dem iPad, dort gibt es kein „Darüberfahren“) */
+[data-nww-fx='stark'] .fx-tile:active {
+  animation: fx-jelly 0.45s;
+}
+@keyframes fx-jelly {
+  0% { transform: scale(1); }
+  30% { transform: scale(0.94, 1.08); }
+  50% { transform: scale(1.08, 0.96); }
+  70% { transform: scale(0.98, 1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Gruppe öffnet sich aus der Kachel (transform-origin setzt ZoomGroups.vue auf die angetippte Kachel) */
+.fx-zoom-enter-active {
+  animation: fx-zoom-in 0.32s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+.fx-zoom-leave-active {
+  animation: fx-zoom-out 0.22s ease-in both;
+}
+[data-nww-fx='stark'] .fx-zoom-enter-active {
+  animation: fx-zoom-in-stark 0.5s cubic-bezier(0.2, 0.9, 0.25, 1) both;
+}
+@keyframes fx-zoom-in {
+  from { transform: scale(0.25); opacity: 0; border-radius: 2rem; }
+  60% { opacity: 1; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes fx-zoom-in-stark {
+  from { transform: scale(0.22) rotate(-3deg); opacity: 0; border-radius: 3rem; }
+  55% { transform: scale(1.03) rotate(0.5deg); opacity: 1; }
+  78% { transform: scale(0.99); }
+  to { transform: scale(1); }
+}
+@keyframes fx-zoom-out {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.25); opacity: 0; border-radius: 2rem; }
+}
+.fx-zoom-enter-active .fx-item {
+  animation: fx-rise 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.1s + var(--fx-i, 0) * 0.045s);
+}
+@keyframes fx-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.95); }
+}
+
+/* Aus – und für alle, die im Betriebssystem „Bewegung reduzieren“ gewählt haben */
+[data-nww-fx='aus'] .fx-tile,
+[data-nww-fx='aus'] .fx-item,
+[data-nww-fx='aus'] .fx-panel,
+[data-nww-fx='aus'] .fx-panel * {
+  animation: none !important;
+  transition: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fx-tile,
+  .fx-item,
+  .fx-panel,
+  .fx-panel * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -13,6 +13,8 @@ export const piwigoModule: AppModule = {
   routes: [{ path: '/trip/:tripId/piwigo', name: 'piwigo-trip', component: () => import('./views/PiwigoTrip.vue'), props: true }],
   tripSection: {
     phases: ['danach', 'teilen'],
+    group: 'erinnern',
+    keywords: t('Galerie, Fotos hochladen'),
     title: t('Fotos in Piwigo'),
     icon: 'images',
     to: (tripId) => `/trip/${tripId}/piwigo`,

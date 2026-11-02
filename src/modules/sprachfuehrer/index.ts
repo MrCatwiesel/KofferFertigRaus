@@ -12,6 +12,8 @@ export const sprachfuehrerModule: AppModule = {
   routes: [{ path: '/trip/:tripId/sprachfuehrer', name: 'phrasebook', component: () => import('./views/PhrasebookView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'land',
+    keywords: t('Sätze, Übersetzung, Vokabeln'),
     title: t('Sprachführer'),
     icon: 'translate',
     to: (tripId) => `/trip/${tripId}/sprachfuehrer`,

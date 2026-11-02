@@ -15,6 +15,8 @@ export const unwetterModule: AppModule = {
   routes: [{ path: '/trip/:tripId/unwetter', name: 'unwetter', component: () => import('./views/UnwetterView.vue'), props: true }],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'land',
+    keywords: t('Warnung, Sturm, Gewitter, MeteoAlarm'),
     title: t('Unwetterwarnungen'),
     icon: 'cloud-lightning-rain',
     to: (tripId) => `/trip/${tripId}/unwetter`,

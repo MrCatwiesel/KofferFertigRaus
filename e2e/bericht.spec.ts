@@ -12,8 +12,9 @@ test('Reisebericht: Seiten, Optionen, Drucken', async ({ page }) => {
     ],
     routes: [route({ date: '2026-07-02' })]
   })
-  await page.goto('/#/trip/t1?bereich=danach')
-  await page.locator('.nww-tile[data-section=report]').click()
+  // Reise liegt zurück → „Jetzt wichtig“ bietet den Bericht an
+  await page.goto('/#/trip/t1')
+  await page.locator('[data-now-card=report]').click()
   const report = page.locator('article.report')
   await expect(report.locator('.r-title')).toHaveText('Großglockner')
   await expect(report).toContainText('Tag 2')

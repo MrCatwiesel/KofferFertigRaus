@@ -113,7 +113,8 @@ test('Hilfe: „?“ führt zum passenden Thema, Verweise, Suche, Was ist neu', 
 
   // Einstellungen → Hilfe
   await page.goto('/#/einstellungen')
-  await page.locator('[data-settings-help]').click()
+  await page.locator('[data-group=hilfe]').click()
+  await page.locator('[data-open-group=hilfe] [data-section=hilfe] a').click()
   await expect(page).toHaveURL(/#\/hilfe$/)
 })
 

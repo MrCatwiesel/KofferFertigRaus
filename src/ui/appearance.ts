@@ -55,6 +55,15 @@ export interface AppearanceSettings {
   textSize: TextSize
   corners: Corners
   layout: TripLayout
+  /** Bewegung: gewählte Kacheln zoomen heran, Gruppen öffnen sich aus der Kachel (ab 2.0) */
+  effects: Effects
+}
+
+export type Effects = 'aus' | 'dezent' | 'stark'
+export const EFFECTS: Record<Effects, { label: string; hint: string }> = {
+  aus: { label: t('Aus'), hint: t('Keine Bewegung') },
+  dezent: { label: t('Dezent'), hint: t('Leichtes Heranzoomen, schnelle Übergänge') },
+  stark: { label: t('Stark'), hint: t('Kräftiger Zoom, Nachbarn treten zurück, Gruppen federn auf') }
 }
 
 export const DEFAULT_SETTINGS: AppearanceSettings = {
@@ -69,7 +78,8 @@ export const DEFAULT_SETTINGS: AppearanceSettings = {
   pattern: 100,
   textSize: 'normal',
   corners: 'stil',
-  layout: DEFAULT_LAYOUT
+  layout: DEFAULT_LAYOUT,
+  effects: 'stark'
 }
 
 export const TEXT_SIZES: Record<TextSize, { label: string; percent: number }> = {
@@ -107,7 +117,8 @@ export function normalizeSettings(raw: unknown): AppearanceSettings {
     pattern: clamp(s.pattern, 0, 200, d.pattern),
     textSize: oneOf(s.textSize, Object.keys(TEXT_SIZES) as TextSize[], d.textSize),
     corners: oneOf(s.corners, Object.keys(CORNERS) as Corners[], d.corners),
-    layout: normalizeLayout(s.layout)
+    layout: normalizeLayout(s.layout),
+    effects: oneOf(s.effects, ['aus', 'dezent', 'stark'] as const, d.effects)
   }
 }
 
@@ -134,9 +145,9 @@ export function currentSettings(): AppearanceSettings {
 /** Ein Teil zurück auf Standard */
 export function resetSettings(part: 'design' | 'hintergrund' | 'reiseseite'): void {
   const d = DEFAULT_SETTINGS
-  if (part === 'design') Object.assign(appearance, { theme: d.theme, mode: d.mode, textSize: d.textSize, corners: d.corners })
+  if (part === 'design') Object.assign(appearance, { theme: d.theme, mode: d.mode, textSize: d.textSize, corners: d.corners, effects: d.effects })
   if (part === 'hintergrund') Object.assign(appearance, { background: d.background, cover: d.cover, veil: d.veil, blur: d.blur, saturate: d.saturate, cards: d.cards, pattern: d.pattern })
-  if (part === 'reiseseite') appearance.layout = JSON.parse(JSON.stringify(DEFAULT_LAYOUT))
+  if (part === 'reiseseite') appearance.layout = { ...JSON.parse(JSON.stringify(DEFAULT_LAYOUT)), pinned: appearance.layout.pinned } // Angeheftetes bleibt
 }
 
 const media = typeof window !== 'undefined' ? window.matchMedia('(prefers-color-scheme: dark)') : null
@@ -158,6 +169,7 @@ function apply() {
   html.style.fontSize = `${TEXT_SIZES[appearance.textSize].percent * (t.scale ?? 1)}%`
   html.setAttribute('data-bs-theme', appearance.dark ? 'dark' : 'light')
   html.setAttribute('data-nww-style', t.id)
+  html.setAttribute('data-nww-fx', appearance.effects)
   html.setAttribute('data-nww-tile', t.tile)
   html.setAttribute('data-nww-shadow', t.shadow)
   html.toggleAttribute('data-nww-upper', !!t.heading.upper)

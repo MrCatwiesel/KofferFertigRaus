@@ -20,6 +20,8 @@ export const activityModule: AppModule = {
   reminders: async (trip, today) => activityReminders(await activityRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'programm',
+    keywords: t('Ausflug, Idee, Sehenswürdigkeit, Restaurant'),
     title: t('Unternehmungen'),
     icon: 'star',
     to: (tripId) => `/trip/${tripId}/unternehmungen`,

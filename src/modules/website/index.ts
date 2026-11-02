@@ -15,6 +15,8 @@ export const websiteModule: AppModule = {
   ],
   tripSection: {
     phases: ['teilen'],
+    group: 'erinnern',
+    keywords: t('Webseite, Familie, Freunde'),
     title: t('Reise-Webseite'),
     icon: 'globe2',
     to: (tripId) => `/trip/${tripId}/webseite`,

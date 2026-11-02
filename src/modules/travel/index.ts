@@ -20,6 +20,8 @@ export const travelModule: AppModule = {
   reminders: async (trip) => travelReminders(await travelRepository.listByTrip(trip.id), trip),
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'anreise',
+    keywords: t('Flug, Zug, Fähre, Auto, Anreise, Rückreise'),
     title: t('An- und Rückreise'),
     icon: 'signpost-split',
     to: (tripId) => `/trip/${tripId}/anreise`,

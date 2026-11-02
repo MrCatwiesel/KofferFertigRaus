@@ -4,8 +4,8 @@ import { seed, trip } from './helpers'
 test('Länder-Spickzettel: Zielland, Durchreise hinzufügen und entfernen', async ({ page }) => {
   await seed(page, { trips: [trip({ countries: ['IT'], transport: 'auto' })] })
   await page.goto('/#/trip/t1')
-  await page.getByText('Planung', { exact: true }).click() // Reise liegt zurück → Seite öffnet „Danach“
-  await expect(page.locator('body')).toContainText('Länder-Spickzettel')
+  await page.locator('[data-group=land]').click()
+  await expect(page.locator('[data-open-group=land]')).toContainText('Länder-Spickzettel')
   await expect(page.locator('body')).toContainText('Italien: Notruf 112')
 
   await page.goto('/#/trip/t1/laender')

@@ -4,7 +4,7 @@ import { nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import ThemePreview from './ThemePreview.vue'
 import TripLayoutEditor from './TripLayoutEditor.vue'
-import { CORNERS, TEXT_SIZES, appearance, resetSettings, setBackground, type ColorMode, type Corners, type TextSize, type Veil } from './appearance'
+import { CORNERS, EFFECTS, TEXT_SIZES, appearance, resetSettings, setBackground, type ColorMode, type Corners, type Effects, type TextSize, type Veil } from './appearance'
 import { THEMES, getTheme } from './themes'
 import { t } from '@/i18n'
 
@@ -21,6 +21,7 @@ const veils: { id: Veil; label: string }[] = [
 ]
 const textSizes = Object.entries(TEXT_SIZES) as [TextSize, (typeof TEXT_SIZES)[TextSize]][]
 const corners = Object.entries(CORNERS) as [Corners, (typeof CORNERS)[Corners]][]
+const effects = Object.entries(EFFECTS) as [Effects, (typeof EFFECTS)[Effects]][]
 
 /** Schnell-Einstellungen für den Hintergrund */
 const PRESETS = [
@@ -109,6 +110,14 @@ onMounted(async () => {
           <select id="corners" v-model="appearance.corners" class="form-select form-select-sm w-auto">
             <option v-for="[id, c] in corners" :key="id" :value="id">{{ c.label }}</option>
           </select>
+        </div>
+        <div id="teil-effekte" class="col-12">
+          <div class="small fw-semibold mb-1">{{ t('Effekte') }}</div>
+          <div class="btn-group btn-group-sm" role="group" :aria-label="t('Effekte')">
+            <button v-for="[id, e] in effects" :key="id" type="button" class="btn" :class="appearance.effects === id ? 'btn-primary' : 'btn-outline-primary'"
+                    :aria-pressed="appearance.effects === id" :data-effects="id" @click="appearance.effects = id">{{ e.label }}</button>
+          </div>
+          <div class="form-text">{{ EFFECTS[appearance.effects].hint }}. {{ t('Ist am Gerät „Bewegung reduzieren“ eingeschaltet, bleibt alles ruhig.') }}</div>
         </div>
       </div>
       <button type="button" class="btn btn-link btn-sm px-0 mt-2" @click="resetSettings('design')">{{ t('Design zurücksetzen') }}</button>

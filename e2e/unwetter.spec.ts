@@ -36,7 +36,8 @@ test('Warnungen für die Orte der Reise, Region beobachten, ganzes Land, aus', a
 
   // Kurzfassung auf der Reiseseite
   await page.goto('/#/trip/uw1')
-  await expect(page.locator('body')).toContainText('2 Warnungen · Orange: Gewitter')
+  await page.locator('[data-group=land]').click()
+  await expect(page.locator('[data-open-group=land] [data-section=unwetter]')).toContainText('2 Warnungen · Orange: Gewitter')
   // Hinweis im Tagesplaner (heute)
   await page.goto(`/#/trip/uw1/tagesplan?tag=${localDate(0)}`)
   await expect(page.locator('[data-warning-banner]')).toContainText('Orange: Gewitter')

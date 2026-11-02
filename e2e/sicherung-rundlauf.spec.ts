@@ -25,7 +25,7 @@ test('App-Sicherung: Export mit Fotos, Daten weg, Einlesen stellt alles wieder h
   )
 
   // 1. Exportieren (mit Fotos)
-  await page.goto('/#/einstellungen')
+  await page.goto('/#/einstellungen/daten')
   await page.locator('#photos').check()
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Backup exportieren' }).click()])
   const path = await download.path()
@@ -47,7 +47,7 @@ test('App-Sicherung: Export mit Fotos, Daten weg, Einlesen stellt alles wieder h
   await expect(page.getByText('Großglockner')).toHaveCount(0)
 
   // 3. Einlesen
-  await page.goto('/#/einstellungen')
+  await page.goto('/#/einstellungen/daten')
   await page.locator('input[type=file][accept="application/json"]').setInputFiles({ name: 'sicherung.json', mimeType: 'application/json', buffer: Buffer.from(file) })
   await expect(page.getByText(/Backup eingelesen/)).toBeVisible()
 

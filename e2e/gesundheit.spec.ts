@@ -38,7 +38,9 @@ test.describe('Gesundheit & Notfall', () => {
     // Kachel auf der Reiseseite, Notfall-Knopf in der Kopfzeile (Reise läuft)
     await page.goto('/#/trip/t1')
     await page.reload() // Daten kamen am Dexie vorbei in die Datenbank – die Kopfzeile lädt sie erst neu
-    await expect(page.locator('body')).toContainText('Birgit: Penicillin, Nimmt Blutverdünner, Diabetes')
+    await page.locator('[data-group=gesundheit]').click()
+    await expect(page.locator('[data-open-group=gesundheit] [data-section=gesundheit]')).toContainText('Birgit: Penicillin, Nimmt Blutverdünner, Diabetes')
+    await page.locator('[data-group-close]').click()
     await page.locator('[data-emergency-button]').click()
     await expect(page).toHaveURL(/#\/trip\/t1\/sos/)
     await expect(page.locator('[data-emergency-button]')).toHaveCount(0) // auf der Notfall-Seite selbst nicht
@@ -90,9 +92,10 @@ test.describe('Gesundheit & Notfall', () => {
     await expect(page).toHaveURL(/#\/trip\/t1\/sprachfuehrer\?sprache=it/)
     await expect(page.locator('[data-allergy-text]')).toContainText('penicillina')
 
-    // Großer Knopf „Notfall“ auf der Reiseseite
+    // Notfall-Seite auch über die Gruppe „Gesundheit & Papiere“
     await page.goto('/#/trip/t1')
-    await page.locator('[data-quick-sos]').click()
+    await page.locator('[data-group=gesundheit]').click()
+    await page.locator('[data-open-group=gesundheit] [data-section=sos] a').click()
     await expect(page).toHaveURL(/#\/trip\/t1\/sos/)
   })
 

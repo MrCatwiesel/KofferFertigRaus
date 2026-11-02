@@ -15,6 +15,8 @@ export function buildRouter() {
     { path: '/einstellungen', name: 'settings', component: () => import('./views/SettingsView.vue') },
     { path: '/einstellungen/sperre', name: 'lock', component: () => import('./views/LockSettings.vue') },
     { path: '/einstellungen/aussehen', name: 'appearance', component: () => import('@/ui/AppearanceView.vue') },
+    { path: '/einstellungen/daten', name: 'data', component: () => import('./views/DataView.vue') },
+    { path: '/einstellungen/info', name: 'about', component: () => import('./views/AboutView.vue') },
     { path: '/abgleich', name: 'sync', component: () => import('./views/SyncSettings.vue') },
     { path: '/gruppen', name: 'groups', component: () => import('./views/GroupsAdmin.vue') },
     { path: '/piwigo', name: 'piwigo-settings', component: () => import('./views/PiwigoSettings.vue') },

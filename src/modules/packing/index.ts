@@ -18,6 +18,8 @@ export const packingModule: AppModule = {
   reminders: async (trip, today) => packingReminders(await packingRepository.listByTrip(trip.id), trip, today),
   tripSection: {
     phases: ['planung'],
+    group: 'packen',
+    keywords: t('Koffer, packen, Vorlagen'),
     title: t('Packliste'),
     icon: 'backpack',
     to: (tripId) => `/trip/${tripId}/packliste`,

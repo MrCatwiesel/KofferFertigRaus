@@ -17,6 +17,8 @@ export const journalModule: AppModule = {
   ],
   tripSection: {
     phases: ['unterwegs', 'danach', 'teilen'],
+    group: 'erinnern',
+    keywords: t('Tagebuch, Fotos, Sprachnotiz, Erinnerungen'),
     title: t('Reisetagebuch'),
     icon: 'journal-richtext',
     to: (tripId) => `/trip/${tripId}/tagebuch`,

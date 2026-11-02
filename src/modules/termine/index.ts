@@ -21,6 +21,8 @@ export const termineModule: AppModule = {
   ],
   tripSection: {
     phases: ['planung', 'unterwegs'],
+    group: 'programm',
+    keywords: t('Frist, Storno, Kalender, Erinnerung'),
     title: t('Termine & Fristen'),
     icon: 'calendar-check',
     to: (tripId) => `/trip/${tripId}/termine`,

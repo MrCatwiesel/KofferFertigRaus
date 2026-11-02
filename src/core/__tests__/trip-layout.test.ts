@@ -48,3 +48,17 @@ describe('Aufteilung der Reiseseite', () => {
     expect(l.order).toEqual({ planung: ['a'] })
   })
 })
+
+describe('Angeheftet (ab 2.0)', () => {
+  it('anheften, lösen, höchstens 12; Normalisieren verträgt Unsinn', async () => {
+    const { togglePin, normalizeLayout, DEFAULT_LAYOUT } = await import('../trip-layout')
+    let l = togglePin(DEFAULT_LAYOUT, 'packing')
+    l = togglePin(l, 'map')
+    expect(l.pinned).toEqual(['packing', 'map'])
+    expect(togglePin(l, 'packing').pinned).toEqual(['map'])
+    for (let i = 0; i < 20; i++) l = togglePin(l, `m${i}`)
+    expect(l.pinned).toHaveLength(12)
+    expect(normalizeLayout({ pinned: ['a', 'a', 3, 'b'] }).pinned).toEqual(['a', 'b'])
+    expect(normalizeLayout({}).pinned).toEqual([])
+  })
+})

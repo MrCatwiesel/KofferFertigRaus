@@ -10,6 +10,8 @@ export const reportModule: AppModule = {
   routes: [{ path: '/trip/:tripId/bericht', name: 'report', component: () => import('./views/ReportView.vue'), props: true }],
   tripSection: {
     phases: ['danach', 'teilen'],
+    group: 'erinnern',
+    keywords: t('PDF, Fotobuch, Drucken'),
     title: t('Reisebericht & Fotobuch (PDF)'),
     icon: 'file-earmark-richtext',
     to: (tripId) => `/trip/${tripId}/bericht`,
